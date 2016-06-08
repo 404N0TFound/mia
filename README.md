@@ -7,4 +7,10 @@
 2. 更新composer依赖，命令如下
 	composer update
 
-3. 增加nginx配置，注意根目录为 src/webroot 
+3. 增加nginx配置，注意根目录为 src/webroot，不完整示例如下：
+    server {
+        listen 80;
+        server_name XXXservice.miyabaobei.com;
+        root /yourpath/src/webroot;
+        index service.php/web.php; #service.php内网服务，web.php外网服务
+    }
