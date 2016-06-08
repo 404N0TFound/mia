@@ -1,0 +1,31 @@
+{
+    "name": "mia/miagroup",
+    "description": "",
+    "version": "0.0.1-dev",
+    "type": "library",
+    "require": {
+        "Ice/Framework": ">=0.0.1-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "mia\\miagroup\\Action\\":  "src/action",
+            "mia\\miagroup\\Service\\": "src/service",
+            "mia\\miagroup\\Daemon\\":  "src/daemon",
+            "mia\\miagroup\\Lib\\":     "src/lib",
+            "mia\\miagroup\\Model\\":     "src/model"
+        }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:goosman-lei/ice.git"
+        },
+        {
+            "packagist": false
+        },
+        {
+            "type": "composer",
+            "url": "https://packagist.phpcomposer.com"
+        }
+    ]
+}
