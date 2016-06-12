@@ -11,17 +11,30 @@ $pool = array(
             'warn_sql_length' => 51200,
             'fatal_sql_length' => 2097152,
         ),
-        'demo' => array(
+        'miagroup' => array(
             'master' => array(
-                array('host' => '127.0.0.1', 'port' => 3306),
+                array(
+                    'host' => '172.16.104.207', 
+                    'port' => 3307, 
+                    'options' => array(
+                        'user' => 'write_user', 
+                        'passwd' => 'write_pwd'
+                    ),
+                )
             ),
             'slave' => array(
-                array('host' => '127.0.0.1', 'port' => 3306),
+                array(
+                    'host' => '172.16.104.207', 
+                    'port' => 3307, 
+                    'options' => array(
+                        'user' => 'write_user', 
+                        'passwd' => 'write_pwd'
+                    ),
+                )
             ),
             'options' => array(
                 'timeout' => 1,
-                'user'    => '',
-                'passwd'  => '',
+                'dbname'  => 'mia_test2',
             ),
         ),
     ),

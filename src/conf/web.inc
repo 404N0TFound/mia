@@ -86,6 +86,10 @@ demo: array(
 */
 $web_routes = array(
     'default' => '\\Ice\\Frame\\Web\\Router\\RStatic',
+    'i= /say/helloworld' => array(
+        'class'  => 'Say',
+        'action' => 'Helloworld',
+    )
 );
 
 $web_temp_engine = array(

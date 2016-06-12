@@ -2,8 +2,15 @@
 namespace mia\miagroup\Action\Say;
 class Helloworld extends \FW_Action {
     public function execute() {
-        $userModel = new \mia\miagroup\Model\User();
-        $uinfo = $userModel->getRow(array('id', '1'), 'id, name, location');
+//         $sayService = new \mia\miagroup\Service\Say();
+//         $result = $sayService->hello('jack');
+//         var_dump($result);exit;
+        
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $result = $subjectService->hello('sd');
+        var_dump($result);exit;
+        
+        /*
         $client = $this->ice->mainApp->proxy_service->get('demo-local', 'Say');
         return $this->ice->mainApp->proxy_filter->get('(map){
             code(int);
@@ -28,6 +35,6 @@ class Helloworld extends \FW_Action {
                 'service' => $client->hello('Jack'),
                 'user'    => $uinfo,
             ),
-        ));
+        ));*/
     }
 }

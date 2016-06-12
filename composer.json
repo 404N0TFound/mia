@@ -12,7 +12,16 @@
             "mia\\miagroup\\Service\\": "src/service",
             "mia\\miagroup\\Daemon\\":  "src/daemon",
             "mia\\miagroup\\Lib\\":     "src/lib",
-            "mia\\miagroup\\Model\\":     "src/model"
+            "mia\\miagroup\\Model\\":     "src/model",
+            "mia\\miagroup\\Data\\":     "src/data",
+            "mia\\miagroup\\Data\\Subject\\":     "src/data/subject",
+            "mia\\miagroup\\Data\\Comment\\":     "src/data/comment",
+            "mia\\miagroup\\Data\\Koubei\\":     	"src/data/koubei",
+            "mia\\miagroup\\Data\\Praise\\":     	"src/data/praise",
+            "mia\\miagroup\\Data\\Product\\":     "src/data/product",
+            "mia\\miagroup\\Data\\User\\":        "src/data/user",
+            "mia\\miagroup\\Data\\Tag\\":    	    "src/data/tag",
+            "mia\\miagroup\\Data\\Relation\\":    "src/data/relation"
         }
     },
     "repositories": [

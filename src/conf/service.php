@@ -3,8 +3,8 @@ $pool = array(
     'demo-local' => array(
         'proxy'  => 'local',
         'config' => array(
-            'project_group' => 'ice',
-            'project_name'  => 'demo_service',
+            'project_group' => 'mia',
+            'project_name'  => 'miagroup',
         ),
     ),
     'demo-remote' => array(
