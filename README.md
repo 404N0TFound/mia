@@ -14,3 +14,7 @@
         root /yourpath/src/webroot;
         index service.php/web.php; #service.php内网服务，web.php外网服务
     }
+    
+框架常用方法：
+◆ 获取配置
+$config = \F_Ice::$ins->workApp->config->get('busconf.qiniu');

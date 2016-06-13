@@ -5,9 +5,8 @@ class Helloworld extends \FW_Action {
 //         $sayService = new \mia\miagroup\Service\Say();
 //         $result = $sayService->hello('jack');
 //         var_dump($result);exit;
-        
         $subjectService = new \mia\miagroup\Service\Subject();
-        $result = $subjectService->hello('sd');
+        $result = $subjectService->getBatchSubjectInfos();
         var_dump($result);exit;
         
         /*
