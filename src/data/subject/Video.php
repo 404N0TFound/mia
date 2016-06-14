@@ -3,7 +3,7 @@ namespace mia\miagroup\Data\Subject;
 use Ice;
 class Video extends \DB_Query {
     protected $dbResource = 'miagroup';
-    protected $tableName = 'group_subjects';
+    protected $tableName = 'group_subject_video';
     protected $mapping   = array(
         'id'                => 'i',
         'subject_id'        => 'i',
@@ -22,7 +22,6 @@ class Video extends \DB_Query {
         if (empty($videoIds)) {
             return array();
         }
-        $videoIds = implode(',', $videoIds);
         $where = array();
         $where[] = array(':in', 'id', $videoIds);
         $videoArr = $this->getRows($where);
