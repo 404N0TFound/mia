@@ -13,6 +13,7 @@
             "mia\\miagroup\\Service\\":     "src/service",
             "mia\\miagroup\\Daemon\\":      "src/daemon",
             "mia\\miagroup\\Lib\\":         "src/lib",
+            "mia\\miagroup\\Util\\":         "src/util",
             "mia\\miagroup\\Model\\":       "src/model",
             "mia\\miagroup\\Data\\":        "src/data",
             "mia\\miagroup\\Data\\Subject\\":   "src/data/subject",
