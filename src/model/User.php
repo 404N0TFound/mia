@@ -6,32 +6,33 @@ use mia\miagroup\Data\User\GroupSubjectUserExperts;
 use mia\miagroup\Data\User\AppDeviceToken as AppDeviceTokenData;
 
 class User {
-    
+
     /**
      * 批量获取用户信息
-     * @param type $user_ids
+     *
+     * @param type $user_ids            
      * @return type
      */
-    public function getUserInfoByIds($user_ids){
+    public function getUserInfoByIds($user_ids) {
         $userData = new UserData();
         return $userData->getUserInfoByIds($user_ids);
     }
     
-    //批量获取专家信息
+    // 批量获取专家信息
     public function getBatchExpertInfoByUids($userIds) {
-	$userExperts = new GroupSubjectUserExperts();
-	$data = $userExperts->getBatchExpertInfoByUids($userIds);
-	return $data;
+        $userExperts = new GroupSubjectUserExperts();
+        $data = $userExperts->getBatchExpertInfoByUids($userIds);
+        return $data;
     }
-    
+
     /**
      * 根据userid 获取是否需要发送push
-     * @param type $userIds
+     *
+     * @param type $userIds            
      */
-    public function getPushSwitchByUserIds($userIds){
-	$app_device_token_data = new AppDeviceTokenData();
-	$data = $app_device_token_data->getPushSwitchByUserIds($userIds);
-	return $data;
+    public function getPushSwitchByUserIds($userIds) {
+        $app_device_token_data = new AppDeviceTokenData();
+        $data = $app_device_token_data->getPushSwitchByUserIds($userIds);
+        return $data;
     }
-    
 }
