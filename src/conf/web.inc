@@ -89,6 +89,10 @@ $web_routes = array(
     'i= /say/helloworld' => array(
         'class'  => 'Say',
         'action' => 'Helloworld',
+    ),
+     'i= /user/user' => array(
+        'class'  => 'user',
+        'action' => 'user',
     )
 );
 

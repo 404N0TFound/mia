@@ -29,3 +29,7 @@ $runner = array(
     ),
 );
 
+$url = [
+    'img_url'=>'http://img.miyabaobei.com/',
+];
+

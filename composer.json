@@ -4,7 +4,8 @@
     "version": "0.0.1-dev",
     "type": "library",
     "require": {
-        "Ice/Framework": ">=0.0.1-dev"
+        "Ice/Framework": ">=0.0.1-dev",
+        "qiniu/php-sdk": "^7.0"
     },
     "autoload": {
         "psr-4": {

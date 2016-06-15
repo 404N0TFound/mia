@@ -35,4 +35,34 @@ class SubjectLabel extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 判断标签记录是否存在(用于图片发布，避免主辅库不同步，从主库查)
+     * @param string $labelTitle 标签标题
+     * @return bool
+     */
+    public function checkIsExistByLabelTitle($labelTitle){
+        $labelTitle = md5($labelTitle);
+	
+        $where[] = array("title_md5",$labelTitle);
+	$LabelRes = $this->getRow($where);
+	
+        return $LabelRes;
+    }
+    
+    /**
+     * 保存蜜芽圈标签
+     * @param array  $labelInfo 标签信息
+     * @return int 标签id
+     */
+    public function addLabel($labelTitle){
+
+        $labelTitleMd5 = md5($labelTitle);
+	$setData = ['title_md5'=>$labelTitleMd5];
+        $LabelId = $this->insert($setData);
+	
+        return $LabelId;
+    }
+    
+    
 }
