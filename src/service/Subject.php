@@ -28,7 +28,7 @@ class Subject extends \FS_Service {
      * 'praise_info', 'share_info'
      */
     public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info'), $status = array()) {
-        if (empty($subjectIds) || ! is_array($subjectIds)) {
+        if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
         // 获取帖子基本信息
@@ -46,10 +46,7 @@ class Subject extends \FS_Service {
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
-            $userArr = $this->userService->getUserInfoByUids($userIds, $currentUid, array(
-                "relation",
-                "count"
-            ))['data'];
+            $userArr = $this->userService->getUserInfoByUids($userIds, $currentUid, array("relation", "count"))['data'];
         }
         // //获取评论信息
         // if (in_array('comment', $field)) {
@@ -76,7 +73,7 @@ class Subject extends \FS_Service {
         $subjectRes = array();
         // 拼装结果集
         foreach ($subjectIds as $subjectId) {
-            if (! empty($subjectInfos[$subjectId])) {
+            if (!empty($subjectInfos[$subjectId])) {
                 $subjectInfo = $subjectInfos[$subjectId];
             } else {
                 continue;
@@ -91,9 +88,9 @@ class Subject extends \FS_Service {
             $imageUrl = array();
             $smallImageUrl = array();
             $bigImageUrl = array();
-            if (! empty($subjectInfo['image_url']) && empty($subjectInfo['ext_info'])) {
+            if (!empty($subjectInfo['image_url']) && empty($subjectInfo['ext_info'])) {
                 $imageUrlArr = explode("#", $subjectInfo['image_url']);
-                if (! empty($imageUrlArr[0])) {
+                if (!empty($imageUrlArr[0])) {
                     foreach ($imageUrlArr as $k => $image) {
                         $pathInfo = pathinfo($image);
                         $smallImage = $pathInfo['dirname'] . "/" . $pathInfo['filename'] . "_small." . $pathInfo['extension'];
@@ -108,9 +105,9 @@ class Subject extends \FS_Service {
                     }
                 }
             }
-            if (! empty($subjectInfo['ext_info'])) {
+            if (!empty($subjectInfo['ext_info'])) {
                 $imageInfos = json_decode(trim(stripslashes($subjectInfo['ext_info']), '"'), true);
-                if (is_array($imageInfos['image']) && ! empty($imageInfos['image'])) {
+                if (is_array($imageInfos['image']) && !empty($imageInfos['image'])) {
                     foreach ($imageInfos['image'] as $key => $image) {
                         $pathInfo = pathinfo($image['url']);
                         $small_image_url = $pathInfo['dirname'] . "/" . $pathInfo['filename'] . "_small." . $pathInfo['extension'];
@@ -149,29 +146,24 @@ class Subject extends \FS_Service {
                 $share = $this->config->item('group_share', 'group');
                 $this->config->load('mobile_app');
                 $shareUrl = $this->config->item('group_share');
-                $shareTitle = ! empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : '';
-                $shareDesc = ! empty($subjectInfo['text']) ? $subjectInfo['text'] : "超过20万妈妈正在蜜芽圈热聊，快来看看~";
+                $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : '';
+                $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : "超过20万妈妈正在蜜芽圈热聊，快来看看~";
                 // print_r($imageUrl);exit;
                 // $shareImage = "http://o6ov54mbs.bkt.clouddn.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png";
                 
-                if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && ! empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
+                if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
                     $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
                 } else {
                     $shareImage = 'http://o6ov54mbs.bkt.clouddn.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png';
                 }
                 
                 // 替换搜索关联数组
-                $replace = array(
-                    '{|title|}' => $shareTitle,
-                    '{|desc|}' => $shareDesc,
-                    '{|image_url|}' => $shareImage,
-                    '{|wap_url|}' => sprintf($shareUrl['subject_wap_url'], $subjectInfo['id'])
-                );
+                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareUrl['subject_wap_url'], $subjectInfo['id']));
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
                     // $share[$keys] = $this->_buildGroupShare($sh, $replace);
                     $share[$keys]['share_img_list'] = array();
-                    if (! empty($subjectRes[$subjectInfo['id']]['image_url'])) {
+                    if (!empty($subjectRes[$subjectInfo['id']]['image_url'])) {
                         $share[$keys]['share_img_list'] = $subjectRes[$subjectInfo['id']]['image_url'];
                     }
                 }
@@ -206,7 +198,7 @@ class Subject extends \FS_Service {
             return false;
         }
         $subjectSetInfo = array();
-        if (! isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
+        if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
             return false;
         }
         // 添加视频
@@ -238,7 +230,7 @@ class Subject extends \FS_Service {
         // ext_info保存帖子的图片信息（v4.1）
         $imageInfo = array();
         $imgUrl = array();
-        if (isset($subjectInfo['image_infos']) && ! empty($subjectInfo['image_infos'])) {
+        if (isset($subjectInfo['image_infos']) && !empty($subjectInfo['image_infos'])) {
             foreach ($subjectInfo['image_infos'] as $image) {
                 $imgUrl[] = $image['url'];
                 $imageInfo['image'][] = $image;
@@ -253,7 +245,7 @@ class Subject extends \FS_Service {
         $insertSubjectRes = $this->subjectModel->addSubject($subjectSetInfo);
         unset($subjectSetInfo['image_url']);
         unset($subjectSetInfo['ext_info']);
-        if (! $insertSubjectRes) {
+        if (!$insertSubjectRes) {
             // rollback
             return $this->succ();
         }
@@ -261,19 +253,14 @@ class Subject extends \FS_Service {
         $subjectId = $insertSubjectRes;
         if ($videoId > 0) {
             // 更新视频的subject_id
-            $this->updateSubjectVideo(array(
-                'id' => $videoId,
-                'subject_id' => $subjectId
-            ));
-            $videoInfo = $this->getBatchVideoInfos(array(
-                $videoId
-            ), 'm3u8')['data'];
+            $this->updateSubjectVideo(array('id' => $videoId, 'subject_id' => $subjectId));
+            $videoInfo = $this->getBatchVideoInfos(array($videoId), 'm3u8')['data'];
             $subjectSetInfo['video_info'] = $videoInfo[$videoId] ? $videoInfo[$videoId] : (object) array();
         }
         // 图片逻辑更改 by 4.1
         $subjectSetInfo['image_infos'] = array();
         $subjectSetInfo['small_image_url'] = array();
-        if (! empty($subjectInfo['image_infos'])) {
+        if (!empty($subjectInfo['image_infos'])) {
             foreach ($subjectInfo['image_infos'] as $key => $image) {
                 $pathInfo = pathinfo($image['url']);
                 $small_image_url = $pathInfo['dirname'] . "/" . $pathInfo['filename'] . "_small." . $pathInfo['extension'];
@@ -293,7 +280,7 @@ class Subject extends \FS_Service {
         // end赠送用户蜜豆
         
         // 添加蜜芽圈标签
-        if (! empty($labelInfos)) {
+        if (!empty($labelInfos)) {
             $labelArr = array();
             foreach ($labelInfos as $key => $labelInfo) {
                 unset($labelInfo['selected']);
@@ -304,12 +291,7 @@ class Subject extends \FS_Service {
                 $labelInfo['create_time'] = $subjectSetInfo['created'];
                 $labelInfo['user_id'] = intval($subjectSetInfo['user_id']);
                 $savelab = $labelInfo['title'];
-                $labelRelationSetInfo = array(
-                    "subject_id" => $subjectId,
-                    "label_id" => 0,
-                    "create_time" => $subjectSetInfo['created'],
-                    "user_id" => $subjectInfo['user_info']['user_id']
-                );
+                $labelRelationSetInfo = array("subject_id" => $subjectId, "label_id" => 0, "create_time" => $subjectSetInfo['created'], "user_id" => $subjectInfo['user_info']['user_id']);
                 if (isset($labelInfo['id']) && $labelInfo['id'] > 0) {
                     $labelRelationSetInfo['label_id'] = $labelInfo['id'];
                 } else {
@@ -327,7 +309,7 @@ class Subject extends \FS_Service {
                 
                 // 保存图片标签关系信息
                 $insertstatus = $this->labelService->saveLabelRelation($labelRelationSetInfo)['data'];
-                if (! $insertstatus) {
+                if (!$insertstatus) {
                     // 保存日志
                 }
                 
@@ -347,62 +329,6 @@ class Subject extends \FS_Service {
         }
         
         // 获取商品数据
-        // $user_bought_records = array();
-        // 插入标记--周一
-        // foreach ($pointInfo as $key => $itemPoint) {
-        // $item_info = $this->mItem->getItemInfoById($itemPoint['item_id']);
-        // //品牌id
-        // if (isset($item_info['brand_id']) && intval($item_info['brand_id']) > 0) {
-        // $resourceId = intval($itemPoint['brand_id']);
-        // }else{
-        // $this->db_write->trans_rollback();
-        // return false;
-        // }
-        // //商品id
-        // if (isset($itemPoint['item_id']) && intval($itemPoint['item_id']) > 0) {
-        // $itemId = intval($itemPoint['item_id']);
-        // }else{
-        // $this->db_write->trans_rollback();
-        // return false;
-        // }
-        // //商品名称 ---title
-        // if (isset($item_info['name']) ) {
-        // $title = $itemPoint['name'];
-        // }else{
-        // $this->db_write->trans_rollback();
-        // return false;
-        // }
-        // $tagSetInfo = array(
-        // "point_id" => 0,
-        // "title" => $title,
-        // "type" => 'sku',
-        // "resource_id" => $resourceId,
-        // "subject_id" => $subjectId,
-        // "item_id" => $itemId,
-        // "product_type" => 1,
-        // "is_spu" => 0,
-        // );
-        //
-        //
-        // //返回数组结构体
-        // $user_bought_record = array(
-        // "item_id" => $itemId,
-        // "item_name" => $title,
-        // "item_img" => show_picture("80_80" , $itemId),
-        // "brand_id" => $resourceId,
-        // "brand_name" => $item_info['brand_name'],
-        // "sale_price" => $item_info['sale_price'],
-        // );
-        // $user_bought_records[] = $user_bought_record;
-        //
-        // $insertTag = $this->db_write->set($tagSetInfo)->insert($this->table_tags);
-        // if (!$insertTag) {
-        // $this->db_write->trans_rollback();
-        // return false;
-        // }
-        // $tagId = $this->db_write->insert_id();
-        // $pointInfo[$key]['tag']['id'] = $tagId;
-        // }
         
         $subjectSetInfo['id'] = $subjectId;
         // $subjectSetInfo['items'] = $user_bought_records;
@@ -433,7 +359,7 @@ class Subject extends \FS_Service {
             $videoInfo['cover_image'] = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $videoInfo['video_origin_url']);
             // 获取视频元信息
             $avInfo = $qiniusdk->getVideoFileInfo($videoInfo['video_origin_url']);
-            if (! empty($avInfo['duration'])) {
+            if (!empty($avInfo['duration'])) {
                 $videoInfo['video_time'] = $avInfo['duration'];
             }
             // 通知七牛对视频转码
@@ -443,21 +369,18 @@ class Subject extends \FS_Service {
         $insertData['user_id'] = $videoInfo['user_id'];
         $insertData['video_origin_url'] = $videoInfo['video_origin_url'];
         $insertData['create_time'] = date('Y-m-d H:i:s');
-        $insertData['source'] = ! empty($videoInfo['source']) ? $videoInfo['source'] : '';
-        $insertData['status'] = in_array($videoInfo['status'], array(
-            1,
-            2
-        )) ? $videoInfo['status'] : 0;
-        if (! empty($videoInfo['cover_image'])) {
+        $insertData['source'] = !empty($videoInfo['source']) ? $videoInfo['source'] : '';
+        $insertData['status'] = in_array($videoInfo['status'], array(1, 2)) ? $videoInfo['status'] : 0;
+        if (!empty($videoInfo['cover_image'])) {
             $insertData['ext_info']['cover_image'] = $videoInfo['cover_image'];
         }
-        if (! empty($videoInfo['transcoding_pipe'])) {
+        if (!empty($videoInfo['transcoding_pipe'])) {
             $insertData['ext_info']['transcoding_pipe'] = $videoInfo['transcoding_pipe'];
         }
-        if (! empty($videoInfo['video_time'])) {
+        if (!empty($videoInfo['video_time'])) {
             $insertData['ext_info']['video_time'] = $videoInfo['video_time'];
         }
-        $insertData['ext_info'] = ! empty($insertData['ext_info']) ? json_encode($insertData['ext_info']) : '';
+        $insertData['ext_info'] = !empty($insertData['ext_info']) ? json_encode($insertData['ext_info']) : '';
         // 添加视频
         $videoId = $this->subjectModel->addVideoBySubject($insertData);
         
@@ -475,35 +398,17 @@ class Subject extends \FS_Service {
         if (intval($videoInfo['subject_id']) > 0) {
             $setInfo[]['subject_id'] = $videoInfo['subject_id'];
         }
-        if (in_array($videoInfo['status'], array(
-            1,
-            2
-        ))) {
+        if (in_array($videoInfo['status'], array(1, 2))) {
             $setInfo[]['status'] = $videoInfo['status'];
         }
         // update视频
-        $where[] = [
-            'id',
-            $videoInfo['id']
-        ];
+        $where[] = ['id', $videoInfo['id']];
         $this->subjectModel->updateVideoBySubject($setInfo, $where);
         
-        if (isset($videoInfo['subject_status']) && in_array($videoInfo['subject_status'], array(
-            - 1,
-            0,
-            1,
-            2
-        )) && intval($videoInfo['subject_id']) > 0) {
+        if (isset($videoInfo['subject_status']) && in_array($videoInfo['subject_status'], array(-1, 0, 1, 2)) && intval($videoInfo['subject_id']) > 0) {
             // 更新视频状态，同步更新帖子
-            $s_where[] = [
-                'id',
-                $videoInfo['subject_id']
-            ];
-            $s_setData = [
-                [
-                    'status' => $videoInfo['subject_status']
-                ]
-            ];
+            $s_where[] = ['id', $videoInfo['subject_id']];
+            $s_setData = [['status' => $videoInfo['subject_status']]];
             $this->subjectModel->updateSubject($s_setData, $s_where);
         }
         
@@ -514,14 +419,8 @@ class Subject extends \FS_Service {
      * 批量查询视频信息
      */
     public function getBatchVideoInfos($videoIds, $videoType = 'm3u8') {
-	
-	$data = $this->subjectModel->getBatchVideoInfos($videoIds,$videoType);
-	return $this->succ($data);
+        $data = $this->subjectModel->getBatchVideoInfos($videoIds, $videoType);
+        return $this->succ($data);
     }
-    
-    
-    
-    
-    
 }
 

@@ -1,7 +1,7 @@
 <?php
 namespace mia\miagroup\Model;
 
-use mia\miagroup\Data\User\AppUserRelation;
+use mia\miagroup\Data\UserRelation\AppUserRelation;
 
 /**
  * Description of UserRelation

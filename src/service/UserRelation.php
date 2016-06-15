@@ -16,7 +16,7 @@ class UserRelation extends FS_Service {
      * 批量获取我是否关注了用户
      */
     public function getUserRelationWithMe($loginUserId, $userIds) {
-        if (! isset($loginUserId) || ! $loginUserId || ! isset($userIds) || empty($userIds)) {
+        if (!isset($loginUserId) || !$loginUserId || !isset($userIds) || empty($userIds)) {
             return $this->succ();
         }
         
@@ -32,7 +32,7 @@ class UserRelation extends FS_Service {
     
     // 批量获取粉丝数
     public function countBatchUserFanS($userIds) {
-        if (! isset($userIds) || empty($userIds)) {
+        if (!isset($userIds) || empty($userIds)) {
             return $this->succ();
         }
         
@@ -42,7 +42,7 @@ class UserRelation extends FS_Service {
     
     // 批量获取关注数
     public function countBatchUserAtten($userIds) {
-        if (! isset($userIds) || empty($userIds)) {
+        if (!isset($userIds) || empty($userIds)) {
             return $this->succ();
         }
         $relationInfos = $this->userRelationModel->getCountBatchUserAtten($userIds);

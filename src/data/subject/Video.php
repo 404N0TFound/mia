@@ -9,16 +9,7 @@ class Video extends \DB_Query {
 
     protected $tableName = 'group_subject_video';
 
-    protected $mapping = array(
-        'id' => 'i',
-        'subject_id' => 'i',
-        'user_id' => 'i',
-        'video_origin_url' => 's',
-        'source' => 's',
-        'ext_info' => 's',
-        'status' => 'i',
-        'create_time' => 's'
-    );
+    protected $mapping = array('id' => 'i', 'subject_id' => 'i', 'user_id' => 'i', 'video_origin_url' => 's', 'source' => 's', 'ext_info' => 's', 'status' => 'i', 'create_time' => 's');
 
     /**
      * 批量查询视频信息
@@ -28,14 +19,10 @@ class Video extends \DB_Query {
             return array();
         }
         $where = array();
-        $where[] = array(
-            ':in',
-            'id',
-            $videoIds
-        );
+        $where[] = array(':in', 'id', $videoIds);
         $videoArr = $this->getRows($where);
         $result = array();
-        if (! empty($videoArr)) {
+        if (!empty($videoArr)) {
             foreach ($videoArr as $v) {
                 $video = null;
                 $extInfo = $v['ext_info'] ? json_decode($v['ext_info'], true) : array();
@@ -55,9 +42,9 @@ class Video extends \DB_Query {
                         break;
                 }
                 $video['status'] = $v['status'];
-                if (! empty($extInfo) && is_array($extInfo)) {
-                    $video['cover_image'] = ! empty($extInfo['cover_image']) ? $extInfo['cover_image'] : $extInfo['thumb_image'];
-                    $video['video_time'] = ! empty($extInfo['video_time']) ? date('i:s', floor($extInfo['video_time'])) : '00:00';
+                if (!empty($extInfo) && is_array($extInfo)) {
+                    $video['cover_image'] = !empty($extInfo['cover_image']) ? $extInfo['cover_image'] : $extInfo['thumb_image'];
+                    $video['video_time'] = !empty($extInfo['video_time']) ? date('i:s', floor($extInfo['video_time'])) : '00:00';
                 }
                 $result[$v['id']] = $video;
             }
@@ -73,11 +60,7 @@ class Video extends \DB_Query {
             return array();
         }
         $where = array();
-        $where[] = array(
-            ':in',
-            'subject_id',
-            $subjectIds
-        );
+        $where[] = array(':in', 'subject_id', $subjectIds);
         $subjectsArrs = $this->getRows($where, '`id`, `subject_id`');
         if (empty($subjectsArrs)) {
             return array();
@@ -106,35 +89,16 @@ class Video extends \DB_Query {
         $limit = false;
         $offset = 0;
         if (intval($cond['user_id']) > 0) {
-            $where[] = array(
-                ':eq',
-                'user_id',
-                $cond['user_id']
-            );
+            $where[] = array(':eq', 'user_id', $cond['user_id']);
         }
-        if (in_array($cond['status'], array(
-            1,
-            2
-        ))) {
-            $where[] = array(
-                ':eq',
-                'status',
-                $cond['status']
-            );
+        if (in_array($cond['status'], array(1, 2))) {
+            $where[] = array(':eq', 'status', $cond['status']);
         }
-        if (! empty($cond['start_time'])) {
-            $where[] = array(
-                ':gt',
-                'create_time',
-                $cond['start_time']
-            );
+        if (!empty($cond['start_time'])) {
+            $where[] = array(':gt', 'create_time', $cond['start_time']);
         }
-        if (! empty($cond['end_time'])) {
-            $where[] = array(
-                ':lt',
-                'create_time',
-                $cond['end_time']
-            );
+        if (!empty($cond['end_time'])) {
+            $where[] = array(':lt', 'create_time', $cond['end_time']);
         }
         if (intval($cond['limit']) > 0) {
             $offset = ($cond['page'] - 1) > 0 ? (($cond['page'] - 1) * $cond['limit']) : 0;
@@ -142,7 +106,7 @@ class Video extends \DB_Query {
         }
         $data = $this->getRows($where, '`id`', $limit, $offset, 'ORDER BY `id` DESC');
         $result = array();
-        if (! empty($data)) {
+        if (!empty($data)) {
             foreach ($data as $v) {
                 $result[] = $v['id'];
             }
@@ -156,10 +120,7 @@ class Video extends \DB_Query {
      */
     public function getVideoUrl($originUrl, $type) {
         $lenth = strrpos($originUrl, '.');
-        if (! in_array($type, array(
-            'mp4',
-            'm3u8'
-        ))) {
+        if (!in_array($type, array('mp4', 'm3u8'))) {
             return false;
         }
         if ($lenth === false) { // 天生不带后缀

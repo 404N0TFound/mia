@@ -30,7 +30,7 @@ class Subject {
         // 获取帖子附属的视频信息
         $videos = $this->videoData->getVideoBySubjectIds($subjectIds);
         foreach ($subjects as $subjectId => $subject) {
-            if (! empty($videos[$subjectId])) {
+            if (!empty($videos[$subjectId])) {
                 $subjects[$subjectId]['video_info'] = $videos[$subjectId];
             }
         }

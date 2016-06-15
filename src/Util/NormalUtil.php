@@ -43,7 +43,7 @@ class NormalUtil {
      * 宝宝生日转换成n年n月n天
      */
     public static function getAgeByBirthday($birth_day) {
-        if (! $birth_day || $birth_day == '0000-00-00') {
+        if (!$birth_day || $birth_day == '0000-00-00') {
             return false;
         }
         $dateInfo = array();
@@ -57,23 +57,14 @@ class NormalUtil {
             $chaDays = round($chaTimes / 86400);
             $weeks = floor($chaDays / 7);
             $days = round($chaDays % 7);
-            $dateInfo = array(
-                "type" => "pregnant",
-                "week" => $weeks,
-                "day" => $days
-            );
+            $dateInfo = array("type" => "pregnant", "week" => $weeks, "day" => $days);
         } else {
             $datetime1 = date_create($birth_day);
             $datetime2 = date_create($compare_day);
             $interval = date_diff($datetime1, $datetime2);
             $day_str = $interval->format('%y,%m,%d');
             $day_arr = explode(",", $day_str);
-            $dateInfo = array(
-                "type" => "age",
-                "year" => $day_arr[0],
-                "month" => $day_arr[1],
-                "day" => $day_arr[2]
-            );
+            $dateInfo = array("type" => "age", "year" => $day_arr[0], "month" => $day_arr[1], "day" => $day_arr[2]);
         }
         return $dateInfo;
     }

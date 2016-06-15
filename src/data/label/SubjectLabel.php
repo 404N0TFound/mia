@@ -24,25 +24,17 @@ class SubjectLabel extends \DB_Query {
             return array();
         }
         $where = array();
-        $where[] = array(
-            ':in',
-            'id',
-            $labelIds
-        );
-        $where[] = array(
-            ':eq',
-            'status',
-            1
-        );
+        $where[] = array(':in', 'id', $labelIds);
+        $where[] = array(':eq', 'status', 1);
         $labelInfos = $this->getRows($where, '`id`, `title`, `is_hot`');
         $labelsRes = array();
         $result = array();
-        if (! empty($labelInfos)) {
+        if (!empty($labelInfos)) {
             foreach ($labelInfos as $labelInfo) {
                 $labelsRes[$labelInfo['id']] = $labelInfo;
             }
             foreach ($labelIds as $labelId) {
-                if (! empty($labelsRes[$labelId])) {
+                if (!empty($labelsRes[$labelId])) {
                     $result[$labelId] = $labelsRes[$labelId];
                 }
             }
@@ -60,10 +52,7 @@ class SubjectLabel extends \DB_Query {
     public function checkIsExistByLabelTitle($labelTitle) {
         $labelTitle = md5($labelTitle);
         
-        $where[] = array(
-            "title_md5",
-            $labelTitle
-        );
+        $where[] = array("title_md5", $labelTitle);
         $LabelRes = $this->getRow($where);
         
         return $LabelRes;
@@ -78,9 +67,7 @@ class SubjectLabel extends \DB_Query {
      */
     public function addLabel($labelTitle) {
         $labelTitleMd5 = md5($labelTitle);
-        $setData = [
-            'title_md5' => $labelTitleMd5
-        ];
+        $setData = ['title_md5' => $labelTitleMd5];
         $LabelId = $this->insert($setData);
         
         return $LabelId;

@@ -36,10 +36,7 @@ class QiniuUtil {
         // 生成上传 Token
         $token = $this->qiniuAuth->uploadToken($bucket);
         $key = $this->_getVideoFileName($filePath);
-        return array(
-            'token' => $token,
-            'key' => $key
-        );
+        return array('token' => $token, 'key' => $key);
     }
 
     /**
@@ -57,7 +54,7 @@ class QiniuUtil {
         $uploadMgr = new UploadManager();
         // 调用 UploadManager 的 putFile 方法进行文件的上传。
         $ret = $uploadMgr->putFile($token, $key, $filePath);
-        if (! isset($ret['error'])) {
+        if (!isset($ret['error'])) {
             return $ret;
         } else {
             return false;
@@ -87,7 +84,7 @@ class QiniuUtil {
         $pfop = new PersistentFop($this->qiniuAuth, $bucket, $pipeline, $notifyUrl);
         $ret = $pfop->execute($key, $fops_hls);
         $ret1 = $pfop->execute($key, $fops_mp4); // MP4格式备用
-        if (! isset($ret['error'])) {
+        if (!isset($ret['error'])) {
             return $ret[0];
         } else {
             return false;
@@ -100,7 +97,7 @@ class QiniuUtil {
     public function getVideoPfopStatus($persistentId) {
         // 通过persistentId查询该 触发持久化处理的状态
         $ret = PersistentFop::status($persistentId);
-        if (! isset($ret['error'])) {
+        if (!isset($ret['error'])) {
             if ($ret[0][code] == 0) {
                 return true;
             } else {
@@ -150,7 +147,7 @@ class QiniuUtil {
             // 获取文件后缀名
             $lenth = strrpos($filePath, '.');
             if ($lenth) {
-                if (! $suffix) {
+                if (!$suffix) {
                     $suffix = substr($filePath, $lenth + 1);
                 }
             } else {
@@ -184,7 +181,7 @@ class QiniuUtil {
             // 获取文件后缀名
             $lenth = strrpos($filePath, '.');
             if ($lenth) {
-                if (! $suffix) {
+                if (!$suffix) {
                     $suffix = substr($filePath, $lenth + 1);
                 }
             } else {
@@ -197,14 +194,8 @@ class QiniuUtil {
 
     private function _urlsafe_base64_encode($str) // URLSafeBase64Encode
 {
-        $find = array(
-            '+',
-            '/'
-        );
-        $replace = array(
-            '-',
-            '_'
-        );
+        $find = array('+', '/');
+        $replace = array('-', '_');
         return str_replace($find, $replace, base64_encode($str));
     }
 }

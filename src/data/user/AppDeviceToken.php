@@ -14,19 +14,7 @@ class AppDeviceToken extends DB_Query {
 
     protected $dbResource = 'miagroup';
 
-    protected $mapping = array(
-        'id' => 'i',
-        'device_token' => 's',
-        'regid' => 's',
-        'user_id' => 'i',
-        'push_switch' => 'i',
-        'client_type' => 's',
-        'created' => 's',
-        'cpa_platform_id' => 'i',
-        'mac' => 's',
-        'uuid' => 's',
-        'idfa' => 's'
-    );
+    protected $mapping = array('id' => 'i', 'device_token' => 's', 'regid' => 's', 'user_id' => 'i', 'push_switch' => 'i', 'client_type' => 's', 'created' => 's', 'cpa_platform_id' => 'i', 'mac' => 's', 'uuid' => 's', 'idfa' => 's');
 
     /**
      * 根据userid 获取是否需要发送push
@@ -34,10 +22,7 @@ class AppDeviceToken extends DB_Query {
      * @param type $userIds            
      */
     public function getPushSwitchByUserIds($userIds) {
-        $where[] = [
-            'user_id',
-            $userIds
-        ];
+        $where[] = ['user_id', $userIds];
         $fields = 'push_switch';
         $data = $this->getRow($where, $fields);
         

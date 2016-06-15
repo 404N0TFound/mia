@@ -20,17 +20,9 @@ class User extends DB_Query {
      */
     public function getUserInfoByIds($user_ids) {
         if (is_array($user_ids)) {
-            $where[] = array(
-                ':in',
-                'id',
-                $user_ids
-            );
+            $where[] = array(':in', 'id', $user_ids);
         } else {
-            $where[] = array(
-                ':eq',
-                'id',
-                $user_ids
-            );
+            $where[] = array(':eq', 'id', $user_ids);
         }
         
         $field = "id,username,nickname,child_birth_day,user_status,cell_phone,child_sex,consume_money,icon,level,is_id_verified,is_cell_verified,mibean_level,create_date,status";

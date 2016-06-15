@@ -19,9 +19,9 @@ class User extends FS_Service {
     /**
      * 通过用户id批量获取用户信息
      *
-     * @param array $userIds            
+     * @param array $userIds     
      * @param array $fields,
-     *            包括count、relation、cell_phone等
+     * 包括count、relation、cell_phone等
      * @return array
      */
     public function getUserInfoByUids($userIds, $currentUid = 0, $fields = array()) {
@@ -49,7 +49,7 @@ class User extends FS_Service {
         // 批量获取用户的关注数和粉丝数
         if (in_array('count', $fields)) {
             
-            if (! isset($userRelation)) {
+            if (!isset($userRelation)) {
                 $userRelation = new UserRelation();
             }
             
@@ -64,15 +64,15 @@ class User extends FS_Service {
         $expertInfos = $this->getBatchExpertInfoByUids($userIds)['data'];
         
         foreach ($userInfos as $userInfo) {
-            $userInfo['is_experts'] = ! empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
+            $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
             
             if (intval($currentUid) > 0) {
-                if (! empty($relationWithMe) && $relationWithMe[$userInfo['id']] > 0) {
+                if (!empty($relationWithMe) && $relationWithMe[$userInfo['id']] > 0) {
                     $userInfo['relation_with_me'] = $relationWithMe[$userInfo['id']]['relation_with_me'];
                 } else {
                     $userInfo['relation_with_me'] = 0;
                 }
-                if (! empty($relationWithHim) && $relationWithHim[$userInfo['id']] > 0) {
+                if (!empty($relationWithHim) && $relationWithHim[$userInfo['id']] > 0) {
                     $userInfo['relation_with_him'] = $relationWithHim[$userInfo['id']]['relation_with_him'];
                 } else {
                     $userInfo['relation_with_him'] = 0;
@@ -84,7 +84,7 @@ class User extends FS_Service {
                 $userInfo['focus_count'] = intval($userAttenCount[$userInfo['id']]); // 用户关注数
                 $userInfo['pic_count'] = intval($userSubjectsCount[$userInfo['id']]); // 用户发布数
             }
-            if (! in_array('cell_phone', $fields)) {
+            if (!in_array('cell_phone', $fields)) {
                 unset($userInfo['cell_phone']);
             }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
@@ -119,18 +119,15 @@ class User extends FS_Service {
                 $userInfo[$key] = '';
             }
         }
-        if ($userInfo['icon'] != '' && ! preg_match("/^(http|https):\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"])*$/", $userInfo['icon'])) {
+        if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"])*$/", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
         }
         $userInfo['username'] = preg_replace('/(miya[\d]{3}|mobile_[\d]{3})([\d]{4})([\d]{4})/', "$1****$3", $userInfo['username']);
-        if (! $userInfo['nickname']) {
+        if (!$userInfo['nickname']) {
             $userInfo['nickname'] = $userInfo['username'];
         }
         
-        if (in_array($userInfo['user_status'], array(
-            1,
-            2
-        ))) {
+        if (in_array($userInfo['user_status'], array(1, 2))) {
             
             $userInfo['child_age'] = NormalUtil::birth_day_change($userInfo['child_birth_day']);
             $childAgeInfo = NormalUtil::getAgeByBirthday($userInfo['child_birth_day']);
@@ -157,18 +154,16 @@ class User extends FS_Service {
      *            当需要获取关注关系时传入
      */
     public function getUserInfoByUserId($userId, $field = array(), $currentUid = 0) {
-        if (! $userId || intval($userId) <= 0) {
+        if (!$userId || intval($userId) <= 0) {
             return false;
         }
-        $userInfo = $this->getUserInfoByUids(array(
-            $userId
-        ), $currentUid, $field)['data'];
+        $userInfo = $this->getUserInfoByUids(array($userId), $currentUid, $field)['data'];
         $userInfo = isset($userInfo[$userId]) ? $userInfo[$userId] : array();
         
         if (in_array('push_switch', $field)) {
             $pushSwitch = $this->userModel->getPushSwitchByUserIds($userInfo['id']);
             $userInfo['push_switch'] = 0;
-            if (! empty($pushSwitch)) {
+            if (!empty($pushSwitch)) {
                 $userInfo['push_switch'] = $pushSwitch['push_switch'];
             }
         }

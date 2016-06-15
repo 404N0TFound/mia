@@ -31,7 +31,7 @@ class Label {
         // 收集标签ID
         $labelIds = array();
         foreach ($labelRelations as $subjectLabelIds) {
-            if (! empty($subjectLabelIds)) {
+            if (!empty($subjectLabelIds)) {
                 $labelIds = array_merge($labelIds, $subjectLabelIds);
             }
         }
