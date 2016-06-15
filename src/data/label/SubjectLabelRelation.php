@@ -29,4 +29,17 @@ class SubjectLabelRelation extends \DB_Query {
         }
         return $labelIdRes;
     }
+    
+    /**
+     * 保存蜜芽圈标签关系记录
+     * @param array $labelRelationInfo 图片标签关系信息
+     * @return bool
+     */
+    public function saveLabelRelation($labelRelationInfo){
+	
+	$insertLabel = $this->insert($labelRelationInfo);
+	return $insertLabel;
+    }
+    
+    
 }

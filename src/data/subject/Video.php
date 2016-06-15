@@ -137,4 +137,22 @@ class Video extends \DB_Query {
         $url = $qiniuConfig['video_host'] . $url . $type;
         return $url;
     }
+    
+    /**
+     * 添加视频
+     */
+    public function addVideoBySubject($insertData){
+	$data = $this->insert($insertData);
+	return $data;
+    }
+    
+    /**
+     * 更新视频
+     */
+    public function updateVideoBySubject($setData,$where=[],$orderBy = FALSE, $limit = FALSE){
+	$data = $this->update($setData,$where,$orderBy,$limit);
+	return $data;
+    }
+    
+    
 }
