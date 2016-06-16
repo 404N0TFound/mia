@@ -27,4 +27,15 @@ class Comment {
         $subjectComments = $this->subjectCommentData->getBatchCommentList($subjectIds, $count);
         return $subjectComments;
     }
+    
+    /**
+     * 添加评论
+     */
+    public function addComment($setData){
+        $data = $this->subjectCommentData->addComment($setData);
+        return $data;
+    }
+    
+    
+    
 }
