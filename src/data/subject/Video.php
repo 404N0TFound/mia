@@ -1,20 +1,16 @@
 <?php
 namespace mia\miagroup\Data\Subject;
+
 use Ice;
+
 class Video extends \DB_Query {
+
     protected $dbResource = 'miagroup';
+
     protected $tableName = 'group_subject_video';
-    protected $mapping   = array(
-        'id'                => 'i',
-        'subject_id'        => 'i',
-        'user_id'           => 'i',
-        'video_origin_url'  => 's',
-        'source'            => 's',
-        'ext_info'          => 's',
-        'status'            => 'i',
-        'create_time'       => 's',
-    );
-    
+
+    protected $mapping = array('id' => 'i', 'subject_id' => 'i', 'user_id' => 'i', 'video_origin_url' => 's', 'source' => 's', 'ext_info' => 's', 'status' => 'i', 'create_time' => 's');
+
     /**
      * 批量查询视频信息
      */
@@ -44,7 +40,6 @@ class Video extends \DB_Query {
                         $video['video_url'] = $this->getVideoUrl($v['video_origin_url'], $videoType);
                         $video['video_type'] = $videoType;
                         break;
-    
                 }
                 $video['status'] = $v['status'];
                 if (!empty($extInfo) && is_array($extInfo)) {
@@ -56,7 +51,7 @@ class Video extends \DB_Query {
         }
         return $result;
     }
-    
+
     /**
      * 根据选题id批量查询视频信息
      */
@@ -82,7 +77,7 @@ class Video extends \DB_Query {
         }
         return $subjectVideos;
     }
-    
+
     /**
      * 获取视频列表
      */
@@ -119,7 +114,7 @@ class Video extends \DB_Query {
         $result = $this->getBatchVideoInfos($result);
         return $result;
     }
-    
+
     /**
      * 获取视频URL
      */
@@ -128,7 +123,7 @@ class Video extends \DB_Query {
         if (!in_array($type, array('mp4', 'm3u8'))) {
             return false;
         }
-        if ($lenth === false) { //天生不带后缀
+        if ($lenth === false) { // 天生不带后缀
             $url = $originUrl;
         } else {
             $url = substr($originUrl, 0, $lenth + 1);
@@ -137,22 +132,20 @@ class Video extends \DB_Query {
         $url = $qiniuConfig['video_host'] . $url . $type;
         return $url;
     }
-    
+
     /**
      * 添加视频
      */
-    public function addVideoBySubject($insertData){
-	$data = $this->insert($insertData);
-	return $data;
+    public function addVideoBySubject($insertData) {
+        $data = $this->insert($insertData);
+        return $data;
     }
-    
+
     /**
      * 更新视频
      */
-    public function updateVideoBySubject($setData,$where=[],$orderBy = FALSE, $limit = FALSE){
-	$data = $this->update($setData,$where,$orderBy,$limit);
-	return $data;
+    public function updateVideoBySubject($setData, $where = [], $orderBy = FALSE, $limit = FALSE) {
+        $data = $this->update($setData, $where, $orderBy, $limit);
+        return $data;
     }
-    
-    
 }
