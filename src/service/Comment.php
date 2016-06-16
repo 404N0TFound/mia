@@ -17,7 +17,7 @@ class Comment extends \FS_Service {
     public function getBatchComments($commentIds, $field = array('user_info', 'parent_comment'), $status = 1) {
         $commentInfos = $this->commentModel->getBatchComments($commentIds, $status);
         if (empty($commentInfos)) {
-            return array();
+            return $this->succ();
         }
         // 收集用户ID和父评论ID
         $userIds = array();
@@ -62,6 +62,9 @@ class Comment extends \FS_Service {
      * 根据subjectids批量分组获取帖子的评论ids
      */
     public function getBatchCommentList($subjectIds, $count = 3) {
+        if (empty($subjectIds)) {
+            return $this->succ();
+        }
         $commIds = array();
         $subCommentsLimit = array();
         $subjectComments = $this->commentModel->getBatchCommentList($subjectIds, $count);
@@ -71,7 +74,7 @@ class Comment extends \FS_Service {
         }
         // 没有评论，直接返回空数组
         if (empty($commIds)) {
-            return array();
+            return $this->succ();
         }
         $comments = $this->getBatchComments($commIds, array('user_info', 'parent_comment'))['data'];
         // 将批量查询出来的评论，按照对应的选题ID分配下去
@@ -82,5 +85,16 @@ class Comment extends \FS_Service {
             }
         }
         return $this->succ($subRelationComm);
+    }
+    
+    /**
+     * 批量查评论数
+     */
+    public function getBatchCommentNums($subjectIds) {
+        if (empty($subjectIds)) {
+            return $this->succ();
+        }
+        $subjectCommentNums = $this->commentModel->getBatchCommentNums($subjectIds);
+        return $this->succ($subjectCommentNums);
     }
 }

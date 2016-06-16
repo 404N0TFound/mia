@@ -9,6 +9,9 @@ class SubjectComment extends \DB_Query {
 
     protected $mapping = array();
 
+    /**
+     * 根据commentIds批量获取评论信息
+     */
     public function selectCommentByIds($commentIds, $status = 1) {
         if (empty($commentIds)) {
             return array();
@@ -53,5 +56,30 @@ class SubjectComment extends \DB_Query {
             $subCommentsLimit[$comm['subject_id']] = array_slice($ids, 0, $count);
         }
         return $subCommentsLimit;
+    }
+    
+    /**
+     * 批量查评论数
+     */
+    public function getBatchCommentNums($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return array();
+        }
+        $where = array();
+        $field = 'subject_id, COUNT(id) AS num';
+        $where[] = array(':in', 'subject_id', $subjectIds);
+        $where[] = array(':eq', 'status', 1);
+        $result = $this->getRows($where, $field, false, false, 'subject_id');
+        //将结果循环为已选题ID为键的以数量为值的一维数组
+        $num = array();
+        foreach ($result as $r) {
+            $num[$r['subject_id']] = $r['num'];
+        }
+        $result = array();
+        foreach ($subjectIds as $subjectId) {
+            $result[$subjectId] = intval($num[$subjectId]);
+        }
+        return $result;
     }
 }

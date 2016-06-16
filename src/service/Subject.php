@@ -7,6 +7,7 @@ use mia\miagroup\Model\Subject as SubjectModel;
 use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Comment as CommentService;
+use mia\miagroup\Service\Praise as PraiseService;
 
 class Subject extends \FS_Service {
 
@@ -14,12 +15,14 @@ class Subject extends \FS_Service {
     public $labelService = null;
     public $userService = null;
     public $commentService = null;
+    public $praiseService = null;
 
     public function __construct() {
         $this->subjectModel = new SubjectModel();
         $this->labelService = new LabelService();
         $this->userService = new UserService();
         $this->commentService = new CommentService();
+        $this->praiseService = new PraiseService();
     }
 
     /**
@@ -60,15 +63,15 @@ class Subject extends \FS_Service {
         // 获取计数信息
         if (in_array('count', $field)) {
             $commentCounts = $this->commentService->getBatchCommentNums($subjectIds)['data'];
-            // $praiseCounts = $this->getBatchSubjectPraises($subjectIds);
+            $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
         }
         // 获取赞用户
         if (in_array('praise_info', $field)) {
-            // $praiseInfos = $this->getBatchSubjectPraiseUsers($subjectIds);
+            $praiseInfos = $this->praiseService->getBatchSubjectPraiseUsers($subjectIds)['data'];
         }
         // 获取是否已赞
         if (intval($currentUid) > 0) {
-            // $isPraised = $this->getBatchSubjectIsPraised($subjectIds, $currentUid);
+            $isPraised = $this->praiseService->getBatchSubjectIsPraised($subjectIds, $currentUid)['data'];
         }
         
         $subjectRes = array();
@@ -135,8 +138,8 @@ class Subject extends \FS_Service {
                 $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
             }
             if (in_array('count', $field)) {
-                $subjectRes[$subjectInfo['id']]['comment_count'] = $commentCounts[$subjectInfo['id']];
-                $subjectRes[$subjectInfo['id']]['fancied_count'] = $praiseCounts[$subjectInfo['id']];
+                $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
+                $subjectRes[$subjectInfo['id']]['fancied_count'] = intval($praiseCounts[$subjectInfo['id']]);
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
@@ -149,15 +152,11 @@ class Subject extends \FS_Service {
                 $shareUrl = $this->config->item('group_share');
                 $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : '';
                 $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : "超过20万妈妈正在蜜芽圈热聊，快来看看~";
-                // print_r($imageUrl);exit;
-                // $shareImage = "http://o6ov54mbs.bkt.clouddn.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png";
-                
                 if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
                     $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
                 } else {
                     $shareImage = 'http://o6ov54mbs.bkt.clouddn.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png';
                 }
-                
                 // 替换搜索关联数组
                 $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareUrl['subject_wap_url'], $subjectInfo['id']));
                 // 进行替换操作
@@ -168,7 +167,6 @@ class Subject extends \FS_Service {
                         $share[$keys]['share_img_list'] = $subjectRes[$subjectInfo['id']]['image_url'];
                     }
                 }
-                
                 $subjectRes[$subjectInfo['id']]['share_info'] = $share;
             }
             if (intval($currentUid) > 0) {
