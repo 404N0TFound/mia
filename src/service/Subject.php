@@ -6,19 +6,20 @@ use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Model\Subject as SubjectModel;
 use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\User as UserService;
+use mia\miagroup\Service\Comment as CommentService;
 
 class Subject extends \FS_Service {
 
     public $subjectModel = null;
-
     public $labelService = null;
-
     public $userService = null;
+    public $commentService = null;
 
     public function __construct() {
         $this->subjectModel = new SubjectModel();
         $this->labelService = new LabelService();
         $this->userService = new UserService();
+        $this->commentService = new CommentService();
     }
 
     /**
@@ -48,10 +49,11 @@ class Subject extends \FS_Service {
             $userIds = array_unique($userIdArr);
             $userArr = $this->userService->getUserInfoByUids($userIds, $currentUid, array("relation", "count"))['data'];
         }
-        // //获取评论信息
-        // if (in_array('comment', $field)) {
-        // $comments = $this->mComment->getBatchCommentList($subjectIds, 2);
-        // }
+        //获取评论信息
+        if (in_array('comment', $field)) {
+            $comments = $this->commentService->getBatchCommentList($subjectIds, 2);
+        }
+        var_dump($comments);exit;
         // 获取标签信息
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];

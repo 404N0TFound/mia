@@ -22,7 +22,7 @@
             "mia\\miagroup\\Data\\Praise\\":    "src/data/praise",
             "mia\\miagroup\\Data\\User\\":      "src/data/user",
             "mia\\miagroup\\Data\\Label\\":     "src/data/label",
-            "mia\\miagroup\\Data\\UserRelation\\":  "src/data/userRelation"
+            "mia\\miagroup\\Data\\UserRelation\\":  "src/data/userrelation"
         }
     },
     "repositories": [
