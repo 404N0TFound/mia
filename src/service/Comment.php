@@ -103,4 +103,79 @@ class Comment extends \FS_Service {
 
         return $subRelationComm;
     }
+    
+    
+    
+    //选题评论
+    public function comment($iSubjectId, $commentInfo) {
+        if (empty($commentInfo)) {
+            return false;
+        }
+        if (!is_numeric($iSubjectId) || intval($iSubjectId) <= 0) {
+            return false;
+        }
+        $commentInfo['comment'] = trim(emoji_unified_to_html($commentInfo['comment']));
+        if ($commentInfo['comment'] == "") {
+            return false;
+        }
+        $user_id = $commentInfo['user_id'];
+        //评论信息入库
+        $commentInfo['comment'] = $commentInfo['comment'];
+        $commentInfo['create_time'] = date("Y-m-d H:i:s", time());
+        $this->db_write = $this->load->database('write', true);
+        $insertRes = $this->db_write->set($commentInfo)->insert($this->table_comment);
+        if (!$insertRes) {
+            return false;
+        }
+        $commentId = $this->db_write->insert_id();
+        $commentInfo['id'] = $commentId;
+        //计数信息入库
+        $sql = "update {$this->table_subjects} set comment_count = comment_count + 1 where id = {$iSubjectId}";
+        $this->db_write->query($sql);
+    
+        //获取入库的评论
+        $comment = $this->getBatchComments(array($commentId), array('user_info', 'parent_comment'));
+        if (!empty($comment[$commentId])) {
+            $commentInfo = $comment[$commentId];
+        }
+    
+        //发送评论消息
+        $subjectInfo = $this->mGroup->getSubjectInfoById($iSubjectId);
+    
+        $sendFromUserId = $user_id; //当前登录人id
+        $toUserId = $subjectInfo['subject_info']['user_info']['user_id'];
+        $this->load->model("news_model", "mNews");
+        //如果直接评论图片，自己评论自己的图片，不发送消息/push
+        if ($sendFromUserId != $toUserId) {
+            //发消息
+            $this->mNews->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
+            //发push
+            if($subjectInfo['subject_info']['comment_count'] <= 3) {
+                $content = $commentInfo['comment_user']['nickname']."刚刚评论了你的帖子";
+                $this->push($subjectInfo['subject_info']['id'], $content, $toUserId);
+            }
+        }
+        //赠送用户蜜豆
+        if ($sendFromUserId != $toUserId) {
+            $this->load->model("mibean_model", "mBean");
+            $this->mBean->sendMiYaBean($type = 'receive_comment', $sendFromUserId, $commentInfo['id'], $toUserId);
+        }
+        //有回复评论的情况下发消息/push
+        //如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
+        if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
+            $toUserId = $commentInfo['parent_user']['user_id'];
+            $this->mNews->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
+            //发push
+            if($subjectInfo['subject_info']['comment_count'] <= 3) {
+                $content = $commentInfo['comment_user']['nickname']."刚刚回复了你";
+                $this->push($subjectInfo['subject_info']['id'], $content, $toUserId);
+            }
+        }
+        return $commentInfo;
+    }
+    
+    
+    
+    
+    
 }
