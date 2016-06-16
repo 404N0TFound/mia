@@ -28,7 +28,7 @@ class Comment extends \FS_Service {
         }
         // 获取用户信息
         if (in_array('user_info', $field)) {
-            $users = $this->userService->getUserInfoByUids($userIds);
+            $users = $this->userService->getUserInfoByUids($userIds)['data'];
         }
         // 获取父评论信息
         if (in_array('parent_comment', $field) && !empty($fids)) {
@@ -55,7 +55,7 @@ class Comment extends \FS_Service {
             $commentInfo['status'] = $commentInfos[$commentId]['status'];
             $result[$commentId] = $commentInfo;
         }
-        return $result;
+        return $this->succ($result);
     }
 
     /**
@@ -65,17 +65,15 @@ class Comment extends \FS_Service {
         $commIds = array();
         $subCommentsLimit = array();
         $subjectComments = $this->commentModel->getBatchCommentList($subjectIds, $count);
-        foreach ($subjectComments as $comm) {
-            $ids = explode(',', $comm['ids']);
+        foreach ($subjectComments as $subjectId => $ids) {
             $commIds = array_merge($commIds, array_slice($ids, 0, $count));
-            $subCommentsLimit[$comm['subject_id']] = array_slice($ids, 0, $count);
+            $subCommentsLimit[$subjectId] = array_slice($ids, 0, $count);
         }
         // 没有评论，直接返回空数组
         if (empty($commIds)) {
             return array();
         }
-        $comments = $this->getBatchComments($commIds, array('user_info', 'parent_comment'));
-        
+        $comments = $this->getBatchComments($commIds, array('user_info', 'parent_comment'))['data'];
         // 将批量查询出来的评论，按照对应的选题ID分配下去
         $subRelationComm = array();
         foreach ($subCommentsLimit as $key => $commArray) {
@@ -83,6 +81,6 @@ class Comment extends \FS_Service {
                 $subRelationComm[$key][] = $comments[$cid];
             }
         }
-        return $subRelationComm;
+        return $this->succ($subRelationComm);
     }
 }

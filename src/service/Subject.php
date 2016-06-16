@@ -51,9 +51,8 @@ class Subject extends \FS_Service {
         }
         //获取评论信息
         if (in_array('comment', $field)) {
-            $comments = $this->commentService->getBatchCommentList($subjectIds, 2);
+            $comments = $this->commentService->getBatchCommentList($subjectIds, 2)['data'];
         }
-        var_dump($comments);exit;
         // 获取标签信息
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];

@@ -18,7 +18,10 @@ class User {
         return $userData->getUserInfoByIds($user_ids);
     }
     
-    // 批量获取专家信息
+    
+    /**
+     * 批量获取专家信息
+     */
     public function getBatchExpertInfoByUids($userIds) {
         $userExperts = new GroupSubjectUserExperts();
         $data = $userExperts->getBatchExpertInfoByUids($userIds);
