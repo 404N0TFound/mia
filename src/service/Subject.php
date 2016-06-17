@@ -8,16 +8,14 @@ use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
-use mia\miagroup\Service\Album as AlbumService;
 
 class Subject extends \FS_Service {
 
-    private $subjectModel = null;
-    private $labelService = null;
-    private $userService = null;
-    private $commentService = null;
-    private $praiseService = null;
-    
+    public $subjectModel = null;
+    public $labelService = null;
+    public $userService = null;
+    public $commentService = null;
+    public $praiseService = null;
 
     public function __construct() {
         $this->subjectModel = new SubjectModel();
@@ -25,7 +23,6 @@ class Subject extends \FS_Service {
         $this->userService = new UserService();
         $this->commentService = new CommentService();
         $this->praiseService = new PraiseService();
-        $this->albumService = new AlbumService();
     }
 
     /**
@@ -34,7 +31,7 @@ class Subject extends \FS_Service {
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album'), $status = array()) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info'), $status = array()) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -43,11 +40,13 @@ class Subject extends \FS_Service {
         if (empty($subjectInfos)) {
             return $this->succ(array());
         }
+        
         // 收集id
         $userIdArr = array();
         foreach ($subjectInfos as $subjectInfo) {
             $userIdArr[] = $subjectInfo['user_id'];
         }
+        
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
@@ -60,10 +59,6 @@ class Subject extends \FS_Service {
         // 获取标签信息
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
-        }
-        // 获取专栏信息
-        if (in_array('album', $field)) {
-            $subjectAlbum = $this->albumService->getBatchAlbumBySubjectId($subjectIds)['data'];
         }
         // 获取计数信息
         if (in_array('count', $field)) {
@@ -141,11 +136,6 @@ class Subject extends \FS_Service {
             }
             if (in_array('group_labels', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
-            }
-            if (in_array('album', $field)) {
-                if (!empty($subjectAlbum[$subjectId])) {
-                    $subjects[$subjectId]['album_article'] = $subjectAlbum[$subjectId];
-                }
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
