@@ -175,7 +175,8 @@ class Subject extends \FS_Service {
         }
         return $this->succ($subjectRes);
     }
-
+    
+    
     /**
      * 批量获取用户发布的帖子数
      */

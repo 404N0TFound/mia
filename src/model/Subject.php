@@ -64,8 +64,8 @@ class Subject {
     /**
      * 更新视频
      */
-    public function updateVideoBySubject($setData, $where = [], $orderBy = FALSE, $limit = FALSE) {
-        $data = $this->videoData->updateVideoBySubject($setData, $where, $orderBy, $limit);
+    public function updateVideoBySubject($setData, $where = []) {
+        $data = $this->videoData->updateVideoBySubject($setData, $where);
         return $data;
     }
 
@@ -78,8 +78,8 @@ class Subject {
      * @param type $limit            
      * @return int
      */
-    public function updateSubject($setData, $where = [], $orderBy = FALSE, $limit = FALSE) {
-        $data = $this->subjectData->updateSubject($setData, $where, $orderBy, $limit);
+    public function updateSubject($setData, $where = []) {
+        $data = $this->subjectData->updateSubject($setData, $where);
         return $data;
     }
 
