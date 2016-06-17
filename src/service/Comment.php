@@ -12,7 +12,7 @@ class Comment extends \FS_Service {
     public function __construct() {
         $this->userService = new UserService();
         $this->commentModel = new CommentModel();
-        $this->subjectService = new Subject();
+//         $this->subjectService = new Subject();
         $this->newService = new News();
     }
 
@@ -138,11 +138,11 @@ class Comment extends \FS_Service {
         //送蜜豆
         
         //发送评论消息
-        $subjectInfoData = $this->subjectService->getBatchSubjectInfos($iSubjectId,0,array('user_info', 'comment', 'group_labels', 'item'))['data'];
-        $subjectInfo['subject_info'] = $subjectInfoData;
+//         $subjectInfoData = $this->subjectService->getBatchSubjectInfos($iSubjectId,0,array())['data'];
+        $subjectInfo['subject_info'] = [$iSubjectId=>[]];
         
         $sendFromUserId = $user_id; //当前登录人id
-        $toUserId = $subjectInfo['subject_info']['user_info']['user_id'];
+//         $toUserId = $subjectInfo['subject_info']['user_info']['user_id'];
 
         //如果直接评论图片，自己评论自己的图片，不发送消息/push
         if ($sendFromUserId != $toUserId) {
@@ -153,7 +153,7 @@ class Comment extends \FS_Service {
         //如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
             $toUserId = $commentInfo['parent_user']['user_id'];
-            $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
+            $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id'])['data'];
         }
         
         return $this->succ($commentInfo);
