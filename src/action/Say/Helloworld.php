@@ -9,7 +9,7 @@ class Helloworld extends \FW_Action {
 //        $subjectService = new \mia\miagroup\Service\Album();
 //        $result = $subjectService->getArticleList('1000127', 12);
 //        $result = $subjectService->getRecommendAlbumArticleList();
-        
+        var_dump(!(int)$user_id);die;
         $subjectService = new \mia\miagroup\Service\Subject();
         $result = $subjectService->getBatchSubjectInfos(array('11082','11082'));
         echo "<pre>";

@@ -21,6 +21,10 @@ class Album extends \FS_Service {
      * @return array() 获取专栏集下的专栏文章列表
      */
     public function getArticleList($user_id, $album_id, $page = 1, $iPageSize = 10) {
+        if (!(int)$user_id || !(int)$album_id) {
+            return $this->error(10008,array('参数错误'));
+        }
+        
         $params = array();
         $params['user_id'] = $user_id;
         $params['album_id'] = (int)$album_id;
