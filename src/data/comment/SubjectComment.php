@@ -5,10 +5,13 @@ class SubjectComment extends \DB_Query {
 
     protected $dbResource = 'miagroup';
 
-    protected $tableName = 'group_subjects';
+    protected $tableName = 'group_subject_comment';
 
     protected $mapping = array();
 
+    /**
+     * 根据commentIds批量获取评论信息
+     */
     public function selectCommentByIds($commentIds, $status = 1) {
         if (empty($commentIds)) {
             return array();
@@ -16,10 +19,10 @@ class SubjectComment extends \DB_Query {
         $where = array();
         $where[] = array(':in', 'id', $commentIds);
         if (!empty($status) && !is_array($status)) {
-            $where[] = array('i:eq', 'status', $status);
+            $where[] = array(':eq', 'status', $status);
         } else {
             if (!empty($status) && is_array($status)) {
-                $where[] = array('i:in', 'status', $status);
+                $where[] = array(':in', 'status', $status);
             }
         }
         $data = $this->getRows($where);
@@ -44,7 +47,7 @@ class SubjectComment extends \DB_Query {
         $where[] = array(':in', 'subject_id', $subjectIds);
         $where[] = array(':eq', 'status', 1);
         $subComments = $this->getRows($where, $field, false, false, 'subject_id');
-        // 循环取出每个分组的前3个ID，合并为一个数组
+        //循环取出每个分组的前3个ID，合并为一个数组
         $commIds = array();
         $subCommentsLimit = array(); // 存以选题ID为键的值为限制了条数后的评论ID数组
         foreach ($subComments as $comm) {
@@ -53,23 +56,31 @@ class SubjectComment extends \DB_Query {
             $subCommentsLimit[$comm['subject_id']] = array_slice($ids, 0, $count);
         }
         return $subCommentsLimit;
-        
-        // 没有评论，直接返回空数组
-        if (empty($commIds)) {
+    }
+    
+    /**
+     * 批量查评论数
+     */
+    public function getBatchCommentNums($subjectIds)
+    {
+        if (empty($subjectIds)) {
             return array();
         }
-        
-        $comments = $this->getBatchComments($commIds, array('user_info', 'parent_comment'));
-        
-        // 将批量查询出来的评论，按照对应的选题ID分配下去
-        $subRelationComm = array();
-        foreach ($subCommentsLimit as $key => $commArray) {
-            foreach ($commArray as $cid) {
-                $subRelationComm[$key][] = $comments[$cid];
-            }
+        $where = array();
+        $field = 'subject_id, COUNT(id) AS num';
+        $where[] = array(':in', 'subject_id', $subjectIds);
+        $where[] = array(':eq', 'status', 1);
+        $result = $this->getRows($where, $field, false, false, 'subject_id');
+        //将结果循环为已选题ID为键的以数量为值的一维数组
+        $num = array();
+        foreach ($result as $r) {
+            $num[$r['subject_id']] = $r['num'];
         }
-        
-        return $subRelationComm;
+        $result = array();
+        foreach ($subjectIds as $subjectId) {
+            $result[$subjectId] = intval($num[$subjectId]);
+        }
+        return $result;
     }
     
     /**

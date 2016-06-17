@@ -19,7 +19,6 @@ class Comment {
         return $comments;
     }
     
-    
     /**
      * 根据subjectids批量分组获取帖子的评论ids
      */
@@ -37,5 +36,12 @@ class Comment {
     }
     
     
-    
+    /**
+     * 根据subjectIds批量分组查评论数
+     */
+    public function getBatchCommentNums($subjectIds) {
+        $subjectCommentNums = $this->subjectCommentData->getBatchCommentNums($subjectIds);
+        return $subjectCommentNums;
+    }
+
 }

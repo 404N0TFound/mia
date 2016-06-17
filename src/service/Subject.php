@@ -7,19 +7,25 @@ use mia\miagroup\Model\Subject as SubjectModel;
 use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Comment as CommentService;
+use mia\miagroup\Service\Praise as PraiseService;
+use mia\miagroup\Service\Album as AlbumService;
 
 class Subject extends \FS_Service {
 
-    public $subjectModel = null;
-    public $labelService = null;
-    public $userService = null;
-    public $commentService = null;
+    private $subjectModel = null;
+    private $labelService = null;
+    private $userService = null;
+    private $commentService = null;
+    private $praiseService = null;
+    
 
     public function __construct() {
         $this->subjectModel = new SubjectModel();
         $this->labelService = new LabelService();
         $this->userService = new UserService();
         $this->commentService = new CommentService();
+        $this->praiseService = new PraiseService();
+        $this->albumService = new AlbumService();
     }
 
     /**
@@ -28,7 +34,7 @@ class Subject extends \FS_Service {
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info'), $status = array()) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album'), $status = array()) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -37,13 +43,11 @@ class Subject extends \FS_Service {
         if (empty($subjectInfos)) {
             return $this->succ(array());
         }
-        
         // 收集id
         $userIdArr = array();
         foreach ($subjectInfos as $subjectInfo) {
             $userIdArr[] = $subjectInfo['user_id'];
         }
-        
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
@@ -51,25 +55,28 @@ class Subject extends \FS_Service {
         }
         //获取评论信息
         if (in_array('comment', $field)) {
-            $comments = $this->commentService->getBatchCommentList($subjectIds, 2);
+            $comments = $this->commentService->getBatchCommentList($subjectIds, 2)['data'];
         }
-        var_dump($comments);exit;
         // 获取标签信息
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
         }
+        // 获取专栏信息
+        if (in_array('album', $field)) {
+            $subjectAlbum = $this->albumService->getBatchAlbumBySubjectId($subjectIds)['data'];
+        }
         // 获取计数信息
         if (in_array('count', $field)) {
-            // $commentCounts = $this->mComment->getBatchCommentNums($subjectIds);
-            // $praiseCounts = $this->getBatchSubjectPraises($subjectIds);
+            $commentCounts = $this->commentService->getBatchCommentNums($subjectIds)['data'];
+            $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
         }
         // 获取赞用户
         if (in_array('praise_info', $field)) {
-            // $praiseInfos = $this->getBatchSubjectPraiseUsers($subjectIds);
+            $praiseInfos = $this->praiseService->getBatchSubjectPraiseUsers($subjectIds)['data'];
         }
         // 获取是否已赞
         if (intval($currentUid) > 0) {
-            // $isPraised = $this->getBatchSubjectIsPraised($subjectIds, $currentUid);
+            $isPraised = $this->praiseService->getBatchSubjectIsPraised($subjectIds, $currentUid)['data'];
         }
         
         $subjectRes = array();
@@ -135,9 +142,14 @@ class Subject extends \FS_Service {
             if (in_array('group_labels', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
             }
+            if (in_array('album', $field)) {
+                if (!empty($subjectAlbum[$subjectId])) {
+                    $subjects[$subjectId]['album_article'] = $subjectAlbum[$subjectId];
+                }
+            }
             if (in_array('count', $field)) {
-                $subjectRes[$subjectInfo['id']]['comment_count'] = $commentCounts[$subjectInfo['id']];
-                $subjectRes[$subjectInfo['id']]['fancied_count'] = $praiseCounts[$subjectInfo['id']];
+                $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
+                $subjectRes[$subjectInfo['id']]['fancied_count'] = intval($praiseCounts[$subjectInfo['id']]);
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
@@ -150,15 +162,11 @@ class Subject extends \FS_Service {
                 $shareUrl = $this->config->item('group_share');
                 $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : '';
                 $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : "超过20万妈妈正在蜜芽圈热聊，快来看看~";
-                // print_r($imageUrl);exit;
-                // $shareImage = "http://o6ov54mbs.bkt.clouddn.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png";
-                
                 if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
                     $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
                 } else {
                     $shareImage = 'http://o6ov54mbs.bkt.clouddn.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png';
                 }
-                
                 // 替换搜索关联数组
                 $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareUrl['subject_wap_url'], $subjectInfo['id']));
                 // 进行替换操作
@@ -169,7 +177,6 @@ class Subject extends \FS_Service {
                         $share[$keys]['share_img_list'] = $subjectRes[$subjectInfo['id']]['image_url'];
                     }
                 }
-                
                 $subjectRes[$subjectInfo['id']]['share_info'] = $share;
             }
             if (intval($currentUid) > 0) {
@@ -190,13 +197,12 @@ class Subject extends \FS_Service {
 
     /**
      * 发布帖子
-     * 
-     * @param unknown $subjectInfo            
-     * @param unknown $pointInfo            
-     * @param unknown $labelInfos            
-     * @return boolean|multitype:multitype: NULL string unknown number |multitype:multitype: NULL string unknown number Ambigous <unknown, mixed> Ambigous <multitype:, number>
+     * @param unknown $subjectInfo
+     * @param unknown $pointInfo
+     * @param unknown $labelInfos
+     * @param unknown $koubeiId
      */
-    public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array()) {
+    public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0) {
         if (empty($subjectInfo)) {
             return false;
         }
@@ -228,28 +234,28 @@ class Subject extends \FS_Service {
             $subjectSetInfo['text'] = '';
         }
         $subjectSetInfo['created'] = date("Y-m-d H:i:s", time());
-        // 4.1 去掉活动 已经默认为0
-        $subjectSetInfo['active_id'] = 0;
-        // ext_info保存帖子的图片信息（v4.1）
+        // ext_info保存帖子口碑关联信息
+        if (intval($koubeiId) > 0) {
+            $subjectSetInfo['ext_info']['koubei']['id'] = $koubeiId;
+        }
+        // ext_info保存帖子的图片宽高信息
         $imageInfo = array();
         $imgUrl = array();
         if (isset($subjectInfo['image_infos']) && !empty($subjectInfo['image_infos'])) {
             foreach ($subjectInfo['image_infos'] as $image) {
                 $imgUrl[] = $image['url'];
-                $imageInfo['image'][] = $image;
+                $imageInfo[] = $image;
             }
-            $imageInfo = json_encode($imageInfo);
         }
         $subjectSetInfo['image_url'] = implode("#", $imgUrl);
-        $subjectSetInfo['ext_info'] = json_encode($imageInfo);
+        $subjectSetInfo['ext_info']['image'] = $imageInfo;
         
-        // 事务开始========================
-        
+        $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         $insertSubjectRes = $this->subjectModel->addSubject($subjectSetInfo);
         unset($subjectSetInfo['image_url']);
         unset($subjectSetInfo['ext_info']);
         if (!$insertSubjectRes) {
-            // rollback
+            // 发布失败
             return $this->succ();
         }
         // insert_id
@@ -260,7 +266,7 @@ class Subject extends \FS_Service {
             $videoInfo = $this->getBatchVideoInfos(array($videoId), 'm3u8')['data'];
             $subjectSetInfo['video_info'] = $videoInfo[$videoId] ? $videoInfo[$videoId] : (object) array();
         }
-        // 图片逻辑更改 by 4.1
+        // 处理输出图片
         $subjectSetInfo['image_infos'] = array();
         $subjectSetInfo['small_image_url'] = array();
         if (!empty($subjectInfo['image_infos'])) {
@@ -275,12 +281,6 @@ class Subject extends \FS_Service {
                 $subjectSetInfo['small_image_url'][] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $small_image_url;
             }
         }
-        
-        // start赠送用户蜜豆
-        // $sendFromUserId = $subjectSetInfo['user_id'];
-        // $this->load->model("mibean_model", "mBean");
-        // $this->mBean->sendMiYaBean($type = 'publish_pic', $sendFromUserId, $subjectId);
-        // end赠送用户蜜豆
         
         // 添加蜜芽圈标签
         if (!empty($labelInfos)) {
@@ -303,44 +303,24 @@ class Subject extends \FS_Service {
                     if (empty($labelResult)) {
                         // 如果没有存在，则保存该自定义标签
                         $insertId = $this->labelService->addLabel($savelab)['data'];
-                        
                         $labelRelationSetInfo['label_id'] = $insertId;
                     } else {
                         $labelRelationSetInfo['label_id'] = $labelResult['id'];
                     }
                 }
-                
                 // 保存图片标签关系信息
-                $insertstatus = $this->labelService->saveLabelRelation($labelRelationSetInfo)['data'];
-                if (!$insertstatus) {
-                    // 保存日志
-                }
-                
+                $this->labelService->saveLabelRelation($labelRelationSetInfo)['data'];
                 // 用于返回的标签结构体（发布后只需要这两个字段）
                 $labelArr[$key]['id'] = isset($labelRelationSetInfo['label_id']) ? $labelRelationSetInfo['label_id'] : 0;
                 $labelArr[$key]['title'] = $labelInfo['title'];
             }
-            
             // 返回标签结构体
             $subjectSetInfo['group_labels'] = $labelArr;
         }
         
-        if (empty($pointInfo)) {
-            $subjectSetInfo['id'] = $subjectId;
-            $subjectSetInfo['group_points'] = array();
-            return $this->succ($subjectSetInfo);
-        }
-        
-        // 获取商品数据
-        
         $subjectSetInfo['id'] = $subjectId;
-        // $subjectSetInfo['items'] = $user_bought_records;
-        
-        unset($subjectSetInfo['active_id']);
         $subjectSetInfo['status'] = 1;
-        
         $subjectSetInfo['user_info'] = $this->userService->getUserInfoByUserId($subjectSetInfo['user_id'])['data'];
-        unset($subjectSetInfo['user_id']);
         
         return $this->succ($subjectSetInfo);
     }
