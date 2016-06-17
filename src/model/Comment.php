@@ -28,10 +28,20 @@ class Comment {
     }
     
     /**
+     * 添加评论
+     */
+    public function addComment($setData){
+        $data = $this->subjectCommentData->addComment($setData);
+        return $data;
+    }
+    
+    
+    /**
      * 根据subjectIds批量分组查评论数
      */
     public function getBatchCommentNums($subjectIds) {
         $subjectCommentNums = $this->subjectCommentData->getBatchCommentNums($subjectIds);
         return $subjectCommentNums;
     }
+
 }
