@@ -11,11 +11,8 @@ use \RongCloud\Api;
 class RongCloud extends Api{
     
     public function __construct(){
-        
-        $miaAppKey = 'cpj2xarljzbdn';
-        $miaAppSecret = '8o0sQ3ajLcfG5q';
-        
-        parent::__construct($miaAppKey,$miaAppSecret);
+                
+        parent::__construct(F_Ice::$ins->workApp->config->get('busconf.rongcloud')['appKey'],F_Ice::$ins->workApp->config->get('busconf.rongcloud')['appSecret']);
         
     }
     
