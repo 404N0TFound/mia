@@ -6,10 +6,10 @@ class Helloworld extends \FW_Action {
 //         $result = $sayService->hello('jack');
 //         var_dump($result);exit;
 //        echo date("Y-m-d H:i:s",time());
-//        $subjectService = new \mia\miagroup\Service\Album();
-//        $result = $subjectService->getArticleList('1000127', 12);
+        $subjectService = new \mia\miagroup\Service\Album();
+        $result = $subjectService->getArticleList('1000127', 12);
 //        $result = $subjectService->getRecommendAlbumArticleList();
-        var_dump(empty(0));die;
+//        var_dump(empty(0));die;
         $subjectService = new \mia\miagroup\Service\Subject();
         $result = $subjectService->getBatchSubjectInfos(array('11082','11082'));
         echo "<pre>";
