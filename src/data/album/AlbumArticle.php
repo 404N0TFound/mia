@@ -47,7 +47,7 @@ class AlbumArticle extends \DB_Query {
             $where[] = array(':eq', 'id', $subjectIds);
         }
         $orderBy = array('create_time DESC');
-        $experts = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,h5_url'), $limit = FALSE, $offset = 0, $orderBy);
+        $experts = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,h5_url,create_time'), $limit = FALSE, $offset = 0, $orderBy);
         return $experts;
     }
 
@@ -60,10 +60,14 @@ class AlbumArticle extends \DB_Query {
         $result = array();
         $limit = 10;
         $offset = 0;
-        $where = array();
         
+        $where = array();
         $where[] = array(':eq', 'status', '1');
-        $where[] = array(':in', 'user_id', $params['user_id']);
+        if (is_array($user_ids)) {
+            $where[] = array(':in', 'user_id', $params['user_id']);
+        } else {
+            $where[] = array(':eq', 'user_id', $params['user_id']);
+        }
         $where[] = array(':eq', 'album_id', $params['album_id']);
         if (intval($params['iPageSize']) > 0) {
             $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;

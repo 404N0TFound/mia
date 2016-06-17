@@ -1,5 +1,5 @@
 <?php
-namespace mia\miagroup\Data\Album;
+namespace mia\miagroup\Data\User;
 
 use \DB_Query;
 

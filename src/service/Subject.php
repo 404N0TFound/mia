@@ -8,6 +8,7 @@ use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
+use mia\miagroup\Service\Album as Album;
 
 class Subject extends \FS_Service {
 
@@ -16,6 +17,7 @@ class Subject extends \FS_Service {
     public $userService = null;
     public $commentService = null;
     public $praiseService = null;
+    public $album = null;
 
     public function __construct() {
         $this->subjectModel = new SubjectModel();
@@ -23,6 +25,7 @@ class Subject extends \FS_Service {
         $this->userService = new UserService();
         $this->commentService = new CommentService();
         $this->praiseService = new PraiseService();
+        $this->album = new Album();
     }
 
     /**
@@ -31,7 +34,7 @@ class Subject extends \FS_Service {
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info'), $status = array()) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info','article'), $status = array()) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -73,7 +76,11 @@ class Subject extends \FS_Service {
         if (intval($currentUid) > 0) {
             $isPraised = $this->praiseService->getBatchSubjectIsPraised($subjectIds, $currentUid)['data'];
         }
-        
+        //获取专栏文章
+        if (in_array('article', $field)) {
+            $subjectAlbum = $this->album->getBatchAlbumBySubjectId($subjectIds);
+            print_r($subjectAlbum);die;
+        }
         $subjectRes = array();
         // 拼装结果集
         foreach ($subjectIds as $subjectId) {

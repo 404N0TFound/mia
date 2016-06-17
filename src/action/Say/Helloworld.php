@@ -5,9 +5,15 @@ class Helloworld extends \FW_Action {
 //         $sayService = new \mia\miagroup\Service\Say();
 //         $result = $sayService->hello('jack');
 //         var_dump($result);exit;
+//        echo date("Y-m-d H:i:s",time());
+//        $subjectService = new \mia\miagroup\Service\Album();
+//        $result = $subjectService->getArticleList('1000127', 12);
+//        $result = $subjectService->getRecommendAlbumArticleList();
+        
         $subjectService = new \mia\miagroup\Service\Subject();
-        $result = $subjectService->getBatchSubjectInfos(array(10265, 11458), 1509128);
-        var_dump($result);exit;
+        $result = $subjectService->getBatchSubjectInfos(array('11082','11082'));
+        echo "<pre>";
+        print_r($result);exit;
         
         /*
         $client = $this->ice->mainApp->proxy_service->get('demo-local', 'Say');

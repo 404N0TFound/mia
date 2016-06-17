@@ -23,11 +23,27 @@ class Album extends \FS_Service {
     public function getArticleList($user_id, $album_id, $page = 1, $iPageSize = 10) {
         $params = array();
         $params['user_id'] = $user_id;
-        $params['album_id'] = $album_id;
-        $params['page'] = $page;
-        $params['iPageSize'] = $iPageSize;
-        $res = $this->abumModel->getArticleList($params);
-        return $this->succ($res);
+        $params['album_id'] = (int)$album_id;
+        $params['page'] = (int)$page;
+        $params['iPageSize'] = (int)$iPageSize;
+        $articleIDList = $this->abumModel->getArticleList($params);
+        
+        if (empty($articleIDList) || !is_array($articleIDList)) {
+            return $this->error(10006,array('没有专栏'));
+        }
+        $articleSubject = new \mia\miagroup\Service\Subject();
+        $articleResult = $articleSubject->getBatchSubjectInfos($articleIDList, $params['user_id']);
+        if( !isset($articleResult['data']) || empty($articleResult['data'])){
+            return $this->error(10007,array('专辑下专栏格式生成失败')) ;
+        }
+        $response['article_list'] = $articleResult['data'];
+        
+        //第一页 返回专辑列表信息
+        if ($page == 1) {
+            $albumResult = $this->abumModel->getAlbumList(array('user_id'=>$user_id));
+            $response['album_list'] = $albumResult;
+        }
+        return $this->succ($response);
     }
 
     /**
@@ -37,20 +53,52 @@ class Album extends \FS_Service {
      * @return array() 精选专栏列表
      */
     public function getRecommendAlbumArticleList($page = 1, $iPageSize = 10) {
+        $response = array();
         $params = array();
-        $params['page'] = $page;
-        $params['iPageSize'] = $iPageSize;
-        $res = $this->abumModel->getRecommendAlbumArticleList($params);
-        return $this->succ($res);
+        $params['page'] = (int)$page;
+        $params['iPageSize'] = (int)$iPageSize;
+        $articleIDList = $this->abumModel->getRecommendAlbumArticleList($params);
+        if (empty($articleIDList) || !is_array($articleIDList)) {
+            return $this->error(10001,array('没有精选文章'));
+        }
+        
+        $articleSubjectIdList = new \mia\miagroup\Service\Subject();
+        $articleResult = $articleSubjectIdList->getBatchSubjectInfos($articleIDList); 
+        
+        if( !isset($articleResult['data']) || empty($articleResult['data'])){
+            return $this->error(10002,array('文章格式生成失败')) ;
+        }
+        $response['article_list'] = $articleResult['data'];
+        
+        $userIdRes = $this->abumModel->getGroupDoozerList();
+        $userIdArr = array();
+        if ($userIdRes) {
+            foreach ($userIdRes as $value) {
+                $userIdArr[] = $value['user_id'];
+            }
+        }
+        $User = new \mia\miagroup\Service\User();
+        $userInfo = $User->getUserInfoByUids($userIdArr);
+        if( !isset($userInfo['data']) || empty($userInfo['data'])){
+            return $this->error(10005,array('用户信息拉取失败')) ;
+        }
+        $response['users'] = $userInfo['data'];
+        return $this->succ($response);
     }
 
     /**
      * 批量查文章信息列表
-     * @params array() $subjectIds 文章IDs
+     * @params array() $subjectIds 蜜呀圈帖子ID
      * @return array() 文章信息列表
      */
     public function getBatchAlbumBySubjectId($subjectIds) {
+        if (empty($subjectIds) || !is_array($subjectIds)) {
+            return $this->error(10003,array('参数有误'));
+        }
         $res = $this->abumModel->getBatchAlbumBySubjectId($subjectIds);
+        if(empty($res)){
+            return $this->error(10004,array('文章列表没有'));
+        }
         return $this->succ($res);
     }
 }

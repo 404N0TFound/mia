@@ -16,14 +16,14 @@ class Album extends \DB_Query {
      * @params array() user_id 用户ID
      * @return array() 专辑列表
      */
-    public function getAlbumList($user_id) {
+    public function getAlbumList($params) {
         $result = array();
         
         $where = array();
-        $where[] = array(':eq', 'user_id', $user_id);
+        $where[] = array(':eq', 'user_id', $params['user_id']);
         
         $orderBy = array('create_time DESC');
-        $experts = $this->getRows($where, array('id'), $limit, $offset, $orderBy);
+        $experts = $this->getRows($where, array('id','user_id','title'), $limit, $offset, $orderBy);
         return $experts;
     }
 }
