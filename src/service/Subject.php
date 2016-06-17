@@ -12,9 +12,13 @@ use mia\miagroup\Service\Praise as PraiseService;
 class Subject extends \FS_Service {
 
     public $subjectModel = null;
+
     public $labelService = null;
+
     public $userService = null;
+
     public $commentService = null;
+
     public $praiseService = null;
 
     public function __construct() {
