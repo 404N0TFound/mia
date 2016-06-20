@@ -8,7 +8,8 @@ class Helloworld extends \FW_Action {
 //        echo date("Y-m-d H:i:s",time());
         $subjectService = new \mia\miagroup\Service\Album();
 //        $result = $subjectService->getArticleList('1508587', 4);
-        $result = $subjectService->getRecommendAlbumArticleList();
+        $result = $subjectService->getAlbumNum(array('1508587'));
+//        $result = $subjectService->getRecommendAlbumArticleList();
 //        var_dump(empty(0));die;
 //        $subjectService = new \mia\miagroup\Service\Subject();
 //        $result = $subjectService->getBatchSubjectInfos(array('11082','11082'));

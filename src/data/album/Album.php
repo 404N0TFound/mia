@@ -12,18 +12,23 @@ class Album extends \DB_Query {
     protected $mapping = array();
 
     /**
-     * 专辑列表
-     * @params array() user_id 用户ID
-     * @return array() 专辑列表
+     * 查用户下专栏数
+     * @params array() $userIds 用户ID
+     * @return array() 用户下专栏数
      */
-    public function getAlbumList($params) {
-        $result = array();
-        
+    public function getAlbumNum($userIds) {
+        $numArr = array();
         $where = array();
-        $where[] = array(':eq', 'user_id', $params['user_id']);
+        $where[] = ['user_id', $userIds];
+        $field = 'user_id,count(*) as nums';
+        $groupBy = 'user_id';
+        $albumInfos = $this->getRows($where, $field, FALSE, 0, FALSE, FALSE, $groupBy);
         
-        $orderBy = array('create_time DESC');
-        $experts = $this->getRows($where, array('id','user_id','title'), $limit, $offset, $orderBy);
-        return $experts;
+        if($albumInfos){
+            foreach ($albumInfos as $values) {
+                $numArr[$values['user_id']] = $values['nums'];
+            }
+        }
+        return $numArr;
     }
 }

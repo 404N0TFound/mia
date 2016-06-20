@@ -21,26 +21,25 @@ class Album extends \FS_Service {
      * @return array() 获取专栏集下的专栏文章列表
      */
     public function getArticleList($user_id, $album_id, $page = 1, $iPageSize = 10) {
-        if (!(int)$user_id || !(int)$album_id) {
-            return $this->error(10008,array('参数错误'));
-        }
         
         $params = array();
         $params['user_id'] = $user_id;
-        $params['album_id'] = (int)$album_id;
+        $params['album_id'] = $album_id;
         $params['page'] = (int)$page;
         $params['iPageSize'] = (int)$iPageSize;
+        
+        $response = array();
+        $response['article_list'] = array();
+        $response['album_list'] = array();
         $articleIDList = $this->abumModel->getArticleList($params);
         
-        if (empty($articleIDList) || !is_array($articleIDList)) {
-            return $this->error(10006,array('没有专栏'));
+        if ($articleIDList) {
+            $articleSubject = new \mia\miagroup\Service\Subject();
+            $articleResult = $articleSubject->getBatchSubjectInfos($articleIDList, $params['user_id']);
+            if( isset($articleResult['data']) && $articleResult['data']){
+                $response['article_list'] = array_values($articleResult['data']);
+            }
         }
-        $articleSubject = new \mia\miagroup\Service\Subject();
-        $articleResult = $articleSubject->getBatchSubjectInfos($articleIDList, $params['user_id']);
-        if( !isset($articleResult['data']) || empty($articleResult['data'])){
-            return $this->error(10007,array('专辑下专栏格式生成失败')) ;
-        }
-        $response['article_list'] = $articleResult['data'];
         
         //第一页 返回专辑列表信息
         if ($page == 1) {
@@ -57,22 +56,21 @@ class Album extends \FS_Service {
      * @return array() 精选专栏列表
      */
     public function getRecommendAlbumArticleList($page = 1, $iPageSize = 10) {
-        $response = array();
         $params = array();
         $params['page'] = (int)$page;
         $params['iPageSize'] = (int)$iPageSize;
+        
+        $response = array();
+        $response['article_list'] = array();
+        $response['users'] = array();
         $articleIDList = $this->abumModel->getRecommendAlbumArticleList($params);
-        if (empty($articleIDList) || !is_array($articleIDList)) {
-            return $this->error(10001,array('没有精选文章'));
+        if ($articleIDList ) {
+            $articleSubjectIdList = new \mia\miagroup\Service\Subject();
+            $articleResult = $articleSubjectIdList->getBatchSubjectInfos($articleIDList); 
+            if( isset($articleResult['data']) && $articleResult['data']){
+                $response['article_list'] = array_values($articleResult['data']);
+            }
         }
-        
-        $articleSubjectIdList = new \mia\miagroup\Service\Subject();
-        $articleResult = $articleSubjectIdList->getBatchSubjectInfos($articleIDList); 
-        
-        if( !isset($articleResult['data']) || empty($articleResult['data'])){
-            return $this->error(10002,array('文章格式生成失败')) ;
-        }
-        $response['article_list'] = $articleResult['data'];
         
         $userIdRes = $this->abumModel->getGroupDoozerList();
         $userIdArr = array();
@@ -83,10 +81,10 @@ class Album extends \FS_Service {
         }
         $User = new \mia\miagroup\Service\User();
         $userInfo = $User->getUserInfoByUids($userIdArr);
-        if( !isset($userInfo['data']) || empty($userInfo['data'])){
-            return $this->error(10005,array('用户信息拉取失败')) ;
+        if( isset($userInfo['data']) && $userInfo['data']){
+            $response['users'] = array_values($userInfo['data']);
         }
-        $response['users'] = $userInfo['data'];
+        
         return $this->succ($response);
     }
 
@@ -105,4 +103,22 @@ class Album extends \FS_Service {
         }
         return $this->succ($res);
     }
+    
+    /**
+     * 查用户下专栏数
+     * @params array() $userIds 用户ID
+     * @return array() 用户专栏个数
+     */
+    public function getAlbumNum($userIds) {
+        $res = $this->abumModel->getAlbumNum($userIds);
+        if(empty($res)){
+            return $this->succ();
+        }
+        return $this->succ($res);
+    }
+    
+    
+    /*
+     * ---------------------------------下面是PC接口----------------------------------------------
+     */
 }
