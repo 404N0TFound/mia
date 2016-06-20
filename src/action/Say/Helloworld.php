@@ -7,11 +7,11 @@ class Helloworld extends \FW_Action {
 //         var_dump($result);exit;
 //        echo date("Y-m-d H:i:s",time());
         $subjectService = new \mia\miagroup\Service\Album();
-        $result = $subjectService->getArticleList('1000127', 12);
-//        $result = $subjectService->getRecommendAlbumArticleList();
+//        $result = $subjectService->getArticleList('1508587', 4);
+        $result = $subjectService->getRecommendAlbumArticleList();
 //        var_dump(empty(0));die;
-        $subjectService = new \mia\miagroup\Service\Subject();
-        $result = $subjectService->getBatchSubjectInfos(array('11082','11082'));
+//        $subjectService = new \mia\miagroup\Service\Subject();
+//        $result = $subjectService->getBatchSubjectInfos(array('11082','11082'));
         echo "<pre>";
         print_r($result);exit;
         
