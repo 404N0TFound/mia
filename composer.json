@@ -5,7 +5,9 @@
     "type": "library",
     "require": {
         "Ice/Framework": ">=0.0.1-dev",
-        "qiniu/php-sdk": "^7.0"
+        "qiniu/php-sdk": "^7.0",
+        "rongcloud/php-sdk": "^1.0",
+        "pili-engineering/pili-sdk-php": "dev-master"
     },
     "autoload": {
         "psr-4": {
