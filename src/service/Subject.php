@@ -159,7 +159,7 @@ class Subject extends \FS_Service {
             // 获取专栏信息
             if (in_array('album', $field)) {
                 if (!empty($albumArticles[$subjectInfo['id']])) {
-                    $subjectRes[$subjectInfo['id']]['album_article '] = $albumArticles[$subjectInfo['id']];
+                    $subjectRes[$subjectInfo['id']]['album_article'] = $albumArticles[$subjectInfo['id']];
                 }
             }
             if (in_array('share_info', $field)) {
