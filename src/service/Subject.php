@@ -8,6 +8,7 @@ use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
+use mia\miagroup\Service\Album as AlbumService;
 
 class Subject extends \FS_Service {
 
@@ -20,6 +21,8 @@ class Subject extends \FS_Service {
     public $commentService = null;
 
     public $praiseService = null;
+    
+    public $albumService = null;
 
     public function __construct() {
         $this->subjectModel = new SubjectModel();
@@ -27,6 +30,7 @@ class Subject extends \FS_Service {
         $this->userService = new UserService();
         $this->commentService = new CommentService();
         $this->praiseService = new PraiseService();
+        $this->albumService = new AlbumService();
     }
 
     /**
@@ -35,7 +39,7 @@ class Subject extends \FS_Service {
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info'), $status = array()) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album'), $status = array()) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -72,6 +76,10 @@ class Subject extends \FS_Service {
         // 获取赞用户
         if (in_array('praise_info', $field)) {
             $praiseInfos = $this->praiseService->getBatchSubjectPraiseUsers($subjectIds)['data'];
+        }
+        // 获取专栏信息
+        if (in_array('album', $field)) {
+            $albumArticles = $this->albumService->getBatchAlbumBySubjectId($subjectIds)['data'];
         }
         // 获取是否已赞
         if (intval($currentUid) > 0) {
@@ -147,6 +155,12 @@ class Subject extends \FS_Service {
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
+            }
+            // 获取专栏信息
+            if (in_array('album', $field)) {
+                if (!empty($albumArticles[$subjectInfo['id']])) {
+                    $subjectRes[$subjectInfo['id']]['album_article '] = $albumArticles[$subjectInfo['id']];
+                }
             }
             if (in_array('share_info', $field)) {
                 // 分享内容

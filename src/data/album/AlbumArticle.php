@@ -17,8 +17,6 @@ class AlbumArticle extends \DB_Query {
      * @return array() 文章id列表
      */
     public function getBatchAlbumBySubjectId($subjectIds) {
-        $result = array();
-        
         $where = array();
         $where[] = array(':eq', 'status', '1');
         if (is_array($subjectIds)) {
@@ -28,8 +26,14 @@ class AlbumArticle extends \DB_Query {
         }
         
         $orderBy = array('create_time DESC');
-        $experts = $this->getRows($where, array('id'), $limit = FALSE, $offset = 0, $orderBy);
-        return $experts;
+        $data = $this->getRows($where, 'subject_id, id', $limit = FALSE, $offset = 0, $orderBy);
+        $result = array();
+        if ($data) {
+            foreach ($data as $val) {
+                $result[$val['subject_id']] = $val['id'];
+            }
+        }
+        return $result;
     }
 
     /**
@@ -38,17 +42,21 @@ class AlbumArticle extends \DB_Query {
      * @return array() 文章信息列表
      */
     public function getBatchArticle($articleIds) {
+        if (empty($articleIds)) {
+            return array();
+        }
         $result = array();
         $where = array();
         $where[] = array(':eq', 'status', '1');
         if (is_array($articleIds)) {
             $where[] = array(':in', 'id', $articleIds);
-        } else {
-            $where[] = array(':eq', 'id', $subjectIds);
         }
         $orderBy = array('create_time DESC');
-        $experts = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,h5_url,create_time'), $limit = FALSE, $offset = 0, $orderBy);
-        return $experts;
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,h5_url,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        foreach ($data as $v) {
+            $result[$v['id']] = $v;
+        }
+        return $result;
     }
 
     /**
@@ -63,7 +71,7 @@ class AlbumArticle extends \DB_Query {
         
         $where = array();
         $where[] = array(':eq', 'status', '1');
-        if (is_array($user_ids)) {
+        if (is_array($params['user_id'])) {
             $where[] = array(':in', 'user_id', $params['user_id']);
         } else {
             $where[] = array(':eq', 'user_id', $params['user_id']);
@@ -76,8 +84,8 @@ class AlbumArticle extends \DB_Query {
             $limit = $params['iPageSize'];
         }
         $orderBy = array('create_time DESC');
-        $experts = $this->getRows($where, array('subject_id'), $limit, $offset, $orderBy);
-        return $experts;
+        $result = $this->getRows($where, array('subject_id'), $limit, $offset, $orderBy);
+        return $result;
     }
 
     /**

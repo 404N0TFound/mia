@@ -23,14 +23,15 @@ class Album {
      * @return array() 文章ID列表
      */
     public function getBatchAlbumBySubjectId($subjectIds) {
-        $res = $this->albumArticleData->getBatchAlbumBySubjectId($subjectIds);
-        $idArr = array();
-        if ($res) {
-            foreach ($res as $val) {
-                $idArr[] = $val['id'];
+        $articleIds = $this->albumArticleData->getBatchAlbumBySubjectId($subjectIds);
+        $articles = $this->getBatchArticle($articleIds);
+        $subjectArticle = array();
+        foreach ($articleIds as $subjectId => $articleId) {
+            if (isset($articles[$articleId])) {
+                $subjectArticle[$subjectId] = $articles[$articleId];
             }
         }
-        return $this->getBatchArticle($idArr);
+        return $subjectArticle;
     }
 
     /**
