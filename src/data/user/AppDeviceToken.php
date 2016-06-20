@@ -14,7 +14,19 @@ class AppDeviceToken extends DB_Query {
 
     protected $dbResource = 'miagroup';
 
-    protected $mapping = array('id' => 'i', 'device_token' => 's', 'regid' => 's', 'user_id' => 'i', 'push_switch' => 'i', 'client_type' => 's', 'created' => 's', 'cpa_platform_id' => 'i', 'mac' => 's', 'uuid' => 's', 'idfa' => 's');
+    protected $mapping = array(
+        'id' => 'i', 
+        'device_token' => 's', 
+        'regid' => 's', 
+        'user_id' => 'i', 
+        'push_switch' => 'i', 
+        'client_type' => 's', 
+        'created' => 's', 
+        'cpa_platform_id' => 'i', 
+        'mac' => 's', 
+        'uuid' => 's', 
+        'idfa' => 's'
+    );
 
     /**
      * 根据userid 获取是否需要发送push
