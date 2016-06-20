@@ -94,13 +94,10 @@ class Album extends \FS_Service {
      * @return array() 文章信息列表
      */
     public function getBatchAlbumBySubjectId($subjectIds) {
-        if (empty($subjectIds) || !is_array($subjectIds)) {
-            return $this->error(10003,array('参数有误'));
+        if (empty($subjectIds)) {
+            return $this->succ(array());
         }
         $res = $this->abumModel->getBatchAlbumBySubjectId($subjectIds);
-        if(empty($res)){
-            return $this->error(10004,array('文章列表没有'));
-        }
         return $this->succ($res);
     }
     
@@ -110,10 +107,10 @@ class Album extends \FS_Service {
      * @return array() 用户专栏个数
      */
     public function getAlbumNum($userIds) {
-        $res = $this->abumModel->getAlbumNum($userIds);
-        if(empty($res)){
-            return $this->succ();
+        if (empty($userIds)) {
+            return $this->succ(array()); 
         }
+        $res = $this->abumModel->getAlbumNum($userIds);
         return $this->succ($res);
     }
     
