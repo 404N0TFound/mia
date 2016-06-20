@@ -111,4 +111,15 @@ class Album {
     {
         return $this->userGroupDoozerData->getGroupDoozerList();
     }
+    
+    
+    /**
+     * 查用户下专栏数
+     * @params array() $userIds 用户ID
+     * @return array() 用户专栏个数
+     */
+    public function getAlbumNum($userIds)
+    {
+        return $this->albumData->getAlbumNum($userIds);
+    }
 }

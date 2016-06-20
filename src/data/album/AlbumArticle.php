@@ -68,7 +68,9 @@ class AlbumArticle extends \DB_Query {
         } else {
             $where[] = array(':eq', 'user_id', $params['user_id']);
         }
-        $where[] = array(':eq', 'album_id', $params['album_id']);
+        if(isset($params['album_id']) && $params['album_id']){
+            $where[] = array(':eq', 'album_id', $params['album_id']);
+        }
         if (intval($params['iPageSize']) > 0) {
             $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
             $limit = $params['iPageSize'];
