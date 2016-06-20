@@ -8,8 +8,8 @@ $secret_key = 'YBPALFcIODJ32FSMxJDXFJ2KmtiA-zu4BxGJ6oPl';
 /**
  * 七牛域名
  */
-$video_host = 'http://o6ow2tund.bkt.clouddn.com/';
-$image_host = 'http://o6ov54mbs.bkt.clouddn.com/';
+$video_host = 'http://video1.miyabaobei.com/';
+$image_host = 'http://image1.miyabaobei.com/';
 
 /**
  * 资源空间
