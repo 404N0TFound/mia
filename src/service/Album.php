@@ -32,7 +32,6 @@ class Album extends \FS_Service {
         $response['article_list'] = array();
         $response['album_list'] = array();
         $articleIDList = $this->abumModel->getArticleList($params);
-        
         if ($articleIDList) {
             $articleSubject = new \mia\miagroup\Service\Subject();
             $articleResult = $articleSubject->getBatchSubjectInfos($articleIDList, $params['user_id']);
@@ -73,14 +72,8 @@ class Album extends \FS_Service {
         }
         
         $userIdRes = $this->abumModel->getGroupDoozerList();
-        $userIdArr = array();
-        if ($userIdRes) {
-            foreach ($userIdRes as $value) {
-                $userIdArr[] = $value['user_id'];
-            }
-        }
         $User = new \mia\miagroup\Service\User();
-        $userInfo = $User->getUserInfoByUids($userIdArr);
+        $userInfo = $User->getUserInfoByUids($userIdRes);
         if( isset($userInfo['data']) && $userInfo['data']){
             $response['users'] = array_values($userInfo['data']);
         }
@@ -118,4 +111,99 @@ class Album extends \FS_Service {
     /*
      * ---------------------------------下面是PC接口----------------------------------------------
      */
+    
+    /**
+     * 查专栏辑接口
+     * @params array() $userId 用户ID
+     * @return array() 专栏辑信息
+     */
+    public function getAlbumFile($userId) {
+        
+    }
+    
+    /**
+     * 查专栏接口
+     * @params array() $album_id 专栏辑ID
+     * @params array() $userId 用户ID
+     * @return array() 专栏信息
+     */
+    public function getAlbum($album_id,$userId) {
+        
+    }
+    
+    /**
+     * 查文章详情接口
+     * @params array() $article_id 文章ID
+     * @params array() $userId 用户ID
+     * @return array() 文章详情
+     */
+    public function getAlbumArticle($article_id,$userId) {
+        
+    }
+    
+    
+    /**
+     * 更新专栏辑接口
+     * @params array() $userId 用户ID
+     * @return array() 专栏辑信息
+     */
+    public function updateAlbumFile($userId) {
+        
+    }
+    
+    
+    /**
+     * 更新专栏接口
+     * @params array() $album_id 专栏辑ID
+     * @params array() $userId 用户ID
+     * @return array() 专栏信息
+     */
+    public function updateAlbum($album_id,$userId) {
+        
+    }
+    
+    
+    /**
+     * 更新文章详情接口
+     * @params array() $article_id 文章ID
+     * @params array() $userId 用户ID
+     * @return array() 文章详情
+     */
+    public function updateAlbumArticle($article_id,$userId) {
+        
+    }
+    
+    
+    
+    
+    /**
+     * 删除专栏辑接口
+     * @params array() $userId 用户ID
+     * @params array() $id   ID
+     * @return array() 专栏辑信息
+     */
+    public function delAlbumFile($userId) {
+        
+    }
+    
+    /**
+     * 删除专栏接口
+     * @params array() $id  ID
+     * @params array() $userId 用户ID
+     * @return array() 专栏信息
+     */
+    public function delAlbum($id,$userId) {
+        
+    }
+    
+    
+    /**
+     * 删除文章详情接口
+     * @params array() $id 文章ID
+     * @params array() $userId 用户ID
+     * @return array() 文章详情
+     */
+    public function delAlbumArticle($id,$userId) {
+        
+    }
 }
