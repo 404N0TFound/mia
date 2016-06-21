@@ -2,7 +2,6 @@
 namespace mia\miagroup\Data\Subject;
 
 use Ice;
-use function Qiniu\json_decode;
 
 class Subject extends \DB_Query {
 
