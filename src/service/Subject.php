@@ -104,7 +104,7 @@ class Subject extends \FS_Service {
             $imageUrl = array();
             $smallImageUrl = array();
             $bigImageUrl = array();
-            if (!empty($subjectInfo['image_url']) && empty($subjectInfo['ext_info'])) {
+            if (!empty($subjectInfo['image_url']) && empty($subjectInfo['ext_info']['image'])) {
                 $imageUrlArr = explode("#", $subjectInfo['image_url']);
                 if (!empty($imageUrlArr[0])) {
                     foreach ($imageUrlArr as $k => $image) {
@@ -121,10 +121,10 @@ class Subject extends \FS_Service {
                     }
                 }
             }
-            if (!empty($subjectInfo['ext_info'])) {
-                $imageInfos = json_decode(trim(stripslashes($subjectInfo['ext_info']), '"'), true);
-                if (is_array($imageInfos['image']) && !empty($imageInfos['image'])) {
-                    foreach ($imageInfos['image'] as $key => $image) {
+            if (!empty($subjectInfo['ext_info']['image'])) {
+                $imageInfos = $subjectInfo['ext_info']['image'];
+                if (is_array($imageInfos) && !empty($imageInfos)) {
+                    foreach ($imageInfos as $key => $image) {
                         $pathInfo = pathinfo($image['url']);
                         $small_image_url = $pathInfo['dirname'] . "/" . $pathInfo['filename'] . "_small." . $pathInfo['extension'];
                         if (strpos($small_image_url, "app_group") !== false) {
@@ -140,6 +140,9 @@ class Subject extends \FS_Service {
             $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
             $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
+            if (!empty($subjectInfo['ext_info']['koubei_id'])) {
+                $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei_id'];
+            }
             if (!empty($subjectInfo['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['video_info'] = $subjectInfo['video_info'];
             }
