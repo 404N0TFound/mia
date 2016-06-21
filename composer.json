@@ -26,6 +26,7 @@
             "mia\\miagroup\\Data\\Label\\":     "src/data/label",
             "mia\\miagroup\\Data\\Album\\":     "src/data/album",
             "mia\\miagroup\\Data\\News\\":      "src/data/news",
+            "mia\\miagroup\\Data\\Live\\":      "src/data/live",
             "mia\\miagroup\\Data\\UserRelation\\":  "src/data/userrelation"
         }
     },

@@ -9,7 +9,16 @@ class Video extends \DB_Query {
 
     protected $tableName = 'group_subject_video';
 
-    protected $mapping = array('id' => 'i', 'subject_id' => 'i', 'user_id' => 'i', 'video_origin_url' => 's', 'source' => 's', 'ext_info' => 's', 'status' => 'i', 'create_time' => 's');
+    protected $mapping = array(
+        'id' => 'i', 
+        'subject_id' => 'i', 
+        'user_id' => 'i', 
+        'video_origin_url' => 's', 
+        'source' => 's', 
+        'ext_info' => 's', 
+        'status' => 'i', 
+        'create_time' => 's'
+    );
 
     /**
      * 批量查询视频信息
