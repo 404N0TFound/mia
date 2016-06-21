@@ -55,4 +55,14 @@ class Label extends \FS_Service {
         $data = $this->labelModel->addLabel($labelTitle);
         return $this->succ($data);
     }
+    
+    /**
+     * 批量获取标签信息
+     */
+    public function getBatchLabelInfos($labelIds){
+        $data = $this->labelModel->getBatchLabelInfos($labelIds);
+        return $this->succ($data);
+    }
+    
+
 }
