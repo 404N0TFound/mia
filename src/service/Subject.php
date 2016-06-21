@@ -12,12 +12,17 @@ use mia\miagroup\Service\Album as AlbumService;
 
 class Subject extends \FS_Service {
 
-    private $subjectModel = null;
-    private $labelService = null;
-    private $userService = null;
-    private $commentService = null;
-    private $praiseService = null;
+    public $subjectModel = null;
+
+    public $labelService = null;
+
+    public $userService = null;
+
+    public $commentService = null;
+
+    public $praiseService = null;
     
+    public $albumService = null;
 
     public function __construct() {
         $this->subjectModel = new SubjectModel();
@@ -43,11 +48,13 @@ class Subject extends \FS_Service {
         if (empty($subjectInfos)) {
             return $this->succ(array());
         }
+        
         // 收集id
         $userIdArr = array();
         foreach ($subjectInfos as $subjectInfo) {
             $userIdArr[] = $subjectInfo['user_id'];
         }
+        
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
@@ -61,10 +68,6 @@ class Subject extends \FS_Service {
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
         }
-        // 获取专栏信息
-        if (in_array('album', $field)) {
-            $subjectAlbum = $this->albumService->getBatchAlbumBySubjectId($subjectIds)['data'];
-        }
         // 获取计数信息
         if (in_array('count', $field)) {
             $commentCounts = $this->commentService->getBatchCommentNums($subjectIds)['data'];
@@ -73,6 +76,10 @@ class Subject extends \FS_Service {
         // 获取赞用户
         if (in_array('praise_info', $field)) {
             $praiseInfos = $this->praiseService->getBatchSubjectPraiseUsers($subjectIds)['data'];
+        }
+        // 获取专栏信息
+        if (in_array('album', $field)) {
+            $albumArticles = $this->albumService->getBatchAlbumBySubjectId($subjectIds)['data'];
         }
         // 获取是否已赞
         if (intval($currentUid) > 0) {
@@ -142,17 +149,18 @@ class Subject extends \FS_Service {
             if (in_array('group_labels', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
             }
-            if (in_array('album', $field)) {
-                if (!empty($subjectAlbum[$subjectId])) {
-                    $subjects[$subjectId]['album_article'] = $subjectAlbum[$subjectId];
-                }
-            }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['fancied_count'] = intval($praiseCounts[$subjectInfo['id']]);
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
+            }
+            // 获取专栏信息
+            if (in_array('album', $field)) {
+                if (!empty($albumArticles[$subjectInfo['id']])) {
+                    $subjectRes[$subjectInfo['id']]['album_article'] = $albumArticles[$subjectInfo['id']];
+                }
             }
             if (in_array('share_info', $field)) {
                 // 分享内容
@@ -185,7 +193,8 @@ class Subject extends \FS_Service {
         }
         return $this->succ($subjectRes);
     }
-
+    
+    
     /**
      * 批量获取用户发布的帖子数
      */

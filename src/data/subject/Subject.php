@@ -40,6 +40,7 @@ class Subject extends \DB_Query {
         return $result;
     }
 
+
     /**
      * 批量获取用户发布的帖子数
      *
@@ -81,8 +82,8 @@ class Subject extends \DB_Query {
      * @param type $limit            
      * @return int
      */
-    public function updateSubject($setData, $where = [], $orderBy = FALSE, $limit = FALSE) {
-        $data = $this->update($setData, $where, $orderBy, $limit);
+    public function updateSubject($setData, $where = []) {
+        $data = $this->update($setData, $where);
         return $data;
     }
 }

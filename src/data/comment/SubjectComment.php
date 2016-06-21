@@ -82,4 +82,15 @@ class SubjectComment extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 添加评论
+     */
+    public function addComment($setData){
+        
+        $data = $this->insert($setData);
+        return $data;
+    }
+    
+    
 }

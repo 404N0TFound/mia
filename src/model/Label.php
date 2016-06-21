@@ -81,4 +81,14 @@ class Label {
         $data = $this->labelRelation->saveLabelRelation($labelRelationInfo);
         return $data;
     }
+    
+    /**
+     * 批量获取标签信息
+     */
+    public function getBatchLabelInfos($labelIds){
+        $data = $this->labelData->getBatchLabelInfos($labelIds);
+        return $data;
+    }
+    
+    
 }

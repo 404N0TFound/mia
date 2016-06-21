@@ -6,7 +6,9 @@ use \F_Ice;
 use mia\miagroup\Model\User as UserModel;
 use mia\miagroup\Service\UserRelation;
 use mia\miagroup\Service\Subject;
+use mia\miagroup\Service\Album;
 use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Service\Label as labelService;
 
 class User extends FS_Service {
 
@@ -54,17 +56,33 @@ class User extends FS_Service {
             }
             
             $subjectService = new Subject();
+            $albumService = new Album();
             $userFansCount = $userRelation->countBatchUserFanS($userIds)['data']; // 用户粉丝数
             $userAttenCount = $userRelation->countBatchUserAtten($userIds)['data']; // 用户关注数
             $userSubjectsCount = $subjectService->getBatchUserSubjectCounts($userIds); // 用户发布数
+            $userAlbumCount = $albumService->getAlbumNum($userIds)['data'];//用户专栏数
             $userSubjectsCount = $userSubjectsCount['data'];
         }
         
         // 批量获取专家信息
         $expertInfos = $this->getBatchExpertInfoByUids($userIds)['data'];
         
+        $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
+            
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
+            if ($expertInfos[$userInfo['id']]) {
+                $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();
+                if (!empty(trim($expertInfos[$userInfo['id']]['label'], "#"))) {
+                    $expert_label_ids = explode('#', trim($expertInfos[$userInfo['id']]['label'], "#"));
+                    $expertInfos[$userInfo['id']]['label'] = $labelService->getBatchLabelInfos($expert_label_ids)['data'];
+                } else {
+                    $expertInfos[$userInfo['id']]['label'] = [];
+                }
+                $userInfo['experts_info'] = $expertInfos[$userInfo['id']];
+            } else {
+                $userInfo['experts_info'] = [];
+            }
             
             if (intval($currentUid) > 0) {
                 if (!empty($relationWithMe) && $relationWithMe[$userInfo['id']] > 0) {
@@ -83,6 +101,7 @@ class User extends FS_Service {
                 $userInfo['fans_count'] = intval($userFansCount[$userInfo['id']]); // 用户粉丝数
                 $userInfo['focus_count'] = intval($userAttenCount[$userInfo['id']]); // 用户关注数
                 $userInfo['pic_count'] = intval($userSubjectsCount[$userInfo['id']]); // 用户发布数
+                $userInfo['album_count'] = intval($userFansCount[$userInfo['id']]); // 用户发布数
             }
             if (!in_array('cell_phone', $fields)) {
                 unset($userInfo['cell_phone']);
