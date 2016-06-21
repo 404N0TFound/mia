@@ -42,7 +42,24 @@ class Album {
     public function getBatchArticle($articleIds) {
         $res = $this->albumArticleData->getBatchArticle($articleIds);
         foreach ($res as $key => $value) {
-            $res[$key]['cover_image'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $value['cover_image'];
+            $img_pic = array();
+            if(isset($value['cover_image']) && $value['cover_image']){
+                $img_pic = json_decode($value['cover_image'],true);
+            }
+            if($img_pic){
+                $res[$key]['cover_image'] = array();
+                $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] .$img_pic['url'];
+                $res[$key]['cover_image']['width'] = $img_pic['width'];
+                $res[$key]['cover_image']['height'] = $img_pic['height'];
+                $res[$key]['cover_image']['content'] = $img_pic['content'];
+            }
+            $res[$key]['album_info'] = array();
+            $AlbumInfo = $this->albumData->getAlbumInfo(array('album_id'=>$value['album_id']));
+            if($AlbumInfo){
+                $res[$key]['album_info']['id'] = $AlbumInfo['id'];
+                $res[$key]['album_info']['user_id'] = $AlbumInfo['user_id'];
+                $res[$key]['album_info']['title'] = $AlbumInfo['title'];
+            }
             $res[$key]['view_num'] = $this->readNum($value['create_time']);
             $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
             unset($res[$key]['create_time']);
@@ -73,14 +90,7 @@ class Album {
      * @return array() 获取专栏集下的专栏文章ID列表
      */
     public function getArticleList($params) {
-        $articleList = array();
-        $idArr = $this->albumArticleData->getArticle($params);
-        if($idArr){
-            foreach($idArr as $value){
-                $articleList[] = $value['subject_id'];
-            }
-        }
-        return $articleList;
+        return $this->albumArticleData->getArticle($params);
     }
     
     public function getAlbumList($params){
@@ -93,14 +103,7 @@ class Album {
      * @return array() 标精文章列表
      */
     public function getRecommendAlbumArticleList($params) {
-        $articleList = array();
-        $idArr = $this->albumArticleData->getRecommendAlbumArticleList($params);
-        if($idArr){
-            foreach($idArr as $value){
-                $articleList[] = $value['subject_id'];
-            }
-        }
-        return $articleList;
+        return $this->albumArticleData->getRecommendAlbumArticleList($params);
     }
     
     /**

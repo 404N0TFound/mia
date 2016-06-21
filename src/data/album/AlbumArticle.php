@@ -65,7 +65,7 @@ class AlbumArticle extends \DB_Query {
      * @return array() 文章信息列表
      */
     public function getArticle($params) {
-        $result = array();
+        $articleList = array();
         $limit = 10;
         $offset = 0;
         
@@ -84,8 +84,13 @@ class AlbumArticle extends \DB_Query {
             $limit = $params['iPageSize'];
         }
         $orderBy = array('create_time DESC');
-        $result = $this->getRows($where, array('subject_id'), $limit, $offset, $orderBy);
-        return $result;
+        $idArr = $this->getRows($where, array('subject_id'), $limit, $offset, $orderBy);
+        if($idArr){
+            foreach($idArr as $value){
+                $articleList[] = $value['subject_id'];
+            }
+        }
+        return $articleList;
     }
 
     /**
@@ -93,7 +98,7 @@ class AlbumArticle extends \DB_Query {
      * @return array() 精选文章列表
      */
     public function getRecommendAlbumArticleList($params) {
-        $result = array();
+        $articleList = array();
         $limit = 10;
         $offset = 0;
         $where = array();
@@ -105,8 +110,13 @@ class AlbumArticle extends \DB_Query {
             $limit = $params['iPageSize'];
         }
         $orderBy = array('create_time DESC');
-        $experts = $this->getRows($where, array('subject_id'), $limit, $offset, $orderBy);
-        return $experts;
+        $idArr = $this->getRows($where, array('subject_id'), $limit, $offset, $orderBy);
+        if($idArr){
+            foreach($idArr as $value){
+                $articleList[] = $value['subject_id'];
+            }
+        }
+        return $articleList;
     }
 
     /*

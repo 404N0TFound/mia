@@ -38,7 +38,8 @@ class Album extends \DB_Query {
      * @return array() 专辑列表
      */
     public function getAlbumList($params) {
-        $result = array();
+        $limit = 10;
+        $offset = 0;
         $where = array();
         $where[] = array(':eq', 'user_id', $params['user_id']);
         if (intval($params['iPageSize']) > 0) {
@@ -47,6 +48,18 @@ class Album extends \DB_Query {
         }
         $orderBy = array('create_time DESC');
         $data = $this->getRows($where, array('id','user_id','title'), $limit, $offset, $orderBy);
+        return $data;
+    }
+    
+    /**
+     * 专辑信息
+     * @params array() album_id 专辑ID
+     * @return array() 专辑信息
+     */
+    public function getAlbumInfo($params) {
+        $where = array();
+        $where[] = array(':eq', 'id', $params['album_id']);
+        $data = $this->getRow($where, array('id','user_id','title'));
         return $data;
     }
 }
