@@ -68,4 +68,39 @@ class NormalUtil {
         }
         return $dateInfo;
     }
+    
+    
+    /**
+     * 加密UID
+     * @param int $uid
+     * @return
+     */
+    public static function encode_uid($uid) {
+        $newcookie = array();
+        $cookie = base64_encode($uid);
+        for($i = 0; $i <= strlen($cookie); $i ++) {
+            $newcookie[$i] = ord($cookie[$i]);
+        }
+        $newcookie = implode('.', $newcookie);
+        return base64_encode($newcookie . substr($newcookie, 0, 2));
+    }
+    
+    /**
+     * 解密UID
+     * @param str $val  加密后的UID
+     * @return
+     */
+    public static function decode_uid($val) {
+        $oldcookie = substr(base64_decode($val), 0, -2);
+        $newcookie = array();
+        $cookie = explode('.', $oldcookie);
+        for($i = 0; $i <= strlen($oldcookie); $i ++) {
+            $newcookie[$i] = chr($cookie[$i]);
+        }
+        $newcookie = implode('', $newcookie);
+        $newcookie = base64_decode($newcookie);
+        return $newcookie;
+    }
+    
+    
 }
