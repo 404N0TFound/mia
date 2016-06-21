@@ -41,29 +41,36 @@ class Album {
      */
     public function getBatchArticle($articleIds) {
         $res = $this->albumArticleData->getBatchArticle($articleIds);
-        foreach ($res as $key => $value) {
-            $img_pic = array();
-            if(isset($value['cover_image']) && $value['cover_image']){
-                $img_pic = json_decode($value['cover_image'],true);
+        if($res){
+            $AlbumInfo = array();
+            $albumIdArr = array_column($res,'album_id');
+            $AlbumInfo = $this->albumData->getAlbumInfo($albumIdArr);
+            foreach ($res as $key => $value) {
+                $img_pic = array();
+                if(isset($value['cover_image']) && $value['cover_image']){
+                    $img_pic = json_decode($value['cover_image'],true);
+                }
+                if($img_pic){
+                    $res[$key]['cover_image'] = array();
+                    $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] .$img_pic['url'];
+                    $res[$key]['cover_image']['width'] = $img_pic['width'];
+                    $res[$key]['cover_image']['height'] = $img_pic['height'];
+                    $res[$key]['cover_image']['content'] = $img_pic['content'];
+                }
+                $res[$key]['album_info'] = array();
+                
+                if($AlbumInfo){
+                    $res[$key]['album_info']['id'] = $AlbumInfo[$value['album_id']]['id'];
+                    $res[$key]['album_info']['user_id'] = $AlbumInfo[$value['album_id']]['user_id'];
+                    $res[$key]['album_info']['title'] = $AlbumInfo[$value['album_id']]['title'];
+                }
+                $res[$key]['view_num'] = $this->readNum($value['create_time']);
+                $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
+                unset($res[$key]['create_time']);
             }
-            if($img_pic){
-                $res[$key]['cover_image'] = array();
-                $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] .$img_pic['url'];
-                $res[$key]['cover_image']['width'] = $img_pic['width'];
-                $res[$key]['cover_image']['height'] = $img_pic['height'];
-                $res[$key]['cover_image']['content'] = $img_pic['content'];
-            }
-            $res[$key]['album_info'] = array();
-            $AlbumInfo = $this->albumData->getAlbumInfo(array('album_id'=>$value['album_id']));
-            if($AlbumInfo){
-                $res[$key]['album_info']['id'] = $AlbumInfo['id'];
-                $res[$key]['album_info']['user_id'] = $AlbumInfo['user_id'];
-                $res[$key]['album_info']['title'] = $AlbumInfo['title'];
-            }
-            $res[$key]['view_num'] = $this->readNum($value['create_time']);
-            $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
-            unset($res[$key]['create_time']);
         }
+            
+        
         return $res;
     }
     

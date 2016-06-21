@@ -56,10 +56,19 @@ class Album extends \DB_Query {
      * @params array() album_id 专辑ID
      * @return array() 专辑信息
      */
-    public function getAlbumInfo($params) {
+    public function getAlbumInfo($albumIdArr) {
         $where = array();
-        $where[] = array(':eq', 'id', $params['album_id']);
-        $data = $this->getRow($where, array('id','user_id','title'));
-        return $data;
+        $res = array();
+        if(empty($albumIdArr)){
+            return $res;
+        }
+        $where[] = array(':in', 'id', $albumIdArr);
+        $data = $this->getRows($where, array('id','user_id','title'));
+        if($data){
+            foreach ($data as $value){
+                $res[$value['id']] = $value;
+            }
+        }
+        return $res;
     }
 }
