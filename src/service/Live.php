@@ -2,27 +2,26 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Live as LiveModel;
+use mia\miagroup\Service\User;
 use mia\miagroup\Util\RongCloudUtil;
-use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Util\QiniuUtil;
 
 class Live extends \FS_Service {
     
     public $liveModel;
     public $rongCloud;//融云聊天室api接口
-    public $userService;
     
     
     public function __construct() {
         $this->liveModel = new LiveModel();
         $this->rongCloud = new RongCloudUtil();
-        $this->userService = new UserService();
     }
     
     /**
      * 创建直播
      */
-    public function addLive($userId,$name,$portraitUri) {
+    public function addLive($userId) {
         //校验是否有直播权限
         $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($roomInfo)){
@@ -30,12 +29,33 @@ class Live extends \FS_Service {
             return $this->error(30000,'您没有直播权限!');
         }
         
+        //判断用户是否已经存在直播
+        $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId);
+        if(!empty($checkLiveExist)){
+            //4是结束有回放
+            $upLiveInfo = $this->liveModel->updateLiveByUserId($userId, 4);
+            if(!$upLiveInfo){
+                return $this->error(30000,'结束已存在直播失败');
+            }
+        }
+        
         //生成视频流ID和聊天室ID
-        $stream_id = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
+        $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
         //获取七牛视频流
-
+        $qiniu = new QiniuUtil();
+        $streamInfo = $qiniu->createStream($streamId);
+        if(empty($streamInfo)){
+            return $this->error(30000,'获取七牛的流信息失败');
+        }
+        
         //获取融云token
-        $RongtokenInfo = $this->rongCloud->getToken($userId, $name, $portraitUri);
+        //获取$name,$portratiuri
+        $userService = new User();
+        $userInfo = $userService->getUserBaseInfo($userId)['data'][$userId];
+        if(empty($userInfo)){
+            return $this->error(30000,'获取用户信息失败');
+        }
+        $RongtokenInfo = $this->rongCloud->getToken($userId, $userInfo['name'], $userInfo['icon']);
         if(!$RongtokenInfo){
             //获取token失败
             return $this->error(30000,'获取rongcloudToken失败');
@@ -49,7 +69,7 @@ class Live extends \FS_Service {
         
         //新增直播记录
         $liveInfo['user_id'] = $userId;
-        $liveInfo['stream_id'] = $stream_id;
+        $liveInfo['stream_id'] = $streamInfo['id'];
         $liveInfo['chat_room_id'] = $chatId;
         $liveInfo['status'] = 1;//创建中
         $liveInfo['create_time'] = date('Y-m-d H:i:s');
@@ -63,11 +83,13 @@ class Live extends \FS_Service {
             return $this->error(30000,'更新房间信息失败');
         }
         //返回数据
-        //融云
-        $data['rongcloud']['rongcloud_token'] = $RongtokenInfo;
-        $data['rongcloud']['chatroom_id'] = $chatId;
-        $data['live_id'] = $liveId;
-        //七牛
+        $data['rongcloud_token'] = $RongtokenInfo;
+        $data['qiniu_stream_id'] = $streamInfo['id'];
+        $data['chat_room_id'] = $chatId;
+        
+//         $data['room_id'] = $roomInfo['id'];
+//         $data['live_id'] = $liveId;
+        
         return $this->succ($data);
     }
     
@@ -96,14 +118,21 @@ class Live extends \FS_Service {
         $setData[] = ['status', 4];//结束直播
         $setData[] = ['end_time',date('Y-m-d H:i:s')];
         $data = $this->liveModel->updateLiveById($liveId,$setData);
-        //生成回放
-        $subjectService = new \mia\miagroup\Service\Subject();
-        $subjectInfo = array("title" => 'zhibo', "text" => 'zhibo', "image_infos" => array(0 => array('height' => 522, 'url' => '/d1/p4/2016/06/17/89/09/8909b7a9830d432c8b338363c9fae326542443173.jpg', 'width' => 480)), "user_info" => array('username' => 'miya134****4368', 'nickname' => 'miya134****4368', 'child_birth_day' => '2015-03-11', 'user_status' => '0', 'consume_money' => '0.00', 'icon' => '', 'level' => '1', 'is_id_verified' => '2', 'is_cell_verified' => '1', 'mibean_level' => '2', 'create_date' => '2015-03-31 17:04:05', 'status' => '1', 'is_experts' => 0, 'user_id' => '1000008', 'level_number' => '1'), "active_id" => 0, "video_url" => 'video/2016/05/04/089912967ba54274ec761531a7796eb3.mp4');
-        
-        $subjectRes = $subjectService->issue($subjectInfo);
-        if($subjectRes['code'] != 0){
-            return $this->error(30000,'生成帖子失败');
+        if(!$data){
+            return $this->error(30000,'更新状态失败');
         }
+        
+        //生成回放
+//         $qiniu = new QiniuUtil();
+//         $vedioUrl = $qiniu->getPalyBackUrls();
+        
+//         $subjectService = new \mia\miagroup\Service\Subject();
+//         $subjectInfo = array("title" => 'zhibo', "text" => 'zhibo', "image_infos" => array(0 => array('height' => 522, 'url' => '/d1/p4/2016/06/17/89/09/8909b7a9830d432c8b338363c9fae326542443173.jpg', 'width' => 480)), "user_info" => array('username' => 'miya134****4368', 'nickname' => 'miya134****4368', 'child_birth_day' => '2015-03-11', 'user_status' => '0', 'consume_money' => '0.00', 'icon' => '', 'level' => '1', 'is_id_verified' => '2', 'is_cell_verified' => '1', 'mibean_level' => '2', 'create_date' => '2015-03-31 17:04:05', 'status' => '1', 'is_experts' => 0, 'user_id' => '1000008', 'level_number' => '1'), "active_id" => 0, "video_url" => 'video/2016/05/04/089912967ba54274ec761531a7796eb3.mp4');
+        
+//         $subjectRes = $subjectService->issue($subjectInfo);
+//         if($subjectRes['code'] != 0){
+//             return $this->error(30000,'生成帖子失败');
+//         }
           
         //后台脚本处理赞数、评论、累计观众、最高在线等数据
         //更新直播房间
@@ -122,16 +151,51 @@ class Live extends \FS_Service {
      */
     public function getRoomLiveById($roomId) {
         //获取房间信息
-        $data = $this->liveModel->getRoomLive($roomId);
-        return $this->succ($data);
+        $roomData = $this->liveModel->getRoomInfoByRoomId($roomId);
+        if(empty($roomData)){
+            return $this->error(30000,'获取房间信息失败');
+        }
+        $liveData = $this->liveModel->getBatchLiveInfoByIds($roomData['live_id'])['data'][$roomData['live_id']];
+        if($liveData['status'] != 3){
+            $roomData['status'] = 0;
+        }else{
+            $roomData['status'] = 1;
+        }
+        
+        $roomData['live_info'] = $liveData;
+        //获取在线人数和商品数
+        return $this->succ($roomData);
     }
+    
+    /**
+     * 根据直播ID批量获取直播信息
+     */
+    public function getBatchLiveInfoByIds($liveIds,$status=array(3)) {
+        
+        $wantLiveInfo = [];
+        $liveInfos = $this->liveModel->getBatchLiveInfoByIds($liveIds,$status);
+    
+        $qiniu = new QiniuUtil();
+        //如果是直播中的live要给url地址
+        foreach($liveInfos as $k=>$liveInfo){
+            if($liveInfos['status'] == 3){
+                $addrInfo = $qiniu->getLiveUrls($liveInfo['stream_id']);
+                $liveInfo['hls_url'] = $addrInfo['hls'];
+                $liveInfo['hdl_url'] = $addrInfo['hdl'];
+                $liveInfo['rtmp_rul'] = $addrInfo['rtmp'];
+            }
+            $wantLiveInfo[$k] = $liveInfo;
+        }
+        return $this->succ($wantLiveInfo);
+    }
+    
     
     /**
      * 生成直播ID
      */
     private function _getLiveIncrId($roomId) {
         $id = time() . $roomId;
-        return $id;
+        return $this->succ($id);
     }
     
     /**
@@ -186,10 +250,11 @@ class Live extends \FS_Service {
 
         //通过userids批量获取主播信息
         $userIds = array_unique($userIdArr);
-        $userArr = $this->userService->getUserInfoByUids($userIds)['data'];
+        $userService = new User();
+        $userArr = $userService->getUserInfoByUids($userIds)['data'];
         //通过liveids批量获取直播列表,todo
-//        $liveIds = array_unique($liveIdArr);
-//        $liveArr = ;
+        $liveIds = array_unique($liveIdArr);
+        $liveArr = $this->getBatchLiveInfoByIds($liveIds);
         
         //将主播信息整合到房间信息中
         $roomRes = array();
@@ -206,12 +271,17 @@ class Live extends \FS_Service {
             $roomRes[$roomInfo['id']]['status'] = 0;
             //用户信息
             if (in_array('user_info', $field)) {
-                $roomRes[$roomInfo['id']]['user_info'] = $userArr[$roomInfo['user_id']];
+                if(!empty($userArr[$roomInfo['user_id']])){
+                    $roomRes[$roomInfo['id']]['user_info'] = $userArr[$roomInfo['user_id']];
+                }
             }
-//            if(in_array('live_info', $field)){
-//                $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
-//                //$roomRes[$roomInfo['id']]['status'] = 1;
-//            }
+            if(in_array('live_info', $field)){
+                if(!empty($liveArr[$roomInfo['live_id']])){
+                    $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
+                    $roomRes[$roomInfo['id']]['status'] = 1;
+                }
+                $roomRes[$roomInfo['id']]['status'] = 0;
+            }
             if (in_array('share_info', $field)) {
                 // 分享内容
                 $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
@@ -232,7 +302,6 @@ class Live extends \FS_Service {
                 $roomRes[$roomInfo['id']]['tips'] = $tips;
             }
         }
-        print_r($roomRes);
         return $this->succ($roomRes);
     }
     

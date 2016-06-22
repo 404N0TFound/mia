@@ -90,5 +90,13 @@ class Label {
         return $data;
     }
     
+    /**
+     * 获取标签ID
+     */
+    public function getLabelID(){
+        $data = $this->labelData->getLabelID();
+        return $data;
+    }
+    
     
 }

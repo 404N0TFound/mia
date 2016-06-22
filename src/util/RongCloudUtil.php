@@ -1,7 +1,6 @@
 <?php
 namespace mia\miagroup\Util;
 
-use \RongCloud\Api;
 use \F_Ice;
 
 class RongCloudUtil{
@@ -9,7 +8,7 @@ class RongCloudUtil{
     public $api = null;
     
     public function __construct(){
-        $this->api  = new Api(F_Ice::$ins->workApp->config->get('busconf.rongcloud')['appKey'],F_Ice::$ins->workApp->config->get('busconf.rongcloud')['appSecret']);
+        $this->api  = new RongCloudAPI(F_Ice::$ins->workApp->config->get('busconf.rongcloud')['appKey'],F_Ice::$ins->workApp->config->get('busconf.rongcloud')['appSecret']);
     }
     
     /**
@@ -20,7 +19,7 @@ class RongCloudUtil{
      */
     public function getToken($userId, $name, $portraitUri){
         $token = array();
-        $ret = $this->api->getToken(NormalUtil::encode_uid($userId), $name, $portraitUri);
+        $ret = $this->api->getToken($userId, $name, $portraitUri);
         if($ret){
             $token[$ret['userId']] = $ret['token'];
             return $token;

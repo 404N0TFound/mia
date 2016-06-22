@@ -41,29 +41,36 @@ class Album {
      */
     public function getBatchArticle($articleIds) {
         $res = $this->albumArticleData->getBatchArticle($articleIds);
-        foreach ($res as $key => $value) {
-            $img_pic = array();
-            if(isset($value['cover_image']) && $value['cover_image']){
-                $img_pic = json_decode($value['cover_image'],true);
+        if($res){
+            $AlbumInfo = array();
+            $albumIdArr = array_column($res,'album_id');
+            $AlbumInfo = $this->albumData->getAlbumInfo($albumIdArr);
+            foreach ($res as $key => $value) {
+                $img_pic = array();
+                if(isset($value['cover_image']) && $value['cover_image']){
+                    $img_pic = json_decode($value['cover_image'],true);
+                }
+                if($img_pic){
+                    $res[$key]['cover_image'] = array();
+                    $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] .$img_pic['url'];
+                    $res[$key]['cover_image']['width'] = $img_pic['width'];
+                    $res[$key]['cover_image']['height'] = $img_pic['height'];
+                    $res[$key]['cover_image']['content'] = $img_pic['content'];
+                }
+                $res[$key]['album_info'] = array();
+                
+                if($AlbumInfo){
+                    $res[$key]['album_info']['id'] = $AlbumInfo[$value['album_id']]['id'];
+                    $res[$key]['album_info']['user_id'] = $AlbumInfo[$value['album_id']]['user_id'];
+                    $res[$key]['album_info']['title'] = $AlbumInfo[$value['album_id']]['title'];
+                }
+                $res[$key]['view_num'] = $this->readNum($value['create_time']);
+                $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
+                unset($res[$key]['create_time']);
             }
-            if($img_pic){
-                $res[$key]['cover_image'] = array();
-                $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] .$img_pic['url'];
-                $res[$key]['cover_image']['width'] = $img_pic['width'];
-                $res[$key]['cover_image']['height'] = $img_pic['height'];
-                $res[$key]['cover_image']['content'] = $img_pic['content'];
-            }
-            $res[$key]['album_info'] = array();
-            $AlbumInfo = $this->albumData->getAlbumInfo(array('album_id'=>$value['album_id']));
-            if($AlbumInfo){
-                $res[$key]['album_info']['id'] = $AlbumInfo['id'];
-                $res[$key]['album_info']['user_id'] = $AlbumInfo['user_id'];
-                $res[$key]['album_info']['title'] = $AlbumInfo['title'];
-            }
-            $res[$key]['view_num'] = $this->readNum($value['create_time']);
-            $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
-            unset($res[$key]['create_time']);
         }
+            
+        
         return $res;
     }
     
@@ -93,6 +100,23 @@ class Album {
         return $this->albumArticleData->getArticle($params);
     }
     
+    /**
+     * 批量查文章简版内容（主要用于展示专栏）
+     * @params array() user_id int 用户ID
+     * @params array() album_id int 专栏专辑ID
+     * @params array() page int 当前页码
+     * @params array() iPageSize int 每页显示多少
+     * @return array() 文章简版内容（主要用于展示专栏）
+     */
+    public function getSimpleArticleList($params) {
+        return $this->albumArticleData->getSimpleArticleList($params);
+    }
+
+    /**
+     * 专辑列表
+     * @params array() user_id 用户ID
+     * @return array() 专辑列表
+     */
     public function getAlbumList($params){
         return $this->albumData->getAlbumList($params);
     }
@@ -125,5 +149,125 @@ class Album {
     public function getAlbumNum($userIds)
     {
         return $this->albumData->getAlbumNum($userIds);
+    }
+    
+    /**
+     * 查文章详情接口
+     * @params array() $article_id 文章ID
+     * @params array() $userId 用户ID
+     * @return array() 文章详情
+     */
+    public function getArticleInfo($param) {
+        return $this->albumArticleData->getArticleInfo($param);
+    }
+    
+    /**
+     * 文章预览接口
+     * @params array() user_id 用户ID
+     * @params array() album_id 专栏辑ID
+     * @params array() article_id 文章ID
+     * @return array() 文章内容
+     */
+    public function getArticlePreview($params) {
+        return $this->albumArticleData->getArticlePreview($params);
+    }
+    
+    
+    /**
+     * 更新专栏辑接口
+     * @params array() user_id 用户ID
+     * @set    array() title 标题
+     * @return array() 专栏辑信息
+     */
+    public function updateAlbumFile($where,$set) {
+        return $this->albumData->updateAlbumFile($where,$set);
+    }
+    
+    /**
+     * 更新专栏接口(这里只有title可以改)
+     * @params array() $album_id 专栏辑ID
+     * @params array() $id 专栏ID
+     * @params array() $userId 用户ID
+     * @return array() 专栏信息
+     */
+    public function updateAlbum($where,$set){
+        return $this->albumArticleData->updateAlbum($where,$set);
+    }
+    
+    /**
+     * 更新文章详情接口
+     * $con = array('user_id'=>'1145319','id'=>6,'album_id'=>10)
+     * $set = array('title'=>'我是标题党')
+     * @params array() $album_id 专栏辑ID
+     * @params array() $id 专栏ID
+     * @params array() $userId 用户ID
+     * @return array() true false
+     */
+    public function updateAlbumArticle($where,$set){
+        return $this->albumArticleData->updateAlbumArticle($where,$set);
+    }
+    
+    /**
+     * 删除专栏辑接口(如果删除，该专栏辑下所有文章删除)
+     * @params array() $userId 用户ID
+     * @params array() $id   ID
+     * @return array() true false
+     */
+    public function delAlbumFile($where){
+        $res = $this->albumData->delAlbumFile($where);
+        if($res){
+            $con = array();
+            $con['user_id'] = $where['user_id'];
+            $con['album_id'] = $where['id'];
+            $delRes = $this->delAlbum($con);
+            if($delRes){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 删除专栏
+     * @params array() $userId 用户ID
+     * @params array() $id   ID
+     * @return array() true false
+     */
+    public function delAlbum($where){
+        return $this->albumArticleData->delAlbum($where);
+    }
+    
+    /**
+     * 插入专栏辑接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @return array() true false
+     */
+    public function addAlbumFile($insert){
+        return $this->albumData->addAlbumFile($insert);
+    }
+    
+    /**
+     * 插入专栏接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @params array() subject_id 蜜芽圈帖子ID
+     * @params array() album_id 专栏辑ID
+     * @return array() 新记录ID false
+     */
+    public function addAlbum($insert) {
+        $AlbumInfo = $this->albumData->getAlbumInfo(array($insert['album_id']));
+        if(!$AlbumInfo || $AlbumInfo[$insert['album_id']]['user_id'] != $insert['user_id']){
+            return false;
+        }
+        $data = array(
+            'title'=>$insert['title'],
+            'subject_id'=>$insert['subject_id'],
+            'user_id'=>$insert['user_id'],
+            'album_id'=>$insert['album_id'],
+            'create_time'=>date("Y-m-d H:i:s")
+        );
+        $res = $this->albumArticleData->addAlbum($data);
+        return $res;
     }
 }
