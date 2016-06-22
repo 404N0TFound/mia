@@ -68,7 +68,9 @@ class Album extends \DB_Query {
         if(empty($albumIdArr)){
             return $res;
         }
-        $where[] = array(':in', 'id', $albumIdArr);
+        if($albumIdArr){
+            $where[] = array(':in', 'id', $albumIdArr);
+        }
         $data = $this->getRows($where, array('id','user_id','title'));
         if($data){
             foreach ($data as $value){
@@ -86,10 +88,16 @@ class Album extends \DB_Query {
      */
     public function updateAlbumFile($whereCon,$setData,$orderBy = FALSE, $limit = FALSE) {
         $where = array();
-        $where[] = array('id',$whereCon['id']);
-        $where[] = array('user_id',$whereCon['user_id']);
+        if(isset($whereCon['id']) && $whereCon['id']){
+            $where[] = array('id',$whereCon['id']);
+        }
+        if(isset($whereCon['user_id']) && $whereCon['user_id']){
+            $where[] = array('user_id',$whereCon['user_id']);
+        }
         $set = array();
-        $set[] = array('title',$setData['title']);
+        if(isset($setData['title']) && $setData['title']){
+            $set[] = array('title',$setData['title']);
+        }
         $data = $this->update($set, $where, $orderBy, $limit);
         return $data;
     }
