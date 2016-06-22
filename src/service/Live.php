@@ -67,7 +67,6 @@ class Live extends \FS_Service {
     private function _getLiveIncrId($roomId) {
         $util = new \mia\miagroup\Util\NormalUtil();
         $id = time() . $roomId;
-        $id = $util->encode_uid($id);
         return $id;
     }
 }
