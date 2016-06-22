@@ -8,12 +8,14 @@ class Helloworld extends \FW_Action {
 //        echo date("Y-m-d H:i:s",time());
 //        echo json_encode(array('url'=>'/d1/p3/2016/05/11/dc/ae/dcaee5986f03730a88503f19e3f863dc.jpg','width'=>80,'height'=>30,'content'=>666));
         $subjectService = new \mia\miagroup\Service\Album();
-        $result = $subjectService->getArticleList('1508587', 4);
+//        $result = $subjectService->getArticleList('1508587', 4);
 //        $result = $subjectService->getAlbumNum(array('1508587'));
-        $result = $subjectService->getRecommendAlbumArticleList();
+//        $result = $subjectService->getRecommendAlbumArticleList();
 //        var_dump(empty(0));die;
 //        $subjectService = new \mia\miagroup\Service\Subject();
 //        $result = $subjectService->getBatchSubjectInfos(array('11082','11082'));
+        $result = $subjectService->getAlbumFile(array('user_id' => '1508587'));
+//        $result = $subjectService->getArticlePreview(array('user_id'=>'778800','article_id'=>'20','album_id'=>'19'));
         echo "<pre>";
         print_r($result);exit;
         

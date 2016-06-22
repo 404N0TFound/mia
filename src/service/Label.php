@@ -64,5 +64,12 @@ class Label extends \FS_Service {
         return $this->succ($data);
     }
     
+    /**
+     * 获取标签ID
+     */
+    public function getLabelID(){
+        $data = $this->labelModel->getLabelID($labelIds);
+        return $this->succ($data);
+    }
 
 }
