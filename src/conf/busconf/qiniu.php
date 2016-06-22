@@ -19,6 +19,20 @@ $image_bucket = 'image';
 $file_bucket = 'file';
 
 /**
+ * 直播hub名称
+ */
+ $live_hub = 'mia_live';
+ 
+ /**
+  * 直播域名
+  */
+ $live_host = array(
+     'rtmp' => 'pili-live-rtmp.live1.miyabaobei.com',
+     'hls'  => 'pili-live-hls.live1.miyabaobei.com',
+     'playback' => 'pili-playback.live1.miyabaobei.com',
+ );
+
+/**
  * 视频转码队列名称
  */
 $video_transcoding_pipe = 'video';
