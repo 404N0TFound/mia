@@ -36,13 +36,13 @@ class LiveRoom extends \DB_Query {
      */
     public function updateLiveRoomById($roomId, $setData) {
         if (!isset($setData['setting']) || empty($setData['setting'])){
-    		return false;
-    	}
-    	
-    	$setData['settings'] = json_encode($setData['settings']);
-    	$where = array();
-		$where[] = array(':in', 'id', $roomId);
-		
+            return false;
+        }
+        
+        $setData['settings'] = json_encode($setData['settings']);
+        $where = array();
+        $where[] = array(':in', 'id', $roomId);
+
         $data = $this->update($setData,$where);
         return $data;
     }
