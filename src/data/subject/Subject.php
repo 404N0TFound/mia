@@ -35,6 +35,7 @@ class Subject extends \DB_Query {
             if ($v['status'] == 2) { // 视频转码中按正常处理
                 $v['status'] = 1;
             }
+            $v['ext_info'] = json_decode($v['ext_info'], true);
             $result[$v['id']] = $v;
         }
         return $result;

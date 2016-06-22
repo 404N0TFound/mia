@@ -104,7 +104,7 @@ class Subject extends \FS_Service {
             $imageUrl = array();
             $smallImageUrl = array();
             $bigImageUrl = array();
-            if (!empty($subjectInfo['image_url']) && empty($subjectInfo['ext_info'])) {
+            if (!empty($subjectInfo['image_url']) && empty($subjectInfo['ext_info']['image'])) {
                 $imageUrlArr = explode("#", $subjectInfo['image_url']);
                 if (!empty($imageUrlArr[0])) {
                     foreach ($imageUrlArr as $k => $image) {
@@ -121,10 +121,10 @@ class Subject extends \FS_Service {
                     }
                 }
             }
-            if (!empty($subjectInfo['ext_info'])) {
-                $imageInfos = json_decode(trim(stripslashes($subjectInfo['ext_info']), '"'), true);
-                if (is_array($imageInfos['image']) && !empty($imageInfos['image'])) {
-                    foreach ($imageInfos['image'] as $key => $image) {
+            if (!empty($subjectInfo['ext_info']['image'])) {
+                $imageInfos = $subjectInfo['ext_info']['image'];
+                if (is_array($imageInfos) && !empty($imageInfos)) {
+                    foreach ($imageInfos as $key => $image) {
                         $pathInfo = pathinfo($image['url']);
                         $small_image_url = $pathInfo['dirname'] . "/" . $pathInfo['filename'] . "_small." . $pathInfo['extension'];
                         if (strpos($small_image_url, "app_group") !== false) {
@@ -140,6 +140,12 @@ class Subject extends \FS_Service {
             $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
             $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
+            if (!empty($subjectInfo['ext_info']['koubei_id'])) {
+                $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei_id'];
+            }
+            if (!empty($subjectInfo['video_info'])) {
+                $subjectRes[$subjectInfo['id']]['video_info'] = $subjectInfo['video_info'];
+            }
             if (in_array('user_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['user_info'] = $userArr[$subjectInfo['user_id']];
             }
@@ -162,24 +168,22 @@ class Subject extends \FS_Service {
                     $subjectRes[$subjectInfo['id']]['album_article'] = $albumArticles[$subjectInfo['id']];
                 }
             }
-            if (in_array('share_info', $field)) {
+            if (!in_array('share_info', $field)) {
                 // 分享内容
-                $this->config->load('wish_config');
-                $share = $this->config->item('group_share', 'group');
-                $this->config->load('mobile_app');
-                $shareUrl = $this->config->item('group_share');
+                $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
+                $share = $shareConfig['groupShare'];
                 $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : '';
                 $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : "超过20万妈妈正在蜜芽圈热聊，快来看看~";
                 if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
                     $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
                 } else {
-                    $shareImage = 'http://o6ov54mbs.bkt.clouddn.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png';
+                    $shareImage = $shareConfig['shareDefaultImage'];
                 }
                 // 替换搜索关联数组
-                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareUrl['subject_wap_url'], $subjectInfo['id']));
+                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareConfig['subjectH5Url'], $subjectInfo['id']));
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
-                    // $share[$keys] = $this->_buildGroupShare($sh, $replace);
+                    $share[$keys] = $this->_buildGroupShare($sh, $replace);
                     $share[$keys]['share_img_list'] = array();
                     if (!empty($subjectRes[$subjectInfo['id']]['image_url'])) {
                         $share[$keys]['share_img_list'] = $subjectRes[$subjectInfo['id']]['image_url'];
@@ -412,6 +416,23 @@ class Subject extends \FS_Service {
     public function getBatchVideoInfos($videoIds, $videoType = 'm3u8') {
         $data = $this->subjectModel->getBatchVideoInfos($videoIds, $videoType);
         return $this->succ($data);
+    }
+    
+    /**
+     * 构建选题分享信息
+     */
+    private function _buildGroupShare($shareStruct, $replace) {
+        //闭包函数,将一个字符串中的所有可替代字符，全部替代
+        $func_replace = function($string, $replace) {
+            foreach ($replace as $key => $re) {
+                $string = str_replace($key, $re, $string);
+            }
+            return $string;
+        };
+        foreach ($shareStruct as $k => $s) {
+            $shareStruct[$k] = $func_replace($s, $replace);
+        }
+        return $shareStruct;
     }
 }
 

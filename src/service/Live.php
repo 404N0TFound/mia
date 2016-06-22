@@ -12,10 +12,11 @@ class Live extends \FS_Service {
     }
     
     /**
-     * 新增直播
+     * 创建直播
      */
-    public function addLive($liveInfo) {
+    public function addLive($roomId, $liveInfo) {
         //生成视频流ID和聊天室ID
+        $liveId = $chatId = $this->_getLiveIncrId($roomId);
         //获取七牛视频流
         //获取融云聊天室信息
         //新增直播记录
@@ -47,5 +48,26 @@ class Live extends \FS_Service {
     public function getRoomLiveById($roomId) {
         //获取房间信息
         //获取房间当前直播
+    }
+    
+    /**
+     * 更新直播房间设置
+     */
+    public function updateLiveRoomSettings($roomId, $settings = array()) {
+        if (empty($roomId) || empty($settings)) {
+            $this->error();
+        }
+        $settingItems = array('hongbao');
+        $settings = array_flip($settings, $settingItems);
+    }
+    
+    /**
+     * 生成直播ID
+     */
+    private function _getLiveIncrId($roomId) {
+        $util = new \mia\miagroup\Util\NormalUtil();
+        $id = time() . $roomId;
+        $id = $util->encode_uid($id);
+        return $id;
     }
 }
