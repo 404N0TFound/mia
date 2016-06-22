@@ -92,6 +92,42 @@ class AlbumArticle extends \DB_Query {
         }
         return $articleList;
     }
+    
+    /**
+     * 查文章简版内容（主要用于展示专栏）
+     * @params array() user_id int 用户ID
+     * @params array() album_id int 专栏专辑ID
+     * @params array() page int 当前页码
+     * @params array() iPageSize int 每页显示多少
+     * @return array() 查文章简版内容（主要用于展示专栏）
+     */
+    public function getSimpleArticleList($params){
+        $articleList = array();
+        $limit = 10;
+        $offset = 0;
+        
+        $where = array();
+        $where[] = array(':eq', 'status', '1');
+        if (isset($params['user_id']) && $params['user_id']) {
+            $where[] = array(':eq', 'user_id', $params['user_id']);
+        }
+        if(isset($params['album_id']) && $params['album_id']){
+            $where[] = array(':eq', 'album_id', $params['album_id']);
+        }
+        if (intval($params['iPageSize']) > 0) {
+            $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
+            $limit = $params['iPageSize'];
+        }
+        $orderBy = array('create_time DESC');
+        $SimpleArticleList = $this->getRows($where, array('id,album_id,subject_id,user_id,title,content'), $limit, $offset, $orderBy);
+        if($SimpleArticleList){
+            foreach($SimpleArticleList as $value){
+                $value['content'] = mb_substr($value['content'],0,50,'utf-8').'....';
+                $articleList[$value['album_id']] = $value;
+            }
+        }
+        return $articleList;
+    }
 
     /**
      * 精选文章列表
@@ -118,25 +154,128 @@ class AlbumArticle extends \DB_Query {
         }
         return $articleList;
     }
-
-    /*
-     * 增加文章
+    
+    /**
+     * 查文章详情
+     * @params array() $article_id 文章ID
+     * @params array() $userId 用户ID
+     * @return array() 文章详情
      */
-    public function addArticle($insertData) {
-        $data = $this->insert($insertData);
+    public function getArticleInfo($params) {
+        if (empty($params)) {
+            return array();
+        }
+        $result = array();
+        $where = array();
+        $where[] = array(':eq', 'status', '1');
+        $where[] = array(':in', 'id', $params['articleId']);
+        $where[] = array(':in', 'user_id', $params['user_id']);
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,content_original,is_recommend,h5_url,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        foreach ($data as $v) {
+            $result[$v['id']] = $v;
+        }
+        return $result;
+    }
+    
+    /**
+     * 文章预览接口
+     * @params array() user_id 用户ID
+     * @params array() album_id 专栏辑ID
+     * @params array() article_id 文章ID
+     * @return array() 文章内容
+     */
+    public function getArticlePreview($params) {
+        if (empty($params)) {
+            return array();
+        }
+        $where = array();
+        $where[] = array(':eq', 'status', '0');
+        $where[] = array(':eq', 'id', $params['id']);
+        $where[] = array(':eq', 'album_id', $params['album_id']);
+        $where[] = array(':eq', 'user_id', $params['user_id']);
+        $data = $this->getRow($where, array('content_original'), $limit = FALSE, $offset = 0);
         return $data;
     }
-
+    
     /**
-     * 更新文章
-     * @param type $setData
-     * @param type $where
-     * @param type $orderBy
-     * @param type $limit
-     * @return int
+     * 更新专栏接口(这里只有title可以改)
+     * @params array() $album_id 专栏辑ID
+     * @params array() $id 专栏ID
+     * @params array() $userId 用户ID
+     * @return array() true false
      */
-    public function updateSubject($setData, $where = []) {
-        $data = $this->update($setData, $where);
+    public function updateAlbum($whereCon,$setData,$orderBy = FALSE, $limit = FALSE) {
+        $where = array();
+        if(isset($whereCon['id']) && $whereCon['id']){
+            $where[] = array('id',$whereCon['id']);
+        }
+        if(isset($whereCon['user_id']) && $whereCon['user_id']){
+            $where[] = array('user_id',$whereCon['user_id']);
+        }
+        if(isset($whereCon['album_id']) && $whereCon['album_id']){
+            $where[] = array('album_id',$whereCon['album_id']);
+        }
+        $set = array();
+        if(isset($setData['title']) && $setData['title']){
+            $set[] = array('title',$setData['title']);
+        }
+        $data = $this->update($set, $where, $orderBy, $limit);
         return $data;
+    }
+    
+    /**
+     * 更新文章详情接口
+     * $con = array('user_id'=>'1145319','id'=>6,'album_id'=>10)
+     * $set = array('title'=>'我是标题党')
+     * @params array() $album_id 专栏辑ID
+     * @params array() $id 专栏ID
+     * @params array() $userId 用户ID
+     * @return array() true false
+     */
+    public function updateAlbumArticle($whereCon,$setData,$orderBy = FALSE, $limit = FALSE) {
+        $where = array();
+        if(isset($whereCon['id']) && $whereCon['id']){
+            $where[] = array('id',$whereCon['id']);
+        }
+        if(isset($whereCon['user_id']) && $whereCon['user_id']){
+            $where[] = array('user_id',$whereCon['user_id']);
+        }
+        if(isset($whereCon['album_id']) && $whereCon['album_id']){
+            $where[] = array('album_id',$whereCon['album_id']);
+        }
+        $set = array();
+        if(isset($setData['content']) && $setData['content']){
+            $set[] = array('content',$setData['content']);
+        }
+        if(isset($setData['content_original']) && $setData['content_original']){
+            $set[] = array('content_original',$setData['content_original']);
+        }
+        $set[] = array('update_time',date("Y-m-d H:i:s"));
+        $set[] = array('status','1');
+        $data = $this->update($set, $where, $orderBy, $limit);
+        return $data;
+    }
+    
+    
+    /**
+     * 删除专栏辑接口(如果删除，该专栏辑下所有文章删除)
+     * @params array() $userId 用户ID
+     * @params array() $id   ID
+     * @return array() true false
+     */
+    public function delAlbum($where){
+        return $this->delete( $where);
+    }
+    
+    /**
+     * 插入专栏接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @params array() subject_id 蜜芽圈帖子ID
+     * @params array() album_id 专栏辑ID
+     * @return array() 新记录ID false
+     */
+    public function addAlbum($insert) {
+        return $this->insert($insert);
     }
 }

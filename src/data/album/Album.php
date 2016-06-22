@@ -40,6 +40,7 @@ class Album extends \DB_Query {
     public function getAlbumList($params) {
         $limit = 10;
         $offset = 0;
+        $albumList = array();
         $where = array();
         $where[] = array(':eq', 'user_id', $params['user_id']);
         if (intval($params['iPageSize']) > 0) {
@@ -48,18 +49,75 @@ class Album extends \DB_Query {
         }
         $orderBy = array('create_time DESC');
         $data = $this->getRows($where, array('id','user_id','title'), $limit, $offset, $orderBy);
-        return $data;
+        if($data){
+            foreach($data as $value){
+                $albumList[$value['id']] = $value;
+            }
+        }
+        return $albumList;
     }
     
     /**
      * 专辑信息
-     * @params array() album_id 专辑ID
+     * @params array() $albumIdArr 专辑ID
      * @return array() 专辑信息
      */
-    public function getAlbumInfo($params) {
+    public function getAlbumInfo($albumIdArr) {
         $where = array();
-        $where[] = array(':eq', 'id', $params['album_id']);
-        $data = $this->getRow($where, array('id','user_id','title'));
+        $res = array();
+        if(empty($albumIdArr)){
+            return $res;
+        }
+        $where[] = array(':in', 'id', $albumIdArr);
+        $data = $this->getRows($where, array('id','user_id','title'));
+        if($data){
+            foreach ($data as $value){
+                $res[$value['id']] = $value;
+            }
+        }
+        return $res;
+    }
+    
+    /**
+     * 更新专栏辑接口
+     * @params array() user_id 用户ID
+     * @set    array() title 标题
+     * @return array() 专栏辑信息
+     */
+    public function updateAlbumFile($whereCon,$setData,$orderBy = FALSE, $limit = FALSE) {
+        $where = array();
+        $where[] = array('id',$whereCon['id']);
+        $where[] = array('user_id',$whereCon['user_id']);
+        $set = array();
+        $set[] = array('title',$setData['title']);
+        $data = $this->update($set, $where, $orderBy, $limit);
         return $data;
+    }
+    
+    
+    /**
+     * 删除专栏辑接口(如果删除，该专栏辑下所有文章删除)
+     * @params array() $userId 用户ID
+     * @params array() $id   ID
+     * @return array() true false
+     */
+    public function delAlbumFile($where){
+        $data = $this->delete( $where);
+        return $data;
+    }
+    
+    /**
+     * 插入专栏辑接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @return array() true false
+     */
+    public function addAlbumFile($insert){
+        $data = array(
+            'title'=>$insert['title'],
+            'user_id'=>$insert['user_id'],
+            'create_time'=>date("Y-m-d H:i:s")
+        );
+        return $this->insert($data);
     }
 }
