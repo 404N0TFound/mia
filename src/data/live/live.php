@@ -20,7 +20,7 @@ class Live extends \DB_Query {
     }
     
     /**
-     * 根据ID修改视频信息
+     * 根据ID修改直播信息
      */
     public function updateLiveById($liveId, $setData) {
         $where[] = ['id',$liveId];
@@ -66,4 +66,28 @@ class Live extends \DB_Query {
         $data = $this->geRows($where,'*',$limit,$offset,$orderBy);
         return $data;
     }
+    
+    /**
+     * 根据usreId获取用户的直播信息
+     */
+    public function getLiveInfoByUserId($userId,$status=[3]){
+        $where[] = ['user_id',$userId];
+        $where[] = ['status',$status];
+        
+        return $this->getRows($where);
+    }
+    
+    /**
+     * 根据userId更新直播状态
+     */
+    public function updateLiveByUserId($userId,$status){
+        $setData[] = ['status',$status];
+        $where[] = ['user_id',$userId];
+        
+        $data = $this->update($setData,$where);
+        return $data;
+    }
+    
+    
+    
 }

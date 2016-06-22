@@ -6,7 +6,7 @@ use Qiniu\Storage\UploadManager;
 use Qiniu\Processing\PersistentFop;
 use Pili;
 use \F_Ice;
-use function Qiniu\json_decode;
+use Qiniu\json_decode;
 
 class QiniuUtil {
 
