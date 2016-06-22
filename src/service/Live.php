@@ -3,16 +3,19 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Live as LiveModel;
 use mia\miagroup\Util\RongCloudUtil;
+use mia\miagroup\Service\User as UserService;
 
 class Live extends \FS_Service {
     
     public $liveModel;
     public $rongCloud;//融云聊天室api接口
+    public $userService;
     
     
     public function __construct() {
         $this->liveModel = new LiveModel();
         $this->rongCloud = new RongCloudUtil();
+        $this->userService = new UserService();
     }
     
     /**
@@ -129,4 +132,124 @@ class Live extends \FS_Service {
         $id = time() . $roomId;
         return $id;
     }
+    
+	/**
+	 * 更新直播房间设置
+	 * @author jiadonghui@mia.com
+	 */
+	public function updateLiveRoomSettings($roomId, $settings = array()) {
+		if (empty($roomId) || empty($settings)) {
+			$this->error();
+		}
+		
+		$subjectConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
+        $liveSetting = $subjectConfig['liveSetting'];
+        
+		$settingItems = $liveSetting;
+		$settings = array_diff_key($settings, $settingItems);
+		//如果配置项不在设定值范围内，则报错
+		if(!empty($settings)){
+			$this->error();
+		}
+		
+		$setInfo = array('settings' => $settings);
+		$updateRes = $this->liveModel->updateLiveRoomById($setInfo, $roomId);
+		if (!$updateRes) {
+			return false;
+		}
+		return $this->succ();
+	}
+
+
+	/**
+	 * 获取直播房间列表
+	 * @author jiadonghui@mia.com
+	 */
+	public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips')) {
+		if (empty($roomIds) || !array($roomIds)) {
+			$this->error();
+		}
+		//批量获取房间信息
+		$roomInfos = $this->liveModel->getBatchLiveRoomByIds($roomIds);
+		if (empty($roomInfos)) {
+			return $this->succ(array());
+		}
+
+		//获取批量userid，用于取出直播房间的主播信息
+		$userIdArr = array();
+		$liveIdArr = array();
+		foreach ($roomInfos as $roomInfo) {
+			$userIdArr[] = $roomInfo['user_id'];
+			$liveIdArr = $roomInfo['live_id'];
+		}
+
+		//通过userids批量获取主播信息
+		$userIds = array_unique($userIdArr);
+		$userArr = $this->userService->getUserInfoByUids($userIds)['data'];
+//		//通过liveids批量获取直播列表,todo
+//		$liveIds = array_unique($liveIdArr);
+//		$liveArr = ;
+
+		//将主播信息整合到房间信息中
+		$roomRes = array();
+		foreach($roomIds as $roomId){
+			if (!empty($roomInfos[$roomId])) {
+				$roomInfo = $roomInfos[$roomId];
+			} else {
+				continue;
+			}
+			$roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
+			$roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
+			$roomRes[$roomInfo['id']]['chat_id'] = $roomInfo['chat_id'];
+			$roomRes[$roomInfo['id']]['user_id'] = $roomInfo['user_id'];
+			$roomRes[$roomInfo['id']]['status'] = 0;
+			//用户信息
+			if (in_array('user_info', $field)) {
+				$roomRes[$roomInfo['id']]['user_info'] = $userArr[$roomInfo['user_id']];
+			}
+//			if(in_array('live_info', $field)){
+//				$roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
+				//$roomRes[$roomInfo['id']]['status'] = 1;
+//			}
+		    if (in_array('share_info', $field)) {
+                // 分享内容
+                $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
+                $share = $liveConfig['groupShare'];
+                $tips = $liveConfig['liveRoomTips'];
+                $shareTitle = 'title';//临时数据文案
+                $shareDesc = "超过20万妈妈正在蜜芽圈热聊，快来看看~";//临时数据文案
+                // 替换搜索关联数组
+                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc);
+                // 进行替换操作
+                foreach ($share as $keys => $sh) {
+                    $share[$keys] = $this->_buildGroupShare($sh, $replace);
+                }
+                $roomRes[$roomInfo['id']]['share_info'] = $share;
+            }
+            //房间提示信息
+			if (in_array('tips', $field)) {
+				$roomRes[$roomInfo['id']]['tips'] = $tips;
+			}
+		}
+		print_r($roomRes);
+		return $this->succ($roomRes);
+	}
+	
+    /**
+     * 构建选题分享信息
+     */
+    private function _buildGroupShare($shareStruct, $replace) {
+        //闭包函数,将一个字符串中的所有可替代字符，全部替代
+        $func_replace = function($string, $replace) {
+            foreach ($replace as $key => $re) {
+                $string = str_replace($key, $re, $string);
+            }
+            return $string;
+        };
+        foreach ($shareStruct as $k => $s) {
+            $shareStruct[$k] = $func_replace($s, $replace);
+        }
+        return $shareStruct;
+    }
+	
 }

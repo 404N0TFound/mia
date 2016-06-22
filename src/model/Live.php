@@ -79,4 +79,16 @@ class Live {
         return $data;
     }
     
+	/**
+	 * 根据获取房间ID批量获取房间信息
+	 * @author jiadonghui@mia.com
+	 */
+	public function getBatchLiveRoomByIds($roomIds) {
+	    if (empty($roomIds)) {
+            return array();
+        }
+		$rooms = $this->liveRoomData->getBatchLiveRoomByIds($roomIds);
+		return $rooms;
+	}
+    
 }
