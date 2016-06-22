@@ -14,8 +14,8 @@ class Helloworld extends \FW_Action {
 //        var_dump(empty(0));die;
 //        $subjectService = new \mia\miagroup\Service\Subject();
 //        $result = $subjectService->getBatchSubjectInfos(array('11082','11082'));
-        
-        $result = $subjectService->updateAlbumFile(array('user_id'=>'1508587','id'=>3),array('title'=>'我是标题党'));
+        $result = $subjectService->getAlbumFile(array('user_id' => '1508587'));
+//        $result = $subjectService->getArticlePreview(array('user_id'=>'778800','article_id'=>'20','album_id'=>'19'));
         echo "<pre>";
         print_r($result);exit;
         

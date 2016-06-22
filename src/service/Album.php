@@ -115,60 +115,78 @@ class Album extends \FS_Service {
     
     /**
      * 查专栏辑接口
-     * @params array() $userId 用户ID
+     * @params array() user_id 用户ID
      * @params array() page int 当前页码
      * @params array() iPageSize int 每页显示多少
      * @return array() 专栏辑信息
      */
-    public function getAlbumFile($userId,$iPageSize=10,$page=1) {
+    public function getAlbumFile($con) {
         $res = array();
-        if(empty($userId)){
+        if(!isset($con['user_id']) || empty($con['user_id'])){
             return $this->succ($res);
         }
+        if(!isset($con['iPageSize']) || empty($con['iPageSize'])){
+            $con['iPageSize'] = 10;
+        }
+        if(!isset($con['page']) || empty($con['page'])){
+            $con['page'] = 1;
+        }
         $params = array();
-        $params['user_id'] = $userId;
-        $params['iPageSize'] = (int)$iPageSize;
-        $params['page'] = (int)$page;
+        $params['user_id'] = $con['user_id'];
+        $params['iPageSize'] = $con['iPageSize'];
+        $params['page'] = $con['page'];
         $res = $this->abumModel->getAlbumList($params);
         return $this->succ($res);
     }
     
     /**
      * 查专栏接口
-     * @params array() $album_id 专栏辑ID
-     * @params array() $userId 用户ID
+     * @params array() album_id 专栏辑ID
+     * @params array() user_id 用户ID
      * @return array() 专栏信息
      */
-    public function getAlbum($userId,$albumId,$iPageSize=10,$page=1) {
+    public function getAlbum($con) {
         $res = array();
-        if(empty($userId) || empty($albumId)){
+        if(!isset($con['user_id']) || empty($con['user_id'])){
             return $this->succ($res);
         }
-
+        if(!isset($con['album_id']) || empty($con['album_id'])){
+            return $this->succ($res);
+        }
+        
+        if(!isset($con['iPageSize']) || empty($con['iPageSize'])){
+            $con['iPageSize'] = 10;
+        }
+        if(!isset($con['page']) || empty($con['page'])){
+            $con['page'] = 1;
+        }
         $params = array();
-        $params['user_id'] = $userId;
-        $params['album_id'] = $albumId;
-        $params['iPageSize'] = (int)$iPageSize;
-        $params['page'] = (int)$page;
+        $params['user_id'] = $con['user_id'];
+        $params['album_id'] = $con['album_id'];
+        $params['iPageSize'] = $con['iPageSize'];
+        $params['page'] = $con['page'];
         $res = $this->abumModel->getSimpleArticleList($params);
         return $this->succ($res);
     }
     
     /**
      * 查文章详情接口
-     * @params array() $article_id 文章ID
-     * @params array() $userId 用户ID
+     * @params array() articleId 文章ID
+     * @params array() user_id 用户ID
      * @return array() 文章详情
      */
-    public function getAlbumArticle($userId,$articleId) {
+    public function getAlbumArticle($con) {
         $res = array();
-        if(empty($userId) || empty($articleId)){
+        if(!isset($con['user_id']) || empty($con['user_id'])){
+            return $this->succ($res);
+        }
+        if(!isset($con['articleId']) || empty($con['articleId'])){
             return $this->succ($res);
         }
 
         $params = array();
-        $params['user_id'] = array($userId);
-        $params['articleId'] = array($articleId);
+        $params['user_id'] = array($con['user_id']);
+        $params['articleId'] = array($con['articleId']);
         $res = $this->abumModel->getArticleInfo($params);
         return $this->succ($res);
     }
@@ -176,6 +194,7 @@ class Album extends \FS_Service {
     
     /**
      * 更新专栏辑接口
+     * array('user_id'=>'1508587','id'=>3),array('title'=>'我是标题党')
      * @params array() user_id 用户ID
      * @set    array() title 标题
      * @return array() 专栏辑信息
@@ -198,58 +217,172 @@ class Album extends \FS_Service {
     
     
     /**
-     * 更新专栏接口
+     * 更新专栏接口(这里只有title可以改)
+     * $con = array('user_id'=>'1145319','id'=>6,'album_id'=>10)
+     * $set = array('title'=>'我是标题党')
      * @params array() $album_id 专栏辑ID
+     * @params array() $id 专栏ID
      * @params array() $userId 用户ID
-     * @return array() 专栏信息
+     * @return array() 
      */
-    public function updateAlbum($album_id,$userId) {
+    public function updateAlbum($con,$set) {
+        $res = array();
+        if(empty($con) || empty($set)){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $con['user_id'];
+        $params['album_id'] = $con['album_id'];
+        $params['id'] = $con['id'];
         
+        $data = array();
+        $data['title'] = $set['title'];
+        $res = $this->abumModel->updateAlbum($params,$data);
+        return $this->succ($res);
     }
     
     
     /**
      * 更新文章详情接口
-     * @params array() $article_id 文章ID
+     * $con = array('user_id'=>'1145319','id'=>6,'album_id'=>10)
+     * $set = array('content'=>'我是标题党')
+     * @params array() $album_id 专栏辑ID
+     * @params array() $id 专栏ID
      * @params array() $userId 用户ID
-     * @return array() 文章详情
+     * @return array() 
      */
-    public function updateAlbumArticle($article_id,$userId) {
+    public function updateAlbumArticle($con,$set) {
+        $res = array();
+        if(empty($con) || empty($set)){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $con['user_id'];
+        $params['album_id'] = $con['album_id'];
+        $params['id'] = $con['id'];
         
+        $data = array();
+        $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
+        $data['content_original'] = $set['content'];   //原始文章内容
+        
+        $res = $this->abumModel->updateAlbumArticle($params,$data);
+        return $this->succ($res);
     }
-    
-    
     
     
     /**
      * 删除专栏辑接口(如果删除，该专栏辑下所有文章删除)
      * @params array() $userId 用户ID
      * @params array() $id   ID
-     * @return array() 专栏辑信息
+     * @return array() true false
      */
-    public function delAlbumFile($userId) {
+    public function delAlbumFile($con) {
+        $res = array();
+        if(empty($con)){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $con['user_id'];
+        $params['id'] = $con['id'];
         
+        $res = $this->abumModel->delAlbumFile($params);
+        return $this->succ($res);
     }
     
     /**
      * 删除专栏接口
      * @params array() $id  ID
      * @params array() $userId 用户ID
-     * @return array() 专栏信息
+     * @return array() true false
      */
-    public function delAlbum($id,$userId) {
+    public function delAlbum($con) {
+        $res = array();
+        if(empty($con)){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $con['user_id'];
+        $params['id'] = $con['id'];
         
+        $res = $this->abumModel->delAlbum($params);
+        return $this->succ($res);
     }
     
+    /**
+     * 插入专栏辑接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @return array() 新记录ID
+     */
+    public function addAlbumFile($insert) {
+        $res = array();
+        if(empty($insert)){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $insert['user_id'];
+        $params['title'] = $insert['title'];
+        $res = $this->abumModel->addAlbumFile($params);
+        return $this->succ($res);
+    }
     
     /**
-     * 删除文章详情接口
-     * @params array() $id 文章ID
-     * @params array() $userId 用户ID
-     * @return array() 文章详情
+     * 插入专栏接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @params array() album_id 专栏辑ID
+     * @return array() 新记录ID false
      */
-    public function delAlbumArticle($id,$userId) {
-        
+    public function addAlbum($insert) {
+        $res = array();
+        if(empty($insert) || empty($insert['title']) || empty($insert['user_id']) || empty($insert['album_id'])){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $insert['user_id'];
+        $params['title'] = strip_tags($insert['title']);
+        $params['album_id'] = $insert['album_id'];
+        $res = $this->abumModel->addAlbum($params);
+        return $this->succ($res);
+    }
+    
+    /**
+     * 文章预览接口
+     * @params array() user_id 用户ID
+     * @params array() album_id 专栏辑ID
+     * @params array() article_id 文章ID
+     * @return array() 文章内容
+     */
+    public function getArticlePreview($con) {
+       $res = array();
+        if(empty($con) || empty($con['album_id']) || empty($con['user_id']) || empty($con['article_id'])){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $con['user_id'];
+        $params['album_id'] = $con['album_id'];
+        $params['id'] = $con['article_id'];
+        $res = $this->abumModel->getArticlePreview($params);
+        return $this->succ($res);
+    }
+    
+    /**
+     * 获取标签接口
+     * @params array() 
+     * @return array() 标签
+     */
+    public function getLabels() {
+        $labelService = new \mia\miagroup\Service\Label();
+        $labelIDs = $labelService->getLabelID()['data'];
+        $labelInfos = $labelService->getBatchLabelInfos($labelIDs);
+        return $this->succ($labelInfos['data']);
     }
     
     /**

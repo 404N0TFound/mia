@@ -72,4 +72,21 @@ class SubjectLabel extends \DB_Query {
         
         return $LabelId;
     }
+    
+    /**
+     * 获取标签ID
+     */
+    public function getLabelID(){
+        $LabelID = array();
+        $where = array();
+        $where[] = array("status", '1');
+        $where[] = array("is_recommend", '1');
+        $LabelRes = $this->getRows($where,'id');
+        if($LabelRes){
+            foreach ($LabelRes as $value){
+                    $LabelID[] = $value['id'];
+            }
+        }
+        return $LabelID;
+    }
 }

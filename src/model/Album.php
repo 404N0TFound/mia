@@ -162,6 +162,18 @@ class Album {
     }
     
     /**
+     * 文章预览接口
+     * @params array() user_id 用户ID
+     * @params array() album_id 专栏辑ID
+     * @params array() article_id 文章ID
+     * @return array() 文章内容
+     */
+    public function getArticlePreview($params) {
+        return $this->albumArticleData->getArticlePreview($params);
+    }
+    
+    
+    /**
      * 更新专栏辑接口
      * @params array() user_id 用户ID
      * @set    array() title 标题
@@ -169,5 +181,93 @@ class Album {
      */
     public function updateAlbumFile($where,$set) {
         return $this->albumData->updateAlbumFile($where,$set);
+    }
+    
+    /**
+     * 更新专栏接口(这里只有title可以改)
+     * @params array() $album_id 专栏辑ID
+     * @params array() $id 专栏ID
+     * @params array() $userId 用户ID
+     * @return array() 专栏信息
+     */
+    public function updateAlbum($where,$set){
+        return $this->albumArticleData->updateAlbum($where,$set);
+    }
+    
+    /**
+     * 更新文章详情接口
+     * $con = array('user_id'=>'1145319','id'=>6,'album_id'=>10)
+     * $set = array('title'=>'我是标题党')
+     * @params array() $album_id 专栏辑ID
+     * @params array() $id 专栏ID
+     * @params array() $userId 用户ID
+     * @return array() true false
+     */
+    public function updateAlbumArticle($where,$set){
+        return $this->albumArticleData->updateAlbumArticle($where,$set);
+    }
+    
+    /**
+     * 删除专栏辑接口(如果删除，该专栏辑下所有文章删除)
+     * @params array() $userId 用户ID
+     * @params array() $id   ID
+     * @return array() true false
+     */
+    public function delAlbumFile($where){
+        $res = $this->albumData->delAlbumFile($where);
+        if($res){
+            $con = array();
+            $con['user_id'] = $where['user_id'];
+            $con['album_id'] = $where['id'];
+            $delRes = $this->delAlbum($con);
+            if($delRes){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 删除专栏
+     * @params array() $userId 用户ID
+     * @params array() $id   ID
+     * @return array() true false
+     */
+    public function delAlbum($where){
+        return $this->albumArticleData->delAlbum($where);
+    }
+    
+    /**
+     * 插入专栏辑接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @return array() true false
+     */
+    public function addAlbumFile($insert){
+        return $this->albumData->addAlbumFile($insert);
+    }
+    
+    /**
+     * 插入专栏接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @params array() subject_id 蜜芽圈帖子ID
+     * @params array() album_id 专栏辑ID
+     * @return array() 新记录ID false
+     */
+    public function addAlbum($insert) {
+        $AlbumInfo = $this->albumData->getAlbumInfo(array($insert['album_id']));
+        if(!$AlbumInfo || $AlbumInfo[$insert['album_id']]['user_id'] != $insert['user_id']){
+            return false;
+        }
+        $data = array(
+            'title'=>$insert['title'],
+            'subject_id'=>$insert['subject_id'],
+            'user_id'=>$insert['user_id'],
+            'album_id'=>$insert['album_id'],
+            'create_time'=>date("Y-m-d H:i:s")
+        );
+        $res = $this->albumArticleData->addAlbum($data);
+        return $res;
     }
 }

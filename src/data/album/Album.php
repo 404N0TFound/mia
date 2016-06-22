@@ -59,7 +59,7 @@ class Album extends \DB_Query {
     
     /**
      * 专辑信息
-     * @params array() album_id 专辑ID
+     * @params array() $albumIdArr 专辑ID
      * @return array() 专辑信息
      */
     public function getAlbumInfo($albumIdArr) {
@@ -92,5 +92,32 @@ class Album extends \DB_Query {
         $set[] = array('title',$setData['title']);
         $data = $this->update($set, $where, $orderBy, $limit);
         return $data;
+    }
+    
+    
+    /**
+     * 删除专栏辑接口(如果删除，该专栏辑下所有文章删除)
+     * @params array() $userId 用户ID
+     * @params array() $id   ID
+     * @return array() true false
+     */
+    public function delAlbumFile($where){
+        $data = $this->delete( $where);
+        return $data;
+    }
+    
+    /**
+     * 插入专栏辑接口
+     * @params array() title  title
+     * @params array() user_id 用户ID
+     * @return array() true false
+     */
+    public function addAlbumFile($insert){
+        $data = array(
+            'title'=>$insert['title'],
+            'user_id'=>$insert['user_id'],
+            'create_time'=>date("Y-m-d H:i:s")
+        );
+        return $this->insert($data);
     }
 }
