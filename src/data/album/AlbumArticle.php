@@ -92,6 +92,42 @@ class AlbumArticle extends \DB_Query {
         }
         return $articleList;
     }
+    
+    /**
+     * 查文章简版内容（主要用于展示专栏）
+     * @params array() user_id int 用户ID
+     * @params array() album_id int 专栏专辑ID
+     * @params array() page int 当前页码
+     * @params array() iPageSize int 每页显示多少
+     * @return array() 查文章简版内容（主要用于展示专栏）
+     */
+    public function getSimpleArticleList($params){
+        $articleList = array();
+        $limit = 10;
+        $offset = 0;
+        
+        $where = array();
+        $where[] = array(':eq', 'status', '1');
+        if (isset($params['user_id']) && $params['user_id']) {
+            $where[] = array(':eq', 'user_id', $params['user_id']);
+        }
+        if(isset($params['album_id']) && $params['album_id']){
+            $where[] = array(':eq', 'album_id', $params['album_id']);
+        }
+        if (intval($params['iPageSize']) > 0) {
+            $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
+            $limit = $params['iPageSize'];
+        }
+        $orderBy = array('create_time DESC');
+        $SimpleArticleList = $this->getRows($where, array('id,album_id,subject_id,user_id,title,content'), $limit, $offset, $orderBy);
+        if($SimpleArticleList){
+            foreach($SimpleArticleList as $value){
+                $value['content'] = mb_substr($value['content'],0,50,'utf-8').'....';
+                $articleList[$value['album_id']] = $value;
+            }
+        }
+        return $articleList;
+    }
 
     /**
      * 精选文章列表
@@ -117,6 +153,28 @@ class AlbumArticle extends \DB_Query {
             }
         }
         return $articleList;
+    }
+    
+    /**
+     * 查文章详情
+     * @params array() $article_id 文章ID
+     * @params array() $userId 用户ID
+     * @return array() 文章详情
+     */
+    public function getArticleInfo($params) {
+        if (empty($params)) {
+            return array();
+        }
+        $result = array();
+        $where = array();
+        $where[] = array(':eq', 'status', '1');
+        $where[] = array(':in', 'id', $params['articleId']);
+        $where[] = array(':in', 'user_id', $params['user_id']);
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,content_original,is_recommend,h5_url,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        foreach ($data as $v) {
+            $result[$v['id']] = $v;
+        }
+        return $result;
     }
 
     /*

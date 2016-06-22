@@ -2,6 +2,7 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Album as AlbumModel;
+use mia\miagroup\Util\QiniuUtil;
 use \F_Ice;
 
 class Album extends \FS_Service {
@@ -115,10 +116,21 @@ class Album extends \FS_Service {
     /**
      * 查专栏辑接口
      * @params array() $userId 用户ID
+     * @params array() page int 当前页码
+     * @params array() iPageSize int 每页显示多少
      * @return array() 专栏辑信息
      */
-    public function getAlbumFile($userId) {
-        
+    public function getAlbumFile($userId,$iPageSize=10,$page=1) {
+        $res = array();
+        if(empty($userId)){
+            return $this->succ($res);
+        }
+        $params = array();
+        $params['user_id'] = $userId;
+        $params['iPageSize'] = (int)$iPageSize;
+        $params['page'] = (int)$page;
+        $res = $this->abumModel->getAlbumList($params);
+        return $this->succ($res);
     }
     
     /**
@@ -127,8 +139,19 @@ class Album extends \FS_Service {
      * @params array() $userId 用户ID
      * @return array() 专栏信息
      */
-    public function getAlbum($album_id,$userId) {
-        
+    public function getAlbum($userId,$albumId,$iPageSize=10,$page=1) {
+        $res = array();
+        if(empty($userId) || empty($albumId)){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $userId;
+        $params['album_id'] = $albumId;
+        $params['iPageSize'] = (int)$iPageSize;
+        $params['page'] = (int)$page;
+        $res = $this->abumModel->getSimpleArticleList($params);
+        return $this->succ($res);
     }
     
     /**
@@ -137,18 +160,40 @@ class Album extends \FS_Service {
      * @params array() $userId 用户ID
      * @return array() 文章详情
      */
-    public function getAlbumArticle($article_id,$userId) {
-        
+    public function getAlbumArticle($userId,$articleId) {
+        $res = array();
+        if(empty($userId) || empty($articleId)){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = array($userId);
+        $params['articleId'] = array($articleId);
+        $res = $this->abumModel->getArticleInfo($params);
+        return $this->succ($res);
     }
     
     
     /**
      * 更新专栏辑接口
-     * @params array() $userId 用户ID
+     * @params array() user_id 用户ID
+     * @set    array() title 标题
      * @return array() 专栏辑信息
      */
-    public function updateAlbumFile($userId) {
+    public function updateAlbumFile($con,$set) {
+        $res = array();
+        if(empty($con) || empty($set)){
+            return $this->succ($res);
+        }
+
+        $params = array();
+        $params['user_id'] = $con['user_id'];
+        $params['id'] = $con['id'];
         
+        $data = array();
+        $data['title'] = $set['title'];
+        $res = $this->abumModel->updateAlbumFile($params,$data);
+        return $this->succ($res);
     }
     
     
@@ -177,7 +222,7 @@ class Album extends \FS_Service {
     
     
     /**
-     * 删除专栏辑接口
+     * 删除专栏辑接口(如果删除，该专栏辑下所有文章删除)
      * @params array() $userId 用户ID
      * @params array() $id   ID
      * @return array() 专栏辑信息
@@ -205,5 +250,20 @@ class Album extends \FS_Service {
      */
     public function delAlbumArticle($id,$userId) {
         
+    }
+    
+    /**
+     * PC端获取上传token和key
+     * @params array() $filePath 上传目录
+     * @return array() 文章详情
+     */
+    public function getUploadTokenAndKey($filePath) {
+        $res = array();
+        if(empty($filePath)){
+            return $this->succ($res);
+        }
+        $qiNiuSDK = new QiniuUtil();
+        $res = $qiNiuSDK -> getUploadTokenAndKey($filePath);
+        return $this->succ($res);
     }
 }

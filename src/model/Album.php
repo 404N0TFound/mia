@@ -100,6 +100,23 @@ class Album {
         return $this->albumArticleData->getArticle($params);
     }
     
+    /**
+     * 批量查文章简版内容（主要用于展示专栏）
+     * @params array() user_id int 用户ID
+     * @params array() album_id int 专栏专辑ID
+     * @params array() page int 当前页码
+     * @params array() iPageSize int 每页显示多少
+     * @return array() 文章简版内容（主要用于展示专栏）
+     */
+    public function getSimpleArticleList($params) {
+        return $this->albumArticleData->getSimpleArticleList($params);
+    }
+
+    /**
+     * 专辑列表
+     * @params array() user_id 用户ID
+     * @return array() 专辑列表
+     */
     public function getAlbumList($params){
         return $this->albumData->getAlbumList($params);
     }
@@ -132,5 +149,25 @@ class Album {
     public function getAlbumNum($userIds)
     {
         return $this->albumData->getAlbumNum($userIds);
+    }
+    
+    /**
+     * 查文章详情接口
+     * @params array() $article_id 文章ID
+     * @params array() $userId 用户ID
+     * @return array() 文章详情
+     */
+    public function getArticleInfo($param) {
+        return $this->albumArticleData->getArticleInfo($param);
+    }
+    
+    /**
+     * 更新专栏辑接口
+     * @params array() user_id 用户ID
+     * @set    array() title 标题
+     * @return array() 专栏辑信息
+     */
+    public function updateAlbumFile($where,$set) {
+        return $this->albumData->updateAlbumFile($where,$set);
     }
 }

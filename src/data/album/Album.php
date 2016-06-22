@@ -40,6 +40,7 @@ class Album extends \DB_Query {
     public function getAlbumList($params) {
         $limit = 10;
         $offset = 0;
+        $albumList = array();
         $where = array();
         $where[] = array(':eq', 'user_id', $params['user_id']);
         if (intval($params['iPageSize']) > 0) {
@@ -48,7 +49,12 @@ class Album extends \DB_Query {
         }
         $orderBy = array('create_time DESC');
         $data = $this->getRows($where, array('id','user_id','title'), $limit, $offset, $orderBy);
-        return $data;
+        if($data){
+            foreach($data as $value){
+                $albumList[$value['id']] = $value;
+            }
+        }
+        return $albumList;
     }
     
     /**
@@ -70,5 +76,21 @@ class Album extends \DB_Query {
             }
         }
         return $res;
+    }
+    
+    /**
+     * 更新专栏辑接口
+     * @params array() user_id 用户ID
+     * @set    array() title 标题
+     * @return array() 专栏辑信息
+     */
+    public function updateAlbumFile($whereCon,$setData,$orderBy = FALSE, $limit = FALSE) {
+        $where = array();
+        $where[] = array('id',$whereCon['id']);
+        $where[] = array('user_id',$whereCon['user_id']);
+        $set = array();
+        $set[] = array('title',$setData['title']);
+        $data = $this->update($set, $where, $orderBy, $limit);
+        return $data;
     }
 }
