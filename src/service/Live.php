@@ -3,7 +3,6 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Live as LiveModel;
 use mia\miagroup\Util\RongCloudUtil;
-use mia\miagroup\Util\NormalUtil;
 
 class Live extends \FS_Service {
     
