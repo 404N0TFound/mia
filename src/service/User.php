@@ -197,4 +197,20 @@ class User extends FS_Service {
         
         return $this->succ($userInfo);
     }
+
+    /**
+     * 获取用户的基本信息
+     */
+    public function getUserBaseInfo($user_ids) {
+        $baseUserInfo = [];
+        $userInfos = $this->userModel->getUserInfoByIds($user_ids);
+        foreach ($userInfos as $key=>$userInfo) {
+            $baseUserInfo[$userInfo['id']]['id'] = $userInfo['id'];
+            $baseUserInfo[$userInfo['id']]['name'] = $userInfo['username'];
+            $baseUserInfo[$userInfo['id']]['icon'] = $userInfo['icon'];
+        }
+        return $this->succ($baseUserInfo);
+    }
+    
+    
 }
