@@ -20,7 +20,7 @@ class RongCloudUtil{
      */
     public function getToken($userId, $name, $portraitUri){
         $token = array();
-        $ret = $this->api->getToken(NormalUtil::encode_uid($userId), $name, $portraitUri);
+        $ret = $this->api->getToken($userId, $name, $portraitUri);
         if($ret){
             $token[$ret['userId']] = $ret['token'];
             return $token;
