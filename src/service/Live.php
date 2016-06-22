@@ -128,7 +128,6 @@ class Live extends \FS_Service {
      */
     private function _getLiveIncrId($roomId) {
         $id = time() . $roomId;
-        $id = NormalUtil::encode_uid($id);
-        return $this->succ($id);
+        return $id;
     }
 }

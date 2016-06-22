@@ -4,19 +4,83 @@ namespace mia\miagroup\Util;
 use Qiniu\Auth;
 use Qiniu\Storage\UploadManager;
 use Qiniu\Processing\PersistentFop;
+use Pili;
 use \F_Ice;
+use function Qiniu\json_decode;
 
 class QiniuUtil {
 
     private $qiniuAuth;
+    
+    private $qiniuHub;
 
     private $config;
 
     public function __construct() {
         $this->config = F_Ice::$ins->workApp->config->get('busconf.qiniu');
         $this->qiniuAuth = new Auth($this->config['access_key'], $this->config['secret_key']);
+        $this->qiniuHub = new \Pili\Hub(new \Qiniu\Credentials($this->config['access_key'], $this->config['secret_key']), $this->config['live_hub']);
     }
 
+    /**
+     * ******************
+     */
+    /**
+     * * 七牛直播相关API **
+     */
+    /**
+     * ******************
+     */
+    
+    /**
+     * 创建直播流
+     */
+    public function createStream($streamId) {
+        $stream = $this->qiniuHub->createStream((string)$streamId);
+        $stream = $stream->toJSONString();
+        $stream = json_decode($stream, true);
+        return $stream;
+    }
+    
+    /**
+     * 获取直播流
+     */
+    public function getStream($streamId) {
+        $stream = $this->qiniuHub->getStream((string)$streamId);
+        $stream = $stream->toJSONString();
+        $stream = json_decode($stream, true);
+        return $stream;
+    }
+    
+    /**
+     * 获取直播地址
+     */
+    public function getLiveUrls($streamId) {
+        $idInfo = explode('.', $streamId);
+        $returnData = [];
+        if(isset($idInfo[2])){
+            $returnData = [
+                'hls' => 'http://' . $this->config['live_host']['hls'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".m3u8",
+                'rtmp'=> 'rtmp://' . $this->config['live_host']['rtmp'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2],
+            ];
+        }
+        return $returnData;
+    }
+    
+    /**
+     * 获取直播回放地址
+     */
+    public function getPalyBackUrls($streamId) {
+        $idInfo = explode('.', $streamId);
+        $returnData = [];
+        if(isset($idInfo[2])){
+            $returnData = [
+                'hls' => 'http://' . $this->config['live_host']['playback'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . '.m3u8?start=0&end=' . time(),
+            ];
+        }
+        return $returnData;
+    }
+    
     /**
      * ******************
      */
@@ -192,8 +256,7 @@ class QiniuUtil {
         return $key;
     }
 
-    private function _urlsafe_base64_encode($str) // URLSafeBase64Encode
-{
+    private function _urlsafe_base64_encode($str) {
         $find = array('+', '/');
         $replace = array('-', '_');
         return str_replace($find, $replace, base64_encode($str));
