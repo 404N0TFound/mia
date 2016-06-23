@@ -28,7 +28,6 @@ class Live extends \FS_Service {
             //没有权限直播
             return $this->error(30000,'您没有直播权限!');
         }
-        
         //判断用户是否已经存在直播
         $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId);
         if(!empty($checkLiveExist)){
@@ -38,7 +37,6 @@ class Live extends \FS_Service {
                 return $this->error(30000,'结束已存在直播失败');
             }
         }
-        
         //生成视频流ID和聊天室ID
         $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
         //获取七牛视频流
@@ -47,7 +45,6 @@ class Live extends \FS_Service {
         if(empty($streamInfo)){
             return $this->error(30000,'获取七牛的流信息失败');
         }
-        
         //获取融云token
         //获取$name,$portratiuri
         $userService = new User();
@@ -66,7 +63,6 @@ class Live extends \FS_Service {
             //创建失败
             return $this->error(30000,'创建聊天室失败');    
         }
-        
         //新增直播记录
         $liveInfo['user_id'] = $userId;
         $liveInfo['stream_id'] = $streamInfo['id'];
@@ -81,14 +77,14 @@ class Live extends \FS_Service {
         if(!$saveRoomInfo){
             //更新房间信息失败
             return $this->error(30000,'更新房间信息失败');
-        }
+        }  
+        //获取房间信息
+        $roomData = $this->getRoomLiveById([$roomInfo['id']])['data'];
         //返回数据
         $data['rongcloud_token'] = $RongtokenInfo;
         $data['qiniu_stream_id'] = $streamInfo['id'];
         $data['chat_room_id'] = $chatId;
-        
-//         $data['room_id'] = $roomInfo['id'];
-//         $data['live_id'] = $liveId;
+        $data['room_info'] = $roomData;
         
         return $this->succ($data);
     }
@@ -151,18 +147,7 @@ class Live extends \FS_Service {
      */
     public function getRoomLiveById($roomId) {
         //获取房间信息
-        $roomData = $this->liveModel->getRoomInfoByRoomId($roomId);
-        if(empty($roomData)){
-            return $this->error(30000,'获取房间信息失败');
-        }
-        $liveData = $this->liveModel->getBatchLiveInfoByIds($roomData['live_id'])['data'][$roomData['live_id']];
-        if($liveData['status'] != 3){
-            $roomData['status'] = 0;
-        }else{
-            $roomData['status'] = 1;
-        }
-        
-        $roomData['live_info'] = $liveData;
+        $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
         //获取在线人数和商品数
         return $this->succ($roomData);
     }
@@ -188,6 +173,17 @@ class Live extends \FS_Service {
         }
         return $this->succ($wantLiveInfo);
     }
+    
+    /**
+     * 获取在线人数和商品数
+     */
+    public function getOnlineNumber(){
+        //在线人数:底数为1（含）-50（含）的随机数，每5s，叠加一个0（含）-20（含）的随机数，最大值14400
+        
+        //商品数：底数为0，每5s叠加一个1（含）-50（含）的随机数，最大值72000
+        
+    }
+    
     
     
     /**
@@ -254,7 +250,7 @@ class Live extends \FS_Service {
         $userArr = $userService->getUserInfoByUids($userIds)['data'];
         //通过liveids批量获取直播列表,todo
         $liveIds = array_unique($liveIdArr);
-        $liveArr = $this->getBatchLiveInfoByIds($liveIds);
+        $liveArr = $this->getBatchLiveInfoByIds($liveIds)['data'];
         
         //将主播信息整合到房间信息中
         $roomRes = array();
