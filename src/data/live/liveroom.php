@@ -32,30 +32,43 @@ class LiveRoom extends \DB_Query {
     
     /**
      * 根据ID修改直播房间信息
+     * @author jiadonghui@mia.com
      */
     public function updateLiveRoomById($roomId, $setData) {
-        $where[] = ['id',$roomId];
+        if (!isset($setData['setting']) || empty($setData['setting'])){
+            return false;
+        }
+        
+        $setData['settings'] = json_encode($setData['settings']);
+        $where = array();
+        $where[] = array(':in', 'id', $roomId);
+
         $data = $this->update($setData,$where);
         return $data;
     }
     
     /**
      * 根据获取房间ID批量获取房间信息
+     * @author jiadonghui@mia.com
      */
     public function getBatchLiveRoomByIds($roomIds) {
-        $result = array();
-        $where[] = ['id',$roomIds];
-        $where[] = ['status',1];
+        if (empty($roomIds)) {
+            return array();
+        }
+        $where = array();
+        $where[] = array(':in', 'id', $roomIds);
+        $where[] = array(':eq', 'status', '1');
         
         $data = $this->getRows($where);
+        $result = array();
         if(!$data){
-            return false;
+            return array();
         }else{
             foreach($data as $v){
                 $result[$v['id']] = $v;
             }
             return $result;
         }
-        
     }
+    
 }

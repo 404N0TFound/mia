@@ -49,3 +49,7 @@ $groupShare = array(
         'extend_text'   => '看白富美妈妈分享的好货',
     ),
 );
+
+$liveRoomTips = "直播房间测试tips";
+
+$liveSetting = array('custom','redbag','share','is_show_gift');
