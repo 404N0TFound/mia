@@ -19,6 +19,29 @@ class Live extends \FS_Service {
     }
     
     /**
+     * 获取融云的token
+     */
+    public function getRongCloudToken($userId){
+        //获取$name,$portratiuri
+        $userService = new User();
+        $userInfo = $userService->getUserBaseInfo($userId)['data'][$userId];
+        if(empty($userInfo)){
+            return $this->error(30000,'获取用户信息失败');
+        }
+        
+        $token = $this->rongCloud->getToken($userId, $userInfo['name'], $userInfo['icon']);
+        if(!$token){
+            //获取token失败
+            return $this->error(30000,'获取rongcloudToken失败');
+        }
+        
+        $data['user_info'] = $userInfo;
+        $data['token'] = $token;
+        
+        return $this->succ($data);
+    }
+    
+    /**
      * 创建直播
      */
     public function addLive($userId) {
@@ -45,18 +68,7 @@ class Live extends \FS_Service {
         if(empty($streamInfo)){
             return $this->error(30000,'获取七牛的流信息失败');
         }
-        //获取融云token
-        //获取$name,$portratiuri
-        $userService = new User();
-        $userInfo = $userService->getUserBaseInfo($userId)['data'][$userId];
-        if(empty($userInfo)){
-            return $this->error(30000,'获取用户信息失败');
-        }
-        $RongtokenInfo = $this->rongCloud->getToken($userId, $userInfo['name'], $userInfo['icon']);
-        if(!$RongtokenInfo){
-            //获取token失败
-            return $this->error(30000,'获取rongcloudToken失败');
-        }
+
         //创建聊天室
         $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
         if(!$chatRet){
@@ -81,9 +93,7 @@ class Live extends \FS_Service {
         //获取房间信息
         $roomData = $this->getRoomLiveById([$roomInfo['id']])['data'];
         //返回数据
-        $data['rongcloud_token'] = $RongtokenInfo;
         $data['qiniu_stream_info'] = $streamInfo;
-//         $data['chat_room_id'] = $chatId;
         $data['room_info'] = $roomData;
         
         return $this->succ($data);

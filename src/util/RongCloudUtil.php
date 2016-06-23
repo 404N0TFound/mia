@@ -18,11 +18,9 @@ class RongCloudUtil{
      * @param unknown $portraitUri
      */
     public function getToken($userId, $name, $portraitUri){
-        $token = array();
         $ret = $this->api->getToken($userId, $name, $portraitUri);
         if($ret){
-            $token[$ret['userId']] = $ret['token'];
-            return $token;
+            return $ret['token'];
         }else{
             return false;
         }
