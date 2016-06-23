@@ -47,7 +47,7 @@ class Album extends \FS_Service {
         //第一页 返回专辑列表信息
         if ($page == 1) {
             $albumResult = $this->abumModel->getAlbumList(array('user_id'=>$user_id));
-            $response['album_list'] = $albumResult;
+            $response['album_list'] = array_values($albumResult);
         }
         return $this->succ($response);
     }
