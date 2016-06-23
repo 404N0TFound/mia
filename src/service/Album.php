@@ -15,7 +15,8 @@ class Album extends \FS_Service {
         $this->abumModel = new AlbumModel();
         $this->userService = new UserService();
     }
-
+    
+    
     /**
      * 获取专栏集下的专栏文章列表
      * @params array() user_id int 用户ID
@@ -207,7 +208,12 @@ class Album extends \FS_Service {
         if(empty($con) || empty($set)){
             return $this->succ($res);
         }
-
+        
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
+        
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
@@ -233,7 +239,12 @@ class Album extends \FS_Service {
         if(empty($con) || empty($set)){
             return $this->succ($res);
         }
-
+        
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
+        
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['album_id'] = $con['album_id'];
@@ -260,7 +271,10 @@ class Album extends \FS_Service {
         if(empty($con) || empty($set)){
             return $this->succ($res);
         }
-
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['album_id'] = $con['album_id'];
@@ -308,7 +322,10 @@ class Album extends \FS_Service {
         if(empty($con)){
             return $this->succ($res);
         }
-
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId($con['user_id']);
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
@@ -328,7 +345,11 @@ class Album extends \FS_Service {
         if(empty($con)){
             return $this->succ($res);
         }
-
+        
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId($con['user_id']);
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
@@ -348,7 +369,12 @@ class Album extends \FS_Service {
         if(empty($insert)){
             return $this->succ($res);
         }
-
+        
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId($insert['user_id']);
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
+        
         $params = array();
         $params['user_id'] = $insert['user_id'];
         $params['title'] = $insert['title'];
@@ -367,6 +393,10 @@ class Album extends \FS_Service {
         $res = array();
         if(empty($insert) || empty($insert['title']) || empty($insert['user_id']) || empty($insert['album_id'])){
             return $this->succ($res);
+        }
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId($insert['user_id']);
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
         }
 
         $params = array();

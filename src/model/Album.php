@@ -3,6 +3,7 @@ namespace mia\miagroup\Model;
 use \F_Ice;
 use mia\miagroup\Data\Album\AlbumArticle as AlbumArticleData;
 use mia\miagroup\Data\Album\Album as AlbumData;
+use mia\miagroup\Data\Album\AlbumPermission as AlbumPermissionData;
 use mia\miagroup\Data\User\GroupDoozer as GroupDoozer;
 
 class Album {
@@ -10,11 +11,13 @@ class Album {
     public $albumArticleData = '';
     public $albumData = '';
     public $userGroupDoozerData = '';
+    public $albumPermissionData = '';
 
     public function __construct() {
         $this->albumArticleData = new AlbumArticleData();
         $this->albumData = new AlbumData();
         $this->userGroupDoozerData = new GroupDoozer();
+        $this->albumPermissionData = new AlbumPermissionData();
     }
 
     /**
@@ -269,5 +272,14 @@ class Album {
         );
         $res = $this->albumArticleData->addAlbum($data);
         return $res;
+    }
+    
+    /**
+     * 查用户编辑文章权限
+     * @params array() $userId 用户ID
+     * @return array() id
+     */
+    public function getAlbumPermissionByUserId($user_id){
+        return $this->albumPermissionData->getAlbumPermissionByUserId($user_id);
     }
 }

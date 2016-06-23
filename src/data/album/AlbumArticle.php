@@ -176,6 +176,9 @@ class AlbumArticle extends \DB_Query {
         }
         $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,content_original,is_recommend,h5_url,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
         foreach ($data as $v) {
+            $v['label'] = json_decode($v['ext_info'],true)['label'];
+            $v['cover_image'] = json_decode($v['cover_image'],true);
+            unset($v['ext_info']);
             $result[$v['id']] = $v;
         }
         return $result;
