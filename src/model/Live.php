@@ -15,14 +15,12 @@ class Live {
     }
     
     /**
-     * 获取房间的直播信息
+     * 获取房间的信息
      */
-    public function getRoomLive($roomId) {
+    public function getRoomInfoByRoomId($roomId) {
         //获取房间数据
         $roomData = $this->liveRoomData->getBatchLiveRoomByIds($roomId)[$roomId];
-        //获取当前房间直播信息
-        $liveData = $this->liveData->getBatchLiveInfoByIds($roomData[$roomData['live_id']]);
-        return $liveData;
+        return $roomData;
     }
     
     /**
@@ -53,15 +51,34 @@ class Live {
     /**
      * 根据直播ID批量获取直播信息
      */
-    public function getBatchLiveInfoByIds($liveIds) {
+    public function getBatchLiveInfoByIds($liveIds,$status=array(3)) {
         if (!empty($liveIds)) {
             return array();
         }
-        
-        $data = $this->liveData->getBatchLiveInfoByIds($liveIds);
+        $data = $this->liveData->getBatchLiveInfoByIds($liveIds,$status);
         return $data;
     }
     
+    /**
+     * 根据usreId获取用户的直播信息
+     * @param unknown $userId
+     * @param unknown $status
+     */ 
+    public function getLiveInfoByUserId($userId,$status=[3]){
+        $data = $this->liveData->getLiveInfoByUserId($userId,$status);
+        return $data;
+    }
+    
+    /**
+     * 根据userId更新直播状态
+     */
+    public function updateLiveByUserId($userId,$status){
+        $data = $this->liveData->updateLiveByUserId($userId, $status);
+        return $data;
+    }
+    
+    
+  
     /**
      * 检测房间是否存在
      * @param $userId
@@ -77,6 +94,18 @@ class Live {
     public function updateLiveRoomById($roomId, $setData) {
         $data = $this->liveRoomData->updateLiveRoomById($roomId, $setData);
         return $data;
+    }
+    
+    /**
+     * 根据获取房间ID批量获取房间信息
+     * @author jiadonghui@mia.com
+     */
+    public function getBatchLiveRoomByIds($roomIds) {
+        if (empty($roomIds)) {
+            return array();
+        }
+        $rooms = $this->liveRoomData->getBatchLiveRoomByIds($roomIds);
+        return $rooms;
     }
     
 }

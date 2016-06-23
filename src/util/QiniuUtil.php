@@ -61,6 +61,7 @@ class QiniuUtil {
             $returnData = [
                 'hls' => 'http://' . $this->config['live_host']['hls'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".m3u8",
                 'rtmp'=> 'rtmp://' . $this->config['live_host']['rtmp'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2],
+                'hdl' => 'http://' . $this->config['live_host']['hdl'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".flv",
             ];
         }
         return $returnData;

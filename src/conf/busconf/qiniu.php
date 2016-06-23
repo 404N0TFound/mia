@@ -29,6 +29,7 @@ $file_bucket = 'file';
  $live_host = array(
      'rtmp' => 'pili-live-rtmp.live1.miyabaobei.com',
      'hls'  => 'pili-live-hls.live1.miyabaobei.com',
+     'hdl'  => 'pili-live-hdl.live1.miyabaobei.com',
      'playback' => 'pili-playback.live1.miyabaobei.com',
  );
 
