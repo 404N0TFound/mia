@@ -6,6 +6,7 @@ use Qiniu\Storage\UploadManager;
 use Qiniu\Processing\PersistentFop;
 use Pili;
 use \F_Ice;
+use Qiniu;
 
 class QiniuUtil {
 

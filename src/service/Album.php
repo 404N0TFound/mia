@@ -3,16 +3,20 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Album as AlbumModel;
 use mia\miagroup\Util\QiniuUtil;
+use mia\miagroup\Service\User as UserService;
 use \F_Ice;
 
 class Album extends \FS_Service {
 
     public $abumModel = '';
+    public $userService = '';
 
     public function __construct() {
         $this->abumModel = new AlbumModel();
+        $this->userService = new UserService();
     }
-
+    
+    
     /**
      * 获取专栏集下的专栏文章列表
      * @params array() user_id int 用户ID
@@ -44,7 +48,7 @@ class Album extends \FS_Service {
         //第一页 返回专辑列表信息
         if ($page == 1) {
             $albumResult = $this->abumModel->getAlbumList(array('user_id'=>$user_id));
-            $response['album_list'] = $albumResult;
+            $response['album_list'] = array_values($albumResult);
         }
         return $this->succ($response);
     }
@@ -204,7 +208,12 @@ class Album extends \FS_Service {
         if(empty($con) || empty($set)){
             return $this->succ($res);
         }
-
+        
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
+        
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
@@ -230,7 +239,12 @@ class Album extends \FS_Service {
         if(empty($con) || empty($set)){
             return $this->succ($res);
         }
-
+        
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
+        
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['album_id'] = $con['album_id'];
@@ -257,7 +271,10 @@ class Album extends \FS_Service {
         if(empty($con) || empty($set)){
             return $this->succ($res);
         }
-
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['album_id'] = $con['album_id'];
@@ -266,6 +283,28 @@ class Album extends \FS_Service {
         $data = array();
         $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
         $data['content_original'] = $set['content'];   //原始文章内容
+        if(isset($set['labels'])){
+            $labelInfos = array();
+            if(isset($set['labels']) &&  !$set['labels']){
+                foreach($set['labels'] as $key => $value){
+                    $labelInfos[$key]['id'] = $value['id'];
+                    $labelInfos[$key]['title'] = $value['title'];
+                }
+            }
+            $data['ext_info'] = json_encode(array('label'=>$labelInfos));
+        }
+        if(isset($set['cover_image'])){
+            $data['cover_image'] = json_encode(
+                array(
+                    'width'=>$set['image_infos']['width'],
+                    'height'=>$set['image_infos']['height'],
+                    'url'=>$set['image_infos']['url'],
+                    'content'=>''
+                ));
+        }
+        if(isset($set['video_url'])){
+            $data['video_url'] = $set['video_url'];
+        }
         
         $res = $this->abumModel->updateAlbumArticle($params,$data);
         return $this->succ($res);
@@ -283,7 +322,10 @@ class Album extends \FS_Service {
         if(empty($con)){
             return $this->succ($res);
         }
-
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId($con['user_id']);
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
@@ -303,7 +345,11 @@ class Album extends \FS_Service {
         if(empty($con)){
             return $this->succ($res);
         }
-
+        
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId($con['user_id']);
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
@@ -323,7 +369,12 @@ class Album extends \FS_Service {
         if(empty($insert)){
             return $this->succ($res);
         }
-
+        
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId($insert['user_id']);
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
+        
         $params = array();
         $params['user_id'] = $insert['user_id'];
         $params['title'] = $insert['title'];
@@ -342,6 +393,10 @@ class Album extends \FS_Service {
         $res = array();
         if(empty($insert) || empty($insert['title']) || empty($insert['user_id']) || empty($insert['album_id'])){
             return $this->succ($res);
+        }
+        $userPermission = $this->abumModel->getAlbumPermissionByUserId($insert['user_id']);
+        if(!$userPermission){
+            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
         }
 
         $params = array();
@@ -383,6 +438,76 @@ class Album extends \FS_Service {
         $labelIDs = $labelService->getLabelID()['data'];
         $labelInfos = $labelService->getBatchLabelInfos($labelIDs);
         return $this->succ($labelInfos['data']);
+    }
+    
+    /**
+     * 发布接口
+     * @params array() 
+     * @return array() 标签
+     */
+    public function pcIssue($params) {
+        $res = array();
+        foreach($params as $key => $value){
+            if(!in_array($key, array('labels','video_url'))){
+                if(empty($params[$key])){
+                    return $this->error('500','params is empty');
+                }
+            }
+        }
+        $subjectInfo = array();
+        $subjectInfo['title'] = $params['title'];
+        $subjectInfo['text'] = $params['text'];
+        $subjectInfo['image_infos'] = array(
+            'height' => $params['image_infos']['height'], 
+            'url' => $params['image_infos']['url'], 
+            'width' => $params['image_infos']['width']
+        );
+        $user_info = $this->userService->getUserInfoByUserId($params['user_id'])['data'];
+        if(!$user_info){
+            return $this->error('500','user_info is null');
+        }
+        $subjectInfo['user_info'] = $user_info;
+        if(isset($params['active_id'])){
+            $subjectInfo['active_id'] = $params['active_id'];
+        }
+        if(isset($params['video_url'])){
+            $subjectInfo['video_url'] = $params['video_url'];
+        }
+        
+        $labelInfos = array();
+        if(isset($params['labels']) &&  $params['labels']){
+            foreach($params['labels'] as $key => $value){
+                $labelInfos[$key]['id'] = $value['id'];
+                $labelInfos[$key]['title'] = $value['title'];
+            }
+        }
+        
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0)['data'];
+        
+        if(isset($subjectRes['id'])){
+            $paramsArticle = array();
+            $paramsArticle['user_id'] = $params['user_id'];
+            $paramsArticle['album_id'] = $params['album_id'];
+            $paramsArticle['id'] = $params['article_id'];
+
+            $setArticle = array();
+            $setArticle['subject_id'] = $subjectRes['id'];
+            $setArticle['content'] = strip_tags($params['text']);
+            $setArticle['content_original'] = $params['text'];
+            $setArticle['status'] = 1;
+            $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
+            $setArticle['cover_image'] = json_encode(
+                    array(
+                        'width'=>$params['image_infos']['width'],
+                        'height'=>$params['image_infos']['height'],
+                        'url'=>$params['image_infos']['url'],
+                        'content'=>''
+                    ));
+            $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
+            return $this->succ($res);
+        }
+        return $this->succ($res);
     }
     
     /**

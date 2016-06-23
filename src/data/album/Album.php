@@ -19,7 +19,9 @@ class Album extends \DB_Query {
     public function getAlbumNum($userIds) {
         $numArr = array();
         $where = array();
-        $where[] = ['user_id', $userIds];
+        if($userIds){
+            $where[] = ['user_id', $userIds];
+        }
         $field = 'user_id,count(*) as nums';
         $groupBy = 'user_id';
         $albumInfos = $this->getRows($where, $field, FALSE, 0, FALSE, FALSE, $groupBy);
@@ -42,7 +44,9 @@ class Album extends \DB_Query {
         $offset = 0;
         $albumList = array();
         $where = array();
-        $where[] = array(':eq', 'user_id', $params['user_id']);
+        if(isset($params['user_id']) && $params['user_id']){
+            $where[] = array(':eq', 'user_id', $params['user_id']);
+        }
         if (intval($params['iPageSize']) > 0) {
             $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
             $limit = $params['iPageSize'];
@@ -68,7 +72,9 @@ class Album extends \DB_Query {
         if(empty($albumIdArr)){
             return $res;
         }
-        $where[] = array(':in', 'id', $albumIdArr);
+        if($albumIdArr){
+            $where[] = array(':in', 'id', $albumIdArr);
+        }
         $data = $this->getRows($where, array('id','user_id','title'));
         if($data){
             foreach ($data as $value){
@@ -86,10 +92,16 @@ class Album extends \DB_Query {
      */
     public function updateAlbumFile($whereCon,$setData,$orderBy = FALSE, $limit = FALSE) {
         $where = array();
-        $where[] = array('id',$whereCon['id']);
-        $where[] = array('user_id',$whereCon['user_id']);
+        if(isset($whereCon['id']) && $whereCon['id']){
+            $where[] = array('id',$whereCon['id']);
+        }
+        if(isset($whereCon['user_id']) && $whereCon['user_id']){
+            $where[] = array('user_id',$whereCon['user_id']);
+        }
         $set = array();
-        $set[] = array('title',$setData['title']);
+        if(isset($setData['title']) && $setData['title']){
+            $set[] = array('title',$setData['title']);
+        }
         $data = $this->update($set, $where, $orderBy, $limit);
         return $data;
     }

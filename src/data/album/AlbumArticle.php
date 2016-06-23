@@ -168,10 +168,17 @@ class AlbumArticle extends \DB_Query {
         $result = array();
         $where = array();
         $where[] = array(':eq', 'status', '1');
-        $where[] = array(':in', 'id', $params['articleId']);
-        $where[] = array(':in', 'user_id', $params['user_id']);
-        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,content_original,is_recommend,h5_url,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        if(isset($params['articleId']) && $params['articleId']){
+            $where[] = array(':in', 'id', $params['articleId']);
+        }
+        if(isset($params['articleId']) && $params['articleId']){
+            $where[] = array(':in', 'user_id', $params['user_id']);
+        }
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,content_original,is_recommend,h5_url,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
         foreach ($data as $v) {
+            $v['label'] = json_decode($v['ext_info'],true)['label'];
+            $v['cover_image'] = json_decode($v['cover_image'],true);
+            unset($v['ext_info']);
             $result[$v['id']] = $v;
         }
         return $result;
@@ -190,9 +197,15 @@ class AlbumArticle extends \DB_Query {
         }
         $where = array();
         $where[] = array(':eq', 'status', '0');
-        $where[] = array(':eq', 'id', $params['id']);
-        $where[] = array(':eq', 'album_id', $params['album_id']);
-        $where[] = array(':eq', 'user_id', $params['user_id']);
+        if(isset($params['id']) && $params['id']){
+            $where[] = array(':eq', 'id', $params['id']);
+        }
+        if(isset($params['album_id']) && $params['album_id']){
+            $where[] = array(':eq', 'album_id', $params['album_id']);
+        }
+        if(isset($params['user_id']) && $params['user_id']){
+            $where[] = array(':eq', 'user_id', $params['user_id']);
+        }
         $data = $this->getRow($where, array('content_original'), $limit = FALSE, $offset = 0);
         return $data;
     }
@@ -243,6 +256,8 @@ class AlbumArticle extends \DB_Query {
         if(isset($whereCon['album_id']) && $whereCon['album_id']){
             $where[] = array('album_id',$whereCon['album_id']);
         }
+        
+        
         $set = array();
         if(isset($setData['content']) && $setData['content']){
             $set[] = array('content',$setData['content']);
@@ -250,8 +265,22 @@ class AlbumArticle extends \DB_Query {
         if(isset($setData['content_original']) && $setData['content_original']){
             $set[] = array('content_original',$setData['content_original']);
         }
+        if(isset($setData['status']) && $setData['status']){
+            $set[] = array('status',$setData['status']);
+        }
+        if(isset($setData['subject_id']) && $setData['subject_id']){
+            $set[] = array('subject_id',$setData['subject_id']);
+        }
+        if(isset($setData['ext_info']) && $setData['ext_info']){
+            $set[] = array('ext_info',$setData['ext_info']);
+        }
+        if(isset($setData['cover_image']) && $setData['cover_image']){
+            $set[] = array('cover_image',$setData['cover_image']);
+        }
+        if(isset($setData['video_url']) && $setData['video_url']){
+            $set[] = array('video_url',$setData['video_url']);
+        }
         $set[] = array('update_time',date("Y-m-d H:i:s"));
-        $set[] = array('status','1');
         $data = $this->update($set, $where, $orderBy, $limit);
         return $data;
     }
