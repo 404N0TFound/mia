@@ -79,7 +79,7 @@ class Live extends \FS_Service {
             return $this->error(30000,'更新房间信息失败');
         }  
         //获取房间信息
-        $roomData = $this->getLiveRoomByIds($roomInfo['id'])['data'][$roomInfo['id']];
+        $roomData = $this->getRoomLiveById([$roomInfo['id']])['data'];
         //返回数据
         $data['rongcloud_token'] = $RongtokenInfo;
         $data['qiniu_stream_id'] = $streamInfo['id'];
@@ -147,18 +147,7 @@ class Live extends \FS_Service {
      */
     public function getRoomLiveById($roomId) {
         //获取房间信息
-        $roomData = $this->liveModel->getRoomInfoByRoomId($roomId);
-        if(empty($roomData)){
-            return $this->error(30000,'获取房间信息失败');
-        }
-        $liveData = $this->liveModel->getBatchLiveInfoByIds($roomData['live_id'])['data'][$roomData['live_id']];
-        if($liveData['status'] != 3){
-            $roomData['status'] = 0;
-        }else{
-            $roomData['status'] = 1;
-        }
-        
-        $roomData['live_info'] = $liveData;
+        $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
         //获取在线人数和商品数
         return $this->succ($roomData);
     }
