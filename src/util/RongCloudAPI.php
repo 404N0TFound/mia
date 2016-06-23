@@ -1,5 +1,7 @@
 <?php
 namespace mia\miagroup\Util;
+
+use \Exception;
 /**
  * 融云server API 接口 新版 1.0
  * Class ServerAPI
@@ -51,7 +53,7 @@ class RongCloudAPI{
             $ret = $this->curl('/user/getToken',array('userId'=>$userId,'name'=>$name,'portraitUri'=>$portraitUri));
             if(empty($ret))
                 throw new Exception('请求失败');
-            return json_decode($ret);
+            return json_decode($ret,true);
         }catch (Exception $e) {
 //             print_r($e->getMessage());
             return false;
@@ -489,7 +491,7 @@ class RongCloudAPI{
             $ret = $this->curl('/chatroom/create', $params);
             if(empty($ret))
                 throw new Exception('请求失败');
-            return json_decode($ret);
+            return json_decode($ret,true);
         }catch (Exception $e) {
 //             print_r($e->getMessage());
             return false;
@@ -531,7 +533,7 @@ class RongCloudAPI{
             $ret = $this->curl('/chatroom/destroy', array('chatroomId' => $chatroomId));
             if(empty($ret))
                 throw new Exception('请求失败');
-            return json_decode($ret);
+            return json_decode($ret,true);
         }catch (Exception $e) {
 //             print_r($e->getMessage());
             return false;
