@@ -29,16 +29,16 @@ class Live extends \FS_Service {
             return $this->error(30000,'获取用户信息失败');
         }
         
-        $RongtokenInfo = $this->rongCloud->getToken($userId, $userInfo['name'], $userInfo['icon']);
-        if(!$RongtokenInfo){
+        $token = $this->rongCloud->getToken($userId, $userInfo['name'], $userInfo['icon']);
+        if(!$token){
             //获取token失败
             return $this->error(30000,'获取rongcloudToken失败');
         }
         
         $data['user_info'] = $userInfo;
-        $data['token'] = $RongtokenInfo;
+        $data['token'] = $token;
         
-        return $this->succ($userInfo);
+        return $this->succ($data);
     }
     
     /**
