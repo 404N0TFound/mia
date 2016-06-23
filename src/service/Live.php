@@ -80,7 +80,9 @@ class Live extends \FS_Service {
         if(!$saveRoomInfo){
             //更新房间信息失败
             return $this->error(30000,'更新房间信息失败');
-        }
+        }  
+        //获取房间信息
+        
         //返回数据
         $data['rongcloud_token'] = $RongtokenInfo;
         $data['qiniu_stream_id'] = $streamInfo['id'];
@@ -187,6 +189,17 @@ class Live extends \FS_Service {
         }
         return $this->succ($wantLiveInfo);
     }
+    
+    /**
+     * 获取在线人数和商品数
+     */
+    public function getOnlineNumber(){
+        //在线人数:底数为1（含）-50（含）的随机数，每5s，叠加一个0（含）-20（含）的随机数，最大值14400
+        
+        //商品数：底数为0，每5s叠加一个1（含）-50（含）的随机数，最大值72000
+        
+    }
+    
     
     
     /**
