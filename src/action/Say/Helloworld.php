@@ -21,11 +21,9 @@ class Helloworld extends \FW_Action {
  "title" => 'testtesttest',
  "text" => 'testtes<a href="#">tte</a>sttesttest',
  "image_infos" => array(
-    0 => array(
-        'height' => 522, 
+     'height' => 522, 
         'url' => '/d1/p4/2016/06/17/89/09/8909b7a9830d432c8b338363c9fae326542443173.jpg', 
         'width' => 480
-    )
  ),
 //  "active_id" => 0, 
   "video_url" => 'video/2016/05/04/089912967ba54274ec761531a7796eb3.mp4',

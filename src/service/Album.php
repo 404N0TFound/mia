@@ -437,11 +437,15 @@ class Album extends \FS_Service {
             return $this->error('500','user_info is null');
         }
         $subjectInfo['user_info'] = $user_info;
-        $subjectInfo['active_id'] = $params['active_id'];
-        $subjectInfo['video_url'] = $params['video_url'];
+        if(isset($params['active_id'])){
+            $subjectInfo['active_id'] = $params['active_id'];
+        }
+        if(isset($params['video_url'])){
+            $subjectInfo['video_url'] = $params['video_url'];
+        }
         
         $labelInfos = array();
-        if(isset($params['labels']) &&  !$params['labels']){
+        if(isset($params['labels']) &&  $params['labels']){
             foreach($params['labels'] as $key => $value){
                 $labelInfos[$key]['id'] = $value['id'];
                 $labelInfos[$key]['title'] = $value['title'];
@@ -449,7 +453,7 @@ class Album extends \FS_Service {
         }
         
         $subjectService = new \mia\miagroup\Service\Subject();
-        $subjectRes = $subjectService->issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0)['data'];
+        $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0)['data'];
         
         if(isset($subjectRes['id'])){
             $paramsArticle = array();
@@ -470,7 +474,7 @@ class Album extends \FS_Service {
                         'url'=>$params['image_infos']['url'],
                         'content'=>''
                     ));
-            $res = $this->abumModel->updateAlbumArticle($params);
+            $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
             return $this->succ($res);
         }
         return $this->succ($res);
