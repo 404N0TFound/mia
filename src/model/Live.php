@@ -52,7 +52,7 @@ class Live {
      * 根据直播ID批量获取直播信息
      */
     public function getBatchLiveInfoByIds($liveIds,$status=array(3)) {
-        if (!empty($liveIds)) {
+        if (empty($liveIds)) {
             return array();
         }
         $data = $this->liveData->getBatchLiveInfoByIds($liveIds,$status);
