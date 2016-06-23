@@ -199,7 +199,7 @@ class Live extends \FS_Service {
      */
     public function updateLiveRoomSettings($roomId, $settings = array()) {
         if (empty($roomId) || empty($settings)) {
-            return false;
+            return $this->error(500);
         }
         
         $subjectConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
@@ -209,14 +209,11 @@ class Live extends \FS_Service {
         $settings = array_diff_key($settings, $settingItems);
         //如果配置项不在设定值范围内，则报错
         if(!empty($settings)){
-            return false;
+            return $this->error(500);
         }
         
         $setInfo = array('settings' => $settings);
         $updateRes = $this->liveModel->updateLiveRoomById($setInfo, $roomId);
-        if (!$updateRes) {
-            return false;
-        }
         return $this->succ($updateRes);
     }
 
@@ -227,7 +224,7 @@ class Live extends \FS_Service {
      */
     public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips')) {
         if (empty($roomIds) || !array($roomIds)) {
-            return false;
+             return $this->succ(array());
         }
         //批量获取房间信息
         $roomInfos = $this->liveModel->getBatchLiveRoomByIds($roomIds);
