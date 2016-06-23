@@ -391,10 +391,10 @@ class Subject extends \FS_Service {
             return false;
         }
         if (intval($videoInfo['subject_id']) > 0) {
-            $setInfo[]['subject_id'] = $videoInfo['subject_id'];
+            $setInfo[] = ['subject_id',$videoInfo['subject_id']];
         }
         if (in_array($videoInfo['status'], array(1, 2))) {
-            $setInfo[]['status'] = $videoInfo['status'];
+            $setInfo[] = ['status',$videoInfo['status']];
         }
         // update视频
         $where[] = ['id', $videoInfo['id']];
@@ -403,7 +403,7 @@ class Subject extends \FS_Service {
         if (isset($videoInfo['subject_status']) && in_array($videoInfo['subject_status'], array(-1, 0, 1, 2)) && intval($videoInfo['subject_id']) > 0) {
             // 更新视频状态，同步更新帖子
             $s_where[] = ['id', $videoInfo['subject_id']];
-            $s_setData = [['status' => $videoInfo['subject_status']]];
+            $s_setData = [['status',$videoInfo['subject_status']]];
             $this->subjectModel->updateSubject($s_setData, $s_where);
         }
         
