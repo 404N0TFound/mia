@@ -35,13 +35,13 @@ class LiveRoom extends \DB_Query {
      * @author jiadonghui@mia.com
      */
     public function updateLiveRoomById($roomId, $setData) {
-        if (!isset($setData['setting']) || empty($setData['setting'])){
-            return false;
-        }
+//         if (!isset($setData['setting']) || empty($setData['setting'])){
+//             return false;
+//         }
         
-        $setData['settings'] = json_encode($setData['settings']);
+//         $setData['settings'] = json_encode($setData['settings']);
         $where = array();
-        $where[] = array(':in', 'id', $roomId);
+        $where[] = array('id', $roomId);
 
         $data = $this->update($setData,$where);
         return $data;

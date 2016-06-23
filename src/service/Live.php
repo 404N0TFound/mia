@@ -91,9 +91,10 @@ class Live extends \FS_Service {
             return $this->error(30000,'更新房间信息失败');
         }  
         //获取房间信息
-        $roomData = $this->getRoomLiveById([$roomInfo['id']])['data'];
+        $roomData = $this->getRoomLiveById($roomInfo['id'])['data'];
+        
         //返回数据
-        $data['qiniu_stream_info'] = $streamInfo;
+        $data['qiniu_stream_info'] = json_encode($streamInfo);
         $data['room_info'] = $roomData;
         
         return $this->succ($data);
