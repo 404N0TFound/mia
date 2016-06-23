@@ -3,14 +3,17 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Album as AlbumModel;
 use mia\miagroup\Util\QiniuUtil;
+use mia\miagroup\Service\User as UserService;
 use \F_Ice;
 
 class Album extends \FS_Service {
 
     public $abumModel = '';
+    public $userService = '';
 
     public function __construct() {
         $this->abumModel = new AlbumModel();
+        $this->userService = new UserService();
     }
 
     /**
@@ -266,6 +269,28 @@ class Album extends \FS_Service {
         $data = array();
         $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
         $data['content_original'] = $set['content'];   //原始文章内容
+        if(isset($set['labels'])){
+            $labelInfos = array();
+            if(isset($set['labels']) &&  !$set['labels']){
+                foreach($set['labels'] as $key => $value){
+                    $labelInfos[$key]['id'] = $value['id'];
+                    $labelInfos[$key]['title'] = $value['title'];
+                }
+            }
+            $data['ext_info'] = json_encode(array('label'=>$labelInfos));
+        }
+        if(isset($set['cover_image'])){
+            $data['cover_image'] = json_encode(
+                array(
+                    'width'=>$set['image_infos']['width'],
+                    'height'=>$set['image_infos']['height'],
+                    'url'=>$set['image_infos']['url'],
+                    'content'=>''
+                ));
+        }
+        if(isset($set['video_url'])){
+            $data['video_url'] = $set['video_url'];
+        }
         
         $res = $this->abumModel->updateAlbumArticle($params,$data);
         return $this->succ($res);
@@ -383,6 +408,72 @@ class Album extends \FS_Service {
         $labelIDs = $labelService->getLabelID()['data'];
         $labelInfos = $labelService->getBatchLabelInfos($labelIDs);
         return $this->succ($labelInfos['data']);
+    }
+    
+    /**
+     * 发布接口
+     * @params array() 
+     * @return array() 标签
+     */
+    public function pcIssue($params) {
+        $res = array();
+        foreach($params as $key => $value){
+            if(!in_array($key, array('labels','video_url'))){
+                if(empty($params[$key])){
+                    return $this->error('500','params is empty');
+                }
+            }
+        }
+        $subjectInfo = array();
+        $subjectInfo['title'] = $params['title'];
+        $subjectInfo['text'] = $params['text'];
+        $subjectInfo['image_infos'] = array(
+            'height' => $params['image_infos']['height'], 
+            'url' => $params['image_infos']['url'], 
+            'width' => $params['image_infos']['width']
+        );
+        $user_info = $this->userService->getUserInfoByUserId($params['user_id'])['data'];
+        if(!$user_info){
+            return $this->error('500','user_info is null');
+        }
+        $subjectInfo['user_info'] = $user_info;
+        $subjectInfo['active_id'] = $params['active_id'];
+        $subjectInfo['video_url'] = $params['video_url'];
+        
+        $labelInfos = array();
+        if(isset($params['labels']) &&  !$params['labels']){
+            foreach($params['labels'] as $key => $value){
+                $labelInfos[$key]['id'] = $value['id'];
+                $labelInfos[$key]['title'] = $value['title'];
+            }
+        }
+        
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $subjectRes = $subjectService->issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0)['data'];
+        
+        if(isset($subjectRes['id'])){
+            $paramsArticle = array();
+            $paramsArticle['user_id'] = $params['user_id'];
+            $paramsArticle['album_id'] = $params['album_id'];
+            $paramsArticle['id'] = $params['article_id'];
+
+            $setArticle = array();
+            $setArticle['subject_id'] = $subjectRes['id'];
+            $setArticle['content'] = strip_tags($params['text']);
+            $setArticle['content_original'] = $params['text'];
+            $setArticle['status'] = 1;
+            $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
+            $setArticle['cover_image'] = json_encode(
+                    array(
+                        'width'=>$params['image_infos']['width'],
+                        'height'=>$params['image_infos']['height'],
+                        'url'=>$params['image_infos']['url'],
+                        'content'=>''
+                    ));
+            $res = $this->abumModel->updateAlbumArticle($params);
+            return $this->succ($res);
+        }
+        return $this->succ($res);
     }
     
     /**

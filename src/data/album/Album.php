@@ -19,7 +19,9 @@ class Album extends \DB_Query {
     public function getAlbumNum($userIds) {
         $numArr = array();
         $where = array();
-        $where[] = ['user_id', $userIds];
+        if($userIds){
+            $where[] = ['user_id', $userIds];
+        }
         $field = 'user_id,count(*) as nums';
         $groupBy = 'user_id';
         $albumInfos = $this->getRows($where, $field, FALSE, 0, FALSE, FALSE, $groupBy);
@@ -42,7 +44,9 @@ class Album extends \DB_Query {
         $offset = 0;
         $albumList = array();
         $where = array();
-        $where[] = array(':eq', 'user_id', $params['user_id']);
+        if(isset($params['user_id']) && $params['user_id']){
+            $where[] = array(':eq', 'user_id', $params['user_id']);
+        }
         if (intval($params['iPageSize']) > 0) {
             $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
             $limit = $params['iPageSize'];
