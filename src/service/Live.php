@@ -82,8 +82,8 @@ class Live extends \FS_Service {
         $roomData = $this->getRoomLiveById([$roomInfo['id']])['data'];
         //返回数据
         $data['rongcloud_token'] = $RongtokenInfo;
-        $data['qiniu_stream_id'] = $streamInfo['id'];
-        $data['chat_room_id'] = $chatId;
+        $data['qiniu_stream_info'] = $streamInfo;
+//         $data['chat_room_id'] = $chatId;
         $data['room_info'] = $roomData;
         
         return $this->succ($data);
