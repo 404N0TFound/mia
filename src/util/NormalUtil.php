@@ -102,5 +102,20 @@ class NormalUtil {
         return $newcookie;
     }
     
-    
+    /**
+     * 构建选题分享信息
+     */
+    public static function buildGroupShare($shareStruct, $replace) {
+        //闭包函数,将一个字符串中的所有可替代字符，全部替代
+        $func_replace = function($string, $replace) {
+            foreach ($replace as $key => $re) {
+                $string = str_replace($key, $re, $string);
+            }
+            return $string;
+        };
+        foreach ($shareStruct as $k => $s) {
+            $shareStruct[$k] = $func_replace($s, $replace);
+        }
+        return $shareStruct;
+    }
 }
