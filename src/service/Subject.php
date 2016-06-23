@@ -9,6 +9,7 @@ use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
+use mia\miagroup\Util\NormalUtil;
 
 class Subject extends \FS_Service {
 
@@ -39,7 +40,7 @@ class Subject extends \FS_Service {
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album'), $status = array()) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array()) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -168,22 +169,23 @@ class Subject extends \FS_Service {
                     $subjectRes[$subjectInfo['id']]['album_article'] = $albumArticles[$subjectInfo['id']];
                 }
             }
-            if (!in_array('share_info', $field)) {
+            if (in_array('share_info', $field)) {
                 // 分享内容
                 $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
                 $share = $shareConfig['groupShare'];
-                $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : '';
-                $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : "超过20万妈妈正在蜜芽圈热聊，快来看看~";
+                $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
+                $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
                 if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
                     $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
                 } else {
-                    $shareImage = $shareConfig['shareDefaultImage'];
+                    $shareImage = $shareDefault['img_url'];;
                 }
                 // 替换搜索关联数组
-                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareConfig['subjectH5Url'], $subjectInfo['id']));
+                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareDefault['wap_url'], $subjectInfo['id']), '{|extend_text|}' => $shareDefault['extend_text']);
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
-                    $share[$keys] = $this->_buildGroupShare($sh, $replace);
+                    $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
                     $share[$keys]['share_img_list'] = array();
                     if (!empty($subjectRes[$subjectInfo['id']]['image_url'])) {
                         $share[$keys]['share_img_list'] = $subjectRes[$subjectInfo['id']]['image_url'];

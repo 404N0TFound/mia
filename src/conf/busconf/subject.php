@@ -1,34 +1,27 @@
 <?php
 
 /**
- * 帖子分享默认图
+ * 默认分享信息（subject：帖子；live_by_user：普通用户分享直播；live_by_anchor：主播分享直播）
  */
-$shareDefaultImage = 'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png';
-
-/**
- * 帖子h5 url
- */
-$subjectH5Url = 'http://m.miyabaobei.com/wx/group_detail/%s.html';
-
-/**
- * 直播房间房间默认h5 url
- */
-$liveH5Url = 'http://m.miyabaobei.com/wx/room_detail/%s.html';
-
-/**
- * 帖子分享默认的desc文案
- */
- $subjectDefaultDesc = '超过20万妈妈正在蜜芽圈热聊，快来看看~';
- 
- /**
-  * 帖子分享默认的title文案
-  */
- $subjectDefaultTitle = '我在蜜芽圈发现一个超有用的帖子，分享给你';
- 
- /**
-  * 帖子分享默认的扩展文案
-  */
- $subjectDefaultExtendText = '看白富美妈妈分享的好货';
+$defaultShareInfo = array(
+		'subject' => array(
+				'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
+				'wap_url' => 'http://m.miyabaobei.com/wx/group_detail/%s.html',
+				'title'      => '我在蜜芽圈发现一个超有用的帖子，分享给你',
+				'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
+				'extend_text'            => '看白富美妈妈分享的好货',
+		),
+		'live_by_user'      => array(
+				'title'      => '%s正在蜜芽直播',
+				'desc'      => '我正在蜜芽观看%s的直播，邀请你一起来看',
+				'wap_url'  => 'http://m.miyabaobei.com/wx/room_detail/%s.html',
+		),
+		'live_by_anchor'      => array(
+				'title'      => '我正在蜜芽直播',
+				'desc'      => '我正在蜜芽直播，快来一起看',
+				'wap_url'  => 'http://m.miyabaobei.com/wx/room_detail/%s.html',
+		),
+);
 
 /**
  * 帖子站外分享信息格式
