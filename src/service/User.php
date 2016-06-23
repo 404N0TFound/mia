@@ -207,7 +207,7 @@ class User extends FS_Service {
         foreach ($userInfos as $key=>$userInfo) {
             $baseUserInfo[$userInfo['id']]['id'] = $userInfo['id'];
             $baseUserInfo[$userInfo['id']]['name'] = $userInfo['username'];
-            $baseUserInfo[$userInfo['id']]['icon'] = $userInfo['icon'];
+            $baseUserInfo[$userInfo['id']]['icon'] = $userInfo['icon'] ?: 'http://file04.miyabaobei.com/resources/images/icon_none.gif';
         }
         return $this->succ($baseUserInfo);
     }
