@@ -159,7 +159,6 @@ class Live extends \FS_Service {
         
         $wantLiveInfo = [];
         $liveInfos = $this->liveModel->getBatchLiveInfoByIds($liveIds,$status);
-    
         $qiniu = new QiniuUtil();
         //如果是直播中的live要给url地址
         foreach($liveInfos as $k=>$liveInfo){
@@ -200,7 +199,7 @@ class Live extends \FS_Service {
      */
     public function updateLiveRoomSettings($roomId, $settings = array()) {
         if (empty($roomId) || empty($settings)) {
-            $this->error();
+            return false;
         }
         
         $subjectConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
@@ -210,7 +209,7 @@ class Live extends \FS_Service {
         $settings = array_diff_key($settings, $settingItems);
         //如果配置项不在设定值范围内，则报错
         if(!empty($settings)){
-            $this->error();
+            return false;
         }
         
         $setInfo = array('settings' => $settings);
@@ -218,7 +217,7 @@ class Live extends \FS_Service {
         if (!$updateRes) {
             return false;
         }
-        return $this->succ();
+        return $this->succ($updateRes);
     }
 
 
@@ -228,7 +227,7 @@ class Live extends \FS_Service {
      */
     public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips')) {
         if (empty($roomIds) || !array($roomIds)) {
-            $this->error();
+            return false;
         }
         //批量获取房间信息
         $roomInfos = $this->liveModel->getBatchLiveRoomByIds($roomIds);
@@ -241,17 +240,15 @@ class Live extends \FS_Service {
         $liveIdArr = array();
         foreach ($roomInfos as $roomInfo) {
             $userIdArr[] = $roomInfo['user_id'];
-            $liveIdArr = $roomInfo['live_id'];
+            $liveIdArr[] = $roomInfo['live_id'];
         }
-
         //通过userids批量获取主播信息
         $userIds = array_unique($userIdArr);
         $userService = new User();
         $userArr = $userService->getUserInfoByUids($userIds)['data'];
-        //通过liveids批量获取直播列表,todo
+        //通过liveids批量获取直播列表
         $liveIds = array_unique($liveIdArr);
         $liveArr = $this->getBatchLiveInfoByIds($liveIds)['data'];
-        
         //将主播信息整合到房间信息中
         $roomRes = array();
         foreach($roomIds as $roomId){
@@ -282,11 +279,28 @@ class Live extends \FS_Service {
                 // 分享内容
                 $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
                 $share = $liveConfig['groupShare'];
-                $tips = $liveConfig['liveRoomTips'];
-                $shareTitle = 'title';//临时数据文案
-                $shareDesc = "超过20万妈妈正在蜜芽圈热聊，快来看看~";//临时数据文案
+                //如果有直播，分享的时候title取直播title，desc取直播中的content，图片取直播中的pic
+                if(isset($roomRes[$roomInfo['id']]['live_info'])){
+                	$liveTitle = $roomRes[$roomInfo['id']]['live_info']['title'];
+                	$liveCotent = $roomRes[$roomInfo['id']]['live_info']['content'];
+                	$livePic = $roomRes[$roomInfo['id']]['live_info']['pic'];
+                	$liveH5Url = sprintf($liveConfig['liveH5Url'], $roomInfo['live_id']);
+                	$liveExtend = '看白富美妈妈分享的好货';//待确认分享直播的扩展文案
+                }
+                //如果没有直播信息的话就去默认分享文案
+                $shareTitle = isset($liveTitle) ? "【{$liveTitle}】 " : $liveConfig['subjectDefaultTitle'];
+                $shareDesc = isset($liveCotent) ? $liveCotent : $liveConfig['subjectDefaultDesc'];
+                $shareUrl = isset($liveH5Url) ? $liveH5Url : $liveConfig['liveDefaultH5Url'];
+                $shareImage = isset($livePic) ? $livePic : $shareConfig['shareDefaultImage'];
+                $shareExtend = isset($liveExtend) ? $liveExtend : $shareConfig['subjectDefaultExtendText'];
                 // 替换搜索关联数组
-                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc);
+                $replace = array(
+                		'{|title|}' => $shareTitle,
+                		'{|desc|}' => $shareDesc,
+                		'{|image_url|}' => $shareImage,
+                		'{|wap_url|}' => $shareUrl, 
+                		'{|extend_text|}' => $shareExtend,
+                );
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
                     $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
@@ -295,7 +309,7 @@ class Live extends \FS_Service {
             }
             //房间提示信息
             if (in_array('tips', $field)) {
-                $roomRes[$roomInfo['id']]['tips'] = $tips;
+                $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips'];
             }
         }
         return $this->succ($roomRes);
