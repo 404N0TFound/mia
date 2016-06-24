@@ -35,8 +35,10 @@ class Live extends \DB_Query {
     public function getBatchLiveInfoByIds($liveIds, $status = array(3)) {
         $result = [];
         
-        $where[] = ['id',$liveIds];
-        $where[] = ['status',$status];
+        $where[] = ['id', $liveIds];
+        if (!empty($status)) {
+            $where[] = ['status', $status];
+        }
         $data = $this->getRows($where);
         
         if(!$data){
@@ -72,7 +74,9 @@ class Live extends \DB_Query {
      */
     public function getLiveInfoByUserId($userId,$status=[3]){
         $where[] = ['user_id',$userId];
-        $where[] = ['status',$status];
+        if (!empty($status)) {
+            $where[] = ['status',$status];
+        }
         
         return $this->getRows($where);
     }
