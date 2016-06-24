@@ -370,14 +370,19 @@ class Live extends \FS_Service {
      * 检测用户是否有权限直播
      * @param $userId
      */
-    public function checkLiveRoomByUserId($userId){
-        $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
-        if(empty($roomInfo)){
-            //没有直播权限
-            return $this->succ(0);
-        }else{
-            return $this->succ(1);
+    public function checkLiveAuthByUserIds($userIds){
+        $authInfo = [];
+        $roomInfo = $this->liveModel->checkLiveRoomByUserIds($userIds);
+        foreach($userIds as $userId){
+            if(empty($roomInfo[$userId])){
+                //无权限
+                $authInfo[$userId] = 0;
+            }else{
+                //有权限
+                $authInfo[$userId] = 1;
+            }
         }
+        return $this->succ($authInfo);
     }
     
 }
