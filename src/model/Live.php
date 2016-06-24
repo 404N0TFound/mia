@@ -80,11 +80,20 @@ class Live {
     
   
     /**
-     * 检测房间是否存在
+     * 检测用户是否有直播权限
      * @param $userId
      */
     public function checkLiveRoomByUserId($userId){
-        $data = $this->liveRoomData->checkLiveRoomByUserId($userId);
+        $data = $this->liveRoomData->checkLiveRoomByUserIds($userId)[$userId];
+        return $data;
+    }
+    
+    /**
+     * 批量检测用户是否有直播权限
+     * @param $userIds
+     */
+    public function checkLiveRoomByUserIds($userIds){
+        $data = $this->liveRoomData->checkLiveRoomByUserIds($userIds);
         return $data;
     }
     
