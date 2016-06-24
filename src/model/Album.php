@@ -67,6 +67,7 @@ class Album {
                     $res[$key]['album_info']['user_id'] = $AlbumInfo[$value['album_id']]['user_id'];
                     $res[$key]['album_info']['title'] = $AlbumInfo[$value['album_id']]['title'];
                 }
+                $res[$key]['h5_url'] = '';//待续
                 $res[$key]['view_num'] = $this->readNum($value['create_time']);
                 $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
                 unset($res[$key]['create_time']);
@@ -217,11 +218,14 @@ class Album {
      * @return array() true false
      */
     public function delAlbumFile($where){
-        $res = $this->albumData->delAlbumFile($where);
+        $params = array();
+        $params[] =array(':eq','user_id',$where['user_id']) ;
+        $params[] =array(':eq','id',$where['id']) ;
+        $res = $this->albumData->delAlbumFile($params);
         if($res){
             $con = array();
-            $con['user_id'] = $where['user_id'];
-            $con['album_id'] = $where['id'];
+            $con[] =array(':eq','user_id',$where['user_id']) ;
+            $con[] =array(':eq','album_id',$where['id']) ;
             $delRes = $this->delAlbum($con);
             if($delRes){
                 return true;
