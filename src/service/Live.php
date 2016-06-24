@@ -50,7 +50,7 @@ class Live extends \FS_Service {
         $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($roomInfo)){
             //没有直播权限
-            return $this->error(30000);
+            return $this->error(30000,'1');
         }
         //判断用户是否已经存在直播
         $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId);
@@ -59,7 +59,7 @@ class Live extends \FS_Service {
             $upLiveInfo = $this->liveModel->updateLiveByUserId($userId, 4);
             if(!$upLiveInfo){
                 //更新已存在直播失败
-                return $this->error(30003);
+                return $this->error(30003,'2');
             }
         }
         //生成视频流ID和聊天室ID
@@ -70,14 +70,14 @@ class Live extends \FS_Service {
         $streamInfo = $qiniu->createStream($streamId);
         if(empty($streamInfo)){
             //获取七牛的流信息失败
-            return $this->error(30002);
+            return $this->error(30002,'3');
         }
 
         //创建聊天室
         $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
         if(!$chatRet){
             //创建聊天室失败
-            return $this->error(30001);    
+            return $this->error(30001,'4');    
         }
         //新增直播记录
         $liveInfo['user_id'] = $userId;
@@ -88,11 +88,11 @@ class Live extends \FS_Service {
         $liveId = $this->liveModel->addLive($liveInfo);
         //更新直播房间
         $setRoomData[] = ['live_id',$liveId];
-        $setRoomData[] = ['chat_id',$chatId];
+        $setRoomData[] = ['chat_room_id',$chatId];
         $saveRoomInfo = $this->liveModel->updateLiveRoomById($roomInfo['id'], $setRoomData);
         if(!$saveRoomInfo){
             //更新房间信息失败
-            return $this->error(30003);
+            return $this->error(30003,'5');
         }  
         //获取房间信息
         $roomData = $this->getRoomLiveById($roomInfo['id'])['data'];
@@ -149,7 +149,7 @@ class Live extends \FS_Service {
         //后台脚本处理赞数、评论、累计观众、最高在线等数据
         //更新直播房间
         $roomSetData[] = ['live_id',''];
-        $roomSetData[] = ['caht_id',''];
+        $roomSetData[] = ['chat_room_id',''];
         $setRoomRes = $this->liveModel->updateLiveRoomById($roomId, $setData);
         if(!$setRoomRes){
             //更新直播房间信息失败
