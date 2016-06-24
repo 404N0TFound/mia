@@ -203,12 +203,14 @@ class Album extends \FS_Service {
      * @set    array() title 标题
      * @return array() 专栏辑信息
      */
-    public function updateAlbumFile($con,$set) {
+    public function updateAlbumFile($data) {
         $res = array();
-        if(empty($con) || empty($set)){
+        if(empty($data['con']) || empty($data['set'])){
             return $this->error('500','param condition and set is empty');
         }
-        
+        $con = $data['con'];
+        $set = $data['set'];
+       
         $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
         if(!$userPermission){
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
@@ -234,11 +236,13 @@ class Album extends \FS_Service {
      * @params array() $userId 用户ID
      * @return array() 
      */
-    public function updateAlbum($con,$set) {
+    public function updateAlbum($data) {
         $res = array();
-        if(empty($con) || empty($set)){
+        if(empty($data['con']) || empty($data['set'])){
             return $this->error('500','param condition and set is empty');
         }
+        $con = $data['con'];
+        $set = $data['set'];
         
         $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
         if(!$userPermission){
@@ -266,11 +270,14 @@ class Album extends \FS_Service {
      * @params array() $userId 用户ID
      * @return array() 
      */
-    public function updateAlbumArticle($con,$set) {
+    public function updateAlbumArticle($data) {
         $res = array();
-        if(empty($con) || empty($set)){
+        if(empty($data['con']) || empty($data['set'])){
             return $this->error('500','param condition and set is empty');
         }
+        $con = $data['con'];
+        $set = $data['set'];
+        
         $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
         if(!$userPermission){
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
