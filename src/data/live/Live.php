@@ -74,7 +74,9 @@ class Live extends \DB_Query {
      */
     public function getLiveInfoByUserId($userId,$status=[3]){
         $where[] = ['user_id',$userId];
-        $where[] = ['status',$status];
+        if (!empty($status)) {
+            $where[] = ['status',$status];
+        }
         
         return $this->getRows($where);
     }
