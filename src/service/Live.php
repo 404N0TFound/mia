@@ -299,8 +299,10 @@ class Live extends \FS_Service {
                 if(!empty($liveArr[$roomInfo['live_id']])){
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
+                } else {
+                    $roomRes[$roomInfo['id']]['status'] = 0;
                 }
-                $roomRes[$roomInfo['id']]['status'] = 0;
+                
             }
             //后台自定义的商品信息
             if(in_array('custom', $field)){
