@@ -192,7 +192,7 @@ class Album extends \FS_Service {
         $params['user_id'] = array($con['user_id']);
         $params['articleId'] = array($con['articleId']);
         $res = $this->abumModel->getArticleInfo($params);
-        return $this->succ($res);
+        return $this->succ($res[$con['articleId']]);
     }
     
     
@@ -283,17 +283,16 @@ class Album extends \FS_Service {
         $data = array();
         $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
         $data['content_original'] = $set['content'];   //原始文章内容
-        if(isset($set['labels'])){
+        
+        if(isset($set['labels']) && !empty($set['labels'])){
             $labelInfos = array();
-            if(isset($set['labels']) &&  !$set['labels']){
-                foreach($set['labels'] as $key => $value){
-                    $labelInfos[$key]['id'] = $value['id'];
-                    $labelInfos[$key]['title'] = $value['title'];
-                }
+            foreach($set['labels'] as $key => $value){
+                $labelInfos[$key]['id'] = $value['id'];
+                $labelInfos[$key]['title'] = $value['title'];
             }
             $data['ext_info'] = json_encode(array('label'=>$labelInfos));
         }
-        if(isset($set['cover_image'])){
+        if(isset($set['image_infos']) && !empty($set['image_infos'])){
             $data['cover_image'] = json_encode(
                 array(
                     'width'=>$set['image_infos']['width'],
@@ -326,7 +325,6 @@ class Album extends \FS_Service {
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
-        
         $res = $this->abumModel->delAlbumFile($params);
         return $this->succ($res);
     }
@@ -348,9 +346,8 @@ class Album extends \FS_Service {
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
         }
         $params = array();
-        $params['user_id'] = $con['user_id'];
-        $params['id'] = $con['id'];
-        
+        $params[] =array(':eq','user_id',$con['user_id']) ;
+        $params[] =array(':eq','id',$con['id']) ;
         $res = $this->abumModel->delAlbum($params);
         return $this->succ($res);
     }

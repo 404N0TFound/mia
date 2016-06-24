@@ -107,7 +107,9 @@ class AlbumArticle extends \DB_Query {
         $offset = 0;
         
         $where = array();
-        $where[] = array(':eq', 'status', '1');
+        if (isset($params['status']) && $params['status']) {
+            $where[] = array(':eq', 'status', $params['status']);
+        }
         if (isset($params['user_id']) && $params['user_id']) {
             $where[] = array(':eq', 'user_id', $params['user_id']);
         }
@@ -123,7 +125,7 @@ class AlbumArticle extends \DB_Query {
         if($SimpleArticleList){
             foreach($SimpleArticleList as $value){
                 $value['content'] = mb_substr($value['content'],0,50,'utf-8').'....';
-                $articleList[$value['album_id']] = $value;
+                $articleList[$value['id']] = $value;
             }
         }
         return $articleList;
@@ -167,7 +169,9 @@ class AlbumArticle extends \DB_Query {
         }
         $result = array();
         $where = array();
-        $where[] = array(':eq', 'status', '1');
+        if(isset($params['status']) && $params['status']){
+            $where[] = array(':eq', 'status', $params['status']);
+        }
         if(isset($params['articleId']) && $params['articleId']){
             $where[] = array(':in', 'id', $params['articleId']);
         }
@@ -196,7 +200,9 @@ class AlbumArticle extends \DB_Query {
             return array();
         }
         $where = array();
-        $where[] = array(':eq', 'status', '0');
+        if(isset($params['status']) && $params['status']){
+            $where[] = array(':eq', 'status', $params['status']);
+        }
         if(isset($params['id']) && $params['id']){
             $where[] = array(':eq', 'id', $params['id']);
         }
