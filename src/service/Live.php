@@ -284,6 +284,7 @@ class Live extends \FS_Service {
                 continue;
             }
             $roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
+            $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
             $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_id'];
             unset($roomRes[$roomInfo['id']]['settings']);
             $roomRes[$roomInfo['id']]['status'] = 0;
