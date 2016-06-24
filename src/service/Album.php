@@ -25,13 +25,13 @@ class Album extends \FS_Service {
      * @params array() iPageSize int 每页显示多少
      * @return array() 获取专栏集下的专栏文章列表
      */
-    public function getArticleList($user_id, $album_id, $page = 1, $iPageSize = 10) {
+    public function getArticleList($con) {
         
         $params = array();
-        $params['user_id'] = $user_id;
-        $params['album_id'] = $album_id;
-        $params['page'] = (int)$page;
-        $params['iPageSize'] = (int)$iPageSize;
+        $params['user_id'] = $con['user_id'];
+        $params['album_id'] = $con['album_id'];
+        $params['page'] = isset($con['page'])?(int)$con['page']:1;
+        $params['iPageSize'] = isset($con['iPageSize'])?(int)$con['iPageSize']:10;
         
         $response = array();
         $response['article_list'] = array();
@@ -46,7 +46,7 @@ class Album extends \FS_Service {
         }
         
         //第一页 返回专辑列表信息
-        if ($page == 1) {
+        if ($params['page'] == 1) {
             $albumResult = $this->abumModel->getAlbumList(array('user_id'=>$user_id));
             $response['album_list'] = array_values($albumResult);
         }
@@ -59,10 +59,10 @@ class Album extends \FS_Service {
      * @params array() iPageSize int 每页显示多少
      * @return array() 精选专栏列表
      */
-    public function getRecommendAlbumArticleList($page = 1, $iPageSize = 10) {
+    public function getRecommendAlbumArticleList($con) {
         $params = array();
-        $params['page'] = (int)$page;
-        $params['iPageSize'] = (int)$iPageSize;
+        $params['page'] = isset($con['page'])?(int)$con['page']:1;
+        $params['iPageSize'] = isset($con['iPageSize'])?(int)$con['iPageSize']:10;
         
         $response = array();
         $response['article_list'] = array();
@@ -127,7 +127,7 @@ class Album extends \FS_Service {
     public function getAlbumFile($con) {
         $res = array();
         if(!isset($con['user_id']) || empty($con['user_id'])){
-            return $this->succ($res);
+            return $this->error('500','param user_id is empty');
         }
         if(!isset($con['iPageSize']) || empty($con['iPageSize'])){
             $con['iPageSize'] = 10;
@@ -152,10 +152,10 @@ class Album extends \FS_Service {
     public function getAlbum($con) {
         $res = array();
         if(!isset($con['user_id']) || empty($con['user_id'])){
-            return $this->succ($res);
+            return $this->error('500','param user_id is empty');
         }
         if(!isset($con['album_id']) || empty($con['album_id'])){
-            return $this->succ($res);
+            return $this->error('500','param album_id is empty');
         }
         
         if(!isset($con['iPageSize']) || empty($con['iPageSize'])){
@@ -182,17 +182,17 @@ class Album extends \FS_Service {
     public function getAlbumArticle($con) {
         $res = array();
         if(!isset($con['user_id']) || empty($con['user_id'])){
-            return $this->succ($res);
+            return $this->error('500','param user_id is empty');
         }
         if(!isset($con['articleId']) || empty($con['articleId'])){
-            return $this->succ($res);
+            return $this->error('500','param articleId is empty');
         }
 
         $params = array();
         $params['user_id'] = array($con['user_id']);
         $params['articleId'] = array($con['articleId']);
         $res = $this->abumModel->getArticleInfo($params);
-        return $this->succ($res);
+        return $this->succ($res[$con['articleId']]);
     }
     
     
@@ -203,12 +203,14 @@ class Album extends \FS_Service {
      * @set    array() title 标题
      * @return array() 专栏辑信息
      */
-    public function updateAlbumFile($con,$set) {
+    public function updateAlbumFile($data) {
         $res = array();
-        if(empty($con) || empty($set)){
-            return $this->succ($res);
+        if(empty($data['con']) || empty($data['set'])){
+            return $this->error('500','param condition and set is empty');
         }
-        
+        $con = $data['con'];
+        $set = $data['set'];
+       
         $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
         if(!$userPermission){
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
@@ -234,11 +236,13 @@ class Album extends \FS_Service {
      * @params array() $userId 用户ID
      * @return array() 
      */
-    public function updateAlbum($con,$set) {
+    public function updateAlbum($data) {
         $res = array();
-        if(empty($con) || empty($set)){
-            return $this->succ($res);
+        if(empty($data['con']) || empty($data['set'])){
+            return $this->error('500','param condition and set is empty');
         }
+        $con = $data['con'];
+        $set = $data['set'];
         
         $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
         if(!$userPermission){
@@ -266,11 +270,14 @@ class Album extends \FS_Service {
      * @params array() $userId 用户ID
      * @return array() 
      */
-    public function updateAlbumArticle($con,$set) {
+    public function updateAlbumArticle($data) {
         $res = array();
-        if(empty($con) || empty($set)){
-            return $this->succ($res);
+        if(empty($data['con']) || empty($data['set'])){
+            return $this->error('500','param condition and set is empty');
         }
+        $con = $data['con'];
+        $set = $data['set'];
+        
         $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
         if(!$userPermission){
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
@@ -283,17 +290,16 @@ class Album extends \FS_Service {
         $data = array();
         $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
         $data['content_original'] = $set['content'];   //原始文章内容
-        if(isset($set['labels'])){
+        
+        if(isset($set['labels']) && !empty($set['labels'])){
             $labelInfos = array();
-            if(isset($set['labels']) &&  !$set['labels']){
-                foreach($set['labels'] as $key => $value){
-                    $labelInfos[$key]['id'] = $value['id'];
-                    $labelInfos[$key]['title'] = $value['title'];
-                }
+            foreach($set['labels'] as $key => $value){
+                $labelInfos[$key]['id'] = $value['id'];
+                $labelInfos[$key]['title'] = $value['title'];
             }
             $data['ext_info'] = json_encode(array('label'=>$labelInfos));
         }
-        if(isset($set['cover_image'])){
+        if(isset($set['image_infos']) && !empty($set['image_infos'])){
             $data['cover_image'] = json_encode(
                 array(
                     'width'=>$set['image_infos']['width'],
@@ -301,9 +307,6 @@ class Album extends \FS_Service {
                     'url'=>$set['image_infos']['url'],
                     'content'=>''
                 ));
-        }
-        if(isset($set['video_url'])){
-            $data['video_url'] = $set['video_url'];
         }
         
         $res = $this->abumModel->updateAlbumArticle($params,$data);
@@ -329,7 +332,6 @@ class Album extends \FS_Service {
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
-        
         $res = $this->abumModel->delAlbumFile($params);
         return $this->succ($res);
     }
@@ -343,7 +345,7 @@ class Album extends \FS_Service {
     public function delAlbum($con) {
         $res = array();
         if(empty($con)){
-            return $this->succ($res);
+            return $this->error('500','param condition is empty');
         }
         
         $userPermission = $this->abumModel->getAlbumPermissionByUserId($con['user_id']);
@@ -351,9 +353,8 @@ class Album extends \FS_Service {
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
         }
         $params = array();
-        $params['user_id'] = $con['user_id'];
-        $params['id'] = $con['id'];
-        
+        $params[] =array(':eq','user_id',$con['user_id']) ;
+        $params[] =array(':eq','id',$con['id']) ;
         $res = $this->abumModel->delAlbum($params);
         return $this->succ($res);
     }
@@ -367,7 +368,7 @@ class Album extends \FS_Service {
     public function addAlbumFile($insert) {
         $res = array();
         if(empty($insert)){
-            return $this->succ($res);
+            return $this->error('500','param insert is empty');
         }
         
         $userPermission = $this->abumModel->getAlbumPermissionByUserId($insert['user_id']);
@@ -392,7 +393,7 @@ class Album extends \FS_Service {
     public function addAlbum($insert) {
         $res = array();
         if(empty($insert) || empty($insert['title']) || empty($insert['user_id']) || empty($insert['album_id'])){
-            return $this->succ($res);
+            return $this->error('500','param insert is empty');
         }
         $userPermission = $this->abumModel->getAlbumPermissionByUserId($insert['user_id']);
         if(!$userPermission){
@@ -417,7 +418,7 @@ class Album extends \FS_Service {
     public function getArticlePreview($con) {
        $res = array();
         if(empty($con) || empty($con['album_id']) || empty($con['user_id']) || empty($con['article_id'])){
-            return $this->succ($res);
+            return $this->error('500','param condition is empty');
         }
 
         $params = array();
@@ -448,7 +449,7 @@ class Album extends \FS_Service {
     public function pcIssue($params) {
         $res = array();
         foreach($params as $key => $value){
-            if(!in_array($key, array('labels','video_url'))){
+            if(!in_array($key, array('labels'))){
                 if(empty($params[$key])){
                     return $this->error('500','params is empty');
                 }
@@ -469,9 +470,6 @@ class Album extends \FS_Service {
         $subjectInfo['user_info'] = $user_info;
         if(isset($params['active_id'])){
             $subjectInfo['active_id'] = $params['active_id'];
-        }
-        if(isset($params['video_url'])){
-            $subjectInfo['video_url'] = $params['video_url'];
         }
         
         $labelInfos = array();
@@ -512,13 +510,13 @@ class Album extends \FS_Service {
     
     /**
      * PC端获取上传token和key
-     * @params array() $filePath 上传目录
-     * @return array() 文章详情
+     * @params array() $filePath 随便传点东西
+     * @return array() token和key
      */
     public function getUploadTokenAndKey($filePath) {
         $res = array();
         if(empty($filePath)){
-            return $this->succ($res);
+            return $this->error('500','param is empty');
         }
         $qiNiuSDK = new QiniuUtil();
         $res = $qiNiuSDK -> getUploadTokenAndKey($filePath);
