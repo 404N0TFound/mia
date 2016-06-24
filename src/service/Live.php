@@ -88,7 +88,7 @@ class Live extends \FS_Service {
         $liveId = $this->liveModel->addLive($liveInfo);
         //更新直播房间
         $setRoomData[] = ['live_id',$liveId];
-        $setRoomData[] = ['chat_id',$chatId];
+        $setRoomData[] = ['chat_room_id',$chatId];
         $saveRoomInfo = $this->liveModel->updateLiveRoomById($roomInfo['id'], $setRoomData);
         if(!$saveRoomInfo){
             //更新房间信息失败
@@ -149,7 +149,7 @@ class Live extends \FS_Service {
         //后台脚本处理赞数、评论、累计观众、最高在线等数据
         //更新直播房间
         $roomSetData[] = ['live_id',''];
-        $roomSetData[] = ['caht_id',''];
+        $roomSetData[] = ['chat_room_id',''];
         $setRoomRes = $this->liveModel->updateLiveRoomById($roomId, $setData);
         if(!$setRoomRes){
             //更新直播房间信息失败
