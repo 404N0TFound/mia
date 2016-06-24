@@ -155,7 +155,7 @@ class Live extends \FS_Service {
         $roomSetData[] = ['chat_room_id',''];
         $setRoomRes = $this->liveModel->updateLiveRoomById($roomId, $roomSetData);
         
-        return $this->succ();
+        return $this->succ($setRoomRes);
     }
     
     /**
