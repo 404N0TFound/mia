@@ -20,14 +20,20 @@ class LiveRoom extends \DB_Query {
     }
     
     /**
-     * 检测房间是否存在
+     * 批量检测用户是否有权限直播
+     * 有房间的用户就有权限
      * @param $userId 
      */
-    public function checkLiveRoomByUserId($userId){
-        $where[] = ['user_id',$userId];
+    public function checkLiveRoomByUserIds($userIds){
+        $roomInfo = [];
+        
+        $where[] = ['user_id',$userIds];
         $where[] = ['status',1];
-        $data = $this->getRow($where);
-        return $data;
+        $data = $this->getRows($where);
+        foreach($data as $room){
+            $roomInfo[$room['user_id']] = $room;
+        }
+        return $roomInfo;
     }
     
     /**
