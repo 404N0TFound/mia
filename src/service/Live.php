@@ -50,7 +50,7 @@ class Live extends \FS_Service {
         $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($roomInfo)){
             //没有直播权限
-            return $this->error(30000,'1');
+            return $this->error(30000);
         }
         //判断用户是否已经存在直播
         $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId);
@@ -59,7 +59,7 @@ class Live extends \FS_Service {
             $upLiveInfo = $this->liveModel->updateLiveByUserId($userId, 4);
             if(!$upLiveInfo){
                 //更新已存在直播失败
-                return $this->error(30003,'2');
+                return $this->error(30003);
             }
         }
         //生成视频流ID和聊天室ID
@@ -70,14 +70,14 @@ class Live extends \FS_Service {
         $streamInfo = $qiniu->createStream($streamId);
         if(empty($streamInfo)){
             //获取七牛的流信息失败
-            return $this->error(30002,'3');
+            return $this->error(30002);
         }
 
         //创建聊天室
         $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
         if(!$chatRet){
             //创建聊天室失败
-            return $this->error(30001,'4');    
+            return $this->error(30001);    
         }
         //新增直播记录
         $liveInfo['user_id'] = $userId;
@@ -92,7 +92,7 @@ class Live extends \FS_Service {
         $saveRoomInfo = $this->liveModel->updateLiveRoomById($roomInfo['id'], $setRoomData);
         if(!$saveRoomInfo){
             //更新房间信息失败
-            return $this->error(30003,'5');
+            return $this->error(30003);
         }  
         //获取房间信息
         $roomData = $this->getRoomLiveById($roomInfo['id'])['data'];
