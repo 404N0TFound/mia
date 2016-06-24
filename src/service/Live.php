@@ -102,7 +102,7 @@ class Live extends \FS_Service {
             return $this->error(30003);
         }  
         //获取房间信息
-        $roomData = $this->getRoomLiveById($roomInfo['id'])['data'];
+        $roomData = $this->getRoomLiveById($roomInfo['id'],$userId)['data'];
         
         //返回数据
         $data['qiniu_stream_info'] = json_encode($streamInfo);
