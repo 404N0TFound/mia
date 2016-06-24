@@ -157,7 +157,7 @@ class Live extends \FS_Service {
         //更新直播房间
         $roomSetData[] = ['live_id',''];
         $roomSetData[] = ['chat_room_id',''];
-        $setRoomRes = $this->liveModel->updateLiveRoomById($roomId, $setData);
+        $setRoomRes = $this->liveModel->updateLiveRoomById($roomId, $roomSetData);
         if(!$setRoomRes){
             //更新直播房间信息失败
             return $this->error(30003);
@@ -365,6 +365,21 @@ class Live extends \FS_Service {
             }
         }
         return $this->succ($roomRes);
+    }
+    
+    
+    /**
+     * 检测用户是否有权限直播
+     * @param $userId
+     */
+    public function checkLiveRoomByUserId($userId){
+        $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
+        if(empty($roomInfo)){
+            //没有直播权限
+            return $this->succ(0);
+        }else{
+            return $this->succ(1);
+        }
     }
     
 }
