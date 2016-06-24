@@ -52,7 +52,7 @@ class AlbumArticle extends \DB_Query {
             $where[] = array(':in', 'id', $articleIds);
         }
         $orderBy = array('create_time DESC');
-        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,h5_url,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,create_time'), $limit = FALSE, $offset = 0, $orderBy);
         foreach ($data as $v) {
             $result[$v['id']] = $v;
         }
@@ -171,10 +171,10 @@ class AlbumArticle extends \DB_Query {
         if(isset($params['articleId']) && $params['articleId']){
             $where[] = array(':in', 'id', $params['articleId']);
         }
-        if(isset($params['articleId']) && $params['articleId']){
+        if(isset($params['user_id']) && $params['user_id']){
             $where[] = array(':in', 'user_id', $params['user_id']);
         }
-        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,content_original,is_recommend,h5_url,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,content_original,is_recommend,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
         foreach ($data as $v) {
             $v['label'] = json_decode($v['ext_info'],true)['label'];
             $v['cover_image'] = json_decode($v['cover_image'],true);
@@ -276,9 +276,6 @@ class AlbumArticle extends \DB_Query {
         }
         if(isset($setData['cover_image']) && $setData['cover_image']){
             $set[] = array('cover_image',$setData['cover_image']);
-        }
-        if(isset($setData['video_url']) && $setData['video_url']){
-            $set[] = array('video_url',$setData['video_url']);
         }
         $set[] = array('update_time',date("Y-m-d H:i:s"));
         $data = $this->update($set, $where, $orderBy, $limit);

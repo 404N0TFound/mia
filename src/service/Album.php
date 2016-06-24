@@ -302,9 +302,6 @@ class Album extends \FS_Service {
                     'content'=>''
                 ));
         }
-        if(isset($set['video_url'])){
-            $data['video_url'] = $set['video_url'];
-        }
         
         $res = $this->abumModel->updateAlbumArticle($params,$data);
         return $this->succ($res);
@@ -448,7 +445,7 @@ class Album extends \FS_Service {
     public function pcIssue($params) {
         $res = array();
         foreach($params as $key => $value){
-            if(!in_array($key, array('labels','video_url'))){
+            if(!in_array($key, array('labels'))){
                 if(empty($params[$key])){
                     return $this->error('500','params is empty');
                 }
@@ -469,9 +466,6 @@ class Album extends \FS_Service {
         $subjectInfo['user_info'] = $user_info;
         if(isset($params['active_id'])){
             $subjectInfo['active_id'] = $params['active_id'];
-        }
-        if(isset($params['video_url'])){
-            $subjectInfo['video_url'] = $params['video_url'];
         }
         
         $labelInfos = array();
