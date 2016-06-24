@@ -191,7 +191,7 @@ class Live extends \FS_Service {
         $qiniu = new QiniuUtil();
         //如果是直播中的live要给url地址
         foreach($liveInfos as $k=>$liveInfo){
-            if($liveInfos['status'] == 3){
+            if($liveInfo['status'] == 3){
                 $addrInfo = $qiniu->getLiveUrls($liveInfo['stream_id']);
                 $liveInfo['hls_url'] = $addrInfo['hls'];
                 $liveInfo['hdl_url'] = $addrInfo['hdl'];
@@ -299,8 +299,10 @@ class Live extends \FS_Service {
                 if(!empty($liveArr[$roomInfo['live_id']])){
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
+                } else {
+                    $roomRes[$roomInfo['id']]['status'] = 0;
                 }
-                $roomRes[$roomInfo['id']]['status'] = 0;
+                
             }
             //后台自定义的商品信息
             if(in_array('custom', $field)){
