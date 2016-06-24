@@ -136,6 +136,9 @@ class Live extends \FS_Service {
         $setData[] = ['status', 4];//结束直播
         $setData[] = ['end_time',date('Y-m-d H:i:s')];
         $data = $this->liveModel->updateLiveById($liveId,$setData);
+        if(!$data){
+            //更新房间信息失败 +日志
+        }
         
         //生成回放
 //         $qiniu = new QiniuUtil();
@@ -154,6 +157,9 @@ class Live extends \FS_Service {
         $roomSetData[] = ['live_id',''];
         $roomSetData[] = ['chat_room_id',''];
         $setRoomRes = $this->liveModel->updateLiveRoomById($roomId, $roomSetData);
+        if(!$setRoomRes){
+            //更新直播房间信息失败 + 日志
+        }
         
         return $this->succ($setRoomRes);
     }
