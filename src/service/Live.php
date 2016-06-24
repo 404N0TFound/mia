@@ -137,8 +137,7 @@ class Live extends \FS_Service {
         $setData[] = ['end_time',date('Y-m-d H:i:s')];
         $data = $this->liveModel->updateLiveById($liveId,$setData);
         if(!$data){
-            //更新房间信息失败
-            return $this->error(30003);
+            //更新房间信息失败 +日志
         }
         
         //生成回放
@@ -159,11 +158,10 @@ class Live extends \FS_Service {
         $roomSetData[] = ['chat_room_id',''];
         $setRoomRes = $this->liveModel->updateLiveRoomById($roomId, $roomSetData);
         if(!$setRoomRes){
-            //更新直播房间信息失败
-            return $this->error(30003);
+            //更新直播房间信息失败 + 日志
         }
         
-        return $this->succ();
+        return $this->succ($setRoomRes);
     }
     
     /**
