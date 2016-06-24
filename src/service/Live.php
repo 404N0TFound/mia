@@ -53,13 +53,20 @@ class Live extends \FS_Service {
             return $this->error(30000);
         }
         //判断用户是否已经存在直播
-        $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId);
+        $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId, [1, 2, 3]);
         if(!empty($checkLiveExist)){
-            //4是结束有回放
-            $upLiveInfo = $this->liveModel->updateLiveByUserId($userId, 4);
-            if(!$upLiveInfo){
-                //更新已存在直播失败
-                return $this->error(30003);
+            foreach ($checkLiveExist as $live) {
+                switch ($live['status']) {
+                    case 1: //非直播中设为失败
+                    case 2:
+                        $setData[]=['status',7];
+                        $this->liveModel->updateLiveById($live['id'], $setData);
+                        break;
+                    case 3: //直播中设为结束有回放
+                        $setData[]=['status',4];
+                        $this->liveModel->updateLiveById($live['id'], $setData);
+                        break;
+                }
             }
         }
         //生成视频流ID和聊天室ID
@@ -292,7 +299,7 @@ class Live extends \FS_Service {
             }
             $roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
             $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
-            $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_id'];
+            $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_room_id'];
             unset($roomRes[$roomInfo['id']]['settings']);
             $roomRes[$roomInfo['id']]['status'] = 0;
             //用户信息
