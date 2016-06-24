@@ -65,8 +65,6 @@ class Live extends \FS_Service {
         //生成视频流ID和聊天室ID
         $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
         
-//         var_dump($roomInfo);
-//         var_dump($chatId);exit;
         //获取七牛视频流
         $qiniu = new QiniuUtil();
         $streamInfo = $qiniu->createStream($streamId);
