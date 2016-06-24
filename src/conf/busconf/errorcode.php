@@ -27,6 +27,9 @@ $appOutPutMsg = array(
     
     //直播
     30000=>'您没有直播权限',
+    30001=>'rongcloud service error',
+    30002=>'qiniu service error',
+    30003=>'live service error',
     
     
 );

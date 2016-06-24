@@ -37,7 +37,7 @@ class LiveRoom extends \DB_Query {
     public function updateLiveRoomById($roomId, $setData) {
     	$where = array();
     	$where[] = array('id', $roomId);
-    
+    	
     	$data = $this->update($setData,$where);
     	return $data;
     }
