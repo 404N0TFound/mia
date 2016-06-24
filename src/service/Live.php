@@ -195,7 +195,7 @@ class Live extends \FS_Service {
                 $addrInfo = $qiniu->getLiveUrls($liveInfo['stream_id']);
                 $liveInfo['hls_url'] = $addrInfo['hls'];
                 $liveInfo['hdl_url'] = $addrInfo['hdl'];
-                $liveInfo['rtmp_rul'] = $addrInfo['rtmp'];
+                $liveInfo['rtmp_url'] = $addrInfo['rtmp'];
             }
             $wantLiveInfo[$k] = $liveInfo;
         }
@@ -287,7 +287,6 @@ class Live extends \FS_Service {
             $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_id'];
             unset($roomRes[$roomInfo['id']]['settings']);
             $roomRes[$roomInfo['id']]['status'] = 0;
-            
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){
