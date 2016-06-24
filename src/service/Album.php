@@ -25,13 +25,13 @@ class Album extends \FS_Service {
      * @params array() iPageSize int 每页显示多少
      * @return array() 获取专栏集下的专栏文章列表
      */
-    public function getArticleList($user_id, $album_id, $page = 1, $iPageSize = 10) {
+    public function getArticleList($con) {
         
         $params = array();
-        $params['user_id'] = $user_id;
-        $params['album_id'] = $album_id;
-        $params['page'] = (int)$page;
-        $params['iPageSize'] = (int)$iPageSize;
+        $params['user_id'] = $con['user_id'];
+        $params['album_id'] = $con['album_id'];
+        $params['page'] = isset($con['page'])?(int)$con['page']:1;
+        $params['iPageSize'] = isset($con['iPageSize'])?(int)$con['iPageSize']:10;
         
         $response = array();
         $response['article_list'] = array();
@@ -46,7 +46,7 @@ class Album extends \FS_Service {
         }
         
         //第一页 返回专辑列表信息
-        if ($page == 1) {
+        if ($params['page'] == 1) {
             $albumResult = $this->abumModel->getAlbumList(array('user_id'=>$user_id));
             $response['album_list'] = array_values($albumResult);
         }
@@ -59,10 +59,10 @@ class Album extends \FS_Service {
      * @params array() iPageSize int 每页显示多少
      * @return array() 精选专栏列表
      */
-    public function getRecommendAlbumArticleList($page = 1, $iPageSize = 10) {
+    public function getRecommendAlbumArticleList($con) {
         $params = array();
-        $params['page'] = (int)$page;
-        $params['iPageSize'] = (int)$iPageSize;
+        $params['page'] = isset($con['page'])?(int)$con['page']:1;
+        $params['iPageSize'] = isset($con['iPageSize'])?(int)$con['iPageSize']:10;
         
         $response = array();
         $response['article_list'] = array();
