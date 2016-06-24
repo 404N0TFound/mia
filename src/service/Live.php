@@ -191,7 +191,7 @@ class Live extends \FS_Service {
         $qiniu = new QiniuUtil();
         //如果是直播中的live要给url地址
         foreach($liveInfos as $k=>$liveInfo){
-            if($liveInfos['status'] == 3){
+            if($liveInfo['status'] == 3){
                 $addrInfo = $qiniu->getLiveUrls($liveInfo['stream_id']);
                 $liveInfo['hls_url'] = $addrInfo['hls'];
                 $liveInfo['hdl_url'] = $addrInfo['hdl'];
