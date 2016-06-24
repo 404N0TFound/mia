@@ -35,10 +35,21 @@ class LiveRoom extends \DB_Query {
      * @author jiadonghui@mia.com
      */
     public function updateLiveRoomById($roomId, $setData) {
-//         if (!isset($setData['setting']) || empty($setData['setting'])){
-//             return false;
-//         }
-        
+    	$where = array();
+    	$where[] = array(':in', 'id', $roomId);
+    
+    	$data = $this->update($setData,$where);
+    	return $data;
+    }
+    
+    /**
+     * 根据ID修改直播房间信息
+     * @author jiadonghui@mia.com
+     */
+    public function updateRoomSettingsById($roomId, $setData) {
+        if (!isset($setData['setting']) || empty($setData['setting'])){
+            return false;
+        }
 //         $setData['settings'] = json_encode($setData['settings']);
         $where = array();
         $where[] = array('id', $roomId);
@@ -66,6 +77,15 @@ class LiveRoom extends \DB_Query {
         }else{
             foreach($data as $v){
                 $result[$v['id']] = $v;
+                
+                if(isset($v['settings'])){
+                	$settings = json_decode($v['settings'],true);
+                	$result[$v['id']]['custom'] = $settings['custom'];
+                	$result[$v['id']]['share'] = $settings['share'];
+                	$result[$v['id']]['redbag'] = $settings['redbag'];
+                	$result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
+                	unset($v['settings']);
+                }
             }
             return $result;
         }

@@ -156,9 +156,27 @@ class Live extends \FS_Service {
     /**
      * 获取房间当前直播
      */
-    public function getRoomLiveById($roomId) {
+    public function getRoomLiveById($roomId, $currentUid) {
         //获取房间信息
+    	if($this->getLiveRoomByIds([$roomId])['code'] != 0){
+    		return $this->error(30000,'没有直播房间信息');
+    	}
         $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
+        if($currentUid == $roomData['user_info']['user_id']){
+        	// 分享内容
+        	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
+        	$share = $liveConfig['groupShare'];
+        	$defaultShare = $liveConfig['defaultShareInfo']['live_by_anchor'];
+        	$defaultUserShare = $liveConfig['defaultShareInfo']['live_by_user'];
+        	//如果没有直播信息的话就去默认分享文案,如果当前用户是主播，则替换成主播的分享文案
+        	if(isset($roomData['share_info']['title']) && $roomData['share_info']['title']  == $defaultUserShare['title']){
+        		$roomData['share_info']['title'] =  $defaultShare['title'];
+        	}
+        	if(isset($roomData['share_info']['desc']) && $roomData['share_info']['desc']  == $defaultUserShare['desc']){
+        		$roomData['share_info']['desc'] =  $defaultShare['desc'];
+        	}
+        	
+        }
         //获取在线人数和商品数
         return $this->succ($roomData);
     }
@@ -170,7 +188,6 @@ class Live extends \FS_Service {
         
         $wantLiveInfo = [];
         $liveInfos = $this->liveModel->getBatchLiveInfoByIds($liveIds,$status);
-    
         $qiniu = new QiniuUtil();
         //如果是直播中的live要给url地址
         foreach($liveInfos as $k=>$liveInfo){
@@ -211,7 +228,7 @@ class Live extends \FS_Service {
      */
     public function updateLiveRoomSettings($roomId, $settings = array()) {
         if (empty($roomId) || empty($settings)) {
-            $this->error();
+            return $this->error(500);
         }
         
         $subjectConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
@@ -221,15 +238,12 @@ class Live extends \FS_Service {
         $settings = array_diff_key($settings, $settingItems);
         //如果配置项不在设定值范围内，则报错
         if(!empty($settings)){
-            $this->error();
+            return $this->error(500);
         }
         
         $setInfo = array('settings' => $settings);
         $updateRes = $this->liveModel->updateLiveRoomById($setInfo, $roomId);
-        if (!$updateRes) {
-            return false;
-        }
-        return $this->succ();
+        return $this->succ($updateRes);
     }
 
 
@@ -237,9 +251,9 @@ class Live extends \FS_Service {
      * 获取直播房间列表
      * @author jiadonghui@mia.com
      */
-    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips')) {
+    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips','custom','redbag','is_show_gift')) {
         if (empty($roomIds) || !array($roomIds)) {
-            $this->error();
+             return $this->succ(array());
         }
         //批量获取房间信息
         $roomInfos = $this->liveModel->getBatchLiveRoomByIds($roomIds);
@@ -252,17 +266,15 @@ class Live extends \FS_Service {
         $liveIdArr = array();
         foreach ($roomInfos as $roomInfo) {
             $userIdArr[] = $roomInfo['user_id'];
-            $liveIdArr = $roomInfo['live_id'];
+            $liveIdArr[] = $roomInfo['live_id'];
         }
-
         //通过userids批量获取主播信息
         $userIds = array_unique($userIdArr);
         $userService = new User();
         $userArr = $userService->getUserInfoByUids($userIds)['data'];
-        //通过liveids批量获取直播列表,todo
+        //通过liveids批量获取直播列表
         $liveIds = array_unique($liveIdArr);
         $liveArr = $this->getBatchLiveInfoByIds($liveIds)['data'];
-        
         //将主播信息整合到房间信息中
         $roomRes = array();
         foreach($roomIds as $roomId){
@@ -272,16 +284,17 @@ class Live extends \FS_Service {
                 continue;
             }
             $roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
-            $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
-            $roomRes[$roomInfo['id']]['chat_id'] = $roomInfo['chat_id'];
-            $roomRes[$roomInfo['id']]['user_id'] = $roomInfo['user_id'];
+            $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_id'];
+            unset($roomRes[$roomInfo['id']]['settings']);
             $roomRes[$roomInfo['id']]['status'] = 0;
+            
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){
                     $roomRes[$roomInfo['id']]['user_info'] = $userArr[$roomInfo['user_id']];
                 }
             }
+            //直播信息
             if(in_array('live_info', $field)){
                 if(!empty($liveArr[$roomInfo['live_id']])){
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
@@ -289,24 +302,50 @@ class Live extends \FS_Service {
                 }
                 $roomRes[$roomInfo['id']]['status'] = 0;
             }
+            //后台自定义的商品信息
+            if(in_array('custom', $field)){
+            	if(!empty($roomInfo['custom'])){
+            		$roomRes[$roomInfo['id']]['custom'] = $roomInfo['custom'];
+            	}
+            }
+            //红包信息
+            if(in_array('redbag', $field)){
+            	if(!empty($roomInfo['redbag'])){
+            		$roomRes[$roomInfo['id']]['redbag'] = $roomInfo['redbag'];
+            	}
+            }
+            //是否显示分享得好礼
+            if(in_array('is_show_gift', $field)){
+            	$roomRes[$roomInfo['id']]['is_show_gift'] = $roomInfo['is_show_gift'];
+            }
+            
             if (in_array('share_info', $field)) {
                 // 分享内容
                 $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
                 $share = $liveConfig['groupShare'];
-                $tips = $liveConfig['liveRoomTips'];
-                $shareTitle = 'title';//临时数据文案
-                $shareDesc = "超过20万妈妈正在蜜芽圈热聊，快来看看~";//临时数据文案
+                $defaultShare = $liveConfig['defaultShareInfo']['live_by_user'];
+                //如果没有直播信息的话就去默认分享文案
+                $shareTitle = isset($roomInfo['share']['title']) ? "【{$roomInfo['share']['title']}】 " : sprintf($defaultShare['title'],$roomRes[$roomInfo['id']]['user_info']['nickname']);
+                $shareDesc = isset($roomInfo['share']['desc']) ? $roomInfo['share']['desc'] : sprintf($defaultShare['desc'],$roomRes[$roomInfo['id']]['user_info']['nickname']);
+                $shareImage = isset($roomInfo['share']['image_url']) ? $roomInfo['share']['image_url'] : $roomRes[$roomInfo['id']]['user_info']['icon'];
                 // 替换搜索关联数组
-                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc);
+                $replace = array(
+                		'{|title|}' => $shareTitle,
+                		'{|desc|}' => $shareDesc,
+                		'{|image_url|}' => $shareImage,
+                		'{|wap_url|}' => sprintf($defaultShare['wap_url'], $roomInfo['id']), 
+                );
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
                     $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
                 }
+                unset($share[0]['extend_text']);
+                unset($share[1]['extend_text']);
                 $roomRes[$roomInfo['id']]['share_info'] = $share;
             }
             //房间提示信息
             if (in_array('tips', $field)) {
-                $roomRes[$roomInfo['id']]['tips'] = $tips;
+                $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips'];
             }
         }
         return $this->succ($roomRes);
