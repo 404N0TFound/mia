@@ -35,3 +35,5 @@ $daemon_filter = array(
     'base_filter'  => '\\Ice\\Filter\\Filter',
     'extend_path'  => $root_path . '/filter',
 );
+
+$damon_php_bin = '/usr/local/php/bin/php';
