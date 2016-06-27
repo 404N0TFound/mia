@@ -141,8 +141,8 @@ class Subject extends \FS_Service {
             $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
             $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
-            if (!empty($subjectInfo['ext_info']['koubei_id'])) {
-                $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei_id'];
+            if (!empty($subjectInfo['ext_info']['koubei'])) {
+                $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei']['id'];
             }
             if (!empty($subjectInfo['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['video_info'] = $subjectInfo['video_info'];
