@@ -174,6 +174,43 @@ class Album extends \FS_Service {
     }
     
     /**
+     * 搜索专栏（主要用于展示专栏）
+     * @params array() user_id int 用户ID
+     * @params array() album_id int 专栏专辑ID
+     * @params array() search string 搜索内容
+     * @params array() page int 当前页码
+     * @params array() iPageSize int 每页显示多少
+     * @return array() 文章简版内容（主要用于展示专栏）
+     */
+    public function getSearchAlbum($con) {
+        $res = array();
+        if(!isset($con['user_id']) || empty($con['user_id'])){
+            return $this->error('500','param user_id is empty');
+        }
+        if(!isset($con['album_id']) || empty($con['album_id'])){
+            return $this->error('500','param album_id is empty');
+        }
+        if(!isset($con['search']) || empty($con['search'])){
+            return $this->error('500','param search is empty');
+        }
+        
+        if(!isset($con['iPageSize']) || empty($con['iPageSize'])){
+            $con['iPageSize'] = 10;
+        }
+        if(!isset($con['page']) || empty($con['page'])){
+            $con['page'] = 1;
+        }
+        $params = array();
+        $params['user_id'] = $con['user_id'];
+        $params['album_id'] = $con['album_id'];
+        $params['search'] = $con['search'];
+        $params['iPageSize'] = $con['iPageSize'];
+        $params['page'] = $con['page'];
+        $res = $this->abumModel->getSearchSimpleArticleList($params);
+        return $this->succ($res);
+    }
+    
+    /**
      * 查文章详情接口
      * @params array() articleId 文章ID
      * @params array() user_id 用户ID
@@ -448,13 +485,18 @@ class Album extends \FS_Service {
      */
     public function pcIssue($params) {
         $res = array();
-        foreach($params as $key => $value){
-            if(!in_array($key, array('labels'))){
-                if(empty($params[$key])){
-                    return $this->error('500','params is empty');
-                }
-            }
-        }
+        if(empty($params['album_id']))
+                return $this->error('500','params album_id is empty');
+        if(empty($params['user_id']))
+                return $this->error('500','params user_id is empty');
+        if(empty($params['title']))
+                return $this->error('500','params title is empty');
+        if(empty($params['text']))
+                return $this->error('500','params text is empty');
+        if(empty($params['image_infos']))
+                return $this->error('500','params image_infos is empty');
+        if(!isset($params['article_id']))
+                return $this->error('500','params article_id is empty');
         $subjectInfo = array();
         $subjectInfo['title'] = $params['title'];
         $subjectInfo['text'] = $params['text'];
@@ -484,16 +526,12 @@ class Album extends \FS_Service {
         $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0)['data'];
         
         if(isset($subjectRes['id'])){
-            $paramsArticle = array();
-            $paramsArticle['user_id'] = $params['user_id'];
-            $paramsArticle['album_id'] = $params['album_id'];
-            $paramsArticle['id'] = $params['article_id'];
-
             $setArticle = array();
             $setArticle['subject_id'] = $subjectRes['id'];
             $setArticle['content'] = strip_tags($params['text']);
             $setArticle['content_original'] = $params['text'];
             $setArticle['status'] = 1;
+            $setArticle['title'] = $params['title'];
             $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
             $setArticle['cover_image'] = json_encode(
                     array(
@@ -502,7 +540,19 @@ class Album extends \FS_Service {
                         'url'=>$params['image_infos']['url'],
                         'content'=>''
                     ));
-            $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
+            if($params['article_id'] == '0'){   //$params['article_id'] == '0' 最新发布的 直接入库
+                $setArticle['user_id'] = $params['user_id'];
+                $setArticle['album_id'] = $params['album_id'];
+                $res = $this->abumModel->addAlbum($setArticle);
+            } else {
+                $paramsArticle = array();
+                $paramsArticle['user_id'] = $params['user_id'];
+                $paramsArticle['album_id'] = $params['album_id'];
+                $paramsArticle['id'] = $params['article_id'];
+                
+                $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
+            }
+            
             return $this->succ($res);
         }
         return $this->succ($res);
