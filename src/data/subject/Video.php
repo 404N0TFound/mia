@@ -32,30 +32,10 @@ class Video extends \DB_Query {
         $videoArr = $this->getRows($where);
         $result = array();
         if (!empty($videoArr)) {
-            foreach ($videoArr as $v) {
-                $video = null;
+            foreach ($videoArr as $k => $v) {
                 $extInfo = $v['ext_info'] ? json_decode($v['ext_info'], true) : array();
-                $video['id'] = $v['id'];
-                $video['subject_id'] = $v['subject_id'];
-                $video['is_outer'] = $v['source'] == 'qiniu' ? 0 : 1;
-                $video['video_origin_url'] = $v['video_origin_url'];
-                $video['ext_info'] = $extInfo;
-                switch ($v['source']) {
-                    case 'letv':
-                        $video['video_url'] = $v['video_origin_url'];
-                        $video['video_type'] = 'swf';
-                        break;
-                    case 'qiniu':
-                        $video['video_url'] = $this->getVideoUrl($v['video_origin_url'], $videoType);
-                        $video['video_type'] = $videoType;
-                        break;
-                }
-                $video['status'] = $v['status'];
-                if (!empty($extInfo) && is_array($extInfo)) {
-                    $video['cover_image'] = !empty($extInfo['cover_image']) ? $extInfo['cover_image'] : $extInfo['thumb_image'];
-                    $video['video_time'] = !empty($extInfo['video_time']) ? date('i:s', floor($extInfo['video_time'])) : '00:00';
-                }
-                $result[$v['id']] = $video;
+                $v['ext_info'] = $extInfo;
+                $result[$v['id']] = $v;
             }
         }
         return $result;
