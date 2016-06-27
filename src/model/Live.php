@@ -117,4 +117,11 @@ class Live {
         return $rooms;
     }
     
+    /**
+     * 获取直播列表
+     */
+    public function getLiveList($cond, $offset = 0, $limit = 20) {
+        $liveList = $this->liveData->getLiveList($cond, $offset, $limit);
+        return $liveList;
+    }
 }

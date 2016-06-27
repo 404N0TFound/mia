@@ -87,7 +87,36 @@ class Subject {
      * 批量查询视频信息
      */
     public function getBatchVideoInfos($videoIds, $videoType = 'm3u8') {
-        $data = $this->videoData->getBatchVideoInfos($videoIds, $videoType);
-        return $data;
+        if (empty($videoIds)) {
+            return array();
+        }
+        $videoArr = $this->videoData->getBatchVideoInfos($videoIds, $videoType);
+        $result = array();
+        if (!empty($videoArr)) {
+            foreach ($videoArr as $v) {
+                $video = null;
+                $video['id'] = $v['id'];
+                $video['subject_id'] = $v['subject_id'];
+                $video['is_outer'] = $v['source'] == 'qiniu' ? 0 : 1;
+                $video['video_origin_url'] = $v['video_origin_url'];
+                switch ($v['source']) {
+                    case 'letv':
+                        $video['video_url'] = $v['video_origin_url'];
+                        $video['video_type'] = 'swf';
+                        break;
+                    case 'qiniu':
+                        $video['video_url'] = $this->getVideoUrl($v['video_origin_url'], $videoType);
+                        $video['video_type'] = $videoType;
+                        break;
+                }
+                $video['status'] = $v['status'];
+                if (!empty($extInfo) && is_array($video['ext_info'])) {
+                    $video['cover_image'] = !empty($video['ext_info']['cover_image']) ? $video['ext_info']['cover_image'] : $video['ext_info']['thumb_image'];
+                    $video['video_time'] = !empty($video['ext_info']['video_time']) ? date('i:s', floor($video['ext_info']['video_time'])) : '00:00';
+                }
+                $result[$v['id']] = $video;
+            }
+        }
+        return $result;
     }
 }
