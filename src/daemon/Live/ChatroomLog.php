@@ -12,9 +12,14 @@ class ChatroomLog extends \FD_Daemon{
         $url = $rong_api->messageHistory($date);
         if(!empty($url)){
             $url_info = pathinfo($url);
-            $chatroom_log_path = \F_Ice::$ins->workApp->config->get('app.chatroom_log_path');
+            $chatroom_log_path = \F_Ice::$ins->workApp->config->get('app.chatroom_log_path').date('Ymd').'/';
             $file_name = 'chatroomlog_'.$date.$url_info['extension'];
             $dir = $chatroom_log_path.$file_name;
+            
+            if(!is_dir($chatroom_log_path)){
+                @mkdir($chatroom_log_path,0777,true);
+            }
+            
             $this->curlDownload($url, $dir);
             
             //处理压缩文件
