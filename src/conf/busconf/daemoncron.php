@@ -21,3 +21,30 @@ $cron_list['live_stream_check'] = array(
     'start_time' => '2016-06-23 00:00:00',
     'interval' => 3
 );
+
+//定时发送已售出商品数量消息
+$cron_list['sale_sku_count'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=live --action=LiveSaleSkuNum",
+    'start_time' => '2016-06-23 00:00:00',
+    'interval' => 5
+);
+
+//定时发送在线人数消息
+$cron_list['online_count'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=live --action=ChatroomUserNum",
+    'start_time' => '2016-06-23 00:00:00',
+    'interval' => 5
+);
+
+//定时获取聊天室的日志
+$cron_list['get_chat_room_log'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=live --action=ChatroomLog",
+    'start_time' => '2016-06-23 00:00:00',
+    'interval' => 3600
+);

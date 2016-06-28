@@ -385,4 +385,16 @@ class Live extends \FS_Service {
         return $this->succ($authInfo);
     }
     
+    /**
+     * 加入聊天室
+     * @param unknown $userId
+     * @param unknown $chatroomId
+     */
+    public function joinChatRoom($userId,$chatroomId){
+        $data = $this->rongCloud->api->chatroomJoin($userId, $chatroomId);
+        return $this->succ($data);
+    }
+    
+    
+    
 }
