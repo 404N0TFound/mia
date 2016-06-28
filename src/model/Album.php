@@ -12,12 +12,15 @@ class Album {
     public $albumData = '';
     public $userGroupDoozerData = '';
     public $albumPermissionData = '';
+    public $h5_url = '';
+    
 
     public function __construct() {
         $this->albumArticleData = new AlbumArticleData();
         $this->albumData = new AlbumData();
         $this->userGroupDoozerData = new GroupDoozer();
         $this->albumPermissionData = new AlbumPermissionData();
+        $this->h5_url = 'www.mia.com/groupspe/show/%d/%d';
     }
 
     /**
@@ -67,7 +70,7 @@ class Album {
                     $res[$key]['album_info']['user_id'] = $AlbumInfo[$value['album_id']]['user_id'];
                     $res[$key]['album_info']['title'] = $AlbumInfo[$value['album_id']]['title'];
                 }
-                $res[$key]['h5_url'] = '';//待续
+                $res[$key]['h5_url'] = sprintf($this->h5_url,$value['id'],$value['album_id']);;//待续
                 $res[$key]['view_num'] = $this->readNum($value['create_time']);
                 $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
                 unset($res[$key]['create_time']);
@@ -113,7 +116,36 @@ class Album {
      * @return array() 文章简版内容（主要用于展示专栏）
      */
     public function getSimpleArticleList($params) {
-        return $this->albumArticleData->getSimpleArticleList($params);
+        $articleList = array();
+        $SimpleArticleList = $this->albumArticleData->getSimpleArticleList($params);
+        if($SimpleArticleList){
+            foreach($SimpleArticleList as $value){
+                $value['content'] = mb_substr($value['content'],0,50,'utf-8').'....';
+                $value['cover_image'] = json_decode($value['cover_image'],true);
+                $articleList[str_replace('-','年',substr(($value['create_time']),0,7)).'月'][] = $value;
+            }
+        }
+        return $articleList;
+    }
+    /**
+     * 搜索专栏（主要用于展示专栏）
+     * @params array() user_id int 用户ID
+     * @params array() album_id int 专栏专辑ID
+     * @params array() search string 搜索内容
+     * @params array() page int 当前页码
+     * @params array() iPageSize int 每页显示多少
+     * @return array() 文章简版内容（主要用于展示专栏）
+     */
+    public function getSearchSimpleArticleList($params) {
+        $articleList = array();
+        $SimpleArticleList = $this->albumArticleData->getSimpleArticleList($params);
+        if($SimpleArticleList){
+            foreach($SimpleArticleList as &$value){
+                $value['content'] = mb_substr($value['content'],0,50,'utf-8').'....';
+                $value['cover_image'] = json_decode($value['cover_image'],true);
+            }
+        }
+        return $SimpleArticleList;
     }
 
     /**
@@ -272,6 +304,12 @@ class Album {
             'subject_id'=>$insert['subject_id'],
             'user_id'=>$insert['user_id'],
             'album_id'=>$insert['album_id'],
+            'title'=>$insert['title'],
+            'cover_image'=>$insert['cover_image'],
+            'content'=>$insert['content'],
+            'content_original'=>$insert['content_original'],
+            'ext_info'=>$insert['ext_info'],
+            'status'=>$insert['status'],
             'create_time'=>date("Y-m-d H:i:s")
         );
         $res = $this->albumArticleData->addAlbum($data);

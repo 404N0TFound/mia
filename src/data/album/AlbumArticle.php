@@ -116,19 +116,16 @@ class AlbumArticle extends \DB_Query {
         if(isset($params['album_id']) && $params['album_id']){
             $where[] = array(':eq', 'album_id', $params['album_id']);
         }
+        if(isset($params['search']) && $params['search']){
+            $where[] = array(':like_literal', 'title', '%'.$params['search'].'%');
+        }
         if (intval($params['iPageSize']) > 0) {
             $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
             $limit = $params['iPageSize'];
         }
         $orderBy = array('create_time DESC');
-        $SimpleArticleList = $this->getRows($where, array('id,album_id,subject_id,user_id,title,content'), $limit, $offset, $orderBy);
-        if($SimpleArticleList){
-            foreach($SimpleArticleList as $value){
-                $value['content'] = mb_substr($value['content'],0,50,'utf-8').'....';
-                $articleList[$value['id']] = $value;
-            }
-        }
-        return $articleList;
+        $SimpleArticleList = $this->getRows($where, array('id,album_id,cover_image,title,content,create_time'), $limit, $offset, $orderBy);
+        return $SimpleArticleList;
     }
 
     /**
@@ -263,10 +260,12 @@ class AlbumArticle extends \DB_Query {
             $where[] = array('album_id',$whereCon['album_id']);
         }
         
-        
         $set = array();
         if(isset($setData['content']) && $setData['content']){
             $set[] = array('content',$setData['content']);
+        }
+        if(isset($setData['title']) && $setData['title']){
+            $set[] = array('title',$setData['title']);
         }
         if(isset($setData['content_original']) && $setData['content_original']){
             $set[] = array('content_original',$setData['content_original']);
