@@ -8,7 +8,7 @@ $php_cli = '/daemon/cli.php';
 $cron_list['live_status_check'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=live --action=statuscheck",
+    'cli_args' => "--class=live --action=livingcheck",
     'start_time' => '2016-06-23 00:00:00',
     'interval' => 3
 );
@@ -17,7 +17,7 @@ $cron_list['live_status_check'] = array(
 $cron_list['live_stream_check'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=live --action=streamcheck",
+    'cli_args' => "--class=live --action=streamprepare",
     'start_time' => '2016-06-23 00:00:00',
     'interval' => 3
 );

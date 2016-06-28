@@ -85,7 +85,7 @@ class LiveRoom extends \DB_Query {
                 
                 if(isset($v['settings'])){
                 	$settings = json_decode($v['settings'],true);
-                	$result[$v['id']]['custom'] = $settings['custom'];
+                	$result[$v['id']]['banners'] = $settings['banners'];
                 	$result[$v['id']]['share'] = $settings['share'];
                 	$result[$v['id']]['redbag'] = $settings['redbag'];
                 	$result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];

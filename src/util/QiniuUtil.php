@@ -83,6 +83,15 @@ class QiniuUtil {
     }
     
     /**
+     * 获取直播流状态
+     */
+    public function getRawStatus($streamId){
+        $stream = $this->qiniuHub->getStream($streamId);
+        $result = $stream->status();
+        return $result;
+    }
+    
+    /**
      * ******************
      */
     /**
