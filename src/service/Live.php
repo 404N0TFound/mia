@@ -63,8 +63,7 @@ class Live extends \FS_Service {
                         $this->liveModel->updateLiveById($live['id'], $setData);
                         break;
                     case 3: //直播中设为结束有回放
-                        $setData[]=['status',4];
-                        $this->liveModel->updateLiveById($live['id'], $setData);
+                        $this->endLive($userId, $roomInfo['id'], $roomInfo['live_id'], $roomInfo['chat_room_id']);
                         break;
                 }
             }
