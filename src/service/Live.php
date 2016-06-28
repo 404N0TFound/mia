@@ -262,7 +262,7 @@ class Live extends \FS_Service {
      * 获取直播房间列表
      * @author jiadonghui@mia.com
      */
-    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips','custom','redbag','is_show_gift')) {
+    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips','banners','redbag','is_show_gift')) {
         if (empty($roomIds) || !array($roomIds)) {
              return $this->succ(array());
         }
@@ -316,9 +316,9 @@ class Live extends \FS_Service {
                 
             }
             //后台自定义的商品信息
-            if(in_array('custom', $field)){
-            	if(!empty($roomInfo['custom'])){
-            		$roomRes[$roomInfo['id']]['custom'] = $roomInfo['custom'];
+            if(in_array('banners', $field)){
+            	if(!empty($roomInfo['banners'])){
+            		$roomRes[$roomInfo['id']]['banners'] = $roomInfo['banners'];
             	}
             }
             //红包信息
@@ -329,7 +329,7 @@ class Live extends \FS_Service {
             }
             //是否显示分享得好礼
             if(in_array('is_show_gift', $field)){
-            	$roomRes[$roomInfo['id']]['is_show_gift'] = $roomInfo['is_show_gift'];
+            	$roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
             }
             
             if (in_array('share_info', $field)) {
@@ -383,5 +383,17 @@ class Live extends \FS_Service {
         }
         return $this->succ($authInfo);
     }
+    
+    /**
+     * 加入聊天室
+     * @param unknown $userId
+     * @param unknown $chatroomId
+     */
+    public function joinChatRoom($userId,$chatroomId){
+        $data = $this->rongCloud->api->chatroomJoin($userId, $chatroomId);
+        return $this->succ($data);
+    }
+    
+    
     
 }
