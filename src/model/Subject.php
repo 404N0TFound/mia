@@ -28,10 +28,11 @@ class Subject {
             return array();
         }
         // 获取帖子附属的视频信息
-        $videos = $this->videoData->getVideoBySubjectIds($subjectIds);
+        $subjectVideoIds = $this->videoData->getVideoBySubjectIds($subjectIds);
+        $videos = $this->getBatchVideoInfos($subjectVideoIds);
         foreach ($subjects as $subjectId => $subject) {
-            if (!empty($videos[$subjectId])) {
-                $subjects[$subjectId]['video_info'] = $videos[$subjectId];
+            if (!empty($videos[$subjectVideoIds[$subjectId]])) {
+                $subjects[$subjectId]['video_info'] = $videos[$subjectVideoIds[$subjectId]];
             }
         }
         return $subjects;
@@ -105,14 +106,14 @@ class Subject {
                         $video['video_type'] = 'swf';
                         break;
                     case 'qiniu':
-                        $video['video_url'] = $this->getVideoUrl($v['video_origin_url'], $videoType);
+                        $video['video_url'] = $this->videoData->getVideoUrl($v['video_origin_url'], $videoType);
                         $video['video_type'] = $videoType;
                         break;
                 }
                 $video['status'] = $v['status'];
-                if (!empty($extInfo) && is_array($video['ext_info'])) {
-                    $video['cover_image'] = !empty($video['ext_info']['cover_image']) ? $video['ext_info']['cover_image'] : $video['ext_info']['thumb_image'];
-                    $video['video_time'] = !empty($video['ext_info']['video_time']) ? date('i:s', floor($video['ext_info']['video_time'])) : '00:00';
+                if (!empty($v['ext_info']) && is_array($v['ext_info'])) {
+                    $video['cover_image'] = !empty($v['ext_info']['cover_image']) ? $v['ext_info']['cover_image'] : $v['ext_info']['thumb_image'];
+                    $video['video_time'] = !empty($v['ext_info']['video_time']) ? date('i:s', floor($v['ext_info']['video_time'])) : '00:00';
                 }
                 $result[$v['id']] = $video;
             }

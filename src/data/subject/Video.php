@@ -54,17 +54,11 @@ class Video extends \DB_Query {
         if (empty($subjectsArrs)) {
             return array();
         }
-        $subjectVideos = array();
-        $videoIds = array();
+        $subjectVideoIds = array();
         foreach ($subjectsArrs as $v) {
-            $subjectVideos[$v['subject_id']] = $v['id'];
-            $videoIds[] = $v['id'];
+            $subjectVideoIds[$v['subject_id']] = $v['id'];
         }
-        $videoInfos = $this->getBatchVideoInfos($videoIds);
-        foreach ($subjectVideos as $subjectId => $videoId) {
-            $subjectVideos[$subjectId] = $videoInfos[$videoId];
-        }
-        return $subjectVideos;
+        return $subjectVideoIds;
     }
 
     /**
