@@ -245,15 +245,15 @@ class Live extends \FS_Service {
         $subjectConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
         $liveSetting = $subjectConfig['liveSetting'];
         
-        $settingItems = $liveSetting;
-        $settings = array_diff_key($settings, $settingItems);
+        $settingItems = array_flip($liveSetting);
+        $diffs = array_diff_key($settings, $settingItems);
         //如果配置项不在设定值范围内，则报错
-        if(!empty($settings)){
+        if(!empty($diffs)){
             return $this->error(500);
         }
         
         $setInfo = array('settings' => $settings);
-        $updateRes = $this->liveModel->updateLiveRoomById($setInfo, $roomId);
+        $updateRes = $this->liveModel->updateRoomSettingsById($roomId,$setInfo);
         return $this->succ($updateRes);
     }
 
@@ -297,7 +297,7 @@ class Live extends \FS_Service {
             $roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
             $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
             $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_room_id'];
-            unset($roomRes[$roomInfo['id']]['settings']);
+            $roomRes[$roomInfo['id']]['settings'] = $roomInfo['settings'];
             $roomRes[$roomInfo['id']]['status'] = 0;
             //用户信息
             if (in_array('user_info', $field)) {
