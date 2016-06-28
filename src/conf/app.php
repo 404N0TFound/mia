@@ -31,5 +31,6 @@ $runner = array(
 
 $url = [
     'img_url'=>'http://img.miyabaobei.com/',
+    'h5_url'=>'www.mia.com/groupspe/show/%d/%d',
 ];
 
