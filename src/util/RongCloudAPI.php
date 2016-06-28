@@ -167,9 +167,10 @@ class RongCloudAPI{
             $ret = $this->curl('/message/chatroom/publish',$params);
             if(empty($ret))
                 throw new Exception('请求失败');
-            return $ret;
+            return json_decode($ret);
         }catch (Exception $e) {
-            print_r($e->getMessage());
+//             print_r($e->getMessage());
+            return false;
         }
     }
     
@@ -294,9 +295,10 @@ class RongCloudAPI{
             $ret = $this->curl('/message/history', array('date' => $date));
             if(empty($ret))
                 throw new Exception('请求失败');
-            return $ret;
+            return json_decode($ret);
         }catch (Exception $e) {
-            print_r($e->getMessage());
+//             print_r($e->getMessage());
+            return false;
         }
     }
 
@@ -571,9 +573,10 @@ class RongCloudAPI{
             if(empty($ret)) {
                 throw new Exception('请求失败');
             }
-            return $ret;
+            return json_decode($ret);
         } catch(Exception $e) {
-            print_r($e->getMessage());
+//             print_r($e->getMessage());
+            return false;
         }
     }
 
