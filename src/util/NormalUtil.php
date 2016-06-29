@@ -147,11 +147,20 @@ class NormalUtil {
             case 6:
             case 7:
             case 9:
-                $message='{"type":'.$type.',"extra":"'.json_encode($extra).'"}';
+                $message='{"type":'.$type.'}';
                 break;
         }
         
         return $message;
+    }
+    
+    /**
+     * 获取配置文件
+     * @param unknown $opt
+     */
+    public static function getConfig($opt){
+        $data = \F_Ice::$ins->workApp->config->get($opt);
+        return $data;
     }
     
 }
