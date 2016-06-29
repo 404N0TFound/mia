@@ -282,7 +282,7 @@ class Album {
      * @return array() 帖子id列表
      */
     public function getSubjectId($params) {
-        return $this->albumArticleData->getSubjectId($where);
+        return $this->albumArticleData->getSubjectId($params);
     }
     
     /**

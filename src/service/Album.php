@@ -372,9 +372,10 @@ class Album extends \FS_Service {
         
         $condition = array();
         $condition['user_id'] = $con['user_id'];
-        $condition['album_id'] = $con['id'];
+        $condition['album_id'] = [$con['id']];
         $subjectIds = $this->abumModel->getSubjectId($condition);
         $subjectService = new \mia\miagroup\Service\Subject();
+        
         foreach($subjectIds as $subjectId){
             $subjectRes = $subjectService->deleteSubject($subjectId, $con['user_id'])['code'];
             if($subjectRes != '0'){
@@ -408,11 +409,12 @@ class Album extends \FS_Service {
         
         $condition = array();
         $condition['user_id'] = $con['user_id'];
-        $condition['id'] = $con['id'];
+        $condition['id'] = [$con['id']];
         $subjectIds = $this->abumModel->getSubjectId($condition);
         $subjectService = new \mia\miagroup\Service\Subject();
         foreach($subjectIds as $subjectId){
             $subjectRes = $subjectService->deleteSubject($subjectId, $con['user_id'])['code'];
+            echo $subjectRes;die;
             if($subjectRes != '0'){
                 return $this->error('500','delete miaquan failed');
             }
@@ -579,7 +581,6 @@ class Album extends \FS_Service {
         }
         
         $setArticle = array();
-        $setArticle['subject_id'] = $subjectRes['id'];
         $setArticle['content'] = strip_tags($params['text']);
         $setArticle['content_original'] = $params['text'];
         $setArticle['title'] = $params['title'];
@@ -597,6 +598,7 @@ class Album extends \FS_Service {
             if(isset($subjectRes['id'])){
                 $setArticle['user_id'] = $params['user_id'];
                 $setArticle['album_id'] = $params['album_id'];
+                $setArticle['subject_id'] = $subjectRes['id'];
                 $setArticle['status'] = 1;
                 $res = $this->abumModel->addAlbum($setArticle);
                 return $this->succ($res);
