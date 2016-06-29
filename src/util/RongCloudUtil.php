@@ -2,6 +2,7 @@
 namespace mia\miagroup\Util;
 
 use \F_Ice;
+use \mia\miagroup\Lib\RongCloudAPI;
 
 class RongCloudUtil{
     //融云sdk

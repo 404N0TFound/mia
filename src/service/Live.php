@@ -6,6 +6,7 @@ use mia\miagroup\Service\User;
 use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Util\QiniuUtil;
+use mia\miagroup\Lib\Redis;
 
 class Live extends \FS_Service {
     
@@ -164,15 +165,15 @@ class Live extends \FS_Service {
     }
     
     /**
-     * 获取房间当前直播
+     * 获取房间当前直播的信息
      */
     public function getRoomLiveById($roomId, $currentUid) {
         //获取房间信息
-    	if($this->getLiveRoomByIds([$roomId])['code'] != 0){
-    	    //没有直播房间信息
-    		return $this->error(30003);
-    	}
         $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
+        if(empty($roomData)){
+            //没有直播房间信息
+            return $this->error(30003);
+        }
         if($currentUid == $roomData['user_info']['user_id']){
         	// 分享内容
         	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
@@ -188,7 +189,6 @@ class Live extends \FS_Service {
         	}
         	
         }
-        //获取在线人数和商品数
         return $this->succ($roomData);
     }
     
@@ -200,6 +200,7 @@ class Live extends \FS_Service {
         $wantLiveInfo = [];
         $liveInfos = $this->liveModel->getBatchLiveInfoByIds($liveIds,$status);
         $qiniu = new QiniuUtil();
+        $redis = new Redis();
         //如果是直播中的live要给url地址
         foreach($liveInfos as $k=>$liveInfo){
             if($liveInfo['status'] == 3){
@@ -207,23 +208,20 @@ class Live extends \FS_Service {
                 $liveInfo['hls_url'] = $addrInfo['hls'];
                 $liveInfo['hdl_url'] = $addrInfo['hdl'];
                 $liveInfo['rtmp_url'] = $addrInfo['rtmp'];
+                
+                //当前在线人数
+                $audience_online_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_audience_online_num.key'),$k);
+                $audience_online_num = $redis->get($audience_online_num_key);
+                $liveInfo['audience_online_num'] = $audience_online_num;
+                //商品已售卖数
+                $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'),$k);
+                $sale_num = $redis->get($sale_num_key);
+                $liveInfo['sale_num'] = $sale_num;
             }
             $wantLiveInfo[$k] = $liveInfo;
         }
         return $this->succ($wantLiveInfo);
-    }
-    
-    /**
-     * 获取在线人数和商品数
-     */
-    public function getOnlineNumber(){
-        //在线人数:底数为1（含）-50（含）的随机数，每5s，叠加一个0（含）-20（含）的随机数，最大值14400
-        
-        //商品数：底数为0，每5s叠加一个1（含）-50（含）的随机数，最大值72000
-        
-    }
-    
-    
+    } 
     
     /**
      * 生成直播ID
@@ -393,7 +391,7 @@ class Live extends \FS_Service {
         $data = $this->rongCloud->api->chatroomJoin($userId, $chatroomId);
         return $this->succ($data);
     }
-    
-    
+
     
 }
+
