@@ -44,7 +44,9 @@ $groupShare = array(
         'extend_text'   => '{|extend_text|}',
     ),
 );
-
+$album = array(
+    'h5_url'=>'http://www.mia.com/groupspe/show/%d/%d',
+);
 $liveRoomTips = "直播房间测试tips";
 
 $liveSetting = array('custom','redbag','share','is_show_gift');
