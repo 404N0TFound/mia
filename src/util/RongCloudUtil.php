@@ -56,6 +56,39 @@ class RongCloudUtil{
         }
     }
     
+    /**
+     * 用户向聊天室内发送消息
+     */
+    public function messageChatroomPublish($fromUserId, $toChatroomId = array(), $objectName, $content){
+        $result = $this->api->messageChatroomPublish($fromUserId, $toChatroomId, $objectName, $content);
+        return $result;
+    }
+    
+    /**
+     * 获取聊天室的在线人数
+     */
+    public function getChatroomUserNumber($chatroomId){
+        $result = $this->api->userChatroomQuery($chatroomId);
+        if(!$result){
+            return false;
+        }else{
+            return $result['total'];
+        }
+    }
+    
+    /**
+     * 获取聊天室消息的历史记录
+     * 指定北京时间某天某小时，格式为2014010101,表示：2014年1月1日凌晨1点
+     */
+    public function messageHistory($date){
+        $result = $this->api->messageHistory($date);
+        if(!$result){
+            return false;
+        }else{
+            return $result['url'];
+        }
+    }
+    
     
     
     
