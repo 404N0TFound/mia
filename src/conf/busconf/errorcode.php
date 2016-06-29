@@ -30,6 +30,7 @@ $appOutPutMsg = array(
     30001=>'rongcloud service error',
     30002=>'qiniu service error',
     30003=>'live service error',
+    30004=>'自己不能观看自己的直播',
     
     
 );

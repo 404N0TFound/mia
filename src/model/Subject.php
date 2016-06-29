@@ -79,8 +79,8 @@ class Subject {
      * @param type $limit            
      * @return int
      */
-    public function updateSubject($setData, $where = []) {
-        $data = $this->subjectData->updateSubject($setData, $where);
+    public function updateSubject($setData, $subjectId) {
+        $data = $this->subjectData->updateSubject($setData, $subjectId);
         return $data;
     }
 

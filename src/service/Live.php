@@ -169,12 +169,25 @@ class Live extends \FS_Service {
      */
     public function getRoomLiveById($roomId, $currentUid) {
         //获取房间信息
+<<<<<<< Updated upstream
         $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
         if(empty($roomData)){
             //没有直播房间信息
             return $this->error(30003);
         }
         if($currentUid == $roomData['user_info']['user_id']){
+=======
+    	if($this->getLiveRoomByIds([$roomId])['code'] != 0){
+    	    //没有直播房间信息
+    	    return $this->error(30003);
+    	}
+        $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
+        //自己不能观看自己的直播
+        if ($roomData['user_id'] == $currentUid && $roomData['live_info']['status'] == 3) {
+            return $this->error(30004);
+        }
+        if($currentUid == $roomData['user_id']){
+>>>>>>> Stashed changes
         	// 分享内容
         	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
         	$share = $liveConfig['groupShare'];
@@ -187,7 +200,6 @@ class Live extends \FS_Service {
         	if(isset($roomData['share_info']['desc']) && $roomData['share_info']['desc']  == $defaultUserShare['desc']){
         		$roomData['share_info']['desc'] =  $defaultShare['desc'];
         	}
-        	
         }
         return $this->succ($roomData);
     }
@@ -243,15 +255,15 @@ class Live extends \FS_Service {
         $subjectConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
         $liveSetting = $subjectConfig['liveSetting'];
         
-        $settingItems = array_flip($liveSetting);
-        $diffs = array_diff_key($settings, $settingItems);
+        $settingItems = $liveSetting;
+        $settings = array_diff_key($settings, $settingItems);
         //如果配置项不在设定值范围内，则报错
-        if(!empty($diffs)){
+        if(!empty($settings)){
             return $this->error(500);
         }
         
         $setInfo = array('settings' => $settings);
-        $updateRes = $this->liveModel->updateRoomSettingsById($roomId,$setInfo);
+        $updateRes = $this->liveModel->updateLiveRoomById($setInfo, $roomId);
         return $this->succ($updateRes);
     }
 
@@ -295,7 +307,9 @@ class Live extends \FS_Service {
             $roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
             $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
             $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_room_id'];
-            $roomRes[$roomInfo['id']]['settings'] = $roomInfo['settings'];
+            $roomRes[$roomInfo['id']]['user_id'] = $roomInfo['user_id'];
+            $roomRes[$roomInfo['id']]['subject_id'] = $roomInfo['subject_id'];
+            unset($roomRes[$roomInfo['id']]['settings']);
             $roomRes[$roomInfo['id']]['status'] = 0;
             //用户信息
             if (in_array('user_info', $field)) {
@@ -305,7 +319,7 @@ class Live extends \FS_Service {
             }
             //直播信息
             if(in_array('live_info', $field)){
-                if(!empty($liveArr[$roomInfo['live_id']])){
+                if(!empty($liveArr[$roomInfo['live_id']]) && $liveArr[$roomInfo['live_id']]['status'] == 3){
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
                 } else {
