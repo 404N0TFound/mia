@@ -12,7 +12,6 @@ class Album {
     public $albumData = '';
     public $userGroupDoozerData = '';
     public $albumPermissionData = '';
-    public $h5_url = '';
     
 
     public function __construct() {
@@ -20,7 +19,6 @@ class Album {
         $this->albumData = new AlbumData();
         $this->userGroupDoozerData = new GroupDoozer();
         $this->albumPermissionData = new AlbumPermissionData();
-        $this->h5_url = 'www.mia.com/groupspe/show/%d/%d';
     }
 
     /**
@@ -70,7 +68,7 @@ class Album {
                     $res[$key]['album_info']['user_id'] = $AlbumInfo[$value['album_id']]['user_id'];
                     $res[$key]['album_info']['title'] = $AlbumInfo[$value['album_id']]['title'];
                 }
-                $res[$key]['h5_url'] = sprintf($this->h5_url,$value['id'],$value['album_id']);;//待续
+                $res[$key]['h5_url'] = sprintf(\F_Ice::$ins->workApp->config->get('busconf.subject')['album']['h5_url'],$value['id'],$value['album_id']);;//待续
                 $res[$key]['view_num'] = $this->readNum($value['create_time']);
                 $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
                 unset($res[$key]['create_time']);

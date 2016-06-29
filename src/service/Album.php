@@ -314,6 +314,9 @@ class Album extends \FS_Service {
         }
         $con = $data['con'];
         $set = $data['set'];
+        if(empty($data['id'])){
+            return $this->error('500','param con id is empty');
+        }
         
         $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
         if(!$userPermission){
@@ -432,15 +435,41 @@ class Album extends \FS_Service {
         if(empty($insert) || empty($insert['title']) || empty($insert['user_id']) || empty($insert['album_id'])){
             return $this->error('500','param insert is empty');
         }
+        if( empty($insert['text'])){
+            return $this->error('500','param text is empty');
+        }
+        if( empty($insert['image_infos']))
+            return $this->error('500','param cover_image is empty');
+        
         $userPermission = $this->abumModel->getAlbumPermissionByUserId($insert['user_id']);
         if(!$userPermission){
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
         }
-
+        
+        $labelInfos = array();
+        if(isset($insert['labels']) &&  $insert['labels']){
+            foreach($insert['labels'] as $key => $value){
+                $labelInfos[$key]['id'] = $value['id'];
+                $labelInfos[$key]['title'] = $value['title'];
+            }
+        }
+        
         $params = array();
         $params['user_id'] = $insert['user_id'];
         $params['title'] = strip_tags($insert['title']);
         $params['album_id'] = $insert['album_id'];
+        $params['subject_id'] = '';
+        $params['content'] = strip_tags($insert['text']);
+        $params['content_original'] = $insert['text'];
+        $params['status'] = 0;
+        $params['ext_info'] = json_encode(array('label'=>$labelInfos));
+        $params['cover_image'] = json_encode(
+                array(
+                    'width'=>$insert['image_infos']['width'],
+                    'height'=>$insert['image_infos']['height'],
+                    'url'=>$insert['image_infos']['url'],
+                    'content'=>''
+                ));
         $res = $this->abumModel->addAlbum($params);
         return $this->succ($res);
     }
