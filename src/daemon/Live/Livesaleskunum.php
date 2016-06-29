@@ -5,7 +5,7 @@ use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Data\Live\LiveRoom;
 use mia\miagroup\Lib\Redis;
 
-class LiveSaleSkuNum extends \FD_Daemon{
+class Livesaleskunum extends \FD_Daemon{
 	
     public function execute(){
 
