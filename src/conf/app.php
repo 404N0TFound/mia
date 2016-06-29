@@ -7,6 +7,9 @@ $var_path  = $root_path . '/../var';
 $run_path  = $var_path . '/run';
 $log_path  = $var_path . '/logs';
 
+//聊天室消息记录日志
+$chatroom_log_path = $run_path.'/live/';
+
 @include(__DIR__ . '/web.inc');
 @include(__DIR__ . '/service.inc');
 @include(__DIR__ . '/daemon.inc');

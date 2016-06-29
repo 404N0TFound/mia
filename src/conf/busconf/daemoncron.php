@@ -26,7 +26,7 @@ $cron_list['live_stream_check'] = array(
 $cron_list['sale_sku_count'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=live --action=LiveSaleSkuNum",
+    'cli_args' => "--class=live --action=livesaleskunum",
     'start_time' => '2016-06-23 00:00:00',
     'interval' => 5
 );
@@ -35,7 +35,7 @@ $cron_list['sale_sku_count'] = array(
 $cron_list['online_count'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=live --action=ChatroomUserNum",
+    'cli_args' => "--class=live --action=chatroomusernum",
     'start_time' => '2016-06-23 00:00:00',
     'interval' => 5
 );
@@ -44,7 +44,7 @@ $cron_list['online_count'] = array(
 $cron_list['get_chat_room_log'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=live --action=ChatroomLog",
+    'cli_args' => "--class=live --action=chatroomlog",
     'start_time' => '2016-06-23 00:00:00',
     'interval' => 3600
 );

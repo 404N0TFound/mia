@@ -83,7 +83,11 @@ class Subject extends \DB_Query {
      * @param type $limit            
      * @return int
      */
-    public function updateSubject($setData, $where = []) {
+    public function updateSubject($setData, $subjectId) {
+        if (intval($subjectId) <= 0) {
+            return false;
+        }
+        $where[] = ['id', $subjectId];
         $data = $this->update($setData, $where);
         return $data;
     }

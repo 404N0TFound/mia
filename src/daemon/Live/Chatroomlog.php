@@ -3,7 +3,7 @@ namespace mia\miagroup\Daemon\Live;
 
 use mia\miagroup\Util\RongCloudUtil;
 
-class ChatroomLog extends \FD_Daemon{
+class Chatroomlog extends \FD_Daemon{
     
     public function execute(){
         
