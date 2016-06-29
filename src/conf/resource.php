@@ -46,4 +46,14 @@ $pool = array(
             ),
         ),
     ),
+    'redis'=>array(
+        'miagroup'=>array(
+            'default'=>array(
+                array(
+                    'host'=>'172.16.104.236',
+                    'port'=>'6379',
+                ),
+            ),
+        ),
+    ),
 );
