@@ -206,7 +206,7 @@ class User extends FS_Service {
         $userInfos = $this->userModel->getUserInfoByIds($user_ids);
         foreach ($userInfos as $key=>$userInfo) {
             $baseUserInfo[$userInfo['id']]['id'] = $userInfo['id'];
-            $baseUserInfo[$userInfo['id']]['name'] = $userInfo['username'];
+            $baseUserInfo[$userInfo['id']]['name'] = $userInfo['nickname'] ?: $userInfo['username'];
             $baseUserInfo[$userInfo['id']]['icon'] = $userInfo['icon'] ?: 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png';
         }
         return $this->succ($baseUserInfo);

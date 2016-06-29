@@ -1,5 +1,5 @@
 <?php
-namespace mia\miagroup\Util;
+namespace mia\miagroup\Lib;
 
 use \Exception;
 /**
