@@ -42,7 +42,7 @@ class LiveRoom extends \DB_Query {
      */
     public function updateLiveRoomById($roomId, $setData) {
     	$where = array();
-    	$where[] = array('id', $roomId);
+    	$where[] = ['id', $roomId];
     	$data = $this->update($setData,$where);
     	return $data;
     }
@@ -52,14 +52,13 @@ class LiveRoom extends \DB_Query {
      * @author jiadonghui@mia.com
      */
     public function updateRoomSettingsById($roomId, $setData) {
-        if (!isset($setData['setting']) || empty($setData['setting'])){
+        if (!isset($setData['settings']) || empty($setData['settings'])){
             return false;
         }
-//         $setData['settings'] = json_encode($setData['settings']);
+        $setDataNew[] = ['settings',json_encode($setData['settings'])];
         $where = array();
-        $where[] = array('id', $roomId);
-
-        $data = $this->update($setData,$where);
+        $where[] = ['id', $roomId];
+        $data = $this->update($setDataNew,$where);
         return $data;
     }
     
@@ -89,7 +88,7 @@ class LiveRoom extends \DB_Query {
                 	$result[$v['id']]['share'] = $settings['share'];
                 	$result[$v['id']]['redbag'] = $settings['redbag'];
                 	$result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
-                	unset($v['settings']);
+                	$result[$v['id']]['settings'] = $settings;
                 }
             }
             return $result;

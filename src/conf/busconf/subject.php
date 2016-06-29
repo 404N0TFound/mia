@@ -49,4 +49,4 @@ $album = array(
 );
 $liveRoomTips = "直播房间测试tips";
 
-$liveSetting = array('custom','redbag','share','is_show_gift');
+$liveSetting = array('banners','redbag','share','is_show_gift');

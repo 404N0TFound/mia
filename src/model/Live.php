@@ -106,6 +106,15 @@ class Live {
     }
     
     /**
+     * 根据ID修改直播房间信息
+     * @
+     */
+    public function updateRoomSettingsById($roomId, $setData) {
+    	$data = $this->liveRoomData->updateRoomSettingsById($roomId, $setData);
+    	return $data;
+    }
+    
+    /**
      * 根据获取房间ID批量获取房间信息
      * @author jiadonghui@mia.com
      */
