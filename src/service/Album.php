@@ -372,10 +372,9 @@ class Album extends \FS_Service {
         
         $condition = array();
         $condition['user_id'] = $con['user_id'];
-        $condition['album_id'] = [$con['id']];
+        $condition['album_id'] = $con['id'];
         $subjectIds = $this->abumModel->getSubjectId($condition);
         $subjectService = new \mia\miagroup\Service\Subject();
-        
         foreach($subjectIds as $subjectId){
             $subjectRes = $subjectService->deleteSubject($subjectId, $con['user_id'])['code'];
             if($subjectRes != '0'){
@@ -414,7 +413,6 @@ class Album extends \FS_Service {
         $subjectService = new \mia\miagroup\Service\Subject();
         foreach($subjectIds as $subjectId){
             $subjectRes = $subjectService->deleteSubject($subjectId, $con['user_id'])['code'];
-            echo $subjectRes;die;
             if($subjectRes != '0'){
                 return $this->error('500','delete miaquan failed');
             }
