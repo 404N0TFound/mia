@@ -275,6 +275,17 @@ class Album {
     }
     
     /**
+     * 帖子id
+     * @params array() user_id int 用户ID
+     * @params array() album_id int 专栏专辑ID
+     * @params array() id int 文章IDs
+     * @return array() 帖子id列表
+     */
+    public function getSubjectId($params) {
+        return $this->albumArticleData->getSubjectId($where);
+    }
+    
+    /**
      * 插入专栏辑接口
      * @params array() title  title
      * @params array() user_id 用户ID
