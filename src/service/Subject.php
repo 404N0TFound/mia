@@ -390,13 +390,13 @@ class Subject extends \FS_Service {
     public function updateSubjectVideo($videoInfo) {
         $setInfo = array();
         if (intval($videoInfo['id']) <= 0) {
-            return false;
+            return $this->error(500);
         }
         if (intval($videoInfo['subject_id']) > 0) {
-            $setInfo[] = ['subject_id',$videoInfo['subject_id']];
+            $setInfo[] = ['subject_id', $videoInfo['subject_id']];
         }
         if (in_array($videoInfo['status'], array(1, 2))) {
-            $setInfo[] = ['status',$videoInfo['status']];
+            $setInfo[] = ['status', $videoInfo['status']];
         }
         // update视频
         $where[] = ['id', $videoInfo['id']];
@@ -404,12 +404,27 @@ class Subject extends \FS_Service {
         
         if (isset($videoInfo['subject_status']) && in_array($videoInfo['subject_status'], array(-1, 0, 1, 2)) && intval($videoInfo['subject_id']) > 0) {
             // 更新视频状态，同步更新帖子
-            $s_where[] = ['id', $videoInfo['subject_id']];
-            $s_setData = [['status',$videoInfo['subject_status']]];
-            $this->subjectModel->updateSubject($s_setData, $s_where);
+            $s_setData = [['status', $videoInfo['subject_status']]];
+            $this->subjectModel->updateSubject($s_setData, $videoInfo['subject_id']);
         }
-        
-        return true;
+        return $this->succ();
+    }
+    
+    /**
+     * 删除帖子
+     */
+    public function deleteSubject($subjectId, $currentUid) {
+        if (intval($subjectId) < 0 || intval($currentUid) < 0) {
+            return $this->error(500);
+        }
+        $subjectInfo = $this->subjectModel->getSubjectByIds(array($subjectId));
+        $subjectInfo = $subjectInfo[$subjectId];
+        if (empty($subjectInfo) || $subjectInfo['user_id'] != $currentUid) {
+            return $this->error(500);
+        }
+        $s_setData = [['status', 0]];
+        $this->subjectModel->updateSubject($s_setData, $subjectId);
+        return $this->succ();
     }
 
     /**
