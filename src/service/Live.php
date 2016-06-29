@@ -169,25 +169,16 @@ class Live extends \FS_Service {
      */
     public function getRoomLiveById($roomId, $currentUid) {
         //获取房间信息
-<<<<<<< Updated upstream
         $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
         if(empty($roomData)){
             //没有直播房间信息
             return $this->error(30003);
         }
-        if($currentUid == $roomData['user_info']['user_id']){
-=======
-    	if($this->getLiveRoomByIds([$roomId])['code'] != 0){
-    	    //没有直播房间信息
-    	    return $this->error(30003);
-    	}
-        $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
         //自己不能观看自己的直播
         if ($roomData['user_id'] == $currentUid && $roomData['live_info']['status'] == 3) {
             return $this->error(30004);
         }
         if($currentUid == $roomData['user_id']){
->>>>>>> Stashed changes
         	// 分享内容
         	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
         	$share = $liveConfig['groupShare'];
@@ -255,15 +246,15 @@ class Live extends \FS_Service {
         $subjectConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
         $liveSetting = $subjectConfig['liveSetting'];
         
-        $settingItems = $liveSetting;
-        $settings = array_diff_key($settings, $settingItems);
+        $settingItems = array_flip($liveSetting);
+        $diffs = array_diff_key($settings, $settingItems);
         //如果配置项不在设定值范围内，则报错
-        if(!empty($settings)){
+        if(!empty($diffs)){
             return $this->error(500);
         }
         
         $setInfo = array('settings' => $settings);
-        $updateRes = $this->liveModel->updateLiveRoomById($setInfo, $roomId);
+        $updateRes = $this->liveModel->updateRoomSettingsById($roomId,$setInfo);
         return $this->succ($updateRes);
     }
 
