@@ -5,7 +5,7 @@ use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Data\Live\LiveRoom;
 use mia\miagroup\Lib\Redis;
 
-class ChatroomUserNum extends \FD_Daemon {
+class Chatroomusernum extends \FD_Daemon {
     
     public function execute() {
 

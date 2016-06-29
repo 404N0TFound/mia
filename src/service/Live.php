@@ -388,7 +388,7 @@ class Live extends \FS_Service {
      * @param unknown $chatroomId
      */
     public function joinChatRoom($userId,$chatroomId){
-        $data = $this->rongCloud->api->chatroomJoin($userId, $chatroomId);
+        $data = $this->rongCloud->api->chatroomJoin([$userId], $chatroomId);
         return $this->succ($data);
     }
 
