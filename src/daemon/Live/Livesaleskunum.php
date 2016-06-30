@@ -2,6 +2,7 @@
 namespace mia\miagroup\Daemon\Live;
 
 use mia\miagroup\Util\RongCloudUtil;
+use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Data\Live\LiveRoom;
 use mia\miagroup\Lib\Redis;
 
@@ -40,8 +41,14 @@ class Livesaleskunum extends \FD_Daemon{
             //记录数量
             $redis->set($sale_num_key,$actual_count);
             //发送售卖商品数量的消息
-            $content = '{"type":6,"extra":{"count":'.$actual_count.'}}';
-            $rong_api->messageChatroomPublish($fromUserId, $room['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
+//             $content = NormalUtil::getMessageBody(6,0,'',['count'=>"$actual_count"]);
+            $content = NormalUtil::getMessageBody(2,3782852,'this is skusalenum');
+            $result = $rong_api->messageChatroomPublish(3782852, $room['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
+            if($result['code'] == 200){
+                echo 'success';
+            }else{
+                echo 'fail';
+            }
         }
         
     }

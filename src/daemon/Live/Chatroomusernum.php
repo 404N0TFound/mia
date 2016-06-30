@@ -2,6 +2,7 @@
 namespace mia\miagroup\Daemon\Live;
 
 use mia\miagroup\Util\RongCloudUtil;
+use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Data\Live\LiveRoom;
 use mia\miagroup\Lib\Redis;
 
@@ -38,8 +39,14 @@ class Chatroomusernum extends \FD_Daemon {
             //记录数量
             $redis->set($audience_num_key,$actual_count);
             //发送在线人数的消息
-            $content = '{"type":5,"extra":{"count":"'.$actual_count.'"}}';
-            $result = $rong_api->messageChatroomPublish($fromUserId, $room['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
+//             $content = NormalUtil::getMessageBody(5,0,'',['count'=>"$actual_count"]);
+            $content = NormalUtil::getMessageBody(2,3782852,'this is usernum');
+            $result = $rong_api->messageChatroomPublish(3782852, $room['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
+            if($result['code'] == 200){
+                echo 'success';
+            }else{
+                echo 'fail';
+            }
         }
         
 //         $this->output(array('code' => 0));

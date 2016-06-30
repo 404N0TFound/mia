@@ -90,6 +90,19 @@ class RongCloudUtil{
         }
     }
     
+    /**
+     * 加入聊天室
+     * @param unknown $userId
+     * @param unknown $chatroomId
+     */
+    public function joinChatRoom(array $userId,$chatroomId){
+        $result = $this->api->chatroomJoin($userId, $chatroomId);
+        if($result['code'] == 200){
+            return true;
+        }else{
+            return false;
+        }
+    }
     
     
     
