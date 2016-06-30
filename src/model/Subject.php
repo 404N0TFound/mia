@@ -21,9 +21,9 @@ class Subject {
      * @param type $subjectIds            
      * @return type
      */
-    public function getSubjectByIds($subjectIds) {
+    public function getSubjectByIds($subjectIds, $status = array()) {
         // 获取帖子的基本信息
-        $subjects = $this->subjectData->getBatchSubjects($subjectIds);
+        $subjects = $this->subjectData->getBatchSubjects($subjectIds, $status);
         if (empty($subjects)) {
             return array();
         }

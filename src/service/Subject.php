@@ -40,12 +40,12 @@ class Subject extends \FS_Service {
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array()) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
         // 获取帖子基本信息
-        $subjectInfos = $this->subjectModel->getSubjectByIds($subjectIds);
+        $subjectInfos = $this->subjectModel->getSubjectByIds($subjectIds, $status);
         if (empty($subjectInfos)) {
             return $this->succ(array());
         }

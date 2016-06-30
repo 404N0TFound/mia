@@ -14,7 +14,7 @@ class Subject extends \DB_Query {
     /**
      * 批量查图片信息
      */
-    public function getBatchSubjects($subjectIds, $status = array()) {
+    public function getBatchSubjects($subjectIds, $status = array(1, 2)) {
         if (empty($subjectIds)) {
             return array();
         }
