@@ -35,6 +35,36 @@ class AlbumArticle extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 帖子id
+     * @params array() user_id int 用户ID
+     * @params array() album_id int 专栏专辑ID
+     * @params array() id int 文章IDs
+     * @return array() 帖子id列表
+     */
+    public function getSubjectId($params) {
+        $where = array();
+        if (is_array($params['user_id'])) {
+            $where[] = array(':in', 'user_id', $params['user_id']);
+        } else {
+            $where[] = array(':eq', 'user_id', $params['user_id']);
+        }
+        if(isset($params['album_id']) && $params['album_id']){
+            $where[] = array(':eq', 'album_id', $params['album_id']);
+        }
+        if(isset($params['id']) && $params['id']){
+            $where[] = array(':in', 'id', $params['id']);
+        }
+        $data = $this->getRows($where, 'subject_id');
+        $result = array();
+        if ($data) {
+            foreach ($data as $val) {
+                $result[] = $val['subject_id'];
+            }
+        }
+        return $result;
+    }
 
     /**
      * 批量查文章内容
