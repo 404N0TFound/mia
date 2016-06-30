@@ -20,7 +20,7 @@ class SubjectPraise extends \DB_Query {
         $field = 'subject_id, GROUP_CONCAT(user_id ORDER BY id DESC) AS ids';
         $where[] = array(':in', 'subject_id', $subjectIds);
         $where[] = array(':eq', 'status', 1);
-        $subPraises = $this->getRows($where, $field, false, false, 'subject_id');
+        $subPraises = $this->getRows($where, $field, false, 0, 'subject_id', false, 'subject_id');
         $subPraisesList = array();
         if(!empty($subPraises)){
             foreach ($subPraises as $praises) {
@@ -49,7 +49,7 @@ class SubjectPraise extends \DB_Query {
         $field = 'subject_id, COUNT(1) AS total';
         $where[] = array(':in', 'subject_id', $subjectIds);
         $where[] = array(':eq', 'status', 1);
-        $praiseNums = $this->getRows($where, $field, false, false, 'subject_id');
+        $praiseNums = $this->getRows($where, $field, false, 0, false, false, 'subject_id');
         
         $praiseRes = array();
         if (!empty($praiseNums)) {
