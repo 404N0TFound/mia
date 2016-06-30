@@ -5,7 +5,7 @@ use \DB_Query;
 
 class AppNewsInfo extends DB_Query{
  
-    public $dbResource = 'miagroup';
+    public $dbResource = 'mianews';
     public $tableName = 'app_news_info';
     public $mapping = [];
 

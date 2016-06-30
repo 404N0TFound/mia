@@ -67,7 +67,7 @@ class SubjectLabel extends \DB_Query {
      */
     public function addLabel($labelTitle) {
         $labelTitleMd5 = md5($labelTitle);
-        $setData = ['title_md5' => $labelTitleMd5];
+        $setData = ['title' => $labelTitle, 'title_md5' => $labelTitleMd5];
         $LabelId = $this->insert($setData);
         
         return $LabelId;

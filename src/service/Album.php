@@ -369,6 +369,19 @@ class Album extends \FS_Service {
         if(!$userPermission){
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
         }
+        
+        $condition = array();
+        $condition['user_id'] = $con['user_id'];
+        $condition['album_id'] = $con['id'];
+        $subjectIds = $this->abumModel->getSubjectId($condition);
+        $subjectService = new \mia\miagroup\Service\Subject();
+        foreach($subjectIds as $subjectId){
+            $subjectRes = $subjectService->deleteSubject($subjectId, $con['user_id'])['code'];
+            if($subjectRes != '0'){
+                return $this->error('500','delete miaquan failed');
+            }
+        }
+        
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['id'] = $con['id'];
@@ -391,6 +404,18 @@ class Album extends \FS_Service {
         $userPermission = $this->abumModel->getAlbumPermissionByUserId($con['user_id']);
         if(!$userPermission){
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
+        }
+        
+        $condition = array();
+        $condition['user_id'] = $con['user_id'];
+        $condition['id'] = [$con['id']];
+        $subjectIds = $this->abumModel->getSubjectId($condition);
+        $subjectService = new \mia\miagroup\Service\Subject();
+        foreach($subjectIds as $subjectId){
+            $subjectRes = $subjectService->deleteSubject($subjectId, $con['user_id'])['code'];
+            if($subjectRes != '0'){
+                return $this->error('500','delete miaquan failed');
+            }
         }
         $params = array();
         $params[] =array(':eq','user_id',$con['user_id']) ;
@@ -527,13 +552,15 @@ class Album extends \FS_Service {
         if(!isset($params['article_id']))
                 return $this->error('500','params article_id is empty');
         $subjectInfo = array();
-        $subjectInfo['title'] = $params['title'];
-        $subjectInfo['text'] = $params['text'];
-        $subjectInfo['image_infos'] = array(
-            'height' => $params['image_infos']['height'], 
-            'url' => $params['image_infos']['url'], 
-            'width' => $params['image_infos']['width']
-        );
+//        $subjectInfo['title'] = $params['title'];
+//        $subjectInfo['text'] = $params['text'];
+//        $subjectInfo['image_infos'] = array(
+//            array(
+//                'height' => $params['image_infos']['height'], 
+//                'url' => $params['image_infos']['url'], 
+//                'width' => $params['image_infos']['width']
+//            )
+//        );
         $user_info = $this->userService->getUserInfoByUserId($params['user_id'])['data'];
         if(!$user_info){
             return $this->error('500','user_info is null');
@@ -551,40 +578,72 @@ class Album extends \FS_Service {
             }
         }
         
-        $subjectService = new \mia\miagroup\Service\Subject();
-        $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0)['data'];
-        
-        if(isset($subjectRes['id'])){
-            $setArticle = array();
-            $setArticle['subject_id'] = $subjectRes['id'];
-            $setArticle['content'] = strip_tags($params['text']);
-            $setArticle['content_original'] = $params['text'];
-            $setArticle['status'] = 1;
-            $setArticle['title'] = $params['title'];
-            $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
-            $setArticle['cover_image'] = json_encode(
-                    array(
-                        'width'=>$params['image_infos']['width'],
-                        'height'=>$params['image_infos']['height'],
-                        'url'=>$params['image_infos']['url'],
-                        'content'=>''
-                    ));
-            if($params['article_id'] == '0'){   //$params['article_id'] == '0' 最新发布的 直接入库
+        $setArticle = array();
+        $setArticle['content'] = strip_tags($params['text']);
+        $setArticle['content_original'] = $params['text'];
+        $setArticle['title'] = $params['title'];
+        $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
+        $setArticle['cover_image'] = json_encode(
+                array(
+                    'width'=>$params['image_infos']['width'],
+                    'height'=>$params['image_infos']['height'],
+                    'url'=>$params['image_infos']['url'],
+                    'content'=>''
+                ));
+        if($params['article_id'] == '0'){   //$params['article_id'] == '0' 最新发布的 直接入库
+            $subjectService = new \mia\miagroup\Service\Subject();
+            $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0)['data'];
+            if(isset($subjectRes['id'])){
                 $setArticle['user_id'] = $params['user_id'];
                 $setArticle['album_id'] = $params['album_id'];
+                $setArticle['subject_id'] = $subjectRes['id'];
+                $setArticle['status'] = 1;
                 $res = $this->abumModel->addAlbum($setArticle);
-            } else {
-                $paramsArticle = array();
-                $paramsArticle['user_id'] = $params['user_id'];
-                $paramsArticle['album_id'] = $params['album_id'];
-                $paramsArticle['id'] = $params['article_id'];
-                
-                $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
+                return $this->succ($res);
             }
-            
+        }
+        else
+        {
+            $paramsArticle = array();
+            $paramsArticle['user_id'] = $params['user_id'];
+            $paramsArticle['album_id'] = $params['album_id'];
+            $paramsArticle['id'] = $params['article_id'];
+            $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
             return $this->succ($res);
         }
-        return $this->succ($res);
+        return $this->error('500','unknow error');
+        
+//        if(isset($subjectRes['id'])){
+//            $setArticle = array();
+//            $setArticle['subject_id'] = $subjectRes['id'];
+//            $setArticle['content'] = strip_tags($params['text']);
+//            $setArticle['content_original'] = $params['text'];
+//            $setArticle['status'] = 1;
+//            $setArticle['title'] = $params['title'];
+//            $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
+//            $setArticle['cover_image'] = json_encode(
+//                    array(
+//                        'width'=>$params['image_infos']['width'],
+//                        'height'=>$params['image_infos']['height'],
+//                        'url'=>$params['image_infos']['url'],
+//                        'content'=>''
+//                    ));
+//            if($params['article_id'] == '0'){   //$params['article_id'] == '0' 最新发布的 直接入库
+//                $setArticle['user_id'] = $params['user_id'];
+//                $setArticle['album_id'] = $params['album_id'];
+//                $res = $this->abumModel->addAlbum($setArticle);
+//            } else {
+//                $paramsArticle = array();
+//                $paramsArticle['user_id'] = $params['user_id'];
+//                $paramsArticle['album_id'] = $params['album_id'];
+//                $paramsArticle['id'] = $params['article_id'];
+//                
+//                $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
+//            }
+//            
+//            return $this->succ($res);
+//        }
+//        return $this->succ($res);
     }
     
     /**
