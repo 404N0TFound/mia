@@ -307,7 +307,6 @@ class Subject extends \FS_Service {
                 $labelInfo['title'] = trim($labelInfo['title']);
                 $labelInfo['create_time'] = $subjectSetInfo['created'];
                 $labelInfo['user_id'] = intval($subjectSetInfo['user_id']);
-                $savelab = $labelInfo['title'];
                 $labelRelationSetInfo = array("subject_id" => $subjectId, "label_id" => 0, "create_time" => $subjectSetInfo['created'], "user_id" => $subjectInfo['user_info']['user_id']);
                 if (isset($labelInfo['id']) && $labelInfo['id'] > 0) {
                     $labelRelationSetInfo['label_id'] = $labelInfo['id'];
@@ -316,7 +315,7 @@ class Subject extends \FS_Service {
                     $labelResult = $this->labelService->checkIsExistByLabelTitle($labelInfo['title'])['data'];
                     if (empty($labelResult)) {
                         // 如果没有存在，则保存该自定义标签
-                        $insertId = $this->labelService->addLabel($savelab)['data'];
+                        $insertId = $this->labelService->addLabel($labelInfo['title'])['data'];
                         $labelRelationSetInfo['label_id'] = $insertId;
                     } else {
                         $labelRelationSetInfo['label_id'] = $labelResult['id'];
