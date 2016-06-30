@@ -7,7 +7,7 @@
         "Ice/Framework": ">=0.0.1-dev",
         "qiniu/php-sdk": "^7.0",
         "rongcloud/php-sdk": "^1.0",
-        "pili-engineering/pili-sdk-php": "dev-master"
+        "pili-engineering/pili-sdk-php": "v1.5.4"
     },
     "autoload": {
         "psr-4": {
