@@ -46,7 +46,7 @@ class SubjectComment extends \DB_Query {
         $field = 'subject_id, GROUP_CONCAT(id ORDER BY id DESC) AS ids';
         $where[] = array(':in', 'subject_id', $subjectIds);
         $where[] = array(':eq', 'status', 1);
-        $subComments = $this->getRows($where, $field, false, false, 'subject_id');
+        $subComments = $this->getRows($where, $field, false, 0, 'subject_id', false, 'subject_id');
         //循环取出每个分组的前3个ID，合并为一个数组
         $commIds = array();
         $subCommentsLimit = array(); // 存以选题ID为键的值为限制了条数后的评论ID数组
@@ -70,7 +70,7 @@ class SubjectComment extends \DB_Query {
         $field = 'subject_id, COUNT(id) AS num';
         $where[] = array(':in', 'subject_id', $subjectIds);
         $where[] = array(':eq', 'status', 1);
-        $result = $this->getRows($where, $field, false, false, 'subject_id');
+        $result = $this->getRows($where, $field, false, 0, false, false, 'subject_id');
         //将结果循环为已选题ID为键的以数量为值的一维数组
         $num = array();
         foreach ($result as $r) {
