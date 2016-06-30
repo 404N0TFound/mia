@@ -104,6 +104,12 @@ class Live extends \FS_Service {
         //获取房间信息
         $roomData = $this->getRoomLiveById($roomInfo['id'],$userId)['data'];
         
+        //让蜜芽兔加入聊天室
+        $join_result = $this->rongCloud->joinChatRoom([3782852], $chatId);
+        if(!$join_result){
+            //加入聊天室失败
+            return $this->error(30001);
+        }
         //返回数据
         $data['qiniu_stream_info'] = json_encode($streamInfo);
         $data['room_info'] = $roomData;
@@ -393,7 +399,7 @@ class Live extends \FS_Service {
      * @param unknown $chatroomId
      */
     public function joinChatRoom($userId,$chatroomId){
-        $data = $this->rongCloud->api->chatroomJoin([$userId], $chatroomId);
+        $data = $this->rongCloud->joinChatRoom($userId, $chatroomId);
         return $this->succ($data);
     }
 

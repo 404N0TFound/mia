@@ -502,7 +502,7 @@ class RongCloudAPI{
 
 
     /**
-     * 创建聊天室
+     * 加入聊天室
      * @param array $userId   要加入聊天室的用户 Id，可提交多个，最多不超过 50 个。（必传）
      * @param array $chatroomId   要加入的聊天室 Id。（必传）
      * @return json|xml
@@ -517,9 +517,10 @@ class RongCloudAPI{
             $ret = $this->curl('/chatroom/join', $params);
             if(empty($ret))
                 throw new Exception('请求失败');
-            return $ret;
+            return json_decode($ret,true);
         }catch (Exception $e) {
-            print_r($e->getMessage());
+//             print_r($e->getMessage());
+            return false;
         }
     }
 
