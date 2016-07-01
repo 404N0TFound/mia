@@ -28,4 +28,29 @@ class Redis {
         return $data;
     }
     
+    public function lpush($key, $val){
+		if (!$key || !$val === NULL) {
+            return false;
+        }
+        $res = $this->redis->lpush($key, $val);
+        return $res;
+    }
+    
+	public function lpop($key)
+    {
+        if (!$key) {
+            return false;
+        }
+        $res = $this->redis->lpop($key);
+        return $res;
+    }
+    
+    public function llen($key)
+    {
+    	if (!$key) {
+    		return false;
+    	}
+    	$res = $this->redis->llen($key);
+    	return $res;
+    }
 }
