@@ -67,7 +67,7 @@ class Cronmonitor extends \FD_Daemon {
      * 查看是否到执行时间点
      */
     private function time_to_run($cron_name) {
-        $cron_list = \F_Ice::$ins->workApp->config->get('daemoncron.cron_list');
+        $cron_list = \F_Ice::$ins->workApp->config->get('busconf.daemoncron.cron_list');
         $cron = $cron_list[$cron_name];
         $this->mk_dir($this->temp_file_path);
         $daemon_time_file = $this->temp_file_path . $cron_name . '_last_time';

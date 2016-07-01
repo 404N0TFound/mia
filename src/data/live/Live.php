@@ -97,7 +97,7 @@ class Live extends \DB_Query {
      */
     public function getBatchLiveInfo($status = array(3)){
         $where[] = ['status',$status];
-        $result = $this->getRows();
+        $result = $this->getRows($where);
         return $result;
     }
     
