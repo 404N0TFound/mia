@@ -7,6 +7,8 @@ use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Lib\Redis;
+use mia\miagroup\Service\Redbag;
+use mia\miagroup\Service\News;
 
 class Live extends \FS_Service {
     
@@ -175,7 +177,7 @@ class Live extends \FS_Service {
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0) {
         //获取房间信息
-        $roomData = $this->getLiveRoomByIds([$roomId],array('user_info', 'live_info', 'share_info', 'tips','banners','redbag','is_show_gift'), $currentUid)['data'][$roomId];
+        $roomData = $this->getLiveRoomByIds([$roomId],array('user_info', 'live_info', 'share_info', 'tips','settings'), $currentUid)['data'][$roomId];
         if(empty($roomData)){
             //没有直播房间信息
             return $this->error(30003);
@@ -198,6 +200,16 @@ class Live extends \FS_Service {
         		$roomData['share_info']['desc'] =  $defaultShare['desc'];
         	}
         }
+        //当前用户是否已领取
+        $redbagService = new Redbag();
+        $isReceived = $redbagService->isReceivedRedbag($currentUid,$roomData['redbag']['id'])['data'];
+        if(!empty($isReceived)){
+        	$isReceivedStatus = 1;
+        }else{
+        	$isReceivedStatus = 0;
+        }
+        $roomData['redbag']['is_received'] = $isReceivedStatus;//是否已经领取
+        
         if (intval($liveId) > 0 && $roomData['status'] == 0) {
             //直播结束，获取回放信息
             $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(4))['data'];
@@ -256,7 +268,7 @@ class Live extends \FS_Service {
         $id = time() . $roomId;
         return $this->succ($id);
     }
-    
+
     /**
      * 更新直播房间设置
      * @author jiadonghui@mia.com
@@ -271,13 +283,23 @@ class Live extends \FS_Service {
         
         $settingItems = array_flip($liveSetting);
         $diffs = array_diff_key($settings, $settingItems);
-        //如果配置项不在设定值范围内，则报错
-        if(!empty($diffs)){
+        // 如果配置项不在设定值范围内，则报错
+        if (!empty($diffs)) {
             return $this->error(500);
         }
         
         $setInfo = array('settings' => $settings);
-        $updateRes = $this->liveModel->updateRoomSettingsById($roomId,$setInfo);
+        $updateRes = $this->liveModel->updateRoomSettingsById($roomId, $setInfo);
+        
+        // 如果settings里有红包就给主播发消息
+        if (in_array('redbag', $settings)) {
+            $liveRoomInfo = $this->getLiveRoomByIds(array($roomId))['data'];
+            if (!empty($liveRoomInfo[$roomId]) && !empty($liveRoomInfo[$roomId]['chat_room_id'])) {
+                $rong_api = new RongCloudUtil();
+                $content = '{"type":7,"extra":{"redbagUpdateRes":"' . $updateRes . '"}}';
+                $rong_api->messageChatroomPublish(3782852, $liveRoomInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
+            }
+        }
         return $this->succ($updateRes);
     }
 
@@ -286,8 +308,8 @@ class Live extends \FS_Service {
      * 获取直播房间列表
      * @author jiadonghui@mia.com
      */
-    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips','banners','redbag','is_show_gift'), $currentUid=0) {
-        if (empty($roomIds) || !array($roomIds)) {
+    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips','sttings'), $currentUid=0) {
+    	if (empty($roomIds) || !array($roomIds)) {
              return $this->succ(array());
         }
         //批量获取房间信息
@@ -325,6 +347,7 @@ class Live extends \FS_Service {
             $roomRes[$roomInfo['id']]['user_id'] = $roomInfo['user_id'];
             $roomRes[$roomInfo['id']]['subject_id'] = $roomInfo['subject_id'];
             $roomRes[$roomInfo['id']]['status'] = 0;
+            $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){
@@ -339,28 +362,31 @@ class Live extends \FS_Service {
                 } else {
                     $roomRes[$roomInfo['id']]['status'] = 0;
                 }
-                
             }
-            //后台自定义的商品信息
-            if(in_array('banners', $field)){
-            	if(!empty($roomInfo['banners'])){
-            		$roomRes[$roomInfo['id']]['banners'] = $roomInfo['banners'];
-            	}
+            if (in_array('settings', $field)) {
+                // 后台自定义的商品信息
+                if (!empty($roomInfo['banners'])) {
+                    $roomRes[$roomInfo['id']]['banners'] = $roomInfo['banners'];
+                }
+                // 房间提示信息
+                $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips'];
+                // 是否显示分享得好礼
+                $roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
             }
-            //红包信息
-            if(in_array('redbag', $field)){
-            	if(!empty($roomInfo['redbag'])){
-            		$roomRes[$roomInfo['id']]['redbag'] = $roomInfo['redbag'];
-            	}
-            }
-            //是否显示分享得好礼
-            if(in_array('is_show_gift', $field)){
-            	$roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
+            // 红包信息
+            if (in_array('redbag', $field)) {
+                if (!empty($roomInfo['redbag'])) {
+                    $redbagId = $roomInfo['redbag'];
+                    // 获取红包数量
+                    $redbagService = new Redbag();
+                    $redbagNums = $redbagService->getRedbagNums($redbagId)['data'];
+                    $roomRes[$roomInfo['id']]['redbag']['id'] = $roomInfo['redbag'];
+                    $roomRes[$roomInfo['id']]['redbag']['nums'] = $redbagNums;
+                }
             }
             
             if (in_array('share_info', $field)) {
                 // 分享内容
-                $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
                 $share = $liveConfig['groupShare'];
                 $defaultShare = $liveConfig['defaultShareInfo']['live_by_user'];
                 //如果没有直播信息的话就去默认分享文案
@@ -381,10 +407,6 @@ class Live extends \FS_Service {
                 unset($share[0]['extend_text']);
                 unset($share[1]['extend_text']);
                 $roomRes[$roomInfo['id']]['share_info'] = $share;
-            }
-            //房间提示信息
-            if (in_array('tips', $field)) {
-                $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips'];
             }
         }
         return $this->succ($roomRes);
@@ -419,7 +441,35 @@ class Live extends \FS_Service {
         $data = $this->rongCloud->joinChatRoom($userId, $chatroomId);
         return $this->succ($data);
     }
-
+    
+    /**
+     * 领取直播红包
+     */
+    public function getLiveRedBag($userId, $redBagId, $roomId) {
+        // 获取直播房间信息
+        $liveRoomInfo = $this->getRoomLiveById($roomId, $userId)['data'];
+        // 判断该红包是否绑定了直播房间
+        if ($liveRoomInfo['redbag']['id'] == $redBagId) {
+            $redbagService = new Redbag();
+            // 是否已领取
+            $isReceived = $redbagService->isReceivedRedbag($redBagId, $userId)['data'];
+            if (!empty($isReceived)) {
+                return $this->error('1721');
+            }
+            // 领红包
+            $redbagNums = $redbagService->getPersonalRedBag($userId, $redBagId)['data'];
+            if (!$redbagNums) {
+                return $this->error('1723');
+            }
+            // 如果红包未领取完毕，则可以领，否则给聊天室发消息
+            if ($liveRoomInfo['redbag']['nums'] <= 0) {
+                $rong_api = new RongCloudUtil();
+                $content = '{"type":7,"extra":{"redbagNums":"' . $redbagNums . '"}}';
+                $rong_api->messageChatroomPublish(3782852, $liveRoomInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
+            }
+        }
+        return $this->succ($redbagNums);
+    }
     
 }
 
