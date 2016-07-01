@@ -12,8 +12,8 @@ class Comment extends \FS_Service {
     public function __construct() {
         $this->userService = new UserService();
         $this->commentModel = new CommentModel();
-//         $this->subjectService = new Subject();
         $this->newService = new News();
+        $this->emojiUtil = new EmojiUtil();
     }
 
     /**
@@ -37,7 +37,7 @@ class Comment extends \FS_Service {
         }
         // 获取父评论信息
         if (in_array('parent_comment', $field) && !empty($fids)) {
-            $parentComments = self::getBatchComments($fids, array_diff($field, array('parent_comment')), 9);
+            $parentComments = $this->getBatchComments($fids, array_diff($field, array('parent_comment')), 9);
         }
         // 拼装结果集
         $result = array();
@@ -91,7 +91,7 @@ class Comment extends \FS_Service {
         }
         return $this->succ($subRelationComm);
     }
-    
+
     /**
      * 批量查评论数
      */
@@ -103,54 +103,44 @@ class Comment extends \FS_Service {
         return $this->succ($subjectCommentNums);
     }
     
-    
-    
-    //选题评论
-    public function comment($iSubjectId, $commentInfo) {
-        if (empty($commentInfo)) {
-            return false;
+    /**
+     * 发布帖子评论
+     */
+    public function comment($subjectId, $commentInfo) {
+        if (empty($commentInfo) || intval($subjectId) <= 0) {
+            return $this->error(500);
         }
-        if (!is_numeric($iSubjectId) || intval($iSubjectId) <= 0) {
-            return false;
-        }
-        $commentInfo['comment'] = trim(EmojiUtil::emoji_unified_to_html($commentInfo['comment']));
+        $commentInfo['comment'] = trim($this->emojiUtil->emoji_unified_to_html($commentInfo['comment']));
         if ($commentInfo['comment'] == "") {
-            return false;
+            return $this->error(500);
         }
         $user_id = $commentInfo['user_id'];
-        //评论信息入库
+        // 评论信息入库
+        $commentInfo['subject_id'] = $subjectId;
         $commentInfo['comment'] = $commentInfo['comment'];
         $commentInfo['create_time'] = date("Y-m-d H:i:s", time());
-        //记录评论信息
-        $insertRes = $this->commentModel->addComment($commentInfo);
-        if (!$insertRes) {
-            return false;
-        }
-        $commentId = $insertRes;
-        $commentInfo['id'] = $commentId;
-    
-        //获取入库的评论
-        $comment = $this->getBatchComments(array($commentId), array('user_info', 'parent_comment'))['data'];
+        // 记录评论信息
+        $commentInfo['id'] = $this->commentModel->addComment($commentInfo);
+        
+        // 获取入库的评论
+        $comment = $this->getBatchComments(array($commentInfo['id']), array())['data'];
         if (!empty($comment[$commentId])) {
-            $commentInfo = $comment[$commentId];
+            $commentInfo = $comment[$commentInfo['id']];
         }
-    
-        //送蜜豆
         
-        //发送评论消息
-//         $subjectInfoData = $this->subjectService->getBatchSubjectInfos($iSubjectId,0,array())['data'];
-        $subjectInfo['subject_info'] = [$iSubjectId=>[]];
+        $this->subjectService = new Subject();
+        $subjectInfoData = $this->subjectService->getBatchSubjectInfos(array($subjectId), 0, array())['data'];
+        $subjectInfo = $subjectInfoData[$subjectId];
+        $sendFromUserId = $user_id; // 当前登录人id
+        $toUserId = $subjectInfo['user_id'];
         
-        $sendFromUserId = $user_id; //当前登录人id
-//         $toUserId = $subjectInfo['subject_info']['user_info']['user_id'];
-
-        //如果直接评论图片，自己评论自己的图片，不发送消息/push
+        // 如果直接评论图片，自己评论自己的图片，不发送消息/push
         if ($sendFromUserId != $toUserId) {
-            //发消息
+            // 发消息
             $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
         }
-
-        //如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
+        
+        // 如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
             $toUserId = $commentInfo['parent_user']['user_id'];
             $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id'])['data'];
@@ -158,9 +148,4 @@ class Comment extends \FS_Service {
         
         return $this->succ($commentInfo);
     }
-    
-    
-    
-    
-    
 }

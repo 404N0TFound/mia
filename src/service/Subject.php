@@ -29,7 +29,6 @@ class Subject extends \FS_Service {
         $this->subjectModel = new SubjectModel();
         $this->labelService = new LabelService();
         $this->userService = new UserService();
-        $this->commentService = new CommentService();
         $this->praiseService = new PraiseService();
         $this->albumService = new AlbumService();
     }
@@ -61,8 +60,9 @@ class Subject extends \FS_Service {
             $userIds = array_unique($userIdArr);
             $userArr = $this->userService->getUserInfoByUids($userIds, $currentUid, array("relation", "count"))['data'];
         }
-        //获取评论信息
+        // 获取评论信息
         if (in_array('comment', $field)) {
+            $this->commentService = new CommentService();
             $comments = $this->commentService->getBatchCommentList($subjectIds, 2)['data'];
         }
         // 获取标签信息
@@ -71,6 +71,7 @@ class Subject extends \FS_Service {
         }
         // 获取计数信息
         if (in_array('count', $field)) {
+            $this->commentService = new CommentService();
             $commentCounts = $this->commentService->getBatchCommentNums($subjectIds)['data'];
             $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
         }
