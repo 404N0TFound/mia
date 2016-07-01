@@ -3,22 +3,27 @@ namespace mia\miagroup\Daemon\Live;
 
 use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Util\NormalUtil;
-use mia\miagroup\Data\Live\LiveRoom;
+use mia\miagroup\Data\Live\Live as LiveData;
 use mia\miagroup\Lib\Redis;
 
+/**
+ * 推送直播在线用户数
+ * @author user
+ *
+ */
 class Chatroomusernum extends \FD_Daemon {
     
     public function execute() {
 
-        $roomData = new LiveRoom();
+        $liveData = new LiveData();
         $rong_api = new RongCloudUtil();
         $redis = new Redis();
         
         //获取正在直播的聊天室的id
-        $result = $roomData->getBatchLiveRoomInfo();
-        foreach($result as $room){
+        $result = $liveData->getBatchLiveInfo();
+        foreach($result as $liveInfo){
             //获取数量
-            $audience_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_audience_online_num.key'),$room['live_id']);
+            $audience_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_audience_online_num.key'),$liveInfo['id']);
             $cache_audience_num = $redis->get($audience_num_key);
             
             //规则:底数为1（含）-50（含）的随机数，每5s，叠加一个0（含）-20（含）的随机数，最大值14400
@@ -41,7 +46,7 @@ class Chatroomusernum extends \FD_Daemon {
             //发送在线人数的消息
             $content = NormalUtil::getMessageBody(5,0,'',['count'=>"$actual_count"]);
 //             $content = NormalUtil::getMessageBody(2,3782852,'this is usernum'); //test
-            $result = $rong_api->messageChatroomPublish(3782852, $room['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
+            $result = $rong_api->messageChatroomPublish(3782852, $liveInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
             if($result['code'] == 200){
                 echo 'success';
             }else{

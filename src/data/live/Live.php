@@ -92,6 +92,14 @@ class Live extends \DB_Query {
         return $data;
     }
     
+    /**
+     * 批量获取正在直播的房间信息
+     */
+    public function getBatchLiveInfo($status = array(3)){
+        $where[] = ['status',$status];
+        $result = $this->getRows();
+        return $result;
+    }
     
     
 }
