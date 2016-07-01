@@ -32,7 +32,7 @@ class Redis {
         if(is_array($val)){
             $val = json_encode($val);
         }
-        $data = $this->redis->set($key,$expires,$val);
+        $data = $this->redis->setex($key,$expires,$val);
         return $data;
     }
     
