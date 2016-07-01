@@ -177,7 +177,7 @@ class Live extends \FS_Service {
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0) {
         //获取房间信息
-        $roomData = $this->getLiveRoomByIds([$roomId],array('user_info', 'live_info', 'share_info', 'tips','settings'), $currentUid)['data'][$roomId];
+        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag'))['data'][$roomId];
         if(empty($roomData)){
             //没有直播房间信息
             return $this->error(30003);
@@ -308,7 +308,7 @@ class Live extends \FS_Service {
      * 获取直播房间列表
      * @author jiadonghui@mia.com
      */
-    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips','sttings'), $currentUid=0) {
+    public function getLiveRoomByIds($roomIds, $currentUid = 0, $field = array('user_info', 'live_info', 'share_info', 'settings')) {
     	if (empty($roomIds) || !array($roomIds)) {
              return $this->succ(array());
         }
@@ -317,7 +317,6 @@ class Live extends \FS_Service {
         if (empty($roomInfos)) {
             return $this->succ(array());
         }
-        
         //获取批量userid，用于取出直播房间的主播信息
         $userIdArr = array();
         $liveIdArr = array();
@@ -328,7 +327,7 @@ class Live extends \FS_Service {
         //通过userids批量获取主播信息
         $userIds = array_unique($userIdArr);
         $userService = new User();
-        $userArr = $userService->getUserInfoByUids($userIds,$currentUid)['data'];
+        $userArr = $userService->getUserInfoByUids($userIds, $currentUid)['data'];
         //通过liveids批量获取直播列表
         $liveIds = array_unique($liveIdArr);
         $liveArr = $this->getBatchLiveInfoByIds($liveIds)['data'];
@@ -340,6 +339,7 @@ class Live extends \FS_Service {
             } else {
                 continue;
             }
+            $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
             $roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
             $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
             $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_room_id'];
@@ -347,7 +347,7 @@ class Live extends \FS_Service {
             $roomRes[$roomInfo['id']]['user_id'] = $roomInfo['user_id'];
             $roomRes[$roomInfo['id']]['subject_id'] = $roomInfo['subject_id'];
             $roomRes[$roomInfo['id']]['status'] = 0;
-            $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
+            $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips']; //房间提示信息
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){
@@ -368,8 +368,6 @@ class Live extends \FS_Service {
                 if (!empty($roomInfo['banners'])) {
                     $roomRes[$roomInfo['id']]['banners'] = $roomInfo['banners'];
                 }
-                // 房间提示信息
-                $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips'];
                 // 是否显示分享得好礼
                 $roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
             }
@@ -382,6 +380,8 @@ class Live extends \FS_Service {
                     $redbagNums = $redbagService->getRedbagNums($redbagId)['data'];
                     $roomRes[$roomInfo['id']]['redbag']['id'] = $roomInfo['redbag'];
                     $roomRes[$roomInfo['id']]['redbag']['nums'] = $redbagNums;
+                    $redbagReceived = $redbagService->isReceivedRedbag($redbagId, $currentUid);
+                    $roomRes[$roomInfo['id']]['redbag']['is_received'] = !empty($redbagReceived) ? 1 : 0;
                 }
             }
             
@@ -447,12 +447,13 @@ class Live extends \FS_Service {
      */
     public function getLiveRedBag($userId, $redBagId, $roomId) {
         // 获取直播房间信息
-        $liveRoomInfo = $this->getRoomLiveById($roomId, $userId)['data'];
+        $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('redbag'))['data'];
+        $liveRoomInfo = $liveRoomInfo[$roomId];
         // 判断该红包是否绑定了直播房间
         if ($liveRoomInfo['redbag']['id'] == $redBagId) {
             $redbagService = new Redbag();
             // 是否已领取
-            $isReceived = $redbagService->isReceivedRedbag($redBagId, $userId)['data'];
+            $isReceived = $liveRoomInfo['redbag']['is_received'];
             if (!empty($isReceived)) {
                 return $this->error('1721');
             }
