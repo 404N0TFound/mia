@@ -96,13 +96,4 @@ class LiveRoom extends \DB_Query {
     }
     
     
-    /**
-     * 批量获取正在直播的房间ID
-     */
-    public function getBatchLiveRoomInfo(){
-        $sql = "SELECT * FROM `".$this->tableName."` WHERE chat_room_id is not null AND chat_room_id <> ''";
-        $result = $this->query($sql);
-        return $result;
-    }
-    
 }
