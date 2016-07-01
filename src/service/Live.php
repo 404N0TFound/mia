@@ -210,6 +210,18 @@ class Live extends \FS_Service {
         }
         $roomData['redbag']['is_received'] = $isReceivedStatus;//是否已经领取
         
+        if (intval($liveId) > 0 && $roomData['status'] == 0) {
+            //直播结束，获取回放信息
+            $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(4))['data'];
+            if (!empty($liveInfo[$liveId])) {
+                $liveInfo = $liveInfo[$liveId];
+                //回放地址
+                $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                //快照
+                $qiniuUtil = new QiniuUtil();
+                $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+            }
+        }
         return $this->succ($roomData);
     }
     
@@ -222,8 +234,8 @@ class Live extends \FS_Service {
         $liveInfos = $this->liveModel->getBatchLiveInfoByIds($liveIds,$status);
         $qiniu = new QiniuUtil();
         $redis = new Redis();
-        //如果是直播中的live要给url地址
         foreach($liveInfos as $k=>$liveInfo){
+            //如果是直播中的live要给url地址
             if($liveInfo['status'] == 3){
                 $addrInfo = $qiniu->getLiveUrls($liveInfo['stream_id']);
                 $liveInfo['hls_url'] = $addrInfo['hls'];
@@ -238,6 +250,11 @@ class Live extends \FS_Service {
                 $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'),$k);
                 $sale_num = $redis->get($sale_num_key);
                 $liveInfo['sale_num'] = $sale_num ?: '0';
+            }
+            //如果直播已结束，给回放地址
+            if($liveInfo['status'] == 4){
+                $addrInfo = $qiniu->getPalyBackUrls($liveInfo['stream_id']);
+                $liveInfo['play_back_hls_url'] = $addrInfo['hls'];
             }
             $wantLiveInfo[$k] = $liveInfo;
         }
