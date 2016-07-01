@@ -92,6 +92,25 @@ class QiniuUtil {
     }
     
     /**
+     * 获取直播快照
+     */
+    public function getSnapShot($streamId, $size = 100, $name = null, $time = null){
+        $returnValue = [];
+        if(!$name){
+            $time = time();
+            $name = "{$streamId}.{$time}.jpg";
+        }
+        $format = 'jpg';
+        $stream = $this->qiniuHub->getStream($streamId);
+        $result = $stream->snapshot($name, $format, $time);
+        if(isset($result['targetUrl'])){
+            $returnValue['origin'] = $result['targetUrl'];
+            $returnValue[$size] = "{$result['targetUrl']}?imageView2/2/w/{$size}/h/{$size}/q/85";
+        }
+        return $returnValue;
+    }
+    
+    /**
      * ******************
      */
     /**
