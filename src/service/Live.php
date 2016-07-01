@@ -175,7 +175,7 @@ class Live extends \FS_Service {
      */
     public function getRoomLiveById($roomId, $currentUid) {
         //获取房间信息
-        $roomData = $this->getLiveRoomByIds([$roomId])['data'][$roomId];
+        $roomData = $this->getLiveRoomByIds([$roomId],array('user_info', 'live_info', 'share_info', 'tips','banners','redbag','is_show_gift'), $currentUid)['data'][$roomId];
         if(empty($roomData)){
             //没有直播房间信息
             return $this->error(30003);
@@ -269,7 +269,7 @@ class Live extends \FS_Service {
      * 获取直播房间列表
      * @author jiadonghui@mia.com
      */
-    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips','banners','redbag','is_show_gift')) {
+    public function getLiveRoomByIds($roomIds, $field = array('user_info', 'live_info', 'share_info', 'tips','banners','redbag','is_show_gift'), $currentUid=0) {
         if (empty($roomIds) || !array($roomIds)) {
              return $this->succ(array());
         }
@@ -289,7 +289,7 @@ class Live extends \FS_Service {
         //通过userids批量获取主播信息
         $userIds = array_unique($userIdArr);
         $userService = new User();
-        $userArr = $userService->getUserInfoByUids($userIds)['data'];
+        $userArr = $userService->getUserInfoByUids($userIds,$currentUid)['data'];
         //通过liveids批量获取直播列表
         $liveIds = array_unique($liveIdArr);
         $liveArr = $this->getBatchLiveInfoByIds($liveIds)['data'];
