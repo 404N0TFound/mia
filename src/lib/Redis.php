@@ -28,4 +28,18 @@ class Redis {
         return $data;
     }
     
+    public function setex($key,$val,$expires){
+        if(is_array($val)){
+            $val = json_encode($val);
+        }
+        $data = $this->redis->set($key,$expires,$val);
+        return $data;
+    }
+    
+    
+    public function __call($method,$param){
+        $data = call_user_func_array(array($this->redis,$method),$param);
+        return $data;
+    }
+    
 }
