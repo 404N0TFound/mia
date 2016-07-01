@@ -14,18 +14,15 @@ class Subject extends \DB_Query {
     /**
      * 批量查图片信息
      */
-    public function getBatchSubjects($subjectIds, $status = array()) {
+    public function getBatchSubjects($subjectIds, $status = array(1, 2)) {
         if (empty($subjectIds)) {
             return array();
         }
         $where = array();
-        $where[] = array(':in', 'id', $subjectIds);
-        if (!empty($status) && !is_array($status)) {
-            $where[] = array('i:eq', 'status', $status);
-        } else 
-            if (!empty($status) && is_array($status)) {
-                $where[] = array('i:in', 'status', $status);
-            }
+        $where[] = array('id', $subjectIds);
+        if (!empty($status)) {
+            $where[] = array('status', $status);
+        }
         $subjectsArrs = $this->getRows($where);
         if (empty($subjectsArrs)) {
             return array();
