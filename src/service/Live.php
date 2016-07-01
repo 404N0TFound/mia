@@ -173,7 +173,7 @@ class Live extends \FS_Service {
     /**
      * 获取房间当前直播的信息
      */
-    public function getRoomLiveById($roomId, $currentUid) {
+    public function getRoomLiveById($roomId, $currentUid, $liveId = 0) {
         //获取房间信息
         $roomData = $this->getLiveRoomByIds([$roomId],array('user_info', 'live_info', 'share_info', 'tips','banners','redbag','is_show_gift'), $currentUid)['data'][$roomId];
         if(empty($roomData)){
