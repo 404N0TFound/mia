@@ -221,11 +221,11 @@ class Live extends \FS_Service {
                 //当前在线人数
                 $audience_online_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_audience_online_num.key'),$k);
                 $audience_online_num = $redis->get($audience_online_num_key);
-                $liveInfo['audience_online_num'] = $audience_online_num;
+                $liveInfo['audience_online_num'] = $audience_online_num ?: '0';
                 //商品已售卖数
                 $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'),$k);
                 $sale_num = $redis->get($sale_num_key);
-                $liveInfo['sale_num'] = $sale_num;
+                $liveInfo['sale_num'] = $sale_num ?: '0';
             }
             $wantLiveInfo[$k] = $liveInfo;
         }
