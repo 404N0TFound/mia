@@ -20,7 +20,7 @@ class Chatroomlog extends \FD_Daemon{
             //下载文件
             $this->curlDownload($url, $filename);
             //处理压缩文件
-            $zip=new ZipArchive();
+            $zip=new \ZipArchive();
             if($zip->open($filename)===TRUE){
                 $zip->extractTo($chatroom_log_path);
                 $zip->close();
