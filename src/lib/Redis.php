@@ -28,29 +28,18 @@ class Redis {
         return $data;
     }
     
-    public function lpush($key, $val){
-		if (!$key || !$val === NULL) {
-            return false;
+    public function setex($key,$val,$expires){
+        if(is_array($val)){
+            $val = json_encode($val);
         }
-        $res = $this->redis->lpush($key, $val);
-        return $res;
+        $data = $this->redis->setex($key,$expires,$val);
+        return $data;
     }
     
-	public function lpop($key)
-    {
-        if (!$key) {
-            return false;
-        }
-        $res = $this->redis->lpop($key);
-        return $res;
+    public function __call($method,$param){
+        $data = call_user_func_array(array($this->redis,$method),$param);
+        return $data;
     }
     
-    public function llen($key)
-    {
-    	if (!$key) {
-    		return false;
-    	}
-    	$res = $this->redis->llen($key);
-    	return $res;
-    }
+    
 }
