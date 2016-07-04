@@ -7,6 +7,7 @@ use mia\miagroup\Model\User as UserModel;
 use mia\miagroup\Service\UserRelation;
 use mia\miagroup\Service\Subject;
 use mia\miagroup\Service\Album;
+use mia\miagroup\Service\Live;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\Label as labelService;
 
@@ -28,33 +29,24 @@ class User extends FS_Service {
      */
     public function getUserInfoByUids($userIds, $currentUid = 0, $fields = array()) {
         $userArr = array();
-        
         if (empty($userIds)) {
             return array();
         }
-        
         $userInfos = $this->userModel->getUserInfoByIds($userIds);
-        
         if (empty($userInfos)) {
             return array();
         }
-        
         // 如果是登陆用户，获取登录用户和发帖子用户关注的关系
         if (intval($currentUid) > 0) {
-            
             $userRelation = new UserRelation();
-            
             $relationWithMe = $userRelation->getUserRelationWithMe($currentUid, $userIds)['data'];
             $relationWithHim = $userRelation->getMeRelationWithUser($currentUid, $userIds)['data'];
         }
-        
         // 批量获取用户的关注数和粉丝数
         if (in_array('count', $fields)) {
-            
             if (!isset($userRelation)) {
                 $userRelation = new UserRelation();
             }
-            
             $subjectService = new Subject();
             $albumService = new Album();
             $userFansCount = $userRelation->countBatchUserFanS($userIds)['data']; // 用户粉丝数
@@ -63,13 +55,15 @@ class User extends FS_Service {
             $userAlbumCount = $albumService->getAlbumNum($userIds)['data'];//用户专栏数
             $userSubjectsCount = $userSubjectsCount['data'];
         }
-        
         // 批量获取专家信息
         $expertInfos = $this->getBatchExpertInfoByUids($userIds)['data'];
+        // 批量获取直播权限
+        $liveService = new Live();
+        $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
         
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
-            
+            $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
             if ($expertInfos[$userInfo['id']]) {
                 $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();

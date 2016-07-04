@@ -8,7 +8,6 @@ use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Service\Redbag;
-use mia\miagroup\Service\News;
 
 class Live extends \FS_Service {
     
