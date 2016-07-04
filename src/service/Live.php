@@ -380,7 +380,7 @@ class Live extends \FS_Service {
                     $redbagNums = $redbagService->getRedbagNums($redbagId)['data'];
                     $roomRes[$roomInfo['id']]['redbag']['id'] = $roomInfo['redbag'];
                     $roomRes[$roomInfo['id']]['redbag']['nums'] = $redbagNums;
-                    $redbagReceived = $redbagService->isReceivedRedbag($redbagId, $currentUid);
+                    $redbagReceived = $redbagService->isReceivedRedbag($redbagId, $currentUid)['data'];
                     $roomRes[$roomInfo['id']]['redbag']['is_received'] = !empty($redbagReceived) ? 1 : 0;
                 }
             }
@@ -458,14 +458,15 @@ class Live extends \FS_Service {
             $redbagService = new Redbag();
             // 是否已领取
             $isReceived = $liveRoomInfo['redbag']['is_received'];
-            if (!empty($isReceived)) {
+            if ($isReceived) {
                 return $this->error('1721');
             }
             // 领红包
-            $redbagNums = $redbagService->getPersonalRedBag($userId, $redBagId)['data'];
-            if (!$redbagNums) {
-                return $this->error('1723');
+            $redbagNums = $redbagService->getPersonalRedBag($userId, $redBagId);
+            if ($redbagNums['code'] > 0) {
+                return $this->error($redbagNums['code']);
             }
+            $redbagNums = $redbagNums['data'];
             // 如果红包未领取完毕，则可以领，否则给聊天室发消息
             if ($liveRoomInfo['redbag']['nums'] <= 0) {
                 $rong_api = new RongCloudUtil();

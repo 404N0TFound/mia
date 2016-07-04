@@ -50,7 +50,7 @@ class Redbag {
         
         // 执行redis指令
         $redis = new Redis();
-        $redbag = $redis->lpop($key, $redbag);
+        $redbag = $redis->lpop($key);
         
         return $redbag;
     }
