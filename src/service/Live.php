@@ -203,23 +203,23 @@ class Live extends \FS_Service {
         //当前用户是否已领取
         $redbagService = new Redbag();
         $isReceived = $redbagService->isReceivedRedbag($currentUid,$roomData['redbag']['id'])['data'];
-        if(!empty($isReceived)){
-        	$isReceivedStatus = 1;
-        }else{
-        	$isReceivedStatus = 0;
+        if (!empty($isReceived)) {
+            $isReceivedStatus = 1;
+        } else {
+            $isReceivedStatus = 0;
         }
-        $roomData['redbag']['is_received'] = $isReceivedStatus;//是否已经领取
-        
-        if (intval($liveId) > 0 && $roomData['status'] == 0) {
-            //直播结束，获取回放信息
-            $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(4))['data'];
+        $roomData['redbag']['is_received'] = $isReceivedStatus; // 是否已经领取
+        if (intval($liveId) > 0) {
+            $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(3, 4))['data'];
             if (!empty($liveInfo[$liveId])) {
                 $liveInfo = $liveInfo[$liveId];
-                //回放地址
-                $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
-                //快照
+                // 快照
                 $qiniuUtil = new QiniuUtil();
                 $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+                if ($roomData['status'] == 0) {
+                    //回放地址
+                    $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                }
             }
         }
         return $this->succ($roomData);
