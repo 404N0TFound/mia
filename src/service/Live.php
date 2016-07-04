@@ -477,28 +477,17 @@ class Live extends \FS_Service {
     }
     
     /**
-     * 新增直播房间设置
+     * 新增直播房间
      * @author jiadonghui@mia.com
      */
-    public function addLiveRoom($roomInfo = array()) {
-        if (empty($roomInfo) || empty($roomInfo) ) {
+    public function insertLiveRoom($userId) {
+        if (empty($userId)) {
             return $this->error(500);
         }
-        $roomInfo['user_id'] = isset($roomInfo['user_id']) ? intval($roomInfo['user_id']) : 0;
-        $roomInfo['live_id'] = isset($roomInfo['live_id']) ? intval($roomInfo['live_id']) : 0;
-        if($roomInfo['user_id'] <= 0 || $roomInfo['live_id'] <= 0){
-            return $this->error(500);
-        }
-        $setInfo = [];
-        $setInfo['user_id'] = $roomInfo['user_id'];
-        $setInfo['live_id'] = $roomInfo['live_id'];
-        $setInfo['subject_id'] = $roomInfo['subject_id'];
-        $setInfo['create_time'] = date('Y-m-d H:i:s',time());
-        $setInfo['chat_room_id'] = $roomInfo['live_id'];
-        $setInfo['settings'] = '';
-        $insertRes = $this->liveModel->addLiveRoom($setInfo);
+        
+        $insertRes = $this->liveModel->addLiveRoom(['user_id' =>$userId]);
     
-        return $this->succ($updateRes);
+        return $this->succ($insertRes);
     }
     
 }
