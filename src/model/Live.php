@@ -133,4 +133,12 @@ class Live {
         $liveList = $this->liveData->getLiveList($cond, $offset, $limit);
         return $liveList;
     }
+    
+    /**
+     * 新增直播房间
+     */
+    public function addLiveRoom($liveRoomInfo) {
+        $data = $this->liveData->addLive($liveRoomInfo);
+        return $data;
+    }
 }
