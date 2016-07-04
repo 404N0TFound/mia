@@ -17,7 +17,7 @@ class Baseinfo extends \DB_Query {
      */
     public function getBatchRedbagByIds($ids, $status = array(2)) {
         if (empty($ids)) {
-            return array();
+            return array(); 
         }
         $where = array();
         $where[] = array(':in', 'redbag_id', $ids);

@@ -14,7 +14,7 @@ class Redbagtadetail extends \DB_Query {
     /**
      * 记录红包领取信息
      */
-    public function addRedbagDetailInfo($redbagData) {
+    public function addRedbagDetailInfo($redbagData) { 
         $data = $this->insert($redbagData);
         return $data;
     }
