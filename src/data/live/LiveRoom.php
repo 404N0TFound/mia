@@ -30,7 +30,7 @@ class LiveRoom extends \DB_Query {
             return array();
         }
         $where[] = ['user_id', $userIds];
-        if(!emtpy($status)){
+        if(!empty($status)){
             $where[] = ['status', $status];
         }
         
@@ -91,7 +91,7 @@ class LiveRoom extends \DB_Query {
                 
                 if (isset($v['settings'])) {
                     $settings = json_decode($v['settings'], true);
-                    $result[$v['id']]['banners'] = $settings['banners'];
+                    $result[$v['id']]['banners'] = array_values($settings['banners']);
                     $result[$v['id']]['share'] = $settings['share'];
                     $result[$v['id']]['redbag'] = $settings['redbag'];
                     $result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
