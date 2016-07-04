@@ -121,17 +121,17 @@ class NormalUtil {
     
     /**
      * 构建消息体
-     * {"type":'.$type.',"user":{"id":"'.$user_id.'","name":"'.$user_info['username'].'","icon":"'.$user_info['icon'] ?: 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png'.'"},"content":"'.$content.'","extra":"'.json_encode($extra).'"}
+     * {"type":3,"extra":"{\"count\":\"10\\u4e07\"}"}
      */
     public static function getMessageBody($type,$user_id=0,$content='',$extra=array()){
         $message = [];
         if(!empty($user_id)){
             $user = new \mia\miagroup\Data\User\User();
             $user_info = $user->getUserInfoByIds($user_id)[0];
+            $nick = $user_info['nickname'] ?: $user_info['username'];
         }
         $extra_json = json_encode($extra);
-        $nick = $user_info['nickname'] ?: $user_info['username'];
-        
+
         switch ($type){
             case 0:
                 $message=['type'=>$type,'user'=>['id'=>-1,'name'=>'蜜芽提醒'],'content'=>$content];
