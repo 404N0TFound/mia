@@ -30,7 +30,7 @@ class Redbag extends \FS_Service {
         }
         
         // 如果指定日期的截止日期小于当前日期或者顺延后的截止日期小于当前日期，不能领取
-        if (($redbaginfo['receive_time'] != 0 && $redbaginfo['receive_time'] < time()) || $expireTime < time()) {
+        if (($redbaginfo['receive_time'] != 0 && $redbaginfo['receive_time'] < time()) || ($expireTime > 0 && $expireTime < time())) {
             return $this->error(1724);
         }
         
@@ -40,19 +40,21 @@ class Redbag extends \FS_Service {
         } else {
             // 从redis里获取可用红包
             $redBagPrice = $this->redbagModel->getRedBagFromRedis($redBagId);
+            if (!$redBagPrice) { //红包已被领完
+                return $this->error(1725);
+            }
         }
         
-        // 记录本次领取操作start
+        // 记录本次领取操作
         $redbagData = array();
-        $redbagData['apply_id'] = $redbaginfo['redbag_id'];
+        $redbagData['redbag_id'] = $redbaginfo['redbag_id'];
+        $redbagData['apply_id'] = $redbaginfo['id'];
         $redbagData['money'] = $redBagPrice;
         $redbagData['uid'] = $userId;
         $redbagData['create_time'] = time();
         $redbagDetailResult = $this->redbagModel->addRedbagDetailInfo($redbagData);
         
-        // 记录本次领取操作end
-        // 红包入账start
-        
+        // 红包入账
         if ($redbaginfo['use_time'] != 0) {
             // 指定日期
             $redbagData['use_starttime'] = $redbaginfo['use_time'];
@@ -65,7 +67,6 @@ class Redbag extends \FS_Service {
         
         $redbagData['platform_id'] = 1;
         $redbagMeResult = $this->redbagModel->addRedbagInfoToMe($redbagData);
-        // 红包入账end
         
         return $this->succ($redBagPrice);
     }

@@ -24,19 +24,15 @@ class Redbagtadetail extends \DB_Query {
      * @param unknown $redBagId
      * @param unknown $uid
      */
-    public function isReceivedRedbag($redBagId, $uid, $status = array(1)) {
+    public function isReceivedRedbag($redBagId, $uid) {
         $where = array();
         
         if (intval($redBagId) < 0 || intval($uid) < 0) {
             return false;
         }
-        $where[] = ['user_id', $uid];
-        if (!empty($status)) {
-            $where[] = ['status', $status];
-        }
-        
+        $where[] = ['uid', $uid];
         $where[] = ['redbag_id', $redBagId];
-        $data = $this->getRow($where, 'id');
+        $data = $this->getRow($where, 'id', 'id desc');
         return $data;
     }
 }
