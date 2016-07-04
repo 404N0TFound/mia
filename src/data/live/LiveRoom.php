@@ -30,7 +30,7 @@ class LiveRoom extends \DB_Query {
             return array();
         }
         $where[] = ['user_id', $userIds];
-        if(!emtpy($status)){
+        if(!empty($status)){
             $where[] = ['status', $status];
         }
         
