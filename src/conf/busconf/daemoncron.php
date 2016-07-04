@@ -40,6 +40,15 @@ $cron_list['online_count'] = array(
     'interval' => 5
 );
 
+//打散红包定时任务
+$cron_list['split_red_bag'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=live --action=splitredbag",
+    'start_time' => '2016-07-4 00:00:00',
+    'interval' => 3
+);
+
 //定时获取聊天室的日志
 $cron_list['get_chat_room_log'] = array(
     'enable' => true,
