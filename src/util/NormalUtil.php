@@ -121,44 +121,44 @@ class NormalUtil {
     
     /**
      * 构建消息体
-     * {"type":'.$type.',"user":{"id":"'.$user_id.'","name":"'.$user_info['username'].'","icon":"'.$user_info['icon'] ?: 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png'.'"},"content":"'.$content.'","extra":"'.json_encode($extra).'"}
+     * {"type":3,"extra":"{\"count\":\"10\\u4e07\"}"}
      */
     public static function getMessageBody($type,$user_id=0,$content='',$extra=array()){
-        $message = '';
+        $message = [];
         if(!empty($user_id)){
             $user = new \mia\miagroup\Data\User\User();
             $user_info = $user->getUserInfoByIds($user_id)[0];
+            $nick = $user_info['nickname'] ?: $user_info['username'];
         }
+        $extra_json = json_encode($extra);
+
         switch ($type){
             case 0:
-                $message='{"type":'.$type.',"user":{"id":"-1","name":"蜜芽提醒"},"content":"'.$content.'"}';
+                $message=['type'=>$type,'user'=>['id'=>-1,'name'=>'蜜芽提醒'],'content'=>$content];
                 break;
             case 1:
             case 2:
             case 4:
             case 8:
-                $nick = $user_info['nickname'] ?: $user_info['username'];
-                $message='{"type":'.$type.',"user":{"id":"'.$user_id.'","name":"'.$nick.'"},"content":"'.$content.'"}';
+                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'content'=>$content];
                 break;
             case 3:
-                $nick = $user_info['nickname'] ?: $user_info['username'];
-                $message='{"type":'.$type.',"user":{"id":"'.$user_id.'","name":"'.$nick.'"},"extra":\''.json_encode($extra).'\'}';
+                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'extra'=>$extra_json];
                 break;
             case 5:
             case 6:
             case 7:
-                $message='{"type":'.$type.',"extra":\''.json_encode($extra).'\'}';
+                $message=['type'=>$type,'extra'=>$extra_json];
                 break;
             case 9:
-                $message='{"type":'.$type.'}';
+                $message=['type'=>$type];
                 break;
             case 10:
-                $nick = $user_info['nickname'] ?: $user_info['username'];
-                $message='{"type":'.$type.',"user":{"id":"'.$user_id.'","name":"'.$nick.'"},"content":"'.$content.'","extra":\''.json_encode($extra).'\'}';
+                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'content'=>$content,'extra'=>$extra_json];
                 break;
         }
         
-        return $message;
+        return json_encode($message);
     }
     
     /**

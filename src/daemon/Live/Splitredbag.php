@@ -35,7 +35,10 @@ class Splitredbag extends \FD_Daemon {
             if($settings['redbag'] <= 0){
                 continue;
             }
-            $redBagService->splitRedBag($settings['redbag']);
+            $spritStatus = $redBagService->splitRedBag($settings['redbag'])['data'];
+            if($spritStatus == false){
+                continue;
+            }
         }
     }
 }

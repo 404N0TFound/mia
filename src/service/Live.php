@@ -441,7 +441,7 @@ class Live extends \FS_Service {
         $data = $this->rongCloud->joinChatRoom($userId, $chatroomId);
         return $this->succ($data);
     }
-    
+
     /**
      * 领取直播红包
      */
@@ -449,6 +449,10 @@ class Live extends \FS_Service {
         // 获取直播房间信息
         $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('redbag'))['data'];
         $liveRoomInfo = $liveRoomInfo[$roomId];
+        // 判断直播间是否配置了红包
+        if (empty($liveRoomInfo['redbag'])) {
+            return $this->error('1722');
+        }
         // 判断该红包是否绑定了直播房间
         if ($liveRoomInfo['redbag']['id'] == $redBagId) {
             $redbagService = new Redbag();
@@ -470,6 +474,31 @@ class Live extends \FS_Service {
             }
         }
         return $this->succ($redbagNums);
+    }
+    
+    /**
+     * 新增直播房间设置
+     * @author jiadonghui@mia.com
+     */
+    public function addLiveRoom($roomInfo = array()) {
+        if (empty($roomInfo) || empty($roomInfo) ) {
+            return $this->error(500);
+        }
+        $roomInfo['user_id'] = isset($roomInfo['user_id']) ? intval($roomInfo['user_id']) : 0;
+        $roomInfo['live_id'] = isset($roomInfo['live_id']) ? intval($roomInfo['live_id']) : 0;
+        if($roomInfo['user_id'] <= 0 || $roomInfo['live_id'] <= 0){
+            return $this->error(500);
+        }
+        $setInfo = [];
+        $setInfo['user_id'] = $roomInfo['user_id'];
+        $setInfo['live_id'] = $roomInfo['live_id'];
+        $setInfo['subject_id'] = $roomInfo['subject_id'];
+        $setInfo['create_time'] = date('Y-m-d H:i:s',time());
+        $setInfo['chat_room_id'] = $roomInfo['live_id'];
+        $setInfo['settings'] = '';
+        $insertRes = $this->liveModel->addLiveRoom($setInfo);
+    
+        return $this->succ($updateRes);
     }
     
 }
