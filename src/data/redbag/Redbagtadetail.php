@@ -14,7 +14,7 @@ class Redbagtadetail extends \DB_Query {
     /**
      * 记录红包领取信息
      */
-    public function addRedbagDetailInfo($redbagData) {
+    public function addRedbagDetailInfo($redbagData) { 
         $data = $this->insert($redbagData);
         return $data;
     }
@@ -24,10 +24,17 @@ class Redbagtadetail extends \DB_Query {
      * @param unknown $redBagId
      * @param unknown $uid
      */
-    public function isReceivedRedbag($redBagId, $uid) {
+    public function isReceivedRedbag($redBagId, $uid, $status = array(1)) {
         $where = array();
+        
+        if (intval($redBagId) < 0 || intval($uid) < 0) {
+            return false;
+        }
         $where[] = ['user_id', $uid];
-        $where[] = ['status', 1];
+        if (!empty($status)) {
+            $where[] = ['status', $status];
+        }
+        
         $where[] = ['redbag_id', $redBagId];
         $data = $this->getRow($where, 'id');
         return $data;
