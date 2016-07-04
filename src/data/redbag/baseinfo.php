@@ -13,14 +13,18 @@ class Baseinfo extends \DB_Query {
 
     /**
      * 根据红包Ids批量获取红包信息
+     * 申请状态 0 草稿 1申请中 2通过  3 拒绝  4再次审核 
      */
-    public function getBatchRedbagByIds($ids) {
+    public function getBatchRedbagByIds($ids, $status = array(2)) {
         if (empty($ids)) {
             return array();
         }
         $where = array();
         $where[] = array(':in', 'redbag_id', $ids);
-        $where[] = array(':eq', 'status', 2);
+        if (!empty($status)) {
+            $where[] = ['status', $status];
+        }
+        
         $data = $this->getRows($where);
         
         $result = array();

@@ -10,7 +10,7 @@ class LiveRoom extends \DB_Query {
     protected $tableName = 'group_live_room';
 
     protected $mapping = array();
-    
+
     /**
      * 新增直播房间
      */
@@ -18,82 +18,99 @@ class LiveRoom extends \DB_Query {
         $data = $this->insert($roomInfo);
         return $data;
     }
-    
+
     /**
      * 批量检测用户是否有权限直播
      * 有房间的用户就有权限
      * @param $userId 
      */
-    public function checkLiveRoomByUserIds($userIds){
+    public function checkLiveRoomByUserIds($userIds,$status = array(1)) {
         $roomInfo = [];
+        if(empty($userIds)){
+            return array();
+        }
+        $where[] = ['user_id', $userIds];
+        if(!emtpy($status)){
+            $where[] = ['status', $status];
+        }
         
-        $where[] = ['user_id',$userIds];
-        $where[] = ['status',1];
         $data = $this->getRows($where);
-        foreach($data as $room){
+        foreach ($data as $room) {
             $roomInfo[$room['user_id']] = $room;
         }
         return $roomInfo;
     }
-    
+
     /**
      * 根据ID修改直播房间信息
      * @author jiadonghui@mia.com
      */
     public function updateLiveRoomById($roomId, $setData) {
-    	$where = array();
-    	$where[] = ['id', $roomId];
-    	$data = $this->update($setData,$where);
-    	return $data;
+        $where = array();
+        $where[] = ['id', $roomId];
+        $data = $this->update($setData, $where);
+        return $data;
     }
-    
+
     /**
      * 根据ID修改直播房间信息
      * @author jiadonghui@mia.com
      */
     public function updateRoomSettingsById($roomId, $setData) {
-        if (!isset($setData['settings']) || empty($setData['settings'])){
+        if (!isset($setData['settings']) || empty($setData['settings'])) {
             return false;
         }
-        $setDataNew[] = ['settings',json_encode($setData['settings'])];
+        $setDataNew[] = ['settings', json_encode($setData['settings'])];
         $where = array();
         $where[] = ['id', $roomId];
-        $data = $this->update($setDataNew,$where);
+        $data = $this->update($setDataNew, $where);
         return $data;
     }
-    
+
     /**
      * 根据获取房间ID批量获取房间信息
      * @author jiadonghui@mia.com
      */
-    public function getBatchLiveRoomByIds($roomIds) {
+    public function getBatchLiveRoomByIds($roomIds,$status = array(1)) {
         if (empty($roomIds)) {
             return array();
         }
         $where = array();
-        $where[] = array(':in', 'id', $roomIds);
-        $where[] = array(':eq', 'status', '1');
+        $where[] = ['id', $roomIds];
+        if(!empty($status)){
+            $where[] = ['status', $status];
+        }
         
         $data = $this->getRows($where);
         $result = array();
-        if(!$data){
+        if (!$data) {
             return array();
-        }else{
-            foreach($data as $v){
+        } else {
+            foreach ($data as $v) {
                 $result[$v['id']] = $v;
                 
-                if(isset($v['settings'])){
-                	$settings = json_decode($v['settings'],true);
-                	$result[$v['id']]['banners'] = $settings['banners'];
-                	$result[$v['id']]['share'] = $settings['share'];
-                	$result[$v['id']]['redbag'] = $settings['redbag'];
-                	$result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
-                	$result[$v['id']]['settings'] = $settings;
+                if (isset($v['settings'])) {
+                    $settings = json_decode($v['settings'], true);
+                    $result[$v['id']]['banners'] = $settings['banners'];
+                    $result[$v['id']]['share'] = $settings['share'];
+                    $result[$v['id']]['redbag'] = $settings['redbag'];
+                    $result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
+                    $result[$v['id']]['settings'] = $settings;
                 }
             }
             return $result;
         }
     }
     
-    
+    /**
+     * 获取所有正在直播的房间
+     * @author jiadonghui@mia.com
+     */
+    public function getAllLiveRoom($status = array(1)) {
+        if(!empty($status)){
+            $where[] = ['status', $status];
+        }
+        $result = $this->getRows($where);
+        return $result;
+    }
 }
