@@ -209,7 +209,8 @@ class Live extends \FS_Service {
             $isReceivedStatus = 0;
         }
         $roomData['redbag']['is_received'] = $isReceivedStatus; // 是否已经领取
-        if (intval($liveId) > 0) {
+        if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
+            $liveId = intval($liveId) > 0 ? $liveId : $roomData['live_id'];
             $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(3, 4))['data'];
             if (!empty($liveInfo[$liveId])) {
                 $liveInfo = $liveInfo[$liveId];
@@ -395,10 +396,10 @@ class Live extends \FS_Service {
                 $shareImage = isset($roomInfo['share']['image_url']) ? $roomInfo['share']['image_url'] : $roomRes[$roomInfo['id']]['user_info']['icon'];
                 // 替换搜索关联数组
                 $replace = array(
-                		'{|title|}' => $shareTitle,
-                		'{|desc|}' => $shareDesc,
-                		'{|image_url|}' => $shareImage,
-                		'{|wap_url|}' => sprintf($defaultShare['wap_url'], $roomInfo['id']), 
+                    '{|title|}' => $shareTitle,
+                    '{|desc|}' => $shareDesc,
+                    '{|image_url|}' => $shareImage,
+                    '{|wap_url|}' => sprintf($defaultShare['wap_url'], $roomInfo['id'], $roomInfo['live_id']), 
                 );
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
