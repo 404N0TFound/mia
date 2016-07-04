@@ -508,12 +508,11 @@ class Album extends \FS_Service {
      */
     public function getArticlePreview($con) {
        $res = array();
-        if(empty($con) || empty($con['album_id']) || empty($con['user_id']) || empty($con['article_id'])){
+        if(empty($con) || empty($con['album_id']) || empty($con['article_id'])){
             return $this->error('500','param condition is empty');
         }
 
         $params = array();
-        $params['user_id'] = $con['user_id'];
         $params['album_id'] = $con['album_id'];
         $params['id'] = $con['article_id'];
         $res = $this->abumModel->getArticlePreview($params);
