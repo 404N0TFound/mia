@@ -58,6 +58,14 @@ class RongCloudUtil{
     }
     
     /**
+     * 用户向用户发送消息
+     */
+    public function messagePublish($fromUserId, $toUserId = array(), $objectName, $content, $pushContent='', $pushData = ''){
+        $result = $this->api->messagePublish($fromUserId, $toUserId, $objectName, $content, $pushContent, $pushData);
+        return $result;
+    }
+    
+    /**
      * 用户向聊天室内发送消息
      */
     public function messageChatroomPublish($fromUserId, $toChatroomId = array(), $objectName, $content){

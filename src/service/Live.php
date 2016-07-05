@@ -199,15 +199,6 @@ class Live extends \FS_Service {
         		$roomData['share_info']['desc'] =  $defaultShare['desc'];
         	}
         }
-        //当前用户是否已领取
-        $redbagService = new Redbag();
-        $isReceived = $redbagService->isReceivedRedbag($currentUid,$roomData['redbag']['id'])['data'];
-        if (!empty($isReceived)) {
-            $isReceivedStatus = 1;
-        } else {
-            $isReceivedStatus = 0;
-        }
-        $roomData['redbag']['is_received'] = $isReceivedStatus; // 是否已经领取
         if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
             $liveId = intval($liveId) > 0 ? $liveId : $roomData['live_id'];
             $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(3, 4))['data'];
@@ -291,15 +282,6 @@ class Live extends \FS_Service {
         $setInfo = array('settings' => $settings);
         $updateRes = $this->liveModel->updateRoomSettingsById($roomId, $setInfo);
         
-        // 如果settings里有红包就给主播发消息
-        if (in_array('redbag', $settings)) {
-            $liveRoomInfo = $this->getLiveRoomByIds(array($roomId))['data'];
-            if (!empty($liveRoomInfo[$roomId]) && !empty($liveRoomInfo[$roomId]['chat_room_id'])) {
-                $rong_api = new RongCloudUtil();
-                $content = '{"type":7,"extra":{"redbagUpdateRes":"' . $updateRes . '"}}';
-                $rong_api->messageChatroomPublish(3782852, $liveRoomInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
-            }
-        }
         return $this->succ($updateRes);
     }
 
