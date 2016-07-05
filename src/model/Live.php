@@ -138,7 +138,7 @@ class Live {
      * 新增直播房间
      */
     public function addLiveRoom($liveRoomInfo) {
-        $data = $this->liveData->addLive($liveRoomInfo);
+        $data = $this->liveRoomData->addLiveRoom($liveRoomInfo);
         return $data;
     }
 }
