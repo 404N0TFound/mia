@@ -22,7 +22,8 @@ class LivingCheck extends \FD_Daemon {
     
     public function execute() {
         //获取状态为3(直播中)的直播
-        $where[] = array('status', 3);
+        $where['status'] = array(':eq', 'status', 3);
+        $where['create_time'] = array(':gt', 'create_time', time() - 86400 * 30);
         $lives = $this->liveModel->getLiveList($where, 0, 1000);
         if (!empty($lives)) {
             //获取用户的房间号
@@ -34,8 +35,8 @@ class LivingCheck extends \FD_Daemon {
             //检查已经直播30秒，已经断流的直播
             foreach ($lives as $live) {
                 if(strtotime($live['start_time']) + 40 < time()){
-                    $stream = $this->qiniuUtil->getStream($live['stream_id']);
-                    if(isset($stream['status']) && $stream['status']=='disconnected'){
+                    $status = $this->qiniuUtil->getStatus($live['stream_id']);
+                    if($status == 'disconnected'){
                         $this->liveService->endLive($live['user_id'], $roomInfos[$live['user_id']]['id'], $live['id'], $live['chat_room_id']);
                     }
                 }
