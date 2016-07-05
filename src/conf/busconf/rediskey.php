@@ -19,6 +19,11 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'sale_num_%s',
         'expire_time' => 3600,
     ),
+    //以售卖的商品数
+    'live_stream_status' => array(
+        'key' => $liveServicePrefix . 'stream_status_%s',
+        'expire_time' => 60,
+    ),
 );
 
 /**

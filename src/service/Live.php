@@ -220,9 +220,13 @@ class Live extends \FS_Service {
      * 根据直播ID批量获取直播信息
      */
     public function getBatchLiveInfoByIds($liveIds,$status=array(3)) {
-        
-        $wantLiveInfo = [];
+        if (empty($liveIds)) {
+            return $this->succ(array());
+        }
         $liveInfos = $this->liveModel->getBatchLiveInfoByIds($liveIds,$status);
+        if (empty($liveInfos)) {
+            return $this->succ(array());
+        }
         $qiniu = new QiniuUtil();
         $redis = new Redis();
         foreach($liveInfos as $k=>$liveInfo){
@@ -247,9 +251,9 @@ class Live extends \FS_Service {
                 $addrInfo = $qiniu->getPalyBackUrls($liveInfo['stream_id']);
                 $liveInfo['play_back_hls_url'] = $addrInfo['hls'];
             }
-            $wantLiveInfo[$k] = $liveInfo;
+            $liveInfos[$k] = $liveInfo;
         }
-        return $this->succ($wantLiveInfo);
+        return $this->succ($liveInfos);
     } 
     
     /**
@@ -304,15 +308,16 @@ class Live extends \FS_Service {
         $liveIdArr = array();
         foreach ($roomInfos as $roomInfo) {
             $userIdArr[] = $roomInfo['user_id'];
-            $liveIdArr[] = $roomInfo['live_id'];
+            if (intval($roomInfo['live_id']) > 0) {
+                $liveIdArr[] = $roomInfo['live_id'];
+            }
         }
         //通过userids批量获取主播信息
         $userIds = array_unique($userIdArr);
         $userService = new User();
         $userArr = $userService->getUserInfoByUids($userIds, $currentUid)['data'];
         //通过liveids批量获取直播列表
-        $liveIds = array_unique($liveIdArr);
-        $liveArr = $this->getBatchLiveInfoByIds($liveIds)['data'];
+        $liveArr = $this->getBatchLiveInfoByIds($liveIdArr)['data'];
         //将主播信息整合到房间信息中
         $roomRes = array();
         foreach($roomIds as $roomId){
