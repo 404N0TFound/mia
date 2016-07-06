@@ -91,7 +91,7 @@ class LiveRoom extends \DB_Query {
                 
                 if (isset($v['settings'])) {
                     $settings = json_decode($v['settings'], true);
-                    $result[$v['id']]['banners'] = array_values($settings['banners']);
+                    $result[$v['id']]['banners'] = is_array($settings['banners']) ? array_values($settings['banners']) : array();
                     $result[$v['id']]['share'] = $settings['share'];
                     $result[$v['id']]['redbag'] = $settings['redbag'];
                     $result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
@@ -112,5 +112,21 @@ class LiveRoom extends \DB_Query {
         }
         $result = $this->getRows($where);
         return $result;
+    }
+
+    /**
+     * 删除直播房间
+     * @param int $roomId
+     * @return boolean|unknown
+     */
+    public function deleteLiveRoom($roomId) {
+        if (empty($roomId)) {
+            return false;
+        }
+        $where = array();
+        $where[] = ['id', $roomId];
+        
+        $data = $this->delete($where);
+        return $data;
     }
 }

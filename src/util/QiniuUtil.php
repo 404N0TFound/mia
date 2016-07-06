@@ -128,12 +128,19 @@ class QiniuUtil {
             $name = "{$streamId}.{$time}.jpg";
         }
         $format = 'jpg';
-        $stream = $this->qiniuHub->getStream($streamId);
-        $result = $stream->snapshot($name, $format, $time);
-        if(isset($result['targetUrl'])){
-            $returnValue['origin'] = $result['targetUrl'];
-            $returnValue[$size] = "{$result['targetUrl']}?imageView2/2/w/{$size}/h/{$size}/q/85";
+        try {
+            $stream = $this->qiniuHub->getStream($streamId);
+            $result = $stream->snapshot($name, $format, $time);
+            if(isset($result['targetUrl'])){
+                $returnValue['origin'] = $result['targetUrl'];
+                $returnValue[$size] = "{$result['targetUrl']}?imageView2/2/w/{$size}/h/{$size}/q/85";
+            }
+            throw new \Exception();
+        } catch (\Exception $e) {
+            $returnValue['origin'] = '';
+            $returnValue[$size] = '';
         }
+        
         return $returnValue;
     }
     

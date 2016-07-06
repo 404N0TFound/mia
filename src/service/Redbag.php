@@ -106,4 +106,15 @@ class Redbag extends \FS_Service {
         $isReceived = $this->redbagModel->isReceivedRedbag($redBagId, $uid);
         return $this->succ($isReceived);
     }
+    
+    /**
+     * 重置红包（慎用！会导致红包超发！）
+     */
+    public function resetRedBag($redBagId) {
+        if (empty($redBagId)) {
+            return $this->error(500);
+        }
+        $this->redbagModel->resetRedBag($redBagId);
+        return $this->succ();
+    }
 }
