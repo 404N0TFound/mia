@@ -57,7 +57,7 @@ class Redbag extends \FS_Service {
         // 红包入账
         $redbagMeData = array();
         $redbagMeData['money'] = $redBagPrice;
-        $redbagMeData['apply_id'] = $redbaginfo['redbag_id'];
+        $redbagMeData['apply_id'] = $redbaginfo['id'];
         $redbagMeData['uid'] = $userId;
         if ($redbaginfo['use_time'] != 0) {
             // 指定日期
