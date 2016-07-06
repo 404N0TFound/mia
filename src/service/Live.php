@@ -476,30 +476,20 @@ class Live extends \FS_Service {
     
         return $this->succ($insertRes);
     }
-
-    /**
-     * 封禁用户
-     * @param $userId   用户 Id。（必传）
-     * @param $minute   封禁时长,单位为分钟，最大值为43200分钟。（必传）
-     * @return mixed
-     */
-    public function disableUser($userId,$minute)
-    {
-        $data = $this->rongCloud->disableUser($userId,$minute);
-        return $this->succ($data);
-    }
-
+    
     /**
      * 删除直播房间
      * @author jiadonghui@mia.com
      */
     public function deleteLiveRoom($roomId) {
         if (empty($roomId)) {
+    
             return $this->error(500);
         }
-        
+         
         $deleteRes = $this->liveModel->deleteLiveRoom($roomId);
         return $this->succ($deleteRes);
     }
     
 }
+
