@@ -239,7 +239,7 @@ class AlbumArticle extends \DB_Query {
         if(isset($params['user_id']) && $params['user_id']){
             $where[] = array(':eq', 'user_id', $params['user_id']);
         }
-        $data = $this->getRow($where, array('content_original'), $limit = FALSE, $offset = 0);
+        $data = $this->getRow($where, array('title,content_original'), $limit = FALSE, $offset = 0);
         return $data;
     }
     
