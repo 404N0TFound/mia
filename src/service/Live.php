@@ -185,19 +185,28 @@ class Live extends \FS_Service {
         if ($roomData['user_id'] == $currentUid && $roomData['live_info']['status'] == 3) {
             return $this->error(30004);
         }
+        //主播自己获取的share_info
         if($currentUid == $roomData['user_id']){
-        	// 分享内容
-        	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
-        	$share = $liveConfig['groupShare'];
-        	$defaultShare = $liveConfig['defaultShareInfo']['live_by_anchor'];
-        	$defaultUserShare = $liveConfig['defaultShareInfo']['live_by_user'];
-        	//如果没有直播信息的话就去默认分享文案,如果当前用户是主播，则替换成主播的分享文案
-        	if(isset($roomData['share_info']['title']) && $roomData['share_info']['title']  == $defaultUserShare['title']){
-        		$roomData['share_info']['title'] =  $defaultShare['title'];
-        	}
-        	if(isset($roomData['share_info']['desc']) && $roomData['share_info']['desc']  == $defaultUserShare['desc']){
-        		$roomData['share_info']['desc'] =  $defaultShare['desc'];
-        	}
+        	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.live');
+            $share = $liveConfig['liveShare'];
+            $liveShare = $liveConfig['liveShareInfo']['live_by_anchor'];
+            //如果没有直播信息的话就去默认分享文案
+            $shareTitle = !empty($roomInfo['share']['title']) ? $roomData['share']['title'] : $liveShare['title'];
+            $shareDesc = !empty($roomInfo['share']['desc']) ? $roomData['share']['desc'] : $liveShare['desc'];
+            $shareImage = !empty($roomInfo['share']['image_url']) ? $roomData['share']['image_url'] : $roomData['user_info']['icon'];
+            // 替换搜索关联数组
+            $replace = array(
+                '{|title|}' => $shareTitle,
+                '{|desc|}' => $shareDesc,
+                '{|image_url|}' => $shareImage,
+                '{|wap_url|}' => sprintf($liveShare['wap_url'], $roomData['id'], $roomData['live_id']), 
+            );
+            // 进行替换操作
+            foreach ($share as $keys => $sh) {
+                $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
+                unset($share[$keys]['extend_text']);
+            }
+            $roomData['share_info'] = array_values($share);
         }
         if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
             $liveId = intval($liveId) > 0 ? $liveId : $roomData['live_id'];
@@ -273,8 +282,8 @@ class Live extends \FS_Service {
             return $this->error(500);
         }
         
-        $subjectConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
-        $liveSetting = $subjectConfig['liveSetting'];
+        $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.live');
+        $liveSetting = $liveConfig['liveSetting'];
         
         $settingItems = array_flip($liveSetting);
         $diffs = array_diff_key($settings, $settingItems);
@@ -326,7 +335,7 @@ class Live extends \FS_Service {
             } else {
                 continue;
             }
-            $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
+            $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.live');
             $roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
             $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
             $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_room_id'];
@@ -374,18 +383,18 @@ class Live extends \FS_Service {
             
             if (in_array('share_info', $field)) {
                 // 分享内容
-                $share = $liveConfig['groupShare'];
-                $defaultShare = $liveConfig['defaultShareInfo']['live_by_user'];
+                $share = $liveConfig['liveShare'];
+                $liveShare = $liveConfig['liveShareInfo']['live_by_user'];
                 //如果没有直播信息的话就去默认分享文案
-                $shareTitle = isset($roomInfo['share']['title']) ? "【{$roomInfo['share']['title']}】 " : sprintf($defaultShare['title'],$roomRes[$roomInfo['id']]['user_info']['nickname']);
-                $shareDesc = isset($roomInfo['share']['desc']) ? $roomInfo['share']['desc'] : sprintf($defaultShare['desc'],$roomRes[$roomInfo['id']]['user_info']['nickname']);
-                $shareImage = isset($roomInfo['share']['image_url']) ? $roomInfo['share']['image_url'] : $roomRes[$roomInfo['id']]['user_info']['icon'];
+                $shareTitle = !empty($roomInfo['share']['title']) ? $roomInfo['share']['title'] : sprintf($liveShare['title'], $roomRes[$roomInfo['id']]['user_info']['nickname']);
+                $shareDesc = !empty($roomInfo['share']['desc']) ? $roomInfo['share']['desc'] : sprintf($liveShare['desc'], $roomRes[$roomInfo['id']]['user_info']['nickname']);
+                $shareImage = !empty($roomInfo['share']['image_url']) ? $roomInfo['share']['image_url'] : $roomRes[$roomInfo['id']]['user_info']['icon'];
                 // 替换搜索关联数组
                 $replace = array(
                     '{|title|}' => $shareTitle,
                     '{|desc|}' => $shareDesc,
                     '{|image_url|}' => $shareImage,
-                    '{|wap_url|}' => sprintf($defaultShare['wap_url'], $roomInfo['id'], $roomInfo['live_id']), 
+                    '{|wap_url|}' => sprintf($liveShare['wap_url'], $roomInfo['id'], $roomInfo['live_id']), 
                 );
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
