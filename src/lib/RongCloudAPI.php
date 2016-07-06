@@ -616,9 +616,10 @@ class RongCloudAPI{
             $ret = $this->curl('/user/block', array('userId' => $userId, 'minute' => $minute));
             if(empty($ret))
                 throw new Exception('请求失败');
-            return $ret;
+            return json_decode($ret,true);
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            // print_r($e->getMessage());
+            return false;
         }
     }
 

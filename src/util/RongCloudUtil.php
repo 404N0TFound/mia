@@ -111,7 +111,19 @@ class RongCloudUtil{
             return false;
         }
     }
-    
+    /**
+     * 封禁用户 方法
+     * @param $userId   用户 Id。（必传）
+     * @param $minute   封禁时长,单位为分钟，最大值为43200分钟。（必传）
+     * @return mixed
+     */
+    public function disableUser($userId,$minute)
+    {
+        $result = $this->api->userBlock($userId, $minute);
+        if($result['code'] == 200)
+            return true;
+        return false;
+    }
     
     
 }
