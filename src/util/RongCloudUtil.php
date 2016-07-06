@@ -119,7 +119,7 @@ class RongCloudUtil{
      */
     public function disableUser($userId,$minute)
     {
-        $result = $this->api->chatroomJoin($userId, $chatroomId);
+        $result = $this->api->userBlock($userId, $chatroomId);
         if($result['code'] == 200)
             return true;
         return false;
