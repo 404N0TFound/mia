@@ -131,4 +131,16 @@ class Redbag {
         $data = $this->rebagtadetailData->isReceivedRedbag($redBagId, $uid);
         return $data;
     }
+    
+    /**
+     * 重置红包（慎用！会导致红包超发！）
+     */
+    public function resetRedBag($redBagId) {
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitRedBag.key'), $redBagId);
+        // 执行redis指令
+        $redis = new Redis();
+        $redis->del($key);
+        return true;
+    }
 }
