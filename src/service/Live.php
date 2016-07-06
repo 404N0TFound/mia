@@ -489,7 +489,7 @@ class Live extends \FS_Service {
         $data = $this->rongCloud->disableUser($userId,$minute);
         return $this->succ($data);
     }
-    
+
     /**
      * 删除直播房间
      * @author jiadonghui@mia.com
@@ -498,12 +498,8 @@ class Live extends \FS_Service {
         if (empty($roomId)) {
             return $this->error(500);
         }
-    
-        $setData =[];
-        $setData[] = ['status',0];
         
-        $deleteRes = $this->liveModel->updateLiveRoomById($roomId, $setData);
-    
+        $deleteRes = $this->liveModel->deleteLiveRoom($roomId);
         return $this->succ($deleteRes);
     }
     
