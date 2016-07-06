@@ -36,4 +36,4 @@ $daemon_filter = array(
     'extend_path'  => $root_path . '/filter',
 );
 
-$damon_php_bin = '/usr/local/php/bin/php';
+$damon_php_bin = '/opt/php/bin/php';
