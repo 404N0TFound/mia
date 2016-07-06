@@ -490,5 +490,21 @@ class Live extends \FS_Service {
         return $this->succ($data);
     }
     
+    /**
+     * 删除直播房间
+     * @author jiadonghui@mia.com
+     */
+    public function deleteLiveRoom($roomId) {
+        if (empty($roomId)) {
+            return $this->error(500);
+        }
+    
+        $setData =[];
+        $setData[] = ['status',0];
+        
+        $insertRes = $this->liveModel->updateLiveRoomById($roomId, $setData);
+    
+        return $this->succ($insertRes);
+    }
+    
 }
-
