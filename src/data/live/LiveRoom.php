@@ -113,4 +113,20 @@ class LiveRoom extends \DB_Query {
         $result = $this->getRows($where);
         return $result;
     }
+
+    /**
+     * 删除直播房间
+     * @param int $roomId
+     * @return boolean|unknown
+     */
+    public function deleteLiveRoom($roomId) {
+        if (empty($roomId)) {
+            return false;
+        }
+        $where = array();
+        $where[] = ['id', $roomId];
+        
+        $data = $this->delete($where);
+        return $data;
+    }
 }

@@ -141,4 +141,13 @@ class Live {
         $data = $this->liveRoomData->addLiveRoom($liveRoomInfo);
         return $data;
     }
+
+    /**
+     * 删除直播房间
+     * @author jiadonghui@mia.com
+     */
+    public function deleteLiveRoom($roomId){
+        $data = $this->liveRoomData->deleteLiveRoom($roomId);
+        return $data;
+    }
 }
