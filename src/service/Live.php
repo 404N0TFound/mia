@@ -502,9 +502,9 @@ class Live extends \FS_Service {
         $setData =[];
         $setData[] = ['status',0];
         
-        $insertRes = $this->liveModel->updateLiveRoomById($roomId, $setData);
+        $deleteRes = $this->liveModel->updateLiveRoomById($roomId, $setData);
     
-        return $this->succ($insertRes);
+        return $this->succ($deleteRes);
     }
     
 }
