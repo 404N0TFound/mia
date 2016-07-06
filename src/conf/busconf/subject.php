@@ -11,16 +11,6 @@ $defaultShareInfo = array(
         'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
         'extend_text'            => '看白富美妈妈分享的好货',
     ),
-    'live_by_user'      => array(
-        'title'      => '%s正在蜜芽直播',
-        'desc'      => '我正在蜜芽观看%s的直播，邀请你一起来看',
-        'wap_url'  => 'http://m.mia.com/mialive/live?roomid=%d&liveid=%d',
-    ),
-    'live_by_anchor'      => array(
-        'title'      => '我正在蜜芽直播',
-        'desc'      => '我正在蜜芽直播，快来一起看',
-        'wap_url'  => 'http://m.mia.com/mialive/live?roomid=%d&liveid=%d',
-    ),
 );
 
 /**
@@ -43,22 +33,6 @@ $groupShare = array(
         'share_mia_url'  => '{|wap_url|}',
         'extend_text'   => '{|extend_text|}',
     ),
-    'qzone' => array(
-        'share_platform' => 'qzone',
-        'share_title'    => '{|title|}',
-        'share_content'  => '{|title|}{|desc|}',
-        'share_img_url'  => '{|image_url|}',
-        'share_mia_url'  => '{|wap_url|}',
-        'extend_text'   => '{|extend_text|}',
-    ),
-    'sinaweibo' => array(
-        'share_platform' => 'sinaweibo',
-        'share_title'    => '{|title|}',
-        'share_content'  => '{|title|}{|desc|}',
-        'share_img_url'  => '{|image_url|}',
-        'share_mia_url'  => '{|wap_url|}',
-        'extend_text'   => '{|extend_text|}',
-    ),
 );
 /**
  * 专栏文章配置
@@ -67,13 +41,3 @@ $album = array(
     //h5内嵌页链接
     'h5_url'=>'http://www.mia.com/groupspe/show/%d/%d',
 );
-
-/**
- * 直播房间提示
- */
-$liveRoomTips = "主播会不定时发放优惠红包哦，请注意主播的提醒~";
-
-/**
- * 直播设置项
- */
-$liveSetting = array('banners','redbag','share','is_show_gift');
