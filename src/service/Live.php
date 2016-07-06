@@ -390,10 +390,9 @@ class Live extends \FS_Service {
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
                     $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
+                    unset($share[$keys]['extend_text']);
                 }
-                unset($share[0]['extend_text']);
-                unset($share[1]['extend_text']);
-                $roomRes[$roomInfo['id']]['share_info'] = $share;
+                $roomRes[$roomInfo['id']]['share_info'] = array_values($share);
             }
         }
         return $this->succ($roomRes);
@@ -499,6 +498,20 @@ class Live extends \FS_Service {
             return $this->error(500);
         }
         
+        $deleteRes = $this->liveModel->deleteLiveRoom($roomId);
+        return $this->succ($deleteRes);
+    }
+    
+    /**
+     * 删除直播房间
+     * @author jiadonghui@mia.com
+     */
+    public function deleteLiveRoom($roomId) {
+        if (empty($roomId)) {
+    
+            return $this->error(500);
+        }
+         
         $deleteRes = $this->liveModel->deleteLiveRoom($roomId);
         return $this->succ($deleteRes);
     }

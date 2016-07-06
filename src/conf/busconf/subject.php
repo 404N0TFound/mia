@@ -27,7 +27,7 @@ $defaultShareInfo = array(
  * 帖子站外分享信息格式
  */
 $groupShare = array(
-    0 => array(
+    'weixin' => array(
         'share_platform' => 'weixin',
         'share_title'    => '{|title|}',
         'share_content'  => '{|desc|}',
@@ -35,8 +35,24 @@ $groupShare = array(
         'share_mia_url'  => '{|wap_url|}',
         'extend_text'   => '{|extend_text|}',
     ),
-    1 => array(
+    'friends' => array(
         'share_platform' => 'friends',
+        'share_title'    => '{|title|}',
+        'share_content'  => '{|title|}{|desc|}',
+        'share_img_url'  => '{|image_url|}',
+        'share_mia_url'  => '{|wap_url|}',
+        'extend_text'   => '{|extend_text|}',
+    ),
+    'qzone' => array(
+        'share_platform' => 'qzone',
+        'share_title'    => '{|title|}',
+        'share_content'  => '{|title|}{|desc|}',
+        'share_img_url'  => '{|image_url|}',
+        'share_mia_url'  => '{|wap_url|}',
+        'extend_text'   => '{|extend_text|}',
+    ),
+    'sinaweibo' => array(
+        'share_platform' => 'sinaweibo',
         'share_title'    => '{|title|}',
         'share_content'  => '{|title|}{|desc|}',
         'share_img_url'  => '{|image_url|}',
@@ -55,7 +71,7 @@ $album = array(
 /**
  * 直播房间提示
  */
-$liveRoomTips = "直播房间测试tips";
+$liveRoomTips = "主播会不定时发放优惠红包哦，请注意主播的提醒~";
 
 /**
  * 直播设置项

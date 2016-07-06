@@ -174,6 +174,9 @@ class Subject extends \FS_Service {
                 // 分享内容
                 $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
                 $share = $shareConfig['groupShare'];
+                //不分享到QQ空间和新浪微博
+                unset($share['qzone']);
+                unset($share['sinaweibo']);
                 $shareDefault = $shareConfig['defaultShareInfo']['subject'];
                 $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
                 $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
@@ -192,7 +195,7 @@ class Subject extends \FS_Service {
                         $share[$keys]['share_img_list'] = $subjectRes[$subjectInfo['id']]['image_url'];
                     }
                 }
-                $subjectRes[$subjectInfo['id']]['share_info'] = $share;
+                $subjectRes[$subjectInfo['id']]['share_info'] = array_values($share);
             }
             if (intval($currentUid) > 0) {
                 $subjectRes[$subjectInfo['id']]['fancied_by_me'] = $isPraised[$subjectInfo['id']] ? true : false;
