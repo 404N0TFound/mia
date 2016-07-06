@@ -48,25 +48,38 @@ class Redbag extends \FS_Service {
         // 记录本次领取操作
         $redbagData = array();
         $redbagData['redbag_id'] = $redbaginfo['redbag_id'];
+        $redbagData['uid'] = $userId;
         $redbagData['apply_id'] = $redbaginfo['id'];
         $redbagData['money'] = $redBagPrice;
-        $redbagData['uid'] = $userId;
         $redbagData['create_time'] = time();
         $redbagDetailResult = $this->redbagModel->addRedbagDetailInfo($redbagData);
         
         // 红包入账
+        $redbagMeData = array();
+        $redbagMeData['money'] = $redBagPrice;
+        $redbagMeData['apply_id'] = $redbaginfo['redbag_id'];
+        $redbagMeData['uid'] = $userId;
         if ($redbaginfo['use_time'] != 0) {
             // 指定日期
-            $redbagData['use_starttime'] = $redbaginfo['use_time'];
-            $redbagData['use_endtime'] = $redbaginfo['use_endtime'];
+            $redbagMeData['use_starttime'] = $redbaginfo['use_time'];
+            $redbagMeData['use_endtime'] = $redbaginfo['use_endtime'];
         } else {
             // 顺延日期
-            $redbagData['use_starttime'] = time();
-            $redbagData['use_endtime'] = time() + 86400 * $redbaginfo['use_delay_day'];
+            $redbagMeData['use_starttime'] = time();
+            $redbagMeData['use_endtime'] = time() + 86400 * $redbaginfo['use_delay_day'];
         }
-        
-        $redbagData['platform_id'] = 1;
-        $redbagMeResult = $this->redbagModel->addRedbagInfoToMe($redbagData);
+        $redbagMeData['create_time'] = time();
+        $redbagMeData['platform_id'] = 0;
+        if ($redbaginfo['platform_app'] == 1) {
+            $redbagMeData['platform_id'] += 1;
+        }
+        if ($redbaginfo['platform_pc'] == 1) {
+            $redbagMeData['platform_id'] += 2;
+        }
+        if ($redbaginfo['platform_m'] == 1) {
+            $redbagMeData['platform_id'] += 4;
+        }
+        $redbagMeResult = $this->redbagModel->addRedbagInfoToMe($redbagMeData);
         
         return $this->succ($redBagPrice);
     }
