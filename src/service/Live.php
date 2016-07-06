@@ -502,18 +502,4 @@ class Live extends \FS_Service {
         return $this->succ($deleteRes);
     }
     
-    /**
-     * 删除直播房间
-     * @author jiadonghui@mia.com
-     */
-    public function deleteLiveRoom($roomId) {
-        if (empty($roomId)) {
-    
-            return $this->error(500);
-        }
-         
-        $deleteRes = $this->liveModel->deleteLiveRoom($roomId);
-        return $this->succ($deleteRes);
-    }
-    
 }
