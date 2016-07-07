@@ -26,7 +26,6 @@ class Redbagtadetail extends \DB_Query {
      */
     public function isReceivedRedbag($redBagId, $uid) {
         $where = array();
-        
         if (intval($redBagId) < 0 || intval($uid) < 0) {
             return false;
         }
