@@ -214,7 +214,7 @@ class Live extends \FS_Service {
             $redbagNums = $redbagService->getRedbagNums($roomData['redbag']['id'])['data'];
             $roomData['redbag']['nums'] = $redbagNums;
             $redbagReceived = $redbagService->isReceivedRedbag($roomData['redbag']['id'], $currentUid)['data'];
-            $roomData['redbag']['is_received'] = !$redbagReceived ? 1 : 0;
+            $roomData['redbag']['is_received'] = $redbagReceived ? 1 : 0;
         }
         // 获取快照和回放地址
         if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
@@ -467,8 +467,8 @@ class Live extends \FS_Service {
         if ($liveRoomInfo['redbag']['id'] == $redBagId) {
             $redbagService = new Redbag();
             // 是否已领取
-            $isReceived = $liveRoomInfo['redbag']['is_received'];
-            if ($isReceived) {
+            $redbagReceived = $redbagService->isReceivedRedbag($redBagId, $userId)['data'];
+            if ($redbagReceived) {
                 return $this->error('1721');
             }
             // 领红包
