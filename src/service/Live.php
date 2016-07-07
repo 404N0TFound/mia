@@ -478,7 +478,7 @@ class Live extends \FS_Service {
                 return $this->error($redbagNums['code']);
             }
             $redbagNums = $redbagNums['data'];
-            $success = array('money' => $redbagNums, 'succ_msg' => '恭喜！抢到%s元红包，快去买买买~');
+            $success = array('money' => $redbagNums . '元', 'succ_msg' => '恭喜！抢到%s红包，快去买买买~');
         }
         return $this->succ($redbagNums);
     }
