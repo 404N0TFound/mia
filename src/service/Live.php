@@ -26,13 +26,14 @@ class Live extends \FS_Service {
     public function getRongCloudToken($userId){
         //获取$name,$portratiuri
         $userService = new User();
-        $userInfo = $userService->getUserBaseInfo($userId)['data'][$userId];
+
+        $userInfo = $userService->getUserInfoByUids($userId)['data'][$userId];
         if(empty($userInfo)){
             //获取用户信息失败
             return $this->error(30003);
         }
         
-        $token = $this->rongCloud->getToken($userId, $userInfo['name'], $userInfo['icon']);
+        $token = $this->rongCloud->getToken($userId, $userInfo['nickname'], $userInfo['icon']);
         if(!$token){
             //获取rongcloudToken失败
             return $this->error(30001);
