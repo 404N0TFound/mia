@@ -114,7 +114,6 @@ class User extends FS_Service {
         
         $userModel = new UserModel();
         $data = $userModel->getBatchExpertInfoByUids($userIds);
-        
         return $this->succ($data);
     }
 
@@ -171,7 +170,12 @@ class User extends FS_Service {
             return false;
         }
         $userInfo = $this->getUserInfoByUids(array($userId), $currentUid, $field)['data'];
-        $userInfo = isset($userInfo[$userId]) ? $userInfo[$userId] : array();
+        // $userInfo = isset($userInfo[$userId]) ? $userInfo[$userId] : array();
+        if (isset($userInfo[$userId])) {
+           $userInfo[$userId]['icon'] = $userInfo[$userId]['icon'] ? $userInfo[$userId]['icon'] : 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png'; 
+        } else {
+            $userInfo = [];
+        }
         
         if (in_array('push_switch', $field)) {
             $pushSwitch = $this->userModel->getPushSwitchByUserIds($userInfo['id']);

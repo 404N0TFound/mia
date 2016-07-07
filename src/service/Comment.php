@@ -115,9 +115,17 @@ class Comment extends \FS_Service {
             return $this->error(500);
         }
         $user_id = $commentInfo['user_id'];
+
+        //判断用户是否是专家
+        $expert = $this->userService->getBatchExpertInfoByUids(array($user_id));
+        $is_expert = 0;
+        if(isset($expert['data']) && count($expert['data'])>0)
+            $is_expert = 1;
+
         // 评论信息入库
         $commentInfo['subject_id'] = $subjectId;
         $commentInfo['comment'] = $commentInfo['comment'];
+        $commentInfo['is_expert'] = $is_expert;
         $commentInfo['create_time'] = date("Y-m-d H:i:s", time());
         // 记录评论信息
         $commentInfo['id'] = $this->commentModel->addComment($commentInfo);
