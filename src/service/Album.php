@@ -457,7 +457,7 @@ class Album extends \FS_Service {
      */
     public function addAlbum($insert) {
         $res = array();
-        if(empty($insert) || empty($insert['title']) || empty($insert['user_id']) || empty($insert['album_id'])){
+        if(empty($insert) || empty($insert['user_id']) || empty($insert['album_id'])){
             return $this->error('500','param insert is empty');
         }
         if( empty($insert['text'])){
@@ -481,11 +481,11 @@ class Album extends \FS_Service {
         
         $params = array();
         $params['user_id'] = $insert['user_id'];
-        $params['title'] = strip_tags($insert['title']);
+        $params['title'] = isset($insert['title'])?strip_tags($insert['title']):'';
         $params['album_id'] = $insert['album_id'];
         $params['subject_id'] = '';
-        $params['content'] = strip_tags($insert['text']);
-        $params['content_original'] = $insert['text'];
+        $params['content'] = isset($insert['text'])?strip_tags($insert['text']):'';
+        $params['content_original'] = isset($insert['text'])?$insert['text']:'';
         $params['status'] = 0;
         $params['ext_info'] = json_encode(array('label'=>$labelInfos));
         $params['cover_image'] = json_encode(
