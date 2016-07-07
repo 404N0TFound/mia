@@ -56,7 +56,7 @@ class Album {
                 }
                 if($img_pic){
                     $res[$key]['cover_image'] = array();
-                    $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] .$img_pic['url'];
+                    $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] .$img_pic['url'];
                     $res[$key]['cover_image']['width'] = $img_pic['width'];
                     $res[$key]['cover_image']['height'] = $img_pic['height'];
                     $res[$key]['cover_image']['content'] = $img_pic['content'];
