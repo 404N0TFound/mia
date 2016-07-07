@@ -63,6 +63,7 @@ class Album extends \FS_Service {
         $params = array();
         $params['page'] = isset($con['page'])?(int)$con['page']:1;
         $params['iPageSize'] = isset($con['iPageSize'])?(int)$con['iPageSize']:10;
+        $user_id = isset($con['user_id'])?(int)$con['user_id']:'';
         
         $response = array();
         $response['article_list'] = array();
@@ -70,7 +71,7 @@ class Album extends \FS_Service {
         $articleIDList = $this->abumModel->getRecommendAlbumArticleList($params);
         if ($articleIDList ) {
             $articleSubjectIdList = new \mia\miagroup\Service\Subject();
-            $articleResult = $articleSubjectIdList->getBatchSubjectInfos($articleIDList); 
+            $articleResult = $articleSubjectIdList->getBatchSubjectInfos($articleIDList,$user_id); 
             if( isset($articleResult['data']) && $articleResult['data']){
                 $response['article_list'] = array_values($articleResult['data']);
             }
@@ -515,7 +516,13 @@ class Album extends \FS_Service {
         $params = array();
         $params['album_id'] = $con['album_id'];
         $params['id'] = $con['article_id'];
-        $res = $this->abumModel->getArticlePreview($params);
+        $res['article'] = $this->abumModel->getArticlePreview($params);
+        
+        if(isset($con['user_id']) && !empty($con['user_id'])){
+            $User = new \mia\miagroup\Service\User();
+            $res['user'] = $User->getUserInfoByUids($con['user_id']);
+        }
+        
         return $this->succ($res);
     }
     
