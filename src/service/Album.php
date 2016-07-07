@@ -457,7 +457,7 @@ class Album extends \FS_Service {
      */
     public function addAlbum($insert) {
         $res = array();
-        if(empty($insert) || empty($insert['title']) || empty($insert['user_id']) || empty($insert['album_id'])){
+        if(empty($insert) || empty($insert['user_id']) || empty($insert['album_id'])){
             return $this->error('500','param insert is empty');
         }
         if( empty($insert['text'])){
@@ -481,11 +481,11 @@ class Album extends \FS_Service {
         
         $params = array();
         $params['user_id'] = $insert['user_id'];
-        $params['title'] = strip_tags($insert['title']);
+        $params['title'] = isset($insert['title'])?strip_tags($insert['title']):'';
         $params['album_id'] = $insert['album_id'];
         $params['subject_id'] = '';
-        $params['content'] = strip_tags($insert['text']);
-        $params['content_original'] = $insert['text'];
+        $params['content'] = isset($insert['text'])?strip_tags($insert['text']):'';
+        $params['content_original'] = isset($insert['text'])?$insert['text']:'';
         $params['status'] = 0;
         $params['ext_info'] = json_encode(array('label'=>$labelInfos));
         $params['cover_image'] = json_encode(
@@ -551,15 +551,6 @@ class Album extends \FS_Service {
         if(!isset($params['article_id']))
                 return $this->error('500','params article_id is empty');
         $subjectInfo = array();
-//        $subjectInfo['title'] = $params['title'];
-//        $subjectInfo['text'] = $params['text'];
-//        $subjectInfo['image_infos'] = array(
-//            array(
-//                'height' => $params['image_infos']['height'], 
-//                'url' => $params['image_infos']['url'], 
-//                'width' => $params['image_infos']['width']
-//            )
-//        );
         $user_info = $this->userService->getUserInfoByUserId($params['user_id'])['data'];
         if(!$user_info){
             return $this->error('500','user_info is null');
@@ -612,37 +603,6 @@ class Album extends \FS_Service {
         }
         return $this->error('500','unknow error');
         
-//        if(isset($subjectRes['id'])){
-//            $setArticle = array();
-//            $setArticle['subject_id'] = $subjectRes['id'];
-//            $setArticle['content'] = strip_tags($params['text']);
-//            $setArticle['content_original'] = $params['text'];
-//            $setArticle['status'] = 1;
-//            $setArticle['title'] = $params['title'];
-//            $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
-//            $setArticle['cover_image'] = json_encode(
-//                    array(
-//                        'width'=>$params['image_infos']['width'],
-//                        'height'=>$params['image_infos']['height'],
-//                        'url'=>$params['image_infos']['url'],
-//                        'content'=>''
-//                    ));
-//            if($params['article_id'] == '0'){   //$params['article_id'] == '0' 最新发布的 直接入库
-//                $setArticle['user_id'] = $params['user_id'];
-//                $setArticle['album_id'] = $params['album_id'];
-//                $res = $this->abumModel->addAlbum($setArticle);
-//            } else {
-//                $paramsArticle = array();
-//                $paramsArticle['user_id'] = $params['user_id'];
-//                $paramsArticle['album_id'] = $params['album_id'];
-//                $paramsArticle['id'] = $params['article_id'];
-//                
-//                $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
-//            }
-//            
-//            return $this->succ($res);
-//        }
-//        return $this->succ($res);
     }
     
     /**
