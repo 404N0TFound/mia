@@ -27,6 +27,9 @@ class Redbag {
     public function splitRedBag($redBagId) {
         // 获取红包基础信息
         $redbagData = $this->getRedbagBaseInfoById($redBagId);
+        if (empty($redbagData)) {
+            return false;
+        }
         //如果红包总金额没有限制，则无需拆包
         if($redbagData['all_money']  == -1){
             return false;

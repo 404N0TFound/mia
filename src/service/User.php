@@ -33,6 +33,7 @@ class User extends FS_Service {
             return array();
         }
         $userInfos = $this->userModel->getUserInfoByIds($userIds);
+
         if (empty($userInfos)) {
             return array();
         }
@@ -63,6 +64,7 @@ class User extends FS_Service {
         
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
+            $userInfo['icon'] = $userInfo['icon'] ? $userInfo['icon'] : 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png';
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
             if ($expertInfos[$userInfo['id']]) {
@@ -114,7 +116,6 @@ class User extends FS_Service {
         
         $userModel = new UserModel();
         $data = $userModel->getBatchExpertInfoByUids($userIds);
-        
         return $this->succ($data);
     }
 
@@ -192,19 +193,6 @@ class User extends FS_Service {
         return $this->succ($userInfo);
     }
 
-    /**
-     * 获取用户的基本信息
-     */
-    public function getUserBaseInfo($user_ids) {
-        $baseUserInfo = [];
-        $userInfos = $this->userModel->getUserInfoByIds($user_ids);
-        foreach ($userInfos as $key=>$userInfo) {
-            $baseUserInfo[$userInfo['id']]['id'] = $userInfo['id'];
-            $baseUserInfo[$userInfo['id']]['name'] = $userInfo['nickname'] ?: $userInfo['username'];
-            $baseUserInfo[$userInfo['id']]['icon'] = $userInfo['icon'] ?: 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png';
-        }
-        return $this->succ($baseUserInfo);
-    }
-    
+
     
 }
