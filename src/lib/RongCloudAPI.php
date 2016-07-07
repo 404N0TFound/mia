@@ -842,9 +842,10 @@ class RongCloudAPI{
             $ret = $this->curl('/wordfilter/add',$params);
             if(empty($ret))
                 throw new Exception('请求失败');
-            return $ret;
+            return json_decode($ret,true);
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            // print_r($e->getMessage());
+            return false;
         }
     }
     
@@ -861,9 +862,10 @@ class RongCloudAPI{
             $ret = $this->curl('/wordfilter/delete',$params);
             if(empty($ret))
                 throw new Exception('请求失败');
-            return $ret;
+            return json_decode($ret,true);
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            // print_r($e->getMessage());
+            return false;
         }
     }
     /**
@@ -875,9 +877,10 @@ class RongCloudAPI{
             $ret = $this->curl('/wordfilter/list',array());
             if(empty($ret))
                 throw new Exception('请求失败');
-            return $ret;
+            return json_decode($ret,true);
         }catch (Exception $e) {
-            print_r($e->getMessage());
+            // print_r($e->getMessage());
+            return false;
         }
     }
 

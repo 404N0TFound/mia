@@ -124,6 +124,50 @@ class RongCloudUtil{
             return true;
         return false;
     }
+
+    /**
+     * 添加敏感词
+     * @param $word 敏感词，最长不超过 32 个字符。（必传）
+     * @return mixed
+     */
+    public function wordfilterAdd($word)
+    {
+        $result = $this->api->wordfilterAdd($word);
+        if ($result['code'] == 200) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 移除敏感词
+     * @param $word 敏感词，最长不超过 32 个字符。（必传）
+     * @return mixed
+     */
+    public function wordfilterDelete($word)
+    {
+        $result = $this->api->wordfilterDelete($word);
+        if ($result['code'] == 200) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 查询敏感词列表
+     * @return array
+     */
+    public function wordfilterList()
+    {
+        $result = $this->api->wordfilterList();
+        if ($result['code'] == 200) {
+            return $result['words'];
+        }
+
+        return false;
+    }
     
     
 }
