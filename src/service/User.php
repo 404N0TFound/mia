@@ -173,6 +173,7 @@ class User extends FS_Service {
         // $userInfo = isset($userInfo[$userId]) ? $userInfo[$userId] : array();
         if (isset($userInfo[$userId])) {
            $userInfo[$userId]['icon'] = $userInfo[$userId]['icon'] ? $userInfo[$userId]['icon'] : 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png'; 
+           $userInfo = $userInfo[$userId];
         } else {
             $userInfo = [];
         }
