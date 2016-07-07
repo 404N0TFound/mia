@@ -28,18 +28,12 @@ class SubjectLabel extends \DB_Query {
         $where[] = array(':eq', 'status', 1);
         $labelInfos = $this->getRows($where, '`id`, `title`, `is_hot`');
         $labelsRes = array();
-        $result = array();
         if (!empty($labelInfos)) {
             foreach ($labelInfos as $labelInfo) {
                 $labelsRes[$labelInfo['id']] = $labelInfo;
             }
-            foreach ($labelIds as $labelId) {
-                if (!empty($labelsRes[$labelId])) {
-                    $result[$labelId] = $labelsRes[$labelId];
-                }
-            }
         }
-        return $result;
+        return $labelsRes;
     }
 
     /**

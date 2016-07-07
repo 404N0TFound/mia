@@ -35,15 +35,23 @@ class Label {
                 $labelIds = array_merge($labelIds, $subjectLabelIds);
             }
         }
+        $labelIds = array_unique($labelIds);
+        
         // 获取标签info
         $labelData = new \mia\miagroup\Data\Label\SubjectLabel();
         $labelInfos = $labelData->getBatchLabelInfos($labelIds);
-        foreach ($labelRelations as $subjectId => $subjectLabelIds) {
-            foreach ($subjectLabelIds as $labelId => $v) {
-                $labelRelations[$subjectId][$labelId] = $labelInfos[$labelId];
+        $subjectLabelInfo = array();
+        if(!empty($labelInfos)){
+            foreach ($labelRelations as $subjectId => $subjectLabelIds) {
+                foreach ($subjectLabelIds as $labelId => $v) {
+                    if(!empty($labelInfos[$labelId])){
+                        $subjectLabelInfo[$subjectId][$labelId] = $labelInfos[$labelId];
+                    }
+                }
             }
         }
-        return $labelRelations;
+
+        return $subjectLabelInfo;
     }
 
     /**

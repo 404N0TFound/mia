@@ -168,6 +168,10 @@ class Live extends \FS_Service {
             //更新直播房间信息失败 + 日志
         }
         
+        //发送结束直播消息
+        $content = NormalUtil::getMessageBody(9);
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+        
         return $this->succ($setRoomRes);
     }
     
