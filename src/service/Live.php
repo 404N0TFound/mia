@@ -209,6 +209,15 @@ class Live extends \FS_Service {
             }
             $roomData['share_info'] = array_values($share);
         }
+        // 获取红包信息
+        if (intval($roomData['redbag']['id']) > 0) {
+            $redbagService = new Redbag();
+            $redbagNums = $redbagService->getRedbagNums($roomData['redbag']['id'])['data'];
+            $roomData['redbag']['nums'] = $redbagNums;
+            $redbagReceived = $redbagService->isReceivedRedbag($roomData['redbag']['id'], $currentUid)['data'];
+            $roomData['redbag']['is_received'] = $redbagReceived ? 1 : 0;
+        }
+        // 获取快照和回放地址
         if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
             $liveId = intval($liveId) > 0 ? $liveId : $roomData['live_id'];
             $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(3, 4))['data'];
@@ -384,13 +393,7 @@ class Live extends \FS_Service {
             if (in_array('redbag', $field)) {
                 if (!empty($roomInfo['redbag'])) {
                     $redbagId = $roomInfo['redbag'];
-                    // 获取红包数量
-                    $redbagService = new Redbag();
-                    $redbagNums = $redbagService->getRedbagNums($redbagId)['data'];
                     $roomRes[$roomInfo['id']]['redbag']['id'] = $roomInfo['redbag'];
-                    $roomRes[$roomInfo['id']]['redbag']['nums'] = $redbagNums;
-                    $redbagReceived = $redbagService->isReceivedRedbag($redbagId, $currentUid)['data'];
-                    $roomRes[$roomInfo['id']]['redbag']['is_received'] = !empty($redbagReceived) ? 1 : 0;
                 }
             }
             
@@ -465,8 +468,8 @@ class Live extends \FS_Service {
         if ($liveRoomInfo['redbag']['id'] == $redBagId) {
             $redbagService = new Redbag();
             // 是否已领取
-            $isReceived = $liveRoomInfo['redbag']['is_received'];
-            if ($isReceived) {
+            $redbagReceived = $redbagService->isReceivedRedbag($redBagId, $userId)['data'];
+            if ($redbagReceived) {
                 return $this->error('1721');
             }
             // 领红包
@@ -475,12 +478,7 @@ class Live extends \FS_Service {
                 return $this->error($redbagNums['code']);
             }
             $redbagNums = $redbagNums['data'];
-            // 如果红包未领取完毕，则可以领，否则给聊天室发消息
-            if ($liveRoomInfo['redbag']['nums'] <= 0) {
-                $rong_api = new RongCloudUtil();
-                $content = '{"type":7,"extra":{"redbagNums":"' . $redbagNums . '"}}';
-                $rong_api->messageChatroomPublish(3782852, $liveRoomInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
-            }
+            $success = array('money' => $redbagNums, 'succ_msg' => '恭喜！抢到%s元红包，快去买买买~');
         }
         return $this->succ($redbagNums);
     }
