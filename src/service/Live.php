@@ -510,5 +510,38 @@ class Live extends \FS_Service {
         $deleteRes = $this->liveModel->deleteLiveRoom($roomId);
         return $this->succ($deleteRes);
     }
+
+    /**
+     * 添加敏感词
+     * @param $word 敏感词，最长不超过 32 个字符。（必传）
+     * @return $mixed
+     */
+    public function wordfilterAdd($word)
+    {
+        $data = $this->rongCloud->wordfilterAdd($word);
+        return $this->succ($data);
+    }
+
+    /**
+     * 移除敏感词
+     * @param $word 敏感词，最长不超过 32 个字符。（必传）
+     * @return mixed
+     */
+    public function wordfilterDelete($word)
+    {
+        $data = $this->rongCloud->wordfilterDelete($word);
+        return $this->succ($data);
+    }
+
+
+    /**
+     * 查询敏感词列表
+     * @return array
+     */
+    public function wordfilterList()
+    {
+        $data = $this->rongCloud->wordfilterList();
+        return $this->succ($data);
+    }
     
 }
