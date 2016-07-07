@@ -36,7 +36,7 @@ class Redbag extends \FS_Service {
         
         // 如果总额度没有限制，则直接按照红包最大最小金额随机生成红包金额
         if ($redbaginfo['all_money'] == -1) {
-            $redBagPrice = rand($redbaginfo['max_money'], $redbaginfo['min_money']);
+            $redBagPrice = intval(rand($redbaginfo['max_money'], $redbaginfo['min_money']));
         } else {
             // 从redis里获取可用红包
             $redBagPrice = $this->redbagModel->getRedBagFromRedis($redBagId);
