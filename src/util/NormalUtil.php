@@ -149,6 +149,7 @@ class NormalUtil {
             case 6:
             case 7:
             case 11:
+            case 12:
                 $message=['type'=>$type,'extra'=>$extra_json];
                 break;
             case 9:
