@@ -484,7 +484,7 @@ class Live extends \FS_Service {
             $redbagNums = $redbagNums['data'];
             $success = array('money' => $redbagNums . '元', 'succ_msg' => '恭喜！抢到%s红包，快去买买买~');
         }
-        return $this->succ($redbagNums);
+        return $this->succ($success);
     }
     
     /**
@@ -499,6 +499,19 @@ class Live extends \FS_Service {
         $insertRes = $this->liveModel->addLiveRoom(['user_id' =>$userId]);
     
         return $this->succ($insertRes);
+    }
+    
+    /**
+     * 向聊天室发送系统消息
+     */
+    public function sendSystemMessage($roomId, $message, $sendUid = 0){
+        if (intval($sendUid) <= 0) {
+            $sendUid = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+        }
+        //发送结束直播消息
+        $content = NormalUtil::getMessageBody(0, $sendUid, $message);
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomId, NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+        return $this->succ();
     }
 
     /**
