@@ -64,7 +64,7 @@ class User extends FS_Service {
         
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
-            $userInfo['icon'] = $userInfo['icon'] ? $userInfo['icon'] : 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png';
+            $userInfo['icon'] = $userInfo['icon'] ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
             if ($expertInfos[$userInfo['id']]) {
