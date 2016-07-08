@@ -183,13 +183,13 @@ class Subject extends \FS_Service {
                     $shareImage = $shareDefault['img_url'];;
                 }
                 //站位H5分享链接
-                if (!empty($albumArticles[$subjectId])) {
-                    $h5Url = sprintf(\F_Ice::$ins->workApp->config->get('busconf.subject.album.h5_url'), $albumArticles[$subjectId]['id'], $albumArticles[$subjectId]['album_id']);
+                if (!empty($albumArticles[$subjectInfo['id']])) {
+                    $h5Url = sprintf(\F_Ice::$ins->workApp->config->get('busconf.subject.album.h5_url'), $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
                 } else {
-                    $h5Ulr = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
+                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
                 }
                 // 替换搜索关联数组
-                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareDefault['wap_url'], $subjectInfo['id']), '{|extend_text|}' => $shareDefault['extend_text']);
+                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url, '{|extend_text|}' => $shareDefault['extend_text']);
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
                     $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
