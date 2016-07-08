@@ -64,20 +64,18 @@ class User extends FS_Service {
         
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
-            $userInfo['icon'] = $userInfo['icon'] ? $userInfo['icon'] : 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png';
+            $userInfo['icon'] = $userInfo['icon'] ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
             if ($expertInfos[$userInfo['id']]) {
                 $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();
                 if (!empty(trim($expertInfos[$userInfo['id']]['label'], "#"))) {
                     $expert_label_ids = explode('#', trim($expertInfos[$userInfo['id']]['label'], "#"));
-                    $expertInfos[$userInfo['id']]['label'] = $labelService->getBatchLabelInfos($expert_label_ids)['data'];
+                    $expertInfos[$userInfo['id']]['label'] = array_values($labelService->getBatchLabelInfos($expert_label_ids)['data']);
                 } else {
                     $expertInfos[$userInfo['id']]['label'] = [];
                 }
                 $userInfo['experts_info'] = $expertInfos[$userInfo['id']];
-            } else {
-                $userInfo['experts_info'] = [];
             }
             
             if (intval($currentUid) > 0) {

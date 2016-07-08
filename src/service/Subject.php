@@ -182,8 +182,14 @@ class Subject extends \FS_Service {
                 } else {
                     $shareImage = $shareDefault['img_url'];;
                 }
+                //站位H5分享链接
+                if (!empty($albumArticles[$subjectInfo['id']])) {
+                    $h5Url = sprintf(\F_Ice::$ins->workApp->config->get('busconf.subject.album.h5_url'), $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
+                } else {
+                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
+                }
                 // 替换搜索关联数组
-                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => sprintf($shareDefault['wap_url'], $subjectInfo['id']), '{|extend_text|}' => $shareDefault['extend_text']);
+                $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url, '{|extend_text|}' => $shareDefault['extend_text']);
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
                     $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
@@ -237,14 +243,13 @@ class Subject extends \FS_Service {
                 $subjectSetInfo['status'] = 2;
             }
         }
+        $emojiUtil = new \mia\miagroup\Util\EmojiUtil();
         $subjectSetInfo['user_id'] = $subjectInfo['user_info']['user_id'];
         if (isset($subjectInfo['title']) && trim($subjectInfo['title']) != "") {
-            $subjectSetInfo['title'] = trim($subjectInfo['title']);
-            $subjectSetInfo['title'] = $subjectInfo['title'];
+            $subjectSetInfo['title'] = trim($emojiUtil->emoji_unified_to_html($subjectInfo['title']));
         }
         if (isset($subjectInfo['text']) && trim($subjectInfo['text']) != "") {
-            $subjectSetInfo['text'] = trim($subjectInfo['text']);
-            $subjectSetInfo['text'] = $subjectInfo['text'];
+            $subjectSetInfo['text'] = trim($emojiUtil->emoji_unified_to_html($subjectInfo['text']));
         } else {
             $subjectSetInfo['text'] = '';
         }

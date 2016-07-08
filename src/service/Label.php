@@ -60,6 +60,9 @@ class Label extends \FS_Service {
      * 批量获取标签信息
      */
     public function getBatchLabelInfos($labelIds){
+        if (empty($labelIds)) {
+            return $this->succ(array());
+        }
         $data = $this->labelModel->getBatchLabelInfos($labelIds);
         return $this->succ($data);
     }
