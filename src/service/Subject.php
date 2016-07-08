@@ -237,12 +237,13 @@ class Subject extends \FS_Service {
                 $subjectSetInfo['status'] = 2;
             }
         }
+        $emojiUtil = new \mia\miagroup\Util\EmojiUtil();
         $subjectSetInfo['user_id'] = $subjectInfo['user_info']['user_id'];
         if (isset($subjectInfo['title']) && trim($subjectInfo['title']) != "") {
-            $subjectSetInfo['title'] = trim($this->emojiUtil->emoji_unified_to_html($subjectInfo['title']));
+            $subjectSetInfo['title'] = trim($emojiUtil->emoji_unified_to_html($subjectInfo['title']));
         }
         if (isset($subjectInfo['text']) && trim($subjectInfo['text']) != "") {
-            $subjectSetInfo['text'] = trim($this->emojiUtil->emoji_unified_to_html($subjectInfo['text']));
+            $subjectSetInfo['text'] = trim($emojiUtil->emoji_unified_to_html($subjectInfo['text']));
         } else {
             $subjectSetInfo['text'] = '';
         }
