@@ -71,7 +71,7 @@ class User extends FS_Service {
                 $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();
                 if (!empty(trim($expertInfos[$userInfo['id']]['label'], "#"))) {
                     $expert_label_ids = explode('#', trim($expertInfos[$userInfo['id']]['label'], "#"));
-                    $expertInfos[$userInfo['id']]['label'] = $labelService->getBatchLabelInfos($expert_label_ids)['data'];
+                    $expertInfos[$userInfo['id']]['label'] = array_values($labelService->getBatchLabelInfos($expert_label_ids)['data']);
                 } else {
                     $expertInfos[$userInfo['id']]['label'] = [];
                 }
