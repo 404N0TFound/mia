@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Service;
 
+use \F_Ice;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Model\Praise as PraiseModel;
 
