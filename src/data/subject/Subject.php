@@ -28,10 +28,13 @@ class Subject extends \DB_Query {
             return array();
         }
         $result = array();
+        $emojiUtil = new \mia\miagroup\Util\EmojiUtil();
         foreach ($subjectsArrs as $v) {
             if ($v['status'] == 2) { // 视频转码中按正常处理
                 $v['status'] = 1;
             }
+            $v['title'] = $emojiUtil->emoji_html_to_unified($v['title']);
+            $v['text'] = $emojiUtil->emoji_html_to_unified($v['text']);
             $v['ext_info'] = json_decode($v['ext_info'], true);
             $result[$v['id']] = $v;
         }
