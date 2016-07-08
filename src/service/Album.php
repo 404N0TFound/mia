@@ -47,7 +47,7 @@ class Album extends \FS_Service {
         
         //第一页 返回专辑列表信息
         if ($params['page'] == 1) {
-            $albumResult = $this->abumModel->getAlbumList(array('user_id'=>$user_id));
+            $albumResult = $this->abumModel->getAlbumList(array('user_id'=>$con['user_id']));
             $response['album_list'] = array_values($albumResult);
         }
         return $this->succ($response);
@@ -315,7 +315,7 @@ class Album extends \FS_Service {
         }
         $con = $data['con'];
         $set = $data['set'];
-        if(empty($data['id'])){
+        if(empty($con['id'])){
             return $this->error('500','param con id is empty');
         }
         
@@ -521,9 +521,18 @@ class Album extends \FS_Service {
         $params['id'] = $con['article_id'];
         $res['article'] = $this->abumModel->getArticlePreview($params);
         
+        $user_id = '';
+        //返回用户信息  H5展示用文章用户
+        if(isset($res['article']['user_id']) && !empty($res['article']['user_id'])){
+            $user_id = $res['article']['user_id'];
+        }
+        //后台编辑 用传来的用户ID
         if(isset($con['user_id']) && !empty($con['user_id'])){
+            $user_id = $con['user_id'];
+        }
+        if($user_id){
             $User = new \mia\miagroup\Service\User();
-            $res['user'] = $User->getUserInfoByUids($con['user_id']);
+            $res['user'] = $User->getUserInfoByUids($user_id);
         }
         
         return $this->succ($res);
