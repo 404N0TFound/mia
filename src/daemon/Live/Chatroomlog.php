@@ -7,7 +7,7 @@ class Chatroomlog extends \FD_Daemon{
     
     public function execute(){
         
-        $date = date('YmdH');
+        $date = date('YmdH',time()-3600);
         $rong_api = new RongCloudUtil();
         $url = $rong_api->messageHistory($date);
         if(!empty($url)){
