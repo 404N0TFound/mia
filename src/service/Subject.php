@@ -239,12 +239,10 @@ class Subject extends \FS_Service {
         }
         $subjectSetInfo['user_id'] = $subjectInfo['user_info']['user_id'];
         if (isset($subjectInfo['title']) && trim($subjectInfo['title']) != "") {
-            $subjectSetInfo['title'] = trim($subjectInfo['title']);
-            $subjectSetInfo['title'] = $subjectInfo['title'];
+            $subjectSetInfo['title'] = trim($this->emojiUtil->emoji_unified_to_html($subjectInfo['title']));
         }
         if (isset($subjectInfo['text']) && trim($subjectInfo['text']) != "") {
-            $subjectSetInfo['text'] = trim($subjectInfo['text']);
-            $subjectSetInfo['text'] = $subjectInfo['text'];
+            $subjectSetInfo['text'] = trim($this->emojiUtil->emoji_unified_to_html($subjectInfo['text']));
         } else {
             $subjectSetInfo['text'] = '';
         }
