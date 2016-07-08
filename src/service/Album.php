@@ -379,7 +379,7 @@ class Album extends \FS_Service {
         foreach($subjectIds as $subjectId){
             $subjectRes = $subjectService->deleteSubject($subjectId, $con['user_id'])['code'];
             if($subjectRes != '0'){
-                return $this->error('500','delete miaquan failed');
+//                return $this->error('500','delete miaquan failed');//如果有一个删除失败 这个专栏辑永远都删不掉 所以先注释 以后优化成批量删除
             }
         }
         
@@ -461,23 +461,10 @@ class Album extends \FS_Service {
         if(empty($insert) || empty($insert['user_id']) || empty($insert['album_id'])){
             return $this->error('500','param insert is empty');
         }
-        if( empty($insert['text'])){
-            return $this->error('500','param text is empty');
-        }
-        if( empty($insert['image_infos']))
-            return $this->error('500','param cover_image is empty');
         
         $userPermission = $this->abumModel->getAlbumPermissionByUserId($insert['user_id']);
         if(!$userPermission){
             return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
-        }
-        
-        $labelInfos = array();
-        if(isset($insert['labels']) &&  $insert['labels']){
-            foreach($insert['labels'] as $key => $value){
-                $labelInfos[$key]['id'] = $value['id'];
-                $labelInfos[$key]['title'] = $value['title'];
-            }
         }
         
         $params = array();
@@ -488,14 +475,25 @@ class Album extends \FS_Service {
         $params['content'] = isset($insert['text'])?strip_tags($insert['text']):'';
         $params['content_original'] = isset($insert['text'])?$insert['text']:'';
         $params['status'] = 0;
-        $params['ext_info'] = json_encode(array('label'=>$labelInfos));
-        $params['cover_image'] = json_encode(
+        if(isset($insert['labels']) &&  $insert['labels']){
+            $labelInfos = array();
+            foreach($insert['labels'] as $key => $value){
+                $labelInfos[$key]['id'] = $value['id'];
+                $labelInfos[$key]['title'] = $value['title'];
+            }
+            $params['ext_info'] = json_encode(array('label'=>$labelInfos));
+        }
+        
+        if(isset($insert['image_infos'])){
+            $params['cover_image'] = json_encode(
                 array(
                     'width'=>$insert['image_infos']['width'],
                     'height'=>$insert['image_infos']['height'],
                     'url'=>$insert['image_infos']['url'],
                     'content'=>''
                 ));
+        }
+        
         $res = $this->abumModel->addAlbum($params);
         return $this->succ($res);
     }
@@ -508,15 +506,15 @@ class Album extends \FS_Service {
      * @return array() 文章内容
      */
     public function getArticlePreview($con) {
-       $res = array();
-        if(empty($con) || empty($con['album_id']) || empty($con['article_id'])){
-            return $this->error('500','param condition is empty');
-        }
-
-        $params = array();
-        $params['album_id'] = $con['album_id'];
-        $params['id'] = $con['article_id'];
-        $res['article'] = $this->abumModel->getArticlePreview($params);
+        $res = array();
+//        if(empty($con) || empty($con['album_id']) || empty($con['article_id'])){
+//            return $this->error('500','param condition is empty');
+//        }
+//
+//        $params = array();
+//        $params['album_id'] = $con['album_id'];
+//        $params['id'] = $con['article_id'];
+//        $res['article'] = $this->abumModel->getArticlePreview($params);
         
         if(isset($con['user_id']) && !empty($con['user_id'])){
             $User = new \mia\miagroup\Service\User();
