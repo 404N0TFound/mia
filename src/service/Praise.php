@@ -30,7 +30,7 @@ class Praise extends \FS_Service {
             $userInfos = $this->userService->getUserInfoByUids($userIds)['data'];
             foreach ($subPraises as $subjectId => $uids) {
                 foreach ($uids as $uid) {
-                    if (isset($userInfos[$uid]) && !empty($userInfos[$uid]['icon'])) {
+                    if (isset($userInfos[$uid]) && $userInfos[$uid]['icon'] != F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon')) {
                         $tmpInfo['user_id'] = $userInfos[$uid]['user_id'];
                         $tmpInfo['username'] = $userInfos[$uid]['username'];
                         $tmpInfo['nickname'] = $userInfos[$uid]['nickname'];
