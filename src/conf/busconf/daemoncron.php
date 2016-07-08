@@ -24,7 +24,7 @@ $cron_list['live_stream_check'] = array(
 
 //定时发送已售出商品数量消息
 $cron_list['sale_sku_count'] = array(
-    'enable' => true,
+    'enable' => false,
     'engine' => 'php',
     'cli_args' => "--class=live --action=livesaleskunum",
     'start_time' => '2016-06-23 00:00:00',
