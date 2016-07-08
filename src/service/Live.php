@@ -314,7 +314,7 @@ class Live extends \FS_Service {
             if(!empty($roomData['chat_room_id'])){
                 //给聊天室发送更改的banners信息
                 if(!empty($settings['banners'])){
-                    $content = NormalUtil::getMessageBody(12,0,'',$settings['banners']);
+                    $content = NormalUtil::getMessageBody(12,0,'',['banners'=>$settings['banners']]);
                     $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomData['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
                 }
             }
