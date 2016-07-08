@@ -329,8 +329,10 @@ class Album extends \FS_Service {
         $params['id'] = $con['id'];
         
         $data = array();
-        $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
-        $data['content_original'] = $set['content'];   //原始文章内容
+        if(isset($set['content']) && !empty($set['content'])){
+            $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
+            $data['content_original'] = $set['content'];   //原始文章内容
+        }
         
         if(isset($set['labels']) && !empty($set['labels'])){
             $labelInfos = array();
@@ -348,6 +350,9 @@ class Album extends \FS_Service {
                     'url'=>$set['image_infos']['url'],
                     'content'=>''
                 ));
+        }
+        if(empty($data) || count(array_filter($data)) == 0){
+            return $this->succ($res);
         }
         
         $res = $this->abumModel->updateAlbumArticle($params,$data);
@@ -507,14 +512,14 @@ class Album extends \FS_Service {
      */
     public function getArticlePreview($con) {
         $res = array();
-//        if(empty($con) || empty($con['album_id']) || empty($con['article_id'])){
-//            return $this->error('500','param condition is empty');
-//        }
-//
-//        $params = array();
-//        $params['album_id'] = $con['album_id'];
-//        $params['id'] = $con['article_id'];
-//        $res['article'] = $this->abumModel->getArticlePreview($params);
+        if(empty($con) || empty($con['album_id']) || empty($con['article_id'])){
+            return $this->error('500','param condition is empty');
+        }
+
+        $params = array();
+        $params['album_id'] = $con['album_id'];
+        $params['id'] = $con['article_id'];
+        $res['article'] = $this->abumModel->getArticlePreview($params);
         
         if(isset($con['user_id']) && !empty($con['user_id'])){
             $User = new \mia\miagroup\Service\User();
