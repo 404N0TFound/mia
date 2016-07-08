@@ -76,8 +76,6 @@ class User extends FS_Service {
                     $expertInfos[$userInfo['id']]['label'] = [];
                 }
                 $userInfo['experts_info'] = $expertInfos[$userInfo['id']];
-            } else {
-                $userInfo['experts_info'] = [];
             }
             
             if (intval($currentUid) > 0) {
