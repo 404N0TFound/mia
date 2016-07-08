@@ -2,6 +2,7 @@
 namespace mia\miagroup\Data\Album;
 
 use \DB_Query;
+use \F_Ice;
 
 class AlbumArticle extends \DB_Query {
 
@@ -239,7 +240,13 @@ class AlbumArticle extends \DB_Query {
         if(isset($params['user_id']) && $params['user_id']){
             $where[] = array(':eq', 'user_id', $params['user_id']);
         }
-        $data = $this->getRow($where, array('title,content_original'), $limit = FALSE, $offset = 0);
+        $data = $this->getRow($where, array('title,cover_image,content_original'), $limit = FALSE, $offset = 0);
+        if($data){
+            $data['cover_image'] = json_decode($data['cover_image'],true);
+            if(isset($data['cover_image']['url'])){
+                $data['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $data['cover_image']['url'];
+            }
+        }
         return $data;
     }
     
