@@ -469,22 +469,46 @@ class Live extends \FS_Service {
             return $this->error('1722');
         }
         // 判断该红包是否绑定了直播房间
-        if ($liveRoomInfo['redbag']['id'] == $redBagId) {
-            $redbagService = new Redbag();
-            // 是否已领取
-            $redbagReceived = $redbagService->isReceivedRedbag($redBagId, $userId)['data'];
-            if ($redbagReceived) {
-                return $this->error('1721');
-            }
-            // 领红包
-            $redbagNums = $redbagService->getPersonalRedBag($userId, $redBagId);
-            if ($redbagNums['code'] > 0) {
-                return $this->error($redbagNums['code']);
-            }
-            $redbagNums = $redbagNums['data'];
-            $success = array('money' => $redbagNums . '元', 'success_msg' => '恭喜！抢到%s红包，快去买买买~');
+        if ($liveRoomInfo['redbag']['id'] != $redBagId) {
+            return $this->error('1722');
         }
+        $redbagService = new Redbag();
+        // 是否已领取
+        $redbagReceived = $redbagService->isReceivedRedbag($redBagId, $userId)['data'];
+        if ($redbagReceived) {
+            return $this->error('1721');
+        }
+        // 领红包
+        $redbagNums = $redbagService->getPersonalRedBag($userId, $redBagId);
+        if ($redbagNums['code'] > 0) {
+            return $this->error($redbagNums['code']);
+        }
+        $redbagNums = $redbagNums['data'];
+        $success = array('money' => $redbagNums . '元', 'success_msg' => '恭喜！抢到%s红包，快去买买买~');
         return $this->succ($success);
+    }
+    
+    /**
+     * 主播发送直播红包
+     */
+    public function sendLiveRedBag($roomId, $userId, $redBagId) {
+        // 获取直播房间信息
+        $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('redbag'))['data'];
+        $liveRoomInfo = $liveRoomInfo[$roomId];
+        // 判断直播间是否配置了红包
+        if (empty($liveRoomInfo['redbag'])) {
+            return $this->error('1726');
+        }
+        // 判断该红包是否绑定了直播房间
+        if ($liveRoomInfo['redbag']['id'] != $redBagId) {
+            return $this->error('1726');
+        }
+        $redbagService = new Redbag();
+        $redbagService->splitRedBag($redBagId);
+        if ($redbagService['code'] > 0) {
+            return $this->error($redbagService['code']);
+        }
+        return $this->succ();
     }
     
     /**

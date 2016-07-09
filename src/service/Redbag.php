@@ -33,7 +33,6 @@ class Redbag extends \FS_Service {
         if (($redbaginfo['receive_time'] != 0 && $redbaginfo['receive_time'] < time()) || ($expireTime > 0 && $expireTime < time())) {
             return $this->error(1724);
         }
-        
         // 如果总额度没有限制，则直接按照红包最大最小金额随机生成红包金额
         if ($redbaginfo['all_money'] == -1) {
             $redBagPrice = intval(rand($redbaginfo['max_money'], $redbaginfo['min_money']));
@@ -92,7 +91,10 @@ class Redbag extends \FS_Service {
             return $this->error(500);
         }
         $splitRes = $this->redbagModel->splitRedBag($redBagId);
-        return $this->succ($splitRes);
+        if ($splitRes === false) {
+            return $this->error('1727');
+        }
+        return $this->succ();
     }
 
     /**

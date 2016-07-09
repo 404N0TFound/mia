@@ -42,7 +42,7 @@ $cron_list['online_count'] = array(
 
 //打散红包定时任务
 $cron_list['split_red_bag'] = array(
-    'enable' => true,
+    'enable' => false,
     'engine' => 'php',
     'cli_args' => "--class=live --action=splitredbag",
     'start_time' => '2016-07-4 00:00:00',
