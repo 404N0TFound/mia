@@ -30,8 +30,12 @@ $liveKey = array(
  * 红包相关的redisKey
  */
 $redBagKey = array(
-		'splitRedBag' =>array( //使用List数据结构
-			'key' => $redBagServicePrefix . 'redbag_%s',
-			'expire_time' => 3600,
-		)
+	'splitRedBag' =>array( //使用List数据结构
+		'key' => $redBagServicePrefix . 'redbag_%s',
+		'expire_time' => 86400 * 30,
+	),
+    'splitStatus' =>array( //使用String数据结构
+        'key' => $redBagServicePrefix . 'split_status_%s',
+        'expire_time' => 86400 * 30,
+    )
 );

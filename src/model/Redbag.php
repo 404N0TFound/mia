@@ -25,6 +25,13 @@ class Redbag {
      * 拆分红包
      */
     public function splitRedBag($redBagId) {
+        // 判断是否已拆分
+        $splitStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.key'), $redBagId);
+        $redis = new Redis();
+        $splitStatus = $redis->exists($splitStatusKey);
+        if ($splitStatus) {
+            return false;
+        }
         // 获取红包基础信息
         $redbagData = $this->getRedbagBaseInfoById($redBagId);
         if (empty($redbagData)) {
@@ -34,13 +41,14 @@ class Redbag {
         if($redbagData['all_money']  == -1){
             return false;
         }
-        
         // 根据红包规则，拆分红包
         $splitArr = $this->spliteRedBagByRule($redbagData['all_money'], $redbagData['max_money'], $redbagData['min_money']);
         // 拆分完成的红包写入redis
         if (!empty($splitArr)) {
             $this->setSplitedRedBag($redBagId, $splitArr);
         }
+        // 设置已拆分状态
+        $redis->setex($splitStatusKey, 1, \F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.expire_time'));
         return true;
     }
 
@@ -62,13 +70,13 @@ class Redbag {
      * 写入待领取的红包 redis
      */
     public function setSplitedRedBag($redBagId, $splitedList) {
-        foreach ($splitedList as $key => $redbag) {
-            // 获取rediskey
-            $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitRedBag.key'), $redBagId);
-            // 执行redis指令
-            $redis = new Redis();
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitRedBag.key'), $redBagId);
+        $redis = new Redis();
+        foreach ($splitedList as $redbag) {
             $redis->lpush($key, $redbag);
         }
+        $redis->expire($key, sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitRedBag.expire_time')));
         return true;
     }
 
