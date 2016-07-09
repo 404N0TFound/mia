@@ -114,9 +114,9 @@ class Album extends \FS_Service {
     }
     
     /**
-     * 查用户下专栏数
+     * 查用户下文章数
      * @params array() $userIds 用户ID
-     * @return array() 用户专栏个数
+     * @return array() 用户文章个数
      */
     public function getArticleNum($userIds) {
         if (empty($userIds)) {
