@@ -26,9 +26,7 @@ class Redbag {
      */
     public function splitRedBag($redBagId) {
         // 判断是否已拆分
-        $splitStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.key'), $redBagId);
-        $redis = new Redis();
-        $splitStatus = $redis->exists($splitStatusKey);
+        $splitStatus = $this->getRedBagSplitStatus($redBagId);
         if ($splitStatus) {
             return false;
         }
@@ -48,6 +46,26 @@ class Redbag {
             $this->setSplitedRedBag($redBagId, $splitArr);
         }
         // 设置已拆分状态
+        $this->setRedBageSplited($redBagId);
+        return true;
+    }
+    
+    /**
+     * 获取红包拆分状态
+     */
+    public function getRedBagSplitStatus($redBagId) {
+        $splitStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.key'), $redBagId);
+        $redis = new Redis();
+        $splitStatus = $redis->exists($splitStatusKey);
+        return $splitStatus;
+    }
+    
+    /**
+     * 设置红包已拆分
+     */
+    public function setRedBageSplited($redBagId) {
+        $splitStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.key'), $redBagId);
+        $redis = new Redis();
         $redis->setex($splitStatusKey, 1, \F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.expire_time'));
         return true;
     }

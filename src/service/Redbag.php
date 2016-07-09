@@ -96,6 +96,17 @@ class Redbag extends \FS_Service {
         }
         return $this->succ();
     }
+    
+    /**
+     * 获取红包拆分状态
+     */
+    public function getSplitStatus($redBagId) {
+        if (empty($redBagId)) {
+            return $this->error(500);
+        }
+        $splitRes = $this->redbagModel->getRedBagSplitStatus($redBagId);
+        return $this->succ($splitRes);
+    }
 
     /**
      * 获取红包剩余数量
