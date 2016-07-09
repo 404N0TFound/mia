@@ -113,6 +113,18 @@ class Album extends \FS_Service {
         return $this->succ($res);
     }
     
+    /**
+     * 查用户下专栏数
+     * @params array() $userIds 用户ID
+     * @return array() 用户专栏个数
+     */
+    public function getArticleNum($userIds) {
+        if (empty($userIds)) {
+            return $this->succ(array()); 
+        }
+        $res = $this->abumModel->getArticleNum($userIds);
+        return $this->succ($res);
+    }
     
     /*
      * ---------------------------------下面是PC接口----------------------------------------------

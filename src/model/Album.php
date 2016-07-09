@@ -186,6 +186,16 @@ class Album {
     }
     
     /**
+     * 查用户下文章数
+     * @params array() $userIds 用户ID
+     * @return array() 用户文章个数
+     */
+    public function getArticleNum($userIds)
+    {
+        return $this->albumArticleData->getArticleNum($userIds);
+    }
+    
+    /**
      * 查文章详情接口
      * @params array() $article_id 文章ID
      * @params array() $userId 用户ID

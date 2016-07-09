@@ -158,6 +158,30 @@ class AlbumArticle extends \DB_Query {
         $SimpleArticleList = $this->getRows($where, array('id,album_id,cover_image,title,content,create_time'), $limit, $offset, $orderBy);
         return $SimpleArticleList;
     }
+    
+    /**
+     * 查用户下专栏数
+     * @params array() $userIds 用户ID
+     * @return array() 用户下专栏数
+     */
+    public function getArticleNum($userIds) {
+        $numArr = array();
+        $where = array();
+        if($userIds){
+            $where[] = ['user_id', $userIds];
+        }
+        $where[] = ['status', 1];
+        $field = 'user_id,count(*) as nums';
+        $groupBy = 'user_id';
+        $articleInfos = $this->getRows($where, $field, FALSE, 0, FALSE, FALSE, $groupBy);
+        
+        if($articleInfos){
+            foreach ($articleInfos as $values) {
+                $numArr[$values['user_id']] = $values['nums'];
+            }
+        }
+        return $numArr;
+    }
 
     /**
      * 精选文章列表
