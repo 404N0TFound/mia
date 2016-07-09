@@ -148,19 +148,6 @@ class Live extends \FS_Service {
             //更新房间信息失败 +日志
         }
         
-        //生成回放
-//         $qiniu = new QiniuUtil();
-//         $vedioUrl = $qiniu->getPalyBackUrls();
-        
-//         $subjectService = new \mia\miagroup\Service\Subject();
-//         $subjectInfo = array("title" => 'zhibo', "text" => 'zhibo', "image_infos" => array(0 => array('height' => 522, 'url' => '/d1/p4/2016/06/17/89/09/8909b7a9830d432c8b338363c9fae326542443173.jpg', 'width' => 480)), "user_info" => array('username' => 'miya134****4368', 'nickname' => 'miya134****4368', 'child_birth_day' => '2015-03-11', 'user_status' => '0', 'consume_money' => '0.00', 'icon' => '', 'level' => '1', 'is_id_verified' => '2', 'is_cell_verified' => '1', 'mibean_level' => '2', 'create_date' => '2015-03-31 17:04:05', 'status' => '1', 'is_experts' => 0, 'user_id' => '1000008', 'level_number' => '1'), "active_id" => 0, "video_url" => 'video/2016/05/04/089912967ba54274ec761531a7796eb3.mp4');
-        
-//         $subjectRes = $subjectService->issue($subjectInfo);
-//         if($subjectRes['code'] != 0){
-//             return $this->error(30000,'生成帖子失败');
-//         }
-          
-        //后台脚本处理赞数、评论、累计观众、最高在线等数据
         //更新直播房间
         $roomSetData[] = ['live_id',''];
         $roomSetData[] = ['chat_room_id',''];
@@ -511,6 +498,9 @@ class Live extends \FS_Service {
         if ($redbagService['code'] > 0) {
             return $this->error($redbagService['code']);
         }
+        //发送领取红包消息
+        $content = NormalUtil::getMessageBody(7, 0, '', array('redbag_id' => $redBagId));
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomId, NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
         return $this->succ();
     }
     
