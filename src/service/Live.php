@@ -500,7 +500,7 @@ class Live extends \FS_Service {
         }
         //发送领取红包消息
         $content = NormalUtil::getMessageBody(7, 0, '', array('redbag_id' => $redBagId));
-        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomId, NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
         return $this->succ();
     }
     
@@ -525,9 +525,14 @@ class Live extends \FS_Service {
         if (intval($sendUid) <= 0) {
             $sendUid = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
         }
+        $roomInfo = $this->getLiveRoomByIds(array($roomId))['data'];
+        if(empty($roomData)){
+            //没有直播房间信息
+            return $this->error(30003);
+        }
         //发送结束直播消息
         $content = NormalUtil::getMessageBody(0, $sendUid, $message);
-        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomId, NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
         return $this->succ();
     }
 
