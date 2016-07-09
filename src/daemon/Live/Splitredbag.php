@@ -28,17 +28,12 @@ class Splitredbag extends \FD_Daemon {
             }
             //判断红包是否已拆散
             //获取rediskey
-            $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitRedBag.key'), $settings['redbag']);
+            $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.key'), $settings['redbag']);
             $splitStatus = $redis->exists($key);
             if($splitStatus){
                 continue;
             }
-            //拆散红包
-            $splitStatus = $redBagService->splitRedBag($settings['redbag'])['data'];
-            if($splitStatus == false){
-                continue;
-            }
-            // 如果settings里有红包就给主播发消息
+            // 给主播发展示红包消息
             $rong_api = new RongCloudUtil();
             $content = NormalUtil::getMessageBody(11, 0, '', array('redbag_id' => $settings['redbag']));
             $rong_api->messagePublish(3782852, $room['user_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
