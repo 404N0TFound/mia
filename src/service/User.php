@@ -54,6 +54,7 @@ class User extends FS_Service {
             $userAttenCount = $userRelation->countBatchUserAtten($userIds)['data']; // 用户关注数
             $userSubjectsCount = $subjectService->getBatchUserSubjectCounts($userIds); // 用户发布数
             $userAlbumCount = $albumService->getAlbumNum($userIds)['data'];//用户专栏数
+            $userArticleCount = $albumService->getArticleNum($userIds)['data'];//用户文章数
             $userSubjectsCount = $userSubjectsCount['data'];
         }
         // 批量获取专家信息
@@ -95,7 +96,9 @@ class User extends FS_Service {
                 $userInfo['fans_count'] = intval($userFansCount[$userInfo['id']]); // 用户粉丝数
                 $userInfo['focus_count'] = intval($userAttenCount[$userInfo['id']]); // 用户关注数
                 $userInfo['pic_count'] = intval($userSubjectsCount[$userInfo['id']]); // 用户发布数
-                $userInfo['album_count'] = intval($userFansCount[$userInfo['id']]); // 用户发布数
+                $userInfo['album_count'] = intval($userAlbumCount[$userInfo['id']]); // 用户发布数
+                $userInfo['article_count'] = intval($userArticleCount[$userInfo['id']]); // 用户文章数
+                
             }
             if (!in_array('cell_phone', $fields)) {
                 unset($userInfo['cell_phone']);

@@ -113,6 +113,18 @@ class Album extends \FS_Service {
         return $this->succ($res);
     }
     
+    /**
+     * 查用户下文章数
+     * @params array() $userIds 用户ID
+     * @return array() 用户文章个数
+     */
+    public function getArticleNum($userIds) {
+        if (empty($userIds)) {
+            return $this->succ(array()); 
+        }
+        $res = $this->abumModel->getArticleNum($userIds);
+        return $this->succ($res);
+    }
     
     /*
      * ---------------------------------下面是PC接口----------------------------------------------
@@ -418,6 +430,9 @@ class Album extends \FS_Service {
         $subjectIds = $this->abumModel->getSubjectId($condition);
         $subjectService = new \mia\miagroup\Service\Subject();
         foreach($subjectIds as $subjectId){
+            if(!$subjectId){
+                continue;
+            }
             $subjectRes = $subjectService->deleteSubject($subjectId, $con['user_id'])['code'];
             if($subjectRes != '0'){
                 return $this->error('500','delete miaquan failed');
@@ -599,29 +614,19 @@ class Album extends \FS_Service {
                     'url'=>$params['image_infos']['url'],
                     'content'=>''
                 ));
-        if($params['article_id'] == '0'){   //$params['article_id'] == '0' 最新发布的 直接入库
             $subjectService = new \mia\miagroup\Service\Subject();
             $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0)['data'];
-            if(isset($subjectRes['id'])){
-                $setArticle['user_id'] = $params['user_id'];
-                $setArticle['album_id'] = $params['album_id'];
-                $setArticle['subject_id'] = $subjectRes['id'];
-                $setArticle['status'] = 1;
-                $res = $this->abumModel->addAlbum($setArticle);
-                return $this->succ($res);
-            }
-        }
-        else
-        {
             $paramsArticle = array();
             $paramsArticle['user_id'] = $params['user_id'];
             $paramsArticle['album_id'] = $params['album_id'];
             $paramsArticle['id'] = $params['article_id'];
+            
+            if(isset($subjectRes['id'])){
+                $setArticle['subject_id'] = $subjectRes['id'];
+                $setArticle['status'] = 1;
+            }
             $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
             return $this->succ($res);
-        }
-        return $this->error('500','unknow error');
-        
     }
     
     /**
