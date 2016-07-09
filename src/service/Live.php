@@ -540,7 +540,13 @@ class Live extends \FS_Service {
     public function disableUser($userId,$minute)
     {
         $data = $this->rongCloud->disableUser($userId,$minute);
-        return $this->succ($data);
+        if($data){
+            return $this->succ($data);
+        }else{
+            //封禁用户失败
+            return $this->error(30005);
+        }
+        
     }
 
     /**
