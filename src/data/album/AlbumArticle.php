@@ -240,7 +240,7 @@ class AlbumArticle extends \DB_Query {
         if(isset($params['user_id']) && $params['user_id']){
             $where[] = array(':eq', 'user_id', $params['user_id']);
         }
-        $data = $this->getRow($where, array('title,cover_image,content_original'), $limit = FALSE, $offset = 0);
+        $data = $this->getRow($where, array('user_id,title,cover_image,content_original,create_time'), $limit = FALSE, $offset = 0);
         if($data){
             $data['cover_image'] = json_decode($data['cover_image'],true);
             if(isset($data['cover_image']['url'])){
