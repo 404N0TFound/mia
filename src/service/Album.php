@@ -547,7 +547,7 @@ class Album extends \FS_Service {
         }
         if($user_id){
             $User = new \mia\miagroup\Service\User();
-            $res['user'] = $User->getUserInfoByUids($user_id);
+            $res['user'] = $User->getUserInfoByUids(array($user_id));
         }
         
         return $this->succ($res);
