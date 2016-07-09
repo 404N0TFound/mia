@@ -152,6 +152,8 @@ class Redbag {
         // 执行redis指令
         $redis = new Redis();
         $redis->del($key);
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.key'), $redBagId);
+        $redis->del($key);
         return true;
     }
 }

@@ -494,9 +494,9 @@ class Live extends \FS_Service {
             return $this->error('1726');
         }
         $redbagService = new Redbag();
-        $redbagService->splitRedBag($redBagId);
-        if ($redbagService['code'] > 0) {
-            return $this->error($redbagService['code']);
+        $splitResult = $redbagService->splitRedBag($redBagId);
+        if ($splitResult['code'] > 0) {
+            return $this->error($splitResult['code']);
         }
         //发送领取红包消息
         $content = NormalUtil::getMessageBody(7, 0, '', array('redbag_id' => $redBagId));
