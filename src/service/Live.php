@@ -190,6 +190,9 @@ class Live extends \FS_Service {
         if ($roomData['user_id'] == $currentUid && $roomData['live_info']['status'] == 3) {
             return $this->error(30004);
         }
+        $roomData['share_icon'] = '分享抽大奖'; //分享得好礼
+        $roomData['sale_display'] = '1';
+        $roomData['online_display'] = '1';
         //主播自己获取的share_info
         if($currentUid == $roomData['user_id']){
         	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.live');
