@@ -206,10 +206,16 @@ class Live extends \FS_Service {
         // 获取红包信息
         if (intval($roomData['redbag']['id']) > 0) {
             $redbagService = new Redbag();
-            $redbagNums = $redbagService->getRedbagNums($roomData['redbag']['id'])['data'];
-            $roomData['redbag']['nums'] = $redbagNums;
-            $redbagReceived = $redbagService->isReceivedRedbag($roomData['redbag']['id'], $currentUid)['data'];
-            $roomData['redbag']['is_received'] = $redbagReceived ? 1 : 0;
+            $splitStatus = $redbagService->getSplitStatus($roomData['redbag']['id']);
+            if ($roomData['user_id'] == $currentUid && $splitStatus) {
+                //如果红包已发放过，不显示红包
+                unset($roomData['redbag']);
+            } else {
+                $redbagNums = $redbagService->getRedbagNums($roomData['redbag']['id'])['data'];
+                $roomData['redbag']['nums'] = $redbagNums;
+                $redbagReceived = $redbagService->isReceivedRedbag($roomData['redbag']['id'], $currentUid)['data'];
+                $roomData['redbag']['is_received'] = $redbagReceived ? 1 : 0;
+            }
         }
         // 获取快照和回放地址
         if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
