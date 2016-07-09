@@ -422,7 +422,7 @@ class Live extends \FS_Service {
      * 检测用户是否有权限直播
      * @param $userId
      */
-    public function checkLiveAuthByUserIds($userIds){
+    public function checkLiveAuthByUserIds(array $userIds){
         $authInfo = [];
         $roomInfo = $this->liveModel->checkLiveRoomByUserIds($userIds);
         foreach($userIds as $userId){

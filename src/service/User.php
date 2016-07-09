@@ -27,7 +27,7 @@ class User extends FS_Service {
      * 包括count、relation、cell_phone等
      * @return array
      */
-    public function getUserInfoByUids($userIds, $currentUid = 0, $fields = array()) {
+    public function getUserInfoByUids(array $userIds, $currentUid = 0, array $fields = array()) {
         $userArr = array();
         if (empty($userIds)) {
             return array();
