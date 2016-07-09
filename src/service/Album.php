@@ -79,7 +79,7 @@ class Album extends \FS_Service {
         
         $userIdRes = $this->abumModel->getGroupDoozerList();
         $User = new \mia\miagroup\Service\User();
-        $userInfo = $User->getUserInfoByUids($userIdRes);
+        $userInfo = $User->getUserInfoByUids($userIdRes,$user_id);
         if( isset($userInfo['data']) && $userInfo['data']){
             $response['users'] = array_values($userInfo['data']);
         }
@@ -547,7 +547,7 @@ class Album extends \FS_Service {
         }
         if($user_id){
             $User = new \mia\miagroup\Service\User();
-            $res['user'] = $User->getUserInfoByUids($user_id);
+            $res['user'] = $User->getUserInfoByUids(array($user_id));
         }
         
         return $this->succ($res);
