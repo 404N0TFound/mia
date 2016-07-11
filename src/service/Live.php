@@ -27,7 +27,7 @@ class Live extends \FS_Service {
         //获取$name,$portratiuri
         $userService = new User();
 
-        $userInfo = $userService->getUserInfoByUids($userId)['data'][$userId];
+        $userInfo = $userService->getUserInfoByUids([$userId])['data'][$userId];
         if(empty($userInfo)){
             //获取用户信息失败
             return $this->error(30003);
@@ -532,8 +532,8 @@ class Live extends \FS_Service {
         if (intval($sendUid) <= 0) {
             $sendUid = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
         }
-        $roomInfo = $this->getLiveRoomByIds(array($roomId))['data'];
-        if(empty($roomData)){
+        $roomInfo = $this->getLiveRoomByIds(array($roomId))['data'][$roomId];
+        if(empty($roomInfo)){
             //没有直播房间信息
             return $this->error(30003);
         }
