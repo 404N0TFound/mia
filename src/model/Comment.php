@@ -44,4 +44,17 @@ class Comment {
         return $subjectCommentNums;
     }
 
+    /**
+     * 获取根据帖子ID获取评论列表
+     */
+    public function getCommentListBySubjectId($subjectId, $page = 1, $limit = 20) {
+        $where['subject_id'] = array(':eq', 'subject_id', $subjectId);
+        $offset = $page > 1 ? ($page - 1) * $limit : 0;
+        $subjectComment = $this->subjectCommentData->getCommentListByCond($where, $offset, $limit, 'id desc');
+        $result = array();
+        foreach ($subjectComment as $comment) {
+            $result[] = $comment['id'];
+        }
+        return $result;
+    }
 }

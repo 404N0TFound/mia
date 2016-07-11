@@ -105,9 +105,13 @@ class Redbag {
         $splitRedbag = array();
         $balance = $total;
         
-        while ($balance > $min) {
+        while ($balance >= $min) {
+            if ($balance == $min) {
+                $splitRedbag[] = $balance;
+                break;
+            }
             $avg = intval(rand($min, $max));
-            if (($balance > $avg)) {
+            if (($balance >= $avg)) {
                 $splitRedbag[] = $avg;
             } else {
                 $splitRedbag[] = $balance;

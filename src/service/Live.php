@@ -206,7 +206,8 @@ class Live extends \FS_Service {
         // 获取红包信息
         if (intval($roomData['redbag']['id']) > 0) {
             $redbagService = new Redbag();
-            $splitStatus = $redbagService->getSplitStatus($roomData['redbag']['id']);
+            $splitStatus = $redbagService->getSplitStatus($roomData['redbag']['id'])['data'];
+            
             if ($roomData['user_id'] == $currentUid && $splitStatus) {
                 //如果红包已发放过，不显示红包
                 unset($roomData['redbag']);
