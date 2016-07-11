@@ -174,18 +174,21 @@ class Subject extends \FS_Service {
                 // 分享内容
                 $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
                 $share = $shareConfig['groupShare'];
-                $shareDefault = $shareConfig['defaultShareInfo']['subject'];
-                $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
-                $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
-                if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
-                    $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
-                } else {
-                    $shareImage = $shareDefault['img_url'];;
-                }
-                //站位H5分享链接
-                if (!empty($albumArticles[$subjectInfo['id']])) {
-                    $h5Url = sprintf(\F_Ice::$ins->workApp->config->get('busconf.subject.album.h5_url'), $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
-                } else {
+                if (!empty($albumArticles[$subjectInfo['id']])) { //专栏
+                    $shareDefault = $shareConfig['defaultShareInfo']['album'];
+                    $shareTitle = strlen($albumArticles[$subjectInfo['id']]['title']) > 0 ? $albumArticles[$subjectInfo['id']]['title'] : $shareDefault['title'];
+                    $shareDesc = $albumArticles[$subjectInfo['id']]['content'];
+                    $shareImage = $shareDefault['img_url'];
+                    $h5Url = sprintf($shareDefault['wap_url'], $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
+                } else { //普通帖子
+                    $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                    $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
+                    $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
+                    if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
+                        $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
+                    } else {
+                        $shareImage = $shareDefault['img_url'];
+                    }
                     $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
                 }
                 // 替换搜索关联数组
