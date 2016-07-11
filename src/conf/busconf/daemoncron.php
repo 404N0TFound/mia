@@ -63,7 +63,7 @@ $cron_list['get_chat_room_log'] = array(
 $cron_list['live_to_video'] = array(
     'enable' => false,
     'engine' => 'php',
-    'cli_args' => "--class=live --action=Livetovideo",
+    'cli_args' => "--class=live --action=livetovideo",
     'start_time' => '2016-07-11 00:00:00',
     'interval' => 3600
 );
