@@ -2,6 +2,7 @@
 namespace mia\miagroup\Daemon\Live;
 
 use mia\miagroup\Service\Redbag as RedBagService;
+use mia\miagroup\Model\Redbag as RedBagModel;
 use mia\miagroup\Data\Live\LiveRoom as LiveRoomData;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Util\RongCloudUtil;
@@ -17,6 +18,7 @@ class Splitredbag extends \FD_Daemon {
     public function execute() {
         $liveRoomData = new LiveRoomData();
         $redBagService = new RedBagService();
+        $redBageModel = new RedBagModel();
         $redis = new Redis();
         //获取所有正在直播的房间
         $allLiveRooms = $liveRoomData->getAllLiveRoom();
@@ -24,6 +26,10 @@ class Splitredbag extends \FD_Daemon {
             $settings = json_decode($room['settings'],true);
             //判断是否有设置红包
             if(!$settings['redbag'] || intval($settings['redbag']) <= 0){
+                continue;
+            }
+            $redbagInfo = $redBageModel->getRedbagBaseInfoById($settings['redbag']);
+            if (empty($redbagInfo)) {
                 continue;
             }
             //判断红包是否已拆散
