@@ -155,6 +155,8 @@ class AlbumArticle extends \DB_Query {
             $limit = $params['iPageSize'];
         }
         $orderBy = array('create_time DESC');
+        $limit = FALSE;
+        $offset = 0;
         $SimpleArticleList = $this->getRows($where, array('id,album_id,cover_image,title,content,create_time'), $limit, $offset, $orderBy);
         return $SimpleArticleList;
     }
@@ -264,12 +266,15 @@ class AlbumArticle extends \DB_Query {
         if(isset($params['user_id']) && $params['user_id']){
             $where[] = array(':eq', 'user_id', $params['user_id']);
         }
-        $data = $this->getRow($where, array('user_id,title,cover_image,content_original,create_time'), $limit = FALSE, $offset = 0);
+        $data = $this->getRow($where, array('user_id,title,cover_image,content_original,create_time,ext_info'), $limit = FALSE, $offset = 0);
         if($data){
+            $ext_info = json_decode($data['ext_info'],true);
+            $data['label'] = isset($ext_info['label'])?$ext_info['label']:array();
             $data['cover_image'] = json_decode($data['cover_image'],true);
             if(isset($data['cover_image']['url'])){
                 $data['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $data['cover_image']['url'];
             }
+            unset($data['ext_info']);
         }
         return $data;
     }
