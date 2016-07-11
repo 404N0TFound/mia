@@ -27,7 +27,7 @@ class Live extends \FS_Service {
         //获取$name,$portratiuri
         $userService = new User();
 
-        $userInfo = $userService->getUserInfoByUids($userId)['data'][$userId];
+        $userInfo = $userService->getUserInfoByUids([$userId])['data'][$userId];
         if(empty($userInfo)){
             //获取用户信息失败
             return $this->error(30003);
