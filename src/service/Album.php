@@ -345,6 +345,9 @@ class Album extends \FS_Service {
             $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
             $data['content_original'] = $set['content'];   //原始文章内容
         }
+        if(isset($set['title']) && !empty($set['title'])){
+            $data['title'] = strip_tags($set['title']);
+        }
         
         if(isset($set['labels']) && !empty($set['labels'])){
             $labelInfos = array();
@@ -363,7 +366,7 @@ class Album extends \FS_Service {
                     'content'=>''
                 ));
         }
-        if(empty($data) || count(array_filter($data)) == 0){
+        if(empty($data) ){
             return $this->succ($res);
         }
         
