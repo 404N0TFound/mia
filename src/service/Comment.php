@@ -91,6 +91,19 @@ class Comment extends \FS_Service {
         }
         return $this->succ($subRelationComm);
     }
+    
+    /**
+     * 获取帖子的评论列表
+     */
+    public function getCommentListBySubjectId($subjectId, $page = 1, $limit = 20) {
+        $commentIds = $this->commentModel->getCommentListBySubjectId($subjectId, $page, $limit);
+        if (empty($commentIds)) {
+            return $this->succ(array());
+        }
+        $commentList = $this->getBatchComments($commentIds);
+        return $this->succ($commentList);
+    }
+    
 
     /**
      * 批量查评论数
