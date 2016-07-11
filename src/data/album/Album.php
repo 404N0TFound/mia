@@ -52,6 +52,8 @@ class Album extends \DB_Query {
             $limit = $params['iPageSize'];
         }
         $orderBy = array('create_time DESC');
+        $limit = FALSE;
+        $offset = 0;
         $data = $this->getRows($where, array('id','user_id','title'), $limit, $offset, $orderBy);
         if($data){
             foreach($data as $value){
