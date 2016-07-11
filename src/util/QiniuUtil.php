@@ -3,6 +3,7 @@ namespace mia\miagroup\Util;
 
 use Qiniu\Auth;
 use Qiniu\Storage\UploadManager;
+use Qiniu\Storage\BucketManager;
 use Qiniu\Processing\PersistentFop;
 use Pili;
 use \F_Ice;
@@ -142,6 +143,34 @@ class QiniuUtil {
         }
         
         return $returnValue;
+    }
+
+    /**
+     * 获取MP4
+     *
+     * @return void
+     * @author 
+     **/
+    public function getSaveAsMp4($streamId, $name = null, $format = 'mp4', $time = null)
+    {
+        $data = [];
+        if (!$name) {
+            $time = time();
+            $name = "{$streamId}.{$time}.{$format}";
+        }
+        try {
+            $stream = $this->qiniuHub->getStream($streamId);
+            $name   = $this->_getVideoFileName($name,$format);
+            $result = $stream->saveAs($name, $format, $start = 0, $end = time());
+            if (isset($result['targetUrl'])) {
+                $data['targetUrl'] = $result['targetUrl'];
+                $data['fileName'] = $name;
+            }
+        } catch (\Exception $e) {
+            $data['targetUrl'] = '';
+            $data['fileName'] = '';
+        }
+        return $data;
     }
     
     /**
@@ -323,5 +352,59 @@ class QiniuUtil {
         $find = array('+', '/');
         $replace = array('-', '_');
         return str_replace($find, $replace, base64_encode($str));
+    }
+
+    /**
+     * ******************
+     */
+    /**
+     * * 七牛第三方资源相关API **
+     */
+    /**
+     * ******************
+     */
+    
+    /**
+     * 第三方资源抓取
+     *
+     * @param $url        指定的URL
+     * @param $bucket     目标资源空间
+     * @param $key        目标资源文件名
+     **/
+    public function fetchBucke($url, $bucket='video', $key = null)
+    {
+        $data = [];
+        try {
+            $bucketManager = new BucketManager($this->qiniuAuth);
+            $result        = $bucketManager->fetch($url, $bucket, $key = null);
+            if(isset($result[0]) && count($result[0])>0)
+                $data = $result[0];
+        } catch (Exception $e) {
+            $data = [];
+        }
+        return $data;
+    }
+
+    /**
+     * 给资源进行重命名，本质为move操作。
+     *
+     * @param $bucket     待操作资源所在空间
+     * @param $oldname    待操作资源文件名
+     * @param $newname    目标资源文件名
+     *
+     * @return mixed      成功返回NULL，失败返回对象Qiniu\Http\Error
+     */
+    public function rename($bucket, $oldname, $newname)
+    {
+        $data = false;
+        try {
+            $bucketManager = new BucketManager($this->qiniuAuth);
+            $result        = $bucketManager->rename($bucket, $oldname, $newname);
+            if(is_null($result))
+                $data = true;
+        } catch (Exception $e) {
+            $data = false;
+        }
+        return $data;
     }
 }
