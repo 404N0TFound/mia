@@ -232,7 +232,7 @@ class AlbumArticle extends \DB_Query {
         if(isset($params['user_id']) && $params['user_id']){
             $where[] = array(':in', 'user_id', $params['user_id']);
         }
-        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,content_original,is_recommend,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,status,title,cover_image,content,content_original,is_recommend,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
         foreach ($data as $v) {
             $v['label'] = json_decode($v['ext_info'],true)['label'];
             $v['cover_image'] = json_decode($v['cover_image'],true);
