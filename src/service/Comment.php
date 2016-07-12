@@ -19,7 +19,7 @@ class Comment extends \FS_Service {
     /**
      * 根据评论IDs批量获取评论信息
      */
-    public function getBatchComments($commentIds, $field = array('user_info', 'parent_comment'), $status = 1) {
+    public function getBatchComments($commentIds, $field = array('user_info', 'parent_comment'), $status = array(1)) {
         $commentInfos = $this->commentModel->getBatchComments($commentIds, $status);
         if (empty($commentInfos)) {
             return $this->succ();
@@ -29,7 +29,9 @@ class Comment extends \FS_Service {
         $fids = array();
         foreach ($commentInfos as $key => $commment) {
             $userIds[] = $commment['user_id'];
-            $fids[] = $commment['fid'];
+            if (intval($commment['fid']) > 0) {
+                $fids[] = $commment['fid'];
+            }
         }
         // 获取用户信息
         if (in_array('user_info', $field)) {
@@ -37,7 +39,7 @@ class Comment extends \FS_Service {
         }
         // 获取父评论信息
         if (in_array('parent_comment', $field) && !empty($fids)) {
-            $parentComments = $this->getBatchComments($fids, array_diff($field, array('parent_comment')), 9);
+            $parentComments = $this->getBatchComments($fids, array_diff($field, array('parent_comment')), array())['data'];
         }
         // 拼装结果集
         $result = array();
