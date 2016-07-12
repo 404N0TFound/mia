@@ -579,8 +579,6 @@ class Album extends \FS_Service {
                 return $this->error('500','params album_id is empty');
         if(empty($params['user_id']))
                 return $this->error('500','params user_id is empty');
-        if(empty($params['title']))
-                return $this->error('500','params title is empty');
         if(empty($params['text']))
                 return $this->error('500','params text is empty');
         if(empty($params['image_infos']))
@@ -608,7 +606,7 @@ class Album extends \FS_Service {
         $setArticle = array();
         $setArticle['content'] = strip_tags($params['text']);
         $setArticle['content_original'] = $params['text'];
-        $setArticle['title'] = $params['title'];
+        $setArticle['title'] = isset($params['title'])?$params['title']:'';
         $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
         $setArticle['cover_image'] = json_encode(
                 array(
