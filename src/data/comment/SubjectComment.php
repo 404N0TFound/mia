@@ -12,7 +12,7 @@ class SubjectComment extends \DB_Query {
     /**
      * 根据commentIds批量获取评论信息
      */
-    public function selectCommentByIds($commentIds, $status = 1) {
+    public function selectCommentByIds($commentIds, $status = array(1)) {
         if (empty($commentIds)) {
             return array();
         }
