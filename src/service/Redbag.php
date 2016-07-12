@@ -143,4 +143,46 @@ class Redbag extends \FS_Service {
         $this->redbagModel->resetRedBag($redBagId);
         return $this->succ();
     }
+    
+    /**
+     * 获取红包基础信息
+     */
+    public function getRedbagBaseInfo($redBagId) {
+        if (empty($redBagId)) {
+            return $this->error(500);
+        }
+        $redbagInfo = $this->redbagModel->getRedbagBaseInfoById($redBagId);
+        return $this->succ($redbagInfo);
+    }
+    
+    
+    /**
+     * 检验红包是否可用
+     * @param array $redbaginfo
+     * @return int 0为红包可用，其他返回错误码则为不可用
+     */
+    public function checkRedbagAvailable($redbaginfo){
+        //判断红包是否存在
+        if(empty($redbaginfo)){
+            return $this->error(1722);//红包不存在
+        }
+        // 有效期判断
+        // 顺延后的截止日期
+        $expireTime = 0;
+        if($redbaginfo['receive_delay_day'] != 0){
+            $expireTime = $redbaginfo['cretaetime'] + 86400 * $redbaginfo['receive_delay_day'];
+        }
+    
+        // 如果指定日期的截止日期小于当前日期或者顺延后的截止日期小于当前日期，不能领取
+        if (($redbaginfo['receive_time'] != 0 && $redbaginfo['receive_time'] < time()) || ($expireTime > 0 && $expireTime < time())) {
+            return $this->error(1724);
+        }
+    
+        //如果红包总额有限制,且总额小于红包最小面额，则红包总金额不足,用于后台，所以错误码不用特别定义
+        if ($redbaginfo['all_money'] != -1 && $redbaginfo['all_money'] < $redbaginfo['min_money']) {
+            return $this->error(1722);
+        }
+        return 0;
+    }
+    
 }
