@@ -43,3 +43,5 @@ $video_transcoding_pipe = 'video';
  */
 $avthumb_callback = 'http://api.miyabaobei.com/qiniucallback/groupvideo?video_id=%s';
 
+// 七牛异步检测进度
+$prefop = 'http://api.qiniu.com/status/get/prefop';
