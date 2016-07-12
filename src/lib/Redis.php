@@ -5,8 +5,9 @@ class Redis {
     
     public $redis;
     
-    public function __construct(){
-        $this->redis = \F_Ice::$ins->workApp->proxy_resource->get('redis://miagroup/default');
+    public function __construct($cluster='miagroup/default'){
+        $dsn = 'redis://'.$cluster;
+        $this->redis = \F_Ice::$ins->workApp->proxy_resource->get($dsn);
     }
     
     public function get($key){
