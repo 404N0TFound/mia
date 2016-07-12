@@ -78,9 +78,21 @@ $pool = array(
             'default'=>array(
                 array(
                     'host'=>'172.16.104.236',
-                    'port'=>'6379',
+                    'port'=>6379,
                 ),
             ),
+        ),
+        'redbag'=>array(
+            'default'=>array(
+                array(
+                    'host'=>'10.1.50.187',
+                    'port'=>6379,
+                ),
+            ),
+            'options' => array(
+                'timeout' => 2,
+                'persistent'  => false,
+        	),
         ),
     ),
 );
