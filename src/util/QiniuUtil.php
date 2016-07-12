@@ -163,11 +163,15 @@ class QiniuUtil {
             $name   = $this->_getVideoFileName($name,$format);
             $result = $stream->saveAs($name, $format, $start = 0, $end = time());
             if (isset($result['targetUrl'])) {
+                $data['url'] = $result['url'];
                 $data['targetUrl'] = $result['targetUrl'];
+                $data['persistentId'] = $result['persistentId'];
                 $data['fileName'] = $name;
             }
         } catch (\Exception $e) {
+            $data['url'] = '';
             $data['targetUrl'] = '';
+            $data['persistentId'] = '';
             $data['fileName'] = '';
         }
         return $data;
