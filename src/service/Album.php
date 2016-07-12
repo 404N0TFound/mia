@@ -608,6 +608,7 @@ class Album extends \FS_Service {
         $setArticle['content_original'] = $params['text'];
         $setArticle['title'] = isset($params['title'])?$params['title']:'';
         $setArticle['ext_info'] = json_encode(array('label'=>$labelInfos));
+        $setArticle['status'] = 1;
         $setArticle['cover_image'] = json_encode(
                 array(
                     'width'=>$params['image_infos']['width'],
@@ -615,19 +616,25 @@ class Album extends \FS_Service {
                     'url'=>$params['image_infos']['url'],
                     'content'=>''
                 ));
+        $paramGetArticle = array();
+        $paramGetArticle['id'] = $params['article_id'];
+        $resGetArticle = $this->abumModel->getArticlePreview($paramGetArticle);
+        
+        if(empty($resGetArticle['subject_id'])){
             $subjectService = new \mia\miagroup\Service\Subject();
             $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0)['data'];
-            $paramsArticle = array();
-            $paramsArticle['user_id'] = $params['user_id'];
-            $paramsArticle['album_id'] = $params['album_id'];
-            $paramsArticle['id'] = $params['article_id'];
-            
-            if(isset($subjectRes['id'])){
-                $setArticle['subject_id'] = $subjectRes['id'];
-                $setArticle['status'] = 1;
-            }
-            $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
-            return $this->succ($res);
+        }
+        
+        $paramsArticle = array();
+        $paramsArticle['user_id'] = $params['user_id'];
+        $paramsArticle['album_id'] = $params['album_id'];
+        $paramsArticle['id'] = $params['article_id'];
+
+        if(isset($subjectRes['id'])){
+            $setArticle['subject_id'] = $subjectRes['id'];
+        }
+        $res = $this->abumModel->updateAlbumArticle($paramsArticle,$setArticle);
+        return $this->succ($res);
     }
     
     /**

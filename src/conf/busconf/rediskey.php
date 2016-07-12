@@ -24,6 +24,11 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'stream_status_%s',
         'expire_time' => 60,
     ),
+    //直播转换成视频
+    'live_to_video' => [    //使用String数据结构
+        'key' => $liveServicePrefix . 'to_video_%s',
+        'expire_time' => 86400 * 30,
+    ]
 );
 
 /**
