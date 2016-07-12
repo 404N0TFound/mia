@@ -11,6 +11,13 @@ $defaultShareInfo = array(
         'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
         'extend_text'            => '看白富美妈妈分享的好货',
     ),
+    'album' => array(
+        'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
+        'wap_url' => 'http://www.mia.com/groupspe/show/%d/%d',
+        'title'      => '我在蜜芽圈发现一个超有用的专栏，分享给你',
+        'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
+        'extend_text'            => '看白富美妈妈分享的好货',
+    ),
 );
 
 /**

@@ -2,7 +2,8 @@
 $namespace = 'mia\miagroup';
 $app_class = '\\Ice\\Frame\\App';
 
-$root_path = __DIR__ . '/..';
+//$root_path = __DIR__ . '/..';
+$root_path = '/opt/webroot/groupservice/current/src';
 $var_path  = $root_path . '/../var';
 $run_path  = $var_path . '/run';
 $log_path  = $var_path . '/logs';
