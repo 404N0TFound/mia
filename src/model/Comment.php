@@ -14,7 +14,7 @@ class Comment {
     /**
      * 根据评论ids批量获取评论
      */
-    public function getBatchComments($commentIds, $status = 1) {
+    public function getBatchComments($commentIds, $status = array(1)) {
         $comments = $this->subjectCommentData->selectCommentByIds($commentIds, $status);
         return $comments;
     }
