@@ -23,7 +23,7 @@ class Redbag extends \FS_Service {
         $redbaginfo = $this->redbagModel->getRedbagBaseInfoById($redBagId);
         
         //判断红包有效性
-        $redbagStatus =  $this->checkRedbagAvailable($redbaginfo);
+        $redbagStatus =  $this->checkRedbagAvailable($redBagId);
         if($redbagStatus['code'] > 0){
             return $this->error($redbagStatus['code']);
         }
@@ -156,7 +156,9 @@ class Redbag extends \FS_Service {
      * @param array $redbaginfo
      * @return int 0为红包可用，其他返回错误码则为不可用
      */
-    public function checkRedbagAvailable($redbaginfo){
+    public function checkRedbagAvailable($redBagId){
+        // 获取红包信息
+        $redbaginfo = $this->redbagModel->getRedbagBaseInfoById($redBagId);
         //判断红包是否存在
         if(empty($redbaginfo)){
             return $this->error(1722);//红包不存在
@@ -177,7 +179,7 @@ class Redbag extends \FS_Service {
         if ($redbaginfo['all_money'] != -1 && $redbaginfo['all_money'] < $redbaginfo['min_money']) {
             return $this->error(1722);
         }
-        return $this->succ(0);
+        return $this->succ(true);
     }
     
 }
