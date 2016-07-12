@@ -22,17 +22,12 @@ class Redbag extends \FS_Service {
         // 获取红包信息
         $redbaginfo = $this->redbagModel->getRedbagBaseInfoById($redBagId);
         
-        // 有效期判断
-        // 顺延后的截止日期
-        $expireTime = 0;
-        if($redbaginfo['receive_delay_day'] != 0){
-            $expireTime = $redbaginfo['cretaetime'] + 86400 * $redbaginfo['receive_delay_day'];
+        //判断红包有效性
+        $redbagStatus =  $this->checkRedbagAvailable($redbaginfo);
+        if($redbagStatus['code'] > 0){
+            return $this->error($redbagStatus['code']);
         }
         
-        // 如果指定日期的截止日期小于当前日期或者顺延后的截止日期小于当前日期，不能领取
-        if (($redbaginfo['receive_time'] != 0 && $redbaginfo['receive_time'] < time()) || ($expireTime > 0 && $expireTime < time())) {
-            return $this->error(1724);
-        }
         // 如果总额度没有限制，则直接按照红包最大最小金额随机生成红包金额
         if ($redbaginfo['all_money'] == -1) {
             $redBagPrice = intval(rand($redbaginfo['max_money'], $redbaginfo['min_money']));
@@ -182,7 +177,7 @@ class Redbag extends \FS_Service {
         if ($redbaginfo['all_money'] != -1 && $redbaginfo['all_money'] < $redbaginfo['min_money']) {
             return $this->error(1722);
         }
-        return 0;
+        return $this->succ(0);
     }
     
 }
