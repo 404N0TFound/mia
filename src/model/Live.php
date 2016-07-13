@@ -3,7 +3,7 @@ namespace mia\miagroup\Model;
 use \F_Ice;
 use mia\miagroup\Data\Live\Live as LiveData;
 use mia\miagroup\Data\Live\LiveRoom as LiveRoomData;
-
+use mia\miagroup\Data\Live\ChatHistory as LiveChatHistoryData;
 class Live {
     
     public $liveData;
@@ -12,6 +12,7 @@ class Live {
     public function __construct() {
         $this->liveData = new LiveData();
         $this->liveRoomData = new LiveRoomData();
+        $this->liveChatHistoryData = new LiveChatHistoryData();
     }
     
     /**
@@ -150,4 +151,23 @@ class Live {
         $data = $this->liveRoomData->deleteLiveRoom($roomId);
         return $data;
     }
+
+    /**
+     * 新增多条消息历史记录
+     */
+    public function addChatHistories($chatHistories)
+    {
+        $data = $this->liveChatHistoryData->addChatHistories($chatHistories);
+        return $data;
+    }
+    
+    /**
+     * 根据msgUID获取历史消息记录
+     */
+    public function getChatHistoryByMsgUID($msgUID)
+    {
+        $data = $this->liveChatHistoryData->getChatHistoryByMsgUID($msgUID);
+        return $data;
+    }
+
 }

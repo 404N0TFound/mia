@@ -2,7 +2,7 @@
 namespace mia\miagroup\Daemon\Live;
 
 use mia\miagroup\Util\RongCloudUtil;
-use mia\miagroup\Model\ChatHistory;
+use mia\miagroup\Model\Live as LiveModel;
 class Chatroomlog extends \FD_Daemon{
     
     public function execute(){
@@ -18,7 +18,6 @@ class Chatroomlog extends \FD_Daemon{
                 @mkdir($chatroom_log_path,0777,true);
             }
 
-
             //下载文件
             $this->curlDownload($url, $filename);
             //处理压缩文件
@@ -28,9 +27,7 @@ class Chatroomlog extends \FD_Daemon{
                 $zip->close();
                 unlink($filename);
                 $filePath = $chatroom_log_path.join('-',explode(' ',date('Y-m-d H',$time)));
-                $result = $this->addData($filePath);
-                if(!$result)
-                    echo '导入数据失败';
+                $this->addData($filePath);
                 echo 'success';
             }else{
                 echo 'fail';
@@ -72,23 +69,40 @@ class Chatroomlog extends \FD_Daemon{
             while(!feof($handle)){
                 $line       = stream_get_line($handle, 1024 , "\n");
                 $contents[] = json_decode(substr($line,19),true);
-
             }
-            $chatHistory = new ChatHistory();
-            $data        = [];
+            $data = [];
             foreach ($contents as $key => $value) {
-                $res = $chatHistory->getChatHistoryByMsgUID($value['msgUID']);
-                if(count($value)<9 || $res){
+                $content = '';
+                if(count($value)<9){
                     continue;
                 }
-                $data[$key]             = $value;
-                $data[$key]['content']  = json_encode($value['content']);
-                $data[$key]['dateTime'] = date('Y-m-d H:i:s',strtotime($value['dateTime']));
-                $data[$key]['source']   = isset($value['source']) ? $value['source'] : '';
-
+                $data[$key] = $value;
+                $content    = $value['content'];
+                if (!isset($content['user'])) {
+                    $data[$key]['userId']   = 0;
+                    $data[$key]['username'] = '';
+                    $data[$key]['portrait'] = '';
+                } else {
+                    $data[$key]['userId']   = isset($content['user']['id']) ? $content['user']['id'] : 0;
+                    $data[$key]['username'] = isset($content['user']['name']) ? $content['user']['name'] : '';
+                    $data[$key]['portrait'] = isset($content['user']['portrait']) ? $content['user']['portrait'] : '';;
+                }
+                
+                $data[$key]['content']     = isset($content['content']) ? $content['content'] : '';
+                $data[$key]['contentType'] = isset($content['type']) ? $content['type'] : '';
+                $data[$key]['extra']       = isset($content['extra']) ? $content['extra'] : '';
+                $data[$key]['dateTime']    = date('Y-m-d H:i:s',strtotime($value['dateTime']));
+                $data[$key]['source']      = isset($value['source']) ? $value['source'] : '';
+                
             }
-            $result = $chatHistory->addChatHistories($data);
-            return $result ? true : false;
+            $liveModel = new LiveModel();
+            $totalNum  = count($data);
+            $totalPage = ceil($totalNum/100);
+            for($i=0;$i<$totalPage;$i++){
+                $newData = array_slice($data, ($i*100) ,100);
+                $result  = $liveModel->addChatHistories($newData);
+                sleep(1);
+            }
         }
     }
 }

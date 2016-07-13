@@ -12,7 +12,7 @@ class ChatHistory extends \DB_Query {
     protected $mapping = array();
 
     /**
-     * 新增历史消息记录
+     * 新增多条历史消息记录
      */
     public function addChatHistories($chatHistories) 
     {
@@ -27,5 +27,6 @@ class ChatHistory extends \DB_Query {
         $where[] = ['msgUID', $msgUID];
         return $this->getRows($where);
     }
+
 
 }
