@@ -180,7 +180,7 @@ class Live extends \FS_Service {
             return $this->error(30004);
         }
         $roomData['share_icon'] = '分享抽大奖'; //分享得好礼
-        $roomData['sale_display'] = '1';
+        $roomData['sale_display'] = '0';
         $roomData['online_display'] = '1';
         //主播自己获取的share_info
         if($currentUid == $roomData['user_id']){
@@ -539,7 +539,7 @@ class Live extends \FS_Service {
             //没有直播房间信息
             return $this->error(30003);
         }
-        //发送结束直播消息
+        //发送系统消息
         $content = NormalUtil::getMessageBody(0, $sendUid, $message);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
         return $this->succ();
