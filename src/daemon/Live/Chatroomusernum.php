@@ -25,27 +25,12 @@ class Chatroomusernum extends \FD_Daemon {
             //获取数量
             $audience_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_audience_online_num.key'),$liveInfo['id']);
             $cache_audience_num = $redis->get($audience_num_key);
-            
-            //规则:底数为1（含）-50（含）的随机数，每5s，叠加一个0（含）-20（含）的随机数，最大值14400
-            $actual_count = 0;//初始化
-            $max = 14400;
-            $random = rand(0, 20);
-            if(empty($cache_audience_num)){
-                $base = rand(1, 50);
-                $user_num = $base + $random;
-            }else{
-                $user_num = $cache_audience_num + $random;
-            }
-            if($user_num >= $max){
-                $actual_count = $max;
-            }else{
-                $actual_count = $user_num;
-            }
+            //变化数量
+            $cache_audience_num = $this->increase($cache_audience_num);
             //记录数量
-            $redis->set($audience_num_key,$actual_count);
+            $redis->set($audience_num_key, $cache_audience_num);
             //发送在线人数的消息
-            $content = NormalUtil::getMessageBody(5,0,'',['count'=>"$actual_count"]);
-//             $content = NormalUtil::getMessageBody(2,3782852,'this is usernum'); //test
+            $content = NormalUtil::getMessageBody(5,0,'',['count'=>"$cache_audience_num"]);
             $result = $rong_api->messageChatroomPublish(3782852, $liveInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
             if($result['code'] == 200){
                 echo 'success';
@@ -53,8 +38,40 @@ class Chatroomusernum extends \FD_Daemon {
                 echo 'fail';
             }
         }
-        
-//         $this->output(array('code' => 0));
+    }
+    
+    private function increase($cache_audience_num) {
+        $cache_audience_num = intval($cache_audience_num);
+        //底数为10至50的随机数，每3s一次变化
+        if ($cache_audience_num == 0) {
+            $cache_audience_num = rand(10, 50);
+            return $cache_audience_num;
+        }
+        if ($cache_audience_num <= 500) {
+            //当$actual_count <= 500，70%概率变化，叠加5至20的随机数
+            if (rand(0, 100) < 70) {
+                $cache_audience_num += rand(5, 20);
+            }
+            return $cache_audience_num;
+        } else if ($cache_audience_num > 500 && $cache_audience_num <= 1000) {
+            //当500 < $actual_count <= 1000，40%概率变化，叠加-5至20的随机数
+            if (rand(0, 100) < 40) {
+                $cache_audience_num += rand(-5, 20);
+            }
+            return $cache_audience_num;
+        } else if ($cache_audience_num > 1000 && $cache_audience_num <= 2000) {
+            //当 1000 < $actual_count < 2000，30%概率变化，叠加-5至20的随机数
+            if (rand(0, 100) < 30) {
+                $cache_audience_num += rand(-5, 20);
+            }
+            return $cache_audience_num;
+        } else {
+            //当 $actual_count > 2000，20%概率变化，叠加-20至5的随机数
+            if (rand(0, 100) < 20) {
+                $cache_audience_num += rand(-20, 5);
+            }
+            return $cache_audience_num;
+        }
     }
     
 }

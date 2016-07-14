@@ -73,6 +73,9 @@ class Redbag extends \FS_Service {
         if ($redbaginfo['platform_m'] == 1) {
             $redbagMeData['platform_id'] += 4;
         }
+        if ($redBagId > 1000000) { //测试数据
+            $redbagMeData['is_test'] = 1;
+        }
         $redbagMeResult = $this->redbagModel->addRedbagInfoToMe($redbagMeData);
         
         return $this->succ($redBagPrice);
