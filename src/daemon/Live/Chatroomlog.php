@@ -103,6 +103,7 @@ class Chatroomlog extends \FD_Daemon{
                 $result  = $liveModel->addChatHistories($newData);
                 sleep(1);
             }
+            fclose($handle);
         }
     }
 }

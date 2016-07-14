@@ -5,7 +5,7 @@ use Ice;
 
 class ChatHistory extends \DB_Query {
 
-    protected $dbResource = 'miagroup';
+    protected $dbResource = 'log';
 
     protected $tableName = 'chat_history';
 
