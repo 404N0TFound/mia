@@ -65,6 +65,33 @@ $pool = array(
                 'charset' => 'utf8',
             ),
         ),
+        'log' => array(
+            'master' => array(
+                array(
+                    'host' => '10.1.3.201',
+                    'port' => 3306,
+                    'options' => array(
+                        'user' => 'apilog_write',
+                        'passwd' => 'apilog_write'
+                    ),
+                )
+            ),
+            'slave' => array(
+                array(
+                    'host' => '10.1.3.203',
+                    'port' => 3306,
+                    'options' => array(
+                        'user' => 'apilog_read',
+                        'passwd' => 'apilog_read'
+                    ),
+                )
+            ),
+            'options' => array(
+                'timeout' => 1,
+                'dbname'  => 'log',
+                'charset' => 'utf8',
+            ),
+        ),
     ),
     'curl' => array(
         'service' => array(
