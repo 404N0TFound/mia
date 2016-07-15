@@ -608,5 +608,29 @@ class Live extends \FS_Service {
         $data = $this->rongCloud->wordfilterList();
         return $this->succ($data);
     }
+
+    /**
+     * 判断直播是否被分享
+     *
+     * @return void
+     * @author 
+     **/
+    public function liveIsShare($liveId,$userId)
+    {
+        if (empty($liveId) || empty($userId)) {
+            return $this->error(500);
+        }
+        
+        $live = $this->liveModel->getBatchLiveInfoByIds([$liveId],[3,4]);
+        if(empty($live))
+            return $this->error(30006);
+        $where['GroupId']     = array(':eq', 'GroupId', $live[$liveId]['chat_room_id']);
+        $where['userId']      = array(':eq', 'userId', $userId);
+        $where['contentType'] = array(':eq', 'contentType', 4);
+        $chatHistory      = $this->liveModel->getChathistoryList($where,0,1);
+        $data             = $chatHistory ? true : false;
+        return $this->succ($data);
+    }
+
     
 }
