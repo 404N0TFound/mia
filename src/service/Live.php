@@ -401,10 +401,18 @@ class Live extends \FS_Service {
                 }
             }
             if (in_array('settings', $field)) {
-                // 后台自定义的商品信息
-                if (!empty($roomInfo['banners'])) {
-                    $roomRes[$roomInfo['id']]['banners'] = $roomInfo['banners'];
+                $bannerArr = array();
+                if(is_array($roomInfo['banners']) && !empty($roomInfo['banners'])){
+                    foreach($roomInfo['banners'] as $banner){
+                        if(!isset($banner['visible']) || $banner['visible'] == 1){
+                            $bannerArr[] = $banner;
+                        }
+                    }
                 }
+                //如果可见banner数量大于8个，截取最新的8个
+                $bannerArr = (count($bannerArr) > 8) ? array_splice($bannerArr,0,8) : $bannerArr;
+                // 后台自定义的商品信息
+                $roomRes[$roomInfo['id']]['banners'] = $bannerArr;
                 // 是否显示分享得好礼
                 $roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
             }
