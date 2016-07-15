@@ -100,7 +100,6 @@ class LiveRoom extends \DB_Query {
                             }
                         }
                     }
-                    $bannerArr = array_reverse($bannerArr);//修改可见banner的顺序，将最新的排在前面
                     //如果可见banner数量大于8个，截取最新的8个
                     $result[$v['id']]['banners'] = (count($bannerArr) > 8) ? array_splice($bannerArr,0,8) : $bannerArr;
                     
