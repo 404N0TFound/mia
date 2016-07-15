@@ -4,7 +4,7 @@ use \F_Ice;
 use mia\miagroup\Data\Live\Live as LiveData;
 use mia\miagroup\Data\Live\LiveRoom as LiveRoomData;
 use mia\miagroup\Data\Live\ChatHistory as LiveChatHistoryData;
-use Ice\Resource\Connector\Redis;
+use mia\miagroup\Lib\Redis;
 class Live {
     
     public $liveData;
@@ -45,7 +45,7 @@ class Live {
      * 获取单个直播信息
      */
     public function getLiveInfoById($liveId) {
-        $liveInfo = $this->getBatchLiveInfoByIds(array($liveId));
+        $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array());
         $liveInfo = !empty($liveInfo[$liveId]) ? $liveInfo[$liveId] : [];
         return $liveInfo;
     }
