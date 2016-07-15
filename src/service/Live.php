@@ -621,7 +621,7 @@ class Live extends \FS_Service {
             return $this->error(500);
         }
         
-        $live = $this->liveModel->getBatchLiveInfoByIds([$liveId],[4]);
+        $live = $this->liveModel->getBatchLiveInfoByIds([$liveId],[3,4]);
         if(empty($live))
             return $this->error(30006);
         $where['GroupId']     = array(':eq', 'GroupId', $live[$liveId]['chat_room_id']);

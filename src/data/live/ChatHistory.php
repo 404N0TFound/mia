@@ -35,7 +35,7 @@ class ChatHistory extends \DB_Query {
      */
     public function getChathistoryList($cond, $offset = 0, $limit = 100 ,$orderBy='')
     {
-        if (empty($cond))
+        if (empty($cond['GroupId']) && empty($cond['msgUID']) && empty($cond['userId']) && $cond['content'])
             return false;
         $where = [];
         foreach ($cond as $k => $v) {
