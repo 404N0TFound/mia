@@ -521,10 +521,14 @@ class Live extends \FS_Service {
         if (empty($userId)) {
             return $this->error(500);
         }
+        $info = $this->liveModel->checkLiveRoomByUserId($userId);
+        if(empty($info)){
+            $insertRes = $this->liveModel->addLiveRoom(['user_id' =>$userId]);
+            return $this->succ($insertRes);
+        }else{
+            return $this->error(30003);
+        }
         
-        $insertRes = $this->liveModel->addLiveRoom(['user_id' =>$userId]);
-    
-        return $this->succ($insertRes);
     }
     
     /**
@@ -534,7 +538,7 @@ class Live extends \FS_Service {
         if (intval($sendUid) <= 0) {
             $sendUid = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
         }
-        $roomInfo = $this->getLiveRoomByIds(array($roomId))['data'][$roomId];
+        $roomInfo = $this->liveModel->getRoomInfoByRoomId($roomId);
         if(empty($roomInfo)){
             //没有直播房间信息
             return $this->error(30003);
@@ -608,5 +612,7 @@ class Live extends \FS_Service {
         $data = $this->rongCloud->wordfilterList();
         return $this->succ($data);
     }
+    
+    
     
 }
