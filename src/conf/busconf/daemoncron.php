@@ -37,7 +37,7 @@ $cron_list['online_count'] = array(
     'engine' => 'php',
     'cli_args' => "--class=live --action=chatroomusernum",
     'start_time' => '2016-06-23 00:00:00',
-    'interval' => 5
+    'interval' => 3
 );
 
 //给主播发显示红包定时任务
