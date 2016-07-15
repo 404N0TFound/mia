@@ -171,7 +171,7 @@ class Live extends \FS_Service {
     public function addLiveToVideo($liveId) {
         $liveInfo = $this->liveModel->getLiveInfoById($liveId);
         if ($liveInfo['status'] != 4 || $liveInfo['subject_id'] > 0) {
-            return $this->error(30001);
+            return $this->error(30007);
         }
         $result = $this->liveModel->addLiveToVideo($liveId);
         return $this->succ($result);
