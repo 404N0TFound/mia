@@ -22,11 +22,16 @@ class Livetovideo extends \FD_Daemon {
         $redis = new Redis();
         
         // 获取待转换成视频的直播回放
-        $key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_to_video_list.key');
+        $live_list_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_to_video_list.key');
         $redis = new Redis();
-        $liveId = $redis->index($key, 0);
+        $liveId = $redis->lindex($live_list_key, -1);
         $liveInfo = $liveModel->getLiveInfoById($liveId);
-        
+        if ($liveInfo['subject_id'] > 0 || $liveInfo['status'] != 4) {
+            //剔除已转码完成的
+            $redis->rpop($live_list_key);
+            return;
+        }
+
         // m3u8转换成MP4
         $live_to_video_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_to_video.key'), $liveInfo['id']);
         if (!$redis->exists($live_to_video_key)) {
@@ -74,7 +79,7 @@ class Livetovideo extends \FD_Daemon {
             }
             
             $redis->del($live_to_video_key);
-            $redis->lpop($key);
+            $redis->rpop($live_list_key);
         }
     }
 }
