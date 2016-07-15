@@ -180,4 +180,15 @@ class Live {
         $redis->lpush($key, $liveId);
         return true;
     }
+
+    /**
+     * 历史消息列表
+     *
+     */
+    public function getChathistoryList($cond, $offset = 0, $limit = 20 ,$orderBy='')
+    {
+        $data = $this->liveChatHistoryData->getChathistoryList($cond,$offset,$limit,$orderBy);
+        return $data;
+    }
+
 }

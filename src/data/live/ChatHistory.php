@@ -23,9 +23,26 @@ class ChatHistory extends \DB_Query {
     /**
      * 根据msgUID获取历史消息记录
      */
-    public function getChatHistoryByMsgUID($msgUID) {
+    public function getChatHistoryByMsgUID($msgUID)
+    {
         $where[] = ['msgUID', $msgUID];
-        return $this->getRows($where);
+        return $this->getRows($where, 'id');
+    }
+
+    /**
+     * 历史消息列表
+     *
+     */
+    public function getChathistoryList($cond, $offset = 0, $limit = 100 ,$orderBy='')
+    {
+        if (empty($cond['GroupId']) && empty($cond['msgUID']) && empty($cond['userId']) && $cond['content'])
+            return false;
+        $where = [];
+        foreach ($cond as $k => $v) {
+            $where[] = $v;
+        }
+        $data = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        return $data;
     }
 
 
