@@ -91,18 +91,7 @@ class LiveRoom extends \DB_Query {
                 
                 if (isset($v['settings'])) {
                     $settings = json_decode($v['settings'], true);
-                    //获取可见banner
-                    $bannerArr = array();
-                    if(is_array($settings['banners']) && !empty($settings['banners'])){
-                        foreach($settings['banners'] as $banner){
-                            if(!isset($banner['visible']) || $banner['visible'] == 1){
-                                $bannerArr[] = $banner;
-                            }
-                        }
-                    }
-                    //如果可见banner数量大于8个，截取最新的8个
-                    $result[$v['id']]['banners'] = (count($bannerArr) > 8) ? array_splice($bannerArr,0,8) : $bannerArr;
-                    
+                    $result[$v['id']]['banners'] = is_array($settings['banners']) ? array_values($settings['banners']) : array();
                     $result[$v['id']]['share'] = $settings['share'];
                     $result[$v['id']]['redbag'] = $settings['redbag'];
                     $result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
