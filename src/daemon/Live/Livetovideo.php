@@ -38,27 +38,27 @@ class Livetovideo extends \FD_Daemon {
             $tomp4 = $qiniu->getSaveAsMp4($liveInfo['stream_id']);
             if (!isset($tomp4['targetUrl']) || empty($tomp4['targetUrl'])) {
                 echo 'm3u8转换成MP4失败' . "\n";
-                continue;
+                return;
             }
             $data = json_encode($tomp4);
             $redis->setex($live_to_video_key, $data, NormalUtil::getConfig('busconf.rediskey.liveKey.live_to_video.expire_time'));
         }
-        
+        $liveToVideoValue = $redis->get($live_to_video_key);
         // 判断是否已经转换完成
-        $res_api = HttpRequest::send('GET', NormalUtil::getConfig('busconf.qiniu.prefop'), ['id' => $redis->get($live_to_video_key)['persistentId']]);
+        $res_api = HttpRequest::send('GET', NormalUtil::getConfig('busconf.qiniu.prefop'), $liveToVideoValue['persistentId']);
         if ($res_api->code == 200 && !json_decode($res_api->raw_body, true)['code']) {
             // 从七牛mia_live-live移到video资源目录下
-            $mvToVideo = $qiniu->fetchBucke($redis->get($live_to_video_key)['targetUrl']);
+            $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl']);
             if (!isset($mvToVideo['key']) || empty($mvToVideo['key'])) {
                 echo '资源移动失败' . "\n";
-                continue;
+                return;
             }
             
             // 重命名文件
-            $renameVideo = $qiniu->rename('video', $mvToVideo['key'], $redis->get($live_to_video_key)['fileName']);
+            $renameVideo = $qiniu->rename('video', $mvToVideo['key'], $liveToVideoValue['fileName']);
             if (!$renameVideo) {
                 echo '重命名文件失败' . "\n";
-                continue;
+                return;
             }
             
             // 发帖子
@@ -67,7 +67,7 @@ class Livetovideo extends \FD_Daemon {
             $result = $subject->issue($subjectInfo);
             if (!isset($result['data'])) {
                 echo '发帖子失败 直播 id is ' . $liveInfo['id'] . "\n";
-                continue;
+                return;
             }
             
             // 更新直播
@@ -75,7 +75,7 @@ class Livetovideo extends \FD_Daemon {
             $res = $liveModel->updateLiveById($liveInfo['id'], $updateData);
             if (!$res) {
                 echo '更新失败 直播 id is ' . $liveInfo['id'] . "\n";
-                continue;
+                return;
             }
             
             $redis->del($live_to_video_key);
