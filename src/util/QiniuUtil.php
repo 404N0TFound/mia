@@ -154,13 +154,11 @@ class QiniuUtil {
     public function getSaveAsMp4($streamId, $name = null, $format = 'mp4', $time = null)
     {
         $data = [];
-        if (!$name) {
-            $time = time();
-            $name = "{$streamId}.{$time}.{$format}";
-        }
         try {
+            if ($name == null) {
+                $name = $this->_getVideoFileName($streamId, $format);
+            }
             $stream = $this->qiniuHub->getStream($streamId);
-            $name   = $this->_getVideoFileName($name,$format);
             $result = $stream->saveAs($name, $format, $start = 0, $end = time());
             if (isset($result['targetUrl'])) {
                 $data['url'] = $result['url'];

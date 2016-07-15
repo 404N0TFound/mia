@@ -61,9 +61,9 @@ $cron_list['get_chat_room_log'] = array(
 
 //直播回放移到视频资源并发帖子
 $cron_list['live_to_video'] = array(
-    'enable' => false,
+    'enable' => true,
     'engine' => 'php',
     'cli_args' => "--class=live --action=livetovideo",
     'start_time' => '2016-07-11 00:00:00',
-    'interval' => 3600
+    'interval' => 3
 );
