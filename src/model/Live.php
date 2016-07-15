@@ -4,6 +4,7 @@ use \F_Ice;
 use mia\miagroup\Data\Live\Live as LiveData;
 use mia\miagroup\Data\Live\LiveRoom as LiveRoomData;
 use mia\miagroup\Data\Live\ChatHistory as LiveChatHistoryData;
+use Ice\Resource\Connector\Redis;
 class Live {
     
     public $liveData;
@@ -170,6 +171,15 @@ class Live {
         return $data;
     }
 
+    /**
+     * 记录待转成视频帖子的直播回放
+     */
+    public function addLiveToVideo($liveId) {
+        $key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_to_video_list.key');
+        $redis = new Redis();
+        $redis->lpush($key, $liveId);
+        return true;
+    }
 
     /**
      * 历史消息列表

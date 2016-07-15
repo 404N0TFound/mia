@@ -166,6 +166,18 @@ class Live extends \FS_Service {
     }
     
     /**
+     * 记录待转成视频帖子的直播回放
+     */
+    public function addLiveToVideo($liveId) {
+        $liveInfo = $this->liveModel->getLiveInfoById($liveId);
+        if ($liveInfo['status'] != 4 || $liveInfo['subject_id'] > 0) {
+            return $this->error(30001);
+        }
+        $result = $this->liveModel->addLiveToVideo($liveId);
+        return $this->succ($result);
+    }
+    
+    /**
      * 获取房间当前直播的信息
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0) {
@@ -347,11 +359,15 @@ class Live extends \FS_Service {
             }
         }
         //通过userids批量获取主播信息
-        $userIds = array_unique($userIdArr);
-        $userService = new User();
-        $userArr = $userService->getUserInfoByUids($userIds, $currentUid)['data'];
+        if (in_array('user_info', $field)) {
+            $userIds = array_unique($userIdArr);
+            $userService = new User();
+            $userArr = $userService->getUserInfoByUids($userIds, $currentUid)['data'];
+        }
         //通过liveids批量获取直播列表
-        $liveArr = $this->getBatchLiveInfoByIds($liveIdArr)['data'];
+        if (in_array('live_info', $field)) {
+            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr)['data'];
+        }
         //将主播信息整合到房间信息中
         $roomRes = array();
         foreach($roomIds as $roomId){
