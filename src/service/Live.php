@@ -506,6 +506,13 @@ class Live extends \FS_Service {
         if ($redbagNums['code'] > 0) {
             return $this->error($redbagNums['code']);
         }
+        //发送抢到红包的消息
+        $userService = new User();
+        $userInfo = $userService->getUserInfoByUserId($userId);
+        if (!empty($userInfo)) {
+            $content = NormalUtil::getMessageBody(0, \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元红包', $userInfo['nickname'], $redbagNums));
+            $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+        }
         $redbagNums = $redbagNums['data'];
         $success = array('money' => $redbagNums . '元', 'success_msg' => '恭喜！抢到%s红包，快去买买买~');
         return $this->succ($success);
