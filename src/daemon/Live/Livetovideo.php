@@ -45,7 +45,7 @@ class Livetovideo extends \FD_Daemon {
         }
         $liveToVideoValue = $redis->get($live_to_video_key);
         // 判断是否已经转换完成
-        $res_api = HttpRequest::send('GET', NormalUtil::getConfig('busconf.qiniu.prefop'), $liveToVideoValue['persistentId']);
+        $res_api = HttpRequest::send('GET', NormalUtil::getConfig('busconf.qiniu.prefop'), array('id' => $liveToVideoValue['persistentId']));
         if ($res_api->code == 200 && !json_decode($res_api->raw_body, true)['code']) {
             // 从七牛mia_live-live移到video资源目录下
             $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl']);

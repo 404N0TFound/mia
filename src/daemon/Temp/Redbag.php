@@ -10,17 +10,19 @@ use mia\miagroup\Service\Redbag as DaemonRedbag;
  */
 /**
  * 新增测试红包
- *     php cli.php --class=temp --action=redbag --function=addRedBag --param={\"redBagId\":1000001}
+ *     /opt/php/bin/php /opt/webroot/groupservice/current/src/daemon/cli.php --class=temp --action=redbag --function=addRedBag --param={\"redBagId\":1000001}
  * 调拆分红包服务  
- *     curl -d '{"class":"Redbag","action":"splitRedBag","params":{"redBagId":"1000001"}}' groupservice.miyabaobei.com
+ *     /opt/php/bin/php /opt/webroot/groupservice/current/src/daemon/cli.php --class=temp --action=redbag --function=splitRedBag --param={\"redBagId\":1000001}
  * 领取红包 
- *     curl -d '{"class":"Live","action":"getLiveRedBag","params":{"userId":"123","redBagId":"1000001","roomId":"13"}}' groupservice.miyabaobei.com
+ *     curl -d '{"class":"Live","action":"getLiveRedBag","params":{"userId":"123","redBagId":"1000001","roomId":"7"}}' groupservice.miyabaobei.com
  * 删除tadetail
- *     php cli.php --class=temp --action=redbag --function=delRedBagTaDetail --param={\"applyId\":63\,\"redBagId\":1000001}
+ *     /opt/php/bin/php /opt/webroot/groupservice/current/src/daemon/cli.php --class=temp --action=redbag --function=delRedBagTaDetail --param={\"applyId\":51\,\"redBagId\":1000001}
  * 删除me
- *     php cli.php --class=temp --action=redbag --function=delRedBagMe --param={\"applyId\":63}
+ *     /opt/php/bin/php /opt/webroot/groupservice/current/src/daemon/cli.php --class=temp --action=redbag --function=delRedBagMe --param={\"applyId\":51}
  * 删除baseinfo
- *     php cli.php --class=temp --action=redbag --function=delBaseInfo --param={\"redBagId\":1000001}
+ *     /opt/php/bin/php /opt/webroot/groupservice/current/src/daemon/cli.php --class=temp --action=redbag --function=delBaseInfo --param={\"redBagId\":1000001}
+ * 重置红包
+ *     /opt/php/bin/php /opt/webroot/groupservice/current/src/daemon/cli.php --class=temp --action=redbag --function=resetRedBag --param={\"redBagId\":1000001}
  */
 class Redbag extends \FD_Daemon {
     
