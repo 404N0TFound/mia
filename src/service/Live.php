@@ -655,8 +655,7 @@ class Live extends \FS_Service {
         $where['GroupId']     = array(':eq', 'GroupId', $live[$liveId]['chat_room_id']);
         $where['userId']      = array(':eq', 'userId', $userId);
         $where['contentType'] = array(':eq', 'contentType', 4);
-        $chatHistory      = $this->liveModel->getChathistoryList($where,0,1);
-        $data             = $chatHistory ? true : false;
+        $data      = $this->liveModel->getChathistoryList($where,0,1);
         return $this->succ($data);
     }
 
