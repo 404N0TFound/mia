@@ -294,7 +294,7 @@ class Live extends \FS_Service {
      * 生成直播ID
      */
     private function _getLiveIncrId($roomId) {
-        $id = time() . $roomId;
+        $id = $roomId.time();
         return $this->succ($id);
     }
 
