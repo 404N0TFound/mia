@@ -5,8 +5,8 @@
  */
 $liveShareInfo = array(
     'live_by_user'      => array(
-        'title'      => '%s正在蜜芽直播',
-        'desc'      => '我正在蜜芽观看%s的直播，邀请你一起来看',
+        'title'      => '%s@你',
+        'desc'      => '天啦撸！%s正在蜜芽直播，更有红包等你来领！快上车→',
         'wap_url'  => 'http://m.mia.com/mialive/live?roomid=%d&liveid=%d',
     ),
     'live_by_anchor'      => array(
