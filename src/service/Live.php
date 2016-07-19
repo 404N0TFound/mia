@@ -650,16 +650,12 @@ class Live extends \FS_Service {
      * @return void
      * @author 
      **/
-    public function liveIsShare($liveId,$userId)
+    public function liveIsShare($userId)
     {
-        if (empty($liveId) || empty($userId)) {
+        if (empty($userId)) {
             return $this->error(500);
         }
-        
-        $live = $this->liveModel->getBatchLiveInfoByIds([$liveId],[3,4]);
-        if(empty($live))
-            return $this->error(30006);
-        $where['GroupId']     = array(':eq', 'GroupId', $live[$liveId]['chat_room_id']);
+
         $where['userId']      = array(':eq', 'userId', $userId);
         $where['contentType'] = array(':eq', 'contentType', 4);
         $data      = $this->liveModel->getChathistoryList($where,0,1);
