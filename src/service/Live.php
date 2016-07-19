@@ -200,9 +200,9 @@ class Live extends \FS_Service {
             $share = $liveConfig['liveShare'];
             $liveShare = $liveConfig['liveShareInfo']['live_by_anchor'];
             //如果没有直播信息的话就去默认分享文案
-            $shareTitle = !empty($roomInfo['share']['title']) ? $roomData['share']['title'] : $liveShare['title'];
-            $shareDesc = !empty($roomInfo['share']['desc']) ? $roomData['share']['desc'] : $liveShare['desc'];
-            $shareImage = !empty($roomInfo['share']['image_url']) ? $roomData['share']['image_url'] : $roomData['user_info']['icon'];
+            $shareTitle = !empty($roomData['share']['title']) ? $roomData['share']['title'] : $liveShare['title'];
+            $shareDesc = !empty($roomData['share']['desc']) ? $roomData['share']['desc'] : $liveShare['desc'];
+            $shareImage = !empty($roomData['share']['image_url']) ? $roomData['share']['image_url'] : $roomData['user_info']['icon'];
             // 替换搜索关联数组
             $replace = array(
                 '{|title|}' => $shareTitle,
@@ -410,7 +410,7 @@ class Live extends \FS_Service {
                     }
                 }
                 //如果可见banner数量大于8个，截取最新的8个
-                $bannerArr = (count($bannerArr) > 8) ? array_splice($bannerArr,0,8) : $bannerArr;
+                $bannerArr = (count($bannerArr) > 8) ? array_slice($bannerArr,0,8) : $bannerArr;
                 // 后台自定义的商品信息
                 $roomRes[$roomInfo['id']]['banners'] = $bannerArr;
                 // 是否显示分享得好礼
