@@ -41,12 +41,12 @@ class Redbag {
         }
         // 根据红包规则，拆分红包
         $splitArr = $this->spliteRedBagByRule($redbagData['all_money'], $redbagData['max_money'], $redbagData['min_money']);
+        // 设置已拆分状态
+        $this->setRedBageSplited($redBagId);
         // 拆分完成的红包写入redis
         if (!empty($splitArr)) {
             $this->setSplitedRedBag($redBagId, $splitArr);
         }
-        // 设置已拆分状态
-        $this->setRedBageSplited($redBagId);
         return true;
     }
     
