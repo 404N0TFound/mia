@@ -516,7 +516,7 @@ class Live extends \FS_Service {
         }
         //发送抢到红包的消息
         $userService = new User();
-        $userInfo = $userService->getUserInfoByUserId($userId);
+        $userInfo = $userService->getUserInfoByUserId($userId)['data'];
         if (!empty($userInfo)) {
             $content = NormalUtil::getMessageBody(0, \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元红包', $userInfo['nickname'], $redbagNums['data']));
             $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
