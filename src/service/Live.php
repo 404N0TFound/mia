@@ -325,7 +325,15 @@ class Live extends \FS_Service {
             if(!empty($roomData['chat_room_id'])){
                 //给聊天室发送更改的banners信息
                 if(!empty($settings['banners'])){
-                    $content = NormalUtil::getMessageBody(12,0,'',['banners'=>$settings['banners']]);
+                    $bannerArr = array();
+                    //banner超过8个只显示8个
+                    foreach($settings['banners'] as $banner){
+                        if(!isset($banner['visible']) || $banner['visible'] == 1){
+                            $bannerArr[] = $banner;
+                        }
+                    }
+                    $bannerArr = (count($bannerArr) > 8) ? array_slice($bannerArr,0,8) : $bannerArr;
+                    $content = NormalUtil::getMessageBody(12,0,'',['banners'=>$bannerArr]);
                     $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomData['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
                 }
             }
