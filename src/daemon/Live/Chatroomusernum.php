@@ -68,7 +68,7 @@ class Chatroomusernum extends \FD_Daemon {
         } else {
             //当 $actual_count > 2000，20%概率变化，叠加-20至5的随机数
             if (rand(0, 100) < 20) {
-                $cache_audience_num += rand(-20, 5);
+                $cache_audience_num += rand(-5, 20);
             }
             return $cache_audience_num;
         }

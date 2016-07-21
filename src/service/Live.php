@@ -200,9 +200,9 @@ class Live extends \FS_Service {
             $share = $liveConfig['liveShare'];
             $liveShare = $liveConfig['liveShareInfo']['live_by_anchor'];
             //如果没有直播信息的话就去默认分享文案
-            $shareTitle = !empty($roomInfo['share']['title']) ? $roomData['share']['title'] : $liveShare['title'];
-            $shareDesc = !empty($roomInfo['share']['desc']) ? $roomData['share']['desc'] : $liveShare['desc'];
-            $shareImage = !empty($roomInfo['share']['image_url']) ? $roomData['share']['image_url'] : $roomData['user_info']['icon'];
+            $shareTitle = !empty($roomData['share']['title']) ? $roomData['share']['title'] : $liveShare['title'];
+            $shareDesc = !empty($roomData['share']['desc']) ? $roomData['share']['desc'] : $liveShare['desc'];
+            $shareImage = !empty($roomData['share']['image_url']) ? $roomData['share']['image_url'] : $roomData['user_info']['icon'];
             // 替换搜索关联数组
             $replace = array(
                 '{|title|}' => $shareTitle,
@@ -325,7 +325,15 @@ class Live extends \FS_Service {
             if(!empty($roomData['chat_room_id'])){
                 //给聊天室发送更改的banners信息
                 if(!empty($settings['banners'])){
-                    $content = NormalUtil::getMessageBody(12,0,'',['banners'=>$settings['banners']]);
+                    $bannerArr = array();
+                    //banner超过8个只显示8个
+                    foreach($settings['banners'] as $banner){
+                        if(!isset($banner['visible']) || $banner['visible'] == 1){
+                            $bannerArr[] = $banner;
+                        }
+                    }
+                    $bannerArr = (count($bannerArr) > 8) ? array_slice($bannerArr,0,8) : $bannerArr;
+                    $content = NormalUtil::getMessageBody(12,0,'',['banners'=>$bannerArr]);
                     $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomData['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
                 }
             }
@@ -410,7 +418,7 @@ class Live extends \FS_Service {
                     }
                 }
                 //如果可见banner数量大于8个，截取最新的8个
-                $bannerArr = (count($bannerArr) > 8) ? array_splice($bannerArr,0,8) : $bannerArr;
+                $bannerArr = (count($bannerArr) > 8) ? array_slice($bannerArr,0,8) : $bannerArr;
                 // 后台自定义的商品信息
                 $roomRes[$roomInfo['id']]['banners'] = $bannerArr;
                 // 是否显示分享得好礼
@@ -508,7 +516,7 @@ class Live extends \FS_Service {
         }
         //发送抢到红包的消息
         $userService = new User();
-        $userInfo = $userService->getUserInfoByUserId($userId);
+        $userInfo = $userService->getUserInfoByUserId($userId)['data'];
         if (!empty($userInfo)) {
             $content = NormalUtil::getMessageBody(0, \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元红包', $userInfo['nickname'], $redbagNums['data']));
             $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
