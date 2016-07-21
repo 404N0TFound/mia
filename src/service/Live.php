@@ -157,6 +157,8 @@ class Live extends \FS_Service {
         if(!$setRoomRes){
             //更新直播房间信息失败 + 日志
         }
+        //更新latest_live_id
+        $this->liveModel->recordRoomLatestLive_Id($roomId, $liveId);
         
         //发送结束直播消息
         $content = NormalUtil::getMessageBody(9);
@@ -232,8 +234,23 @@ class Live extends \FS_Service {
                 $roomData['redbag']['is_received'] = $redbagReceived ? 1 : 0;
             }
         }
-        // 获取快照和回放地址
-        if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
+        
+        if(empty($liveId) && empty($roomData['live_id'])){
+            if(!empty($roomData['latest_live_id'])){
+                $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['latest_live_id']), array(3, 4))['data'];
+                if (!empty($liveInfo[$roomData['latest_live_id']])) {
+                    $liveInfo = $liveInfo[$roomData['latest_live_id']];
+                    // 快照
+                    $qiniuUtil = new QiniuUtil();
+                    $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+                    if ($roomData['status'] == 0) {
+                        //回放地址
+                        $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                    }
+                }
+            }
+        }else if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
+            // 获取快照和回放地址
             $liveId = intval($liveId) > 0 ? $liveId : $roomData['live_id'];
             $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(3, 4))['data'];
             if (!empty($liveInfo[$liveId])) {

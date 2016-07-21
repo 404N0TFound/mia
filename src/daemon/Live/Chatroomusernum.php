@@ -74,4 +74,44 @@ class Chatroomusernum extends \FD_Daemon {
         }
     }
     
+    private function increaseBak($cache_audience_num) {
+        $cache_audience_num = intval($cache_audience_num);
+        //底数为10至50的随机数，每3s一次变化
+        if ($cache_audience_num == 0) {
+            $cache_audience_num = rand(10, 50) * 5;
+            return $cache_audience_num;
+        }
+        if ($cache_audience_num <= 500) {
+            //当$actual_count <= 500，70%概率变化，叠加5至20的随机数
+            if (rand(0, 100) < 80) {
+                $cache_audience_num += rand(5, 20) * 5;
+            }
+            return $cache_audience_num;
+        } else if ($cache_audience_num > 500 && $cache_audience_num <= 1000) {
+            //当500 < $actual_count <= 1000，40%概率变化，叠加-5至20的随机数
+            if (rand(0, 100) < 80) {
+                $cache_audience_num += rand(5, 20) * 5;
+            }
+            return $cache_audience_num;
+        } else if ($cache_audience_num > 1000 && $cache_audience_num <= 2000) {
+            //当 1000 < $actual_count < 2000，30%概率变化，叠加-5至20的随机数
+            if (rand(0, 100) < 80) {
+                $cache_audience_num += rand(5, 20) * 7;
+            }
+            return $cache_audience_num;
+        } else if ($cache_audience_num > 2000 && $cache_audience_num <= 14000){
+            //当 $actual_count > 2000，20%概率变化，叠加-20至5的随机数
+            if (rand(0, 100) < 80) {
+                $cache_audience_num += rand(5, 20) * 5;
+            }
+            return $cache_audience_num;
+        }else{
+            if (rand(0, 100) < 80) {
+                $cache_audience_num += rand(-30, 30);
+            }
+            return $cache_audience_num;
+        }
+    }
+    
+    
 }
