@@ -136,7 +136,7 @@ class QiniuUtil {
                 $returnValue['origin'] = $result['targetUrl'];
                 $returnValue[$size] = "{$result['targetUrl']}?imageView2/2/w/{$size}/h/{$size}/q/85";
             }
-            throw new \Exception();
+//             throw new \Exception();
         } catch (\Exception $e) {
             $returnValue['origin'] = '';
             $returnValue[$size] = '';

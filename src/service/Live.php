@@ -309,7 +309,7 @@ class Live extends \FS_Service {
                 $liveInfo['sale_num'] = $sale_num ?: '0';
             }
             //如果直播已结束，给回放地址
-            if($liveInfo['status'] == 4){
+            if($liveInfo['status'] == 4 || $liveInfo['status'] == 3){
                 $addrInfo = $qiniu->getPalyBackUrls($liveInfo['stream_id']);
                 $liveInfo['play_back_hls_url'] = $addrInfo['hls'];
             }
