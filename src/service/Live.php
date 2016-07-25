@@ -220,16 +220,21 @@ class Live extends \FS_Service {
         // 获取红包信息
         if (intval($roomData['redbag']['id']) > 0) {
             $redbagService = new Redbag();
-            $splitStatus = $redbagService->getSplitStatus($roomData['redbag']['id'])['data'];
-            
-            if ($roomData['user_id'] == $currentUid && $splitStatus) {
-                //如果红包已发放过，不显示红包
+            $redBagStatus = $redbagService->checkRedbagAvailable($roomData['redbag']['id']);
+            if ($redBagStatus['code'] > 0) {
+                //如果红包失效，不显示红包
                 unset($roomData['redbag']);
             } else {
-                $redbagNums = $redbagService->getRedbagNums($roomData['redbag']['id'])['data'];
-                $roomData['redbag']['nums'] = $redbagNums;
-                $redbagReceived = $redbagService->isReceivedRedbag($roomData['redbag']['id'], $currentUid)['data'];
-                $roomData['redbag']['is_received'] = $redbagReceived ? 1 : 0;
+                $splitStatus = $redbagService->getSplitStatus($roomData['redbag']['id'])['data'];
+                if ($roomData['user_id'] == $currentUid && $splitStatus) {
+                    //如果红包已发放过，不显示红包
+                    unset($roomData['redbag']);
+                } else {
+                    $redbagNums = $redbagService->getRedbagNums($roomData['redbag']['id'])['data'];
+                    $roomData['redbag']['nums'] = $redbagNums;
+                    $redbagReceived = $redbagService->isReceivedRedbag($roomData['redbag']['id'], $currentUid)['data'];
+                    $roomData['redbag']['is_received'] = $redbagReceived ? 1 : 0;
+                }
             }
         }
         // 获取快照和回放地址
