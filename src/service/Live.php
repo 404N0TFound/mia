@@ -235,33 +235,44 @@ class Live extends \FS_Service {
             }
         }
         
-        if(empty($liveId) && empty($roomData['live_id'])){
-            if(!empty($roomData['latest_live_id'])){
-                $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['latest_live_id']), array(3, 4))['data'];
-                if (!empty($liveInfo[$roomData['latest_live_id']])) {
-                    $liveInfo = $liveInfo[$roomData['latest_live_id']];
+        if(empty($liveId)){
+            //直播结束时
+            if(empty($roomData['live_id'])){
+                //存在最近的一次直播
+                if(!empty($roomData['latest_live_id'])){
+                    $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['latest_live_id']), array(3, 4))['data'];
+                    if (!empty($liveInfo[$roomData['latest_live_id']])) {
+                        $liveInfo = $liveInfo[$roomData['latest_live_id']];
+                        // 快照
+                        $qiniuUtil = new QiniuUtil();
+                        $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+                        //回放地址
+                        $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                        //直接播放回放地址
+                        $roomData['status'] = 2;
+                    }
+                }
+            }else{
+                $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['live_id']), array(3, 4))['data'];
+                if (!empty($liveInfo[$roomData['live_id']])) {
+                    $liveInfo = $liveInfo[$roomData['live_id']];
                     // 快照
                     $qiniuUtil = new QiniuUtil();
                     $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
-                    if ($roomData['status'] == 0) {
-                        //回放地址
-                        $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
-                    }
+                    //回放地址
+                    $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
                 }
             }
-        }else if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
+        }else if (intval($liveId) > 0) {
             // 获取快照和回放地址
-            $liveId = intval($liveId) > 0 ? $liveId : $roomData['live_id'];
             $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(3, 4))['data'];
             if (!empty($liveInfo[$liveId])) {
                 $liveInfo = $liveInfo[$liveId];
                 // 快照
                 $qiniuUtil = new QiniuUtil();
                 $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
-                if ($roomData['status'] == 0) {
-                    //回放地址
-                    $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
-                }
+                //回放地址
+                $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
             }
         }
         return $this->succ($roomData);
@@ -410,6 +421,7 @@ class Live extends \FS_Service {
             $roomRes[$roomInfo['id']]['subject_id'] = $roomInfo['subject_id'];
             $roomRes[$roomInfo['id']]['status'] = 0;
             $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips']; //房间提示信息
+            $roomRes[$roomInfo['id']]['latest_live_id'] = $roomInfo['latest_live_id']; //房间提示信息
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){
