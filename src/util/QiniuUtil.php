@@ -322,7 +322,6 @@ class QiniuUtil {
         $fileMP4 = $this->_urlsafe_base64_encode("{$bucket}:{$concatKeyPre}.mp4");
         // 要进行转码的转码操作(MP4)
         $fops_avconcat = "avconcat/2/format/mp4/{$fileNames}|saveas/{$fileMP4}";
-        var_dump($fops_avconcat);
         $pfop = new PersistentFop($this->qiniuAuth, $bucket, $pipeline);
         $ret = $pfop->execute($key, $fops_avconcat);
         if ($ret[0]) {
