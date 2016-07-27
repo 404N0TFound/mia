@@ -104,9 +104,9 @@ class Live extends \FS_Service {
             return $this->error(30003);
         }  
         //获取房间信息，查主库
-        \DB_Query::switchCluster(\DB_Query::MASTER);
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $roomData = $this->getRoomLiveById($roomInfo['id'],$userId)['data'];
-        \DB_Query::switchCluster(\DB_Query::SLAVE);
+        \DB_Query::switchCluster($preNode);
         
         //让蜜芽兔加入聊天室
         $join_result = $this->rongCloud->joinChatRoom([3782852], $chatId);
