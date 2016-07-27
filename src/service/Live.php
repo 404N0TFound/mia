@@ -30,13 +30,12 @@ class Live extends \FS_Service {
         $userInfo = $userService->getUserInfoByUids([$userId])['data'][$userId];
         if(empty($userInfo)){
             //获取用户信息失败
-            return $this->error(30003);
+            return $this->error(31000);
         }
-        
         $token = $this->rongCloud->getToken($userId, $userInfo['nickname'], $userInfo['icon']);
         if(!$token){
             //获取rongcloudToken失败
-            return $this->error(30001);
+            return $this->error(31000);
         }
         
         $data['user_info'] = $userInfo;
