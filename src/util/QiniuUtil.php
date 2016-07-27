@@ -296,6 +296,41 @@ class QiniuUtil {
         $ret = json_decode($ret, true);
         return $ret['format'];
     }
+    
+    /**
+     * 拼接视频
+     */
+    public function videoConcat(array $videoKeys) {
+        if (empty($videoKeys)) {
+            return false;
+        }
+        $bucket = $this->config['video_bucket'];
+        $pipeline = $this->config['video_transcoding_pipe'];
+        $fileNames = array();
+        
+        //待拼接的视频
+        $key = reset($videoKeys);
+        array_shift($videoKeys);
+        foreach ($videoKeys as $videoKey) {
+            $fileNames[] = $this->_urlsafe_base64_encode($this->config['video_source_host'] . $videoKey);
+        }
+        $fileNames = implode('/', $fileNames);
+        //拼接后的视频
+        $concatKey = $this->_getVideoFileName($fileNames, 'mp4');
+        $concatKeyPre = explode('.', $concatKey);
+        $concatKeyPre = $concatKeyPre[0];
+        $fileMP4 = $this->_urlsafe_base64_encode("{$bucket}:{$concatKeyPre}.mp4");
+        // 要进行转码的转码操作(MP4)
+        $fops_avconcat = "avconcat/2/format/mp4/{$fileNames}|saveas/{$fileMP4}";
+        var_dump($fops_avconcat);
+        $pfop = new PersistentFop($this->qiniuAuth, $bucket, $pipeline);
+        $ret = $pfop->execute($key, $fops_avconcat);
+        if ($ret[0]) {
+            return array('persistId' => $ret[0], 'concatFile' => $concatKey);
+        } else {
+            return false;
+        }
+    }
 
     /**
      * 生成视频文件名
