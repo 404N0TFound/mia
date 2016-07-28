@@ -1,6 +1,6 @@
 <?php
 $amqp_app_push = [
-    "exchange"      => "app_push_name",
+    "exchange"      => "app_push",
     "exchange_type" => "direct",
     "durable"       => true,
     "queue_name"    => "app_push_que",
