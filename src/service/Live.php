@@ -30,13 +30,12 @@ class Live extends \FS_Service {
         $userInfo = $userService->getUserInfoByUids([$userId])['data'][$userId];
         if(empty($userInfo)){
             //获取用户信息失败
-            return $this->error(30003);
+            return $this->error(31000);
         }
-        
         $token = $this->rongCloud->getToken($userId, $userInfo['nickname'], $userInfo['icon']);
         if(!$token){
             //获取rongcloudToken失败
-            return $this->error(30001);
+            return $this->error(31000);
         }
         
         $data['user_info'] = $userInfo;
@@ -157,10 +156,12 @@ class Live extends \FS_Service {
         if(!$setRoomRes){
             //更新直播房间信息失败 + 日志
         }
+        //更新latest_live_id
+        $this->liveModel->recordRoomLatestLive_Id($roomId, $liveId);
         
         //发送结束直播消息
         $content = NormalUtil::getMessageBody(9);
-        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         
         return $this->succ($setRoomRes);
     }
@@ -237,19 +238,45 @@ class Live extends \FS_Service {
                 }
             }
         }
-        // 获取快照和回放地址
-        if (intval($liveId) > 0 || intval($roomData['live_id']) > 0) {
-            $liveId = intval($liveId) > 0 ? $liveId : $roomData['live_id'];
+        
+        if(empty($liveId)){
+            //直播结束时
+            if(empty($roomData['live_id'])){
+                //存在最近的一次直播
+                if(!empty($roomData['latest_live_id'])){
+                    $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['latest_live_id']), array(3, 4))['data'];
+                    if (!empty($liveInfo[$roomData['latest_live_id']])) {
+                        $liveInfo = $liveInfo[$roomData['latest_live_id']];
+                        // 快照
+                        $qiniuUtil = new QiniuUtil();
+                        $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+                        //回放地址
+                        $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                        //直接播放回放地址
+                        $roomData['status'] = 2;
+                    }
+                }
+            }else{
+                $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['live_id']), array(3, 4))['data'];
+                if (!empty($liveInfo[$roomData['live_id']])) {
+                    $liveInfo = $liveInfo[$roomData['live_id']];
+                    // 快照
+                    $qiniuUtil = new QiniuUtil();
+                    $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+                    //回放地址
+                    $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                }
+            }
+        }else if (intval($liveId) > 0) {
+            // 获取快照和回放地址
             $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array(3, 4))['data'];
             if (!empty($liveInfo[$liveId])) {
                 $liveInfo = $liveInfo[$liveId];
                 // 快照
                 $qiniuUtil = new QiniuUtil();
                 $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
-                if ($roomData['status'] == 0) {
-                    //回放地址
-                    $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
-                }
+                //回放地址
+                $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
             }
         }
         return $this->succ($roomData);
@@ -286,7 +313,7 @@ class Live extends \FS_Service {
                 $liveInfo['sale_num'] = $sale_num ?: '0';
             }
             //如果直播已结束，给回放地址
-            if($liveInfo['status'] == 4){
+            if($liveInfo['status'] == 4 || $liveInfo['status'] == 3){
                 $addrInfo = $qiniu->getPalyBackUrls($liveInfo['stream_id']);
                 $liveInfo['play_back_hls_url'] = $addrInfo['hls'];
             }
@@ -339,7 +366,7 @@ class Live extends \FS_Service {
                     }
                     $bannerArr = (count($bannerArr) > 8) ? array_slice($bannerArr,0,8) : $bannerArr;
                     $content = NormalUtil::getMessageBody(12,0,'',['banners'=>$bannerArr]);
-                    $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomData['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+                    $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomData['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
                 }
             }
             
@@ -398,6 +425,7 @@ class Live extends \FS_Service {
             $roomRes[$roomInfo['id']]['subject_id'] = $roomInfo['subject_id'];
             $roomRes[$roomInfo['id']]['status'] = 0;
             $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips']; //房间提示信息
+            $roomRes[$roomInfo['id']]['latest_live_id'] = $roomInfo['latest_live_id']; //房间提示信息
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){
@@ -524,7 +552,7 @@ class Live extends \FS_Service {
         $userInfo = $userService->getUserInfoByUserId($userId)['data'];
         if (!empty($userInfo)) {
             $content = NormalUtil::getMessageBody(0, \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元红包', $userInfo['nickname'], $redbagNums['data']));
-            $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+            $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         }
         $redbagNums = $redbagNums['data'];
         $success = array('money' => $redbagNums . '元', 'success_msg' => '恭喜！抢到%s红包，快去买买买~');
@@ -553,7 +581,7 @@ class Live extends \FS_Service {
         }
         //发送领取红包消息
         $content = NormalUtil::getMessageBody(7, 0, '', array('redbag_id' => $redBagId));
-        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         return $this->succ();
     }
     
@@ -589,7 +617,7 @@ class Live extends \FS_Service {
         }
         //发送系统消息
         $content = NormalUtil::getMessageBody(0, $sendUid, $message);
-        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectName'), $content);
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         return $this->succ();
     }
 
