@@ -34,6 +34,22 @@ $service_logger = array(
             'fmt'  => 'Ymd',
         ),
     ),
+    'access' => array(
+        'log_fmt' => array(
+            'fmt_time'            => '', //接口调用时间
+            'request.class'       => '', //接口调用类
+            'request.action'      => '', //接口调用方法
+            'client_env.ip'       => '', //调用方IP
+            'server_env.hostname' => '', //调用方机器名
+            'request.id'          => '', //请求ID
+        ),
+        'log_file' => 'access.log',
+        'log_path' => $var_path . '/logs',
+        'split'    => array(
+            'type' => 'file',
+            'fmt'  => 'Ymd',
+        ),
+    ),
 );
 
 $service_filter = array(
