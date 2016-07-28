@@ -48,22 +48,16 @@ class Livetovideo extends \FD_Daemon {
         $res_api = HttpRequest::send('GET', NormalUtil::getConfig('busconf.qiniu.prefop'), array('id' => $liveToVideoValue['persistentId']));
         if ($res_api->code == 200 && !json_decode($res_api->raw_body, true)['code']) {
             // 从七牛mia_live-live移到video资源目录下
-            $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl']);
+            $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
             if (!isset($mvToVideo['key']) || empty($mvToVideo['key'])) {
                 echo '资源移动失败' . "\n";
                 return;
             }
             
-            // 重命名文件
-            $renameVideo = $qiniu->rename('video', $mvToVideo['key'], $liveToVideoValue['fileName']);
-            if (!$renameVideo) {
-                echo '重命名文件失败' . "\n";
-                return;
-            }
             
             // 发帖子
             $subjectInfo['user_info'] = ['user_id' => $liveInfo['user_id']];
-            $subjectInfo['video_url'] = $redis->get($live_to_video_key)['fileName'];
+            $subjectInfo['video_url'] = $liveToVideoValue['fileName'];
             $result = $subject->issue($subjectInfo);
             if (!isset($result['data'])) {
                 echo '发帖子失败 直播 id is ' . $liveInfo['id'] . "\n";

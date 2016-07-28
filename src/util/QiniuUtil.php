@@ -412,7 +412,7 @@ class QiniuUtil {
         $data = [];
         try {
             $bucketManager = new BucketManager($this->qiniuAuth);
-            $result        = $bucketManager->fetch($url, $bucket, $key = null);
+            $result        = $bucketManager->fetch($url, $bucket, $key);
             if(isset($result[0]) && count($result[0])>0)
                 $data = $result[0];
         } catch (Exception $e) {
