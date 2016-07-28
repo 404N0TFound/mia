@@ -122,4 +122,19 @@ $pool = array(
         	),
         ),
     ),
+    'rabbitmq'=>array(
+        'miagroup'=>array(
+            'default'=>array(
+                array(
+                    'host'    => '172.16.104.236',
+                    'port'    => 5672,
+                    'vhost'   => '/',
+                    'options' => array(
+                        'user'   => 'yue',
+                        'passwd' => '123qwe',
+                    ),
+                ),
+            ),
+        ),
+    ),
 );
