@@ -10,7 +10,7 @@ $cron_list['live_status_check'] = array(
     'engine' => 'php',
     'cli_args' => "--class=live --action=livingcheck",
     'start_time' => '2016-06-23 00:00:00',
-    'interval' => 5
+    'interval' => 60
 );
 
 //直播——直播开始推流阶段监控
