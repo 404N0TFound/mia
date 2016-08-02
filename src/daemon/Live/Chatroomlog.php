@@ -66,17 +66,12 @@ class Chatroomlog extends \FD_Daemon{
                     continue;
                 }
                 $data = json_decode(substr($line,19),true);
-                
                 if(!isset($data['msgUID']) || empty($data['msgUID'])) {
                     continue;
                 }
 
-                if($data['targetType']==1 && isset($data['content']['service_extra']['chat_room_id']) && !empty($data['content']['service_extra']['chat_room_id']) && empty($data['GroupId'])){
-                    $data['GroupId'] = $data['content']['service_extra']['chat_room_id'];
-
-                }
-
-                $contents[] = $data;
+                $data['GroupId'] = $data['content']['service_extra']['chat_room_id'];
+                $contents[]      = $data;
                 if (count($contents)==100) {
                     $this->addData($contents);
                     $contents = [];
