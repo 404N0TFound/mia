@@ -78,7 +78,7 @@ class QiniuUtil {
         $returnData = [];
         if(isset($idInfo[2])){
             $returnData = [
-                'hls' => 'http://' . $this->config['live_host']['playback'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . '.m3u8?start=0&end=' . time(),
+                'hls' => 'http://' . $this->config['live_host']['playback'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . '.m3u8?start=0&end=' . (time()+86400),
             ];
         }
         return $returnData;
@@ -136,7 +136,7 @@ class QiniuUtil {
                 $returnValue['origin'] = $result['targetUrl'];
                 $returnValue[$size] = "{$result['targetUrl']}?imageView2/2/w/{$size}/h/{$size}/q/85";
             }
-            throw new \Exception();
+//             throw new \Exception();
         } catch (\Exception $e) {
             $returnValue['origin'] = '';
             $returnValue[$size] = '';
@@ -295,6 +295,40 @@ class QiniuUtil {
         $ret = file_get_contents($url);
         $ret = json_decode($ret, true);
         return $ret['format'];
+    }
+    
+    /**
+     * 拼接视频
+     */
+    public function videoConcat(array $videoKeys) {
+        if (empty($videoKeys)) {
+            return false;
+        }
+        $bucket = $this->config['video_bucket'];
+        $pipeline = $this->config['video_transcoding_pipe'];
+        $fileNames = array();
+        
+        //待拼接的视频
+        $key = reset($videoKeys);
+        array_shift($videoKeys);
+        foreach ($videoKeys as $videoKey) {
+            $fileNames[] = $this->_urlsafe_base64_encode($this->config['video_source_host'] . $videoKey);
+        }
+        $fileNames = implode('/', $fileNames);
+        //拼接后的视频
+        $concatKey = $this->_getVideoFileName($fileNames, 'mp4');
+        $concatKeyPre = explode('.', $concatKey);
+        $concatKeyPre = $concatKeyPre[0];
+        $fileMP4 = $this->_urlsafe_base64_encode("{$bucket}:{$concatKeyPre}.mp4");
+        // 要进行转码的转码操作(MP4)
+        $fops_avconcat = "avconcat/2/format/mp4/{$fileNames}|saveas/{$fileMP4}";
+        $pfop = new PersistentFop($this->qiniuAuth, $bucket, $pipeline);
+        $ret = $pfop->execute($key, $fops_avconcat);
+        if ($ret[0]) {
+            return array('persistId' => $ret[0], 'concatFile' => $concatKey);
+        } else {
+            return false;
+        }
     }
 
     /**

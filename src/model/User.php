@@ -38,4 +38,17 @@ class User {
         $data = $app_device_token_data->getPushSwitchByUserIds($userIds);
         return $data;
     }
+
+    /**
+     * 根据userId获取deviceToken
+     *
+     * @return array
+     * @author 
+     **/
+    public function getDeviceTokenByUserId($userId)
+    {
+        $appDeviceTokenData = new AppDeviceTokenData();
+        $data = $appDeviceTokenData->getDeviceTokenByUserId($userId);
+        return $data;
+    }
 }

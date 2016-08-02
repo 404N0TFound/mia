@@ -129,4 +129,19 @@ class LiveRoom extends \DB_Query {
         $data = $this->delete($where);
         return $data;
     }
+    
+    /**
+     * 记录直播房间最近的一次直播ID
+     * @param unknown $roomId
+     * @param unknown $latestLiveId
+     * @return unknown
+     */
+    public function recordRoomLatestLive_Id($roomId,$latestLiveId){
+        $where[] = ['id',$roomId];
+        $setData[] = ['latest_live_id',$latestLiveId];
+        $affection = $this->update($setData,$where);
+        return $affection;
+    }
+    
+    
 }

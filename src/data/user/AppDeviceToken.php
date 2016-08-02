@@ -40,4 +40,24 @@ class AppDeviceToken extends DB_Query {
         
         return $data;
     }
+
+    /**
+     * 根据userid获取device_token
+     *
+     * @return void
+     * @author 
+     **/
+    public function getDeviceTokenByUserId($userId)
+    {
+        if (empty($userId)) {
+            return [];
+        }
+
+        $where = [];
+        $fields = 'regid as device_token,client_type';
+        $where[] = ['user_id', $userId];
+        $data = $this->getRow($where, $fields,'created desc');
+
+        return $data;
+    }
 }
