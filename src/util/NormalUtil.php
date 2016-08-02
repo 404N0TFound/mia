@@ -123,7 +123,7 @@ class NormalUtil {
      * 构建消息体
      * {"type":3,"extra":"{\"count\":\"10\\u4e07\"}"}
      */
-    public static function getMessageBody($type,$user_id=0,$content='',$extra=array()){
+    public static function getMessageBody($type,$user_id=0,$content='',$extra=array(),$serviceExtra){
         $message = [];
         if(!empty($user_id)){
             $user = new \mia\miagroup\Data\User\User();
@@ -149,6 +149,8 @@ class NormalUtil {
             case 6:
             case 7:
             case 11:
+                $message=['type'=>$type,'extra'=>$extra_json,'service_extra'=>$serviceExtra];
+                break;
             case 12:
                 $message=['type'=>$type,'extra'=>$extra_json];
                 break;

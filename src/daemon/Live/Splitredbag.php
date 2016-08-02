@@ -41,7 +41,8 @@ class Splitredbag extends \FD_Daemon {
             }
             // 给主播发展示红包消息
             $rong_api = new RongCloudUtil();
-            $content = NormalUtil::getMessageBody(11, 0, '', array('redbag_id' => $settings['redbag']));
+            $serviceExtra['chat_room_id'] = $room['chat_room_id'];
+            $content = NormalUtil::getMessageBody(11, 0, '', array('redbag_id' => $settings['redbag']),$serviceExtra);
             $rong_api->messagePublish(3782852, $room['user_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
         }
     }

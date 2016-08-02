@@ -26,8 +26,8 @@ class Chatroomlog extends \FD_Daemon{
                 $zip->extractTo($chatroom_log_path);
                 $zip->close();
                 unlink($filename);
-                $filePath = $chatroom_log_path.join('-',explode(' ',date('Y-m-d H',$time)));
-                $this->addData($filePath);
+                $filePath = $chatroom_log_path.date('Y-m-d-H',$time);
+                $this->readFile($filePath);
                 echo 'success';
             }else{
                 echo 'fail';
@@ -55,55 +55,93 @@ class Chatroomlog extends \FD_Daemon{
         return $res;
     }
 
-    /**
-     * 下载的文件写入数据库
-     *
-     * @return void
-     * @author 
-     **/
-    protected function addData($filePath)
+    public function readFile($filePath)
     {
         $handle = fopen($filePath,'r');
         if ($handle) {
             $contents = [];
             while(!feof($handle)){
-                $line       = stream_get_line($handle, 1024 , "\n");
-                $contents[] = json_decode(substr($line,19),true);
-            }
-            $data = [];
-            foreach ($contents as $key => $value) {
-                $content = '';
-                if(count($value)<9){
+                $line       = stream_get_line($handle, 102400,"\n");
+                if (empty($line)) {
                     continue;
                 }
-                $data[$key] = $value;
-                $content    = $value['content'];
-                if (!isset($content['user'])) {
-                    $data[$key]['userId']   = 0;
-                    $data[$key]['username'] = '';
-                    $data[$key]['portrait'] = '';
-                } else {
-                    $data[$key]['userId']   = isset($content['user']['id']) ? $content['user']['id'] : 0;
-                    $data[$key]['username'] = isset($content['user']['name']) ? $content['user']['name'] : '';
-                    $data[$key]['portrait'] = isset($content['user']['portrait']) ? $content['user']['portrait'] : '';;
+                $data = json_decode(substr($line,19),true);
+                
+                if(!isset($data['msgUID']) || empty($data['msgUID'])) {
+                    continue;
                 }
-                
-                $data[$key]['content']     = isset($content['content']) ? $content['content'] : '';
-                $data[$key]['contentType'] = isset($content['type']) ? $content['type'] : '';
-                $data[$key]['extra']       = isset($content['extra']) ? $content['extra'] : '';
-                $data[$key]['dateTime']    = date('Y-m-d H:i:s',strtotime($value['dateTime']));
-                $data[$key]['source']      = isset($value['source']) ? $value['source'] : '';
-                
+
+                if($data['targetType']==1 && isset($data['content']['service_extra']['chat_room_id']) && !empty($data['content']['service_extra']['chat_room_id']) && empty($data['GroupId'])){
+                    $data['GroupId'] = $data['content']['service_extra']['chat_room_id'];
+
+                }
+
+                $contents[] = $data;
+                if (count($contents)==100) {
+                    $this->addData($contents);
+                    $contents = [];
+                    sleep(1);
+                }
             }
-            $liveModel = new LiveModel();
-            $totalNum  = count($data);
-            $totalPage = ceil($totalNum/100);
-            for($i=0;$i<$totalPage;$i++){
-                $newData = array_slice($data, ($i*100) ,100);
-                $result  = $liveModel->addChatHistories($newData);
-                sleep(1);
+            if(!empty($contents) && feof($handle)) {
+                $this->addData($contents);
             }
+            unset($contents);
             fclose($handle);
         }
+    }
+
+    /**
+     * 添加聊天日志
+     *
+     * @return void
+     * @author 
+     **/
+    public function addData($contents)
+    {
+        $data = [];
+        foreach ($contents as $key => $value) {
+            $content = [];
+            if (isset($value['content'])) {
+                $content    = $value['content'];
+            }
+            
+            if (!isset($content['user'])) {
+                $data[$key]['userId']   = 0;
+                $data[$key]['username'] = '';
+                $data[$key]['portrait'] = '';
+            } else {
+                $data[$key]['userId']   = isset($content['user']['id']) ? $content['user']['id'] : 0;
+                $data[$key]['username'] = isset($content['user']['name']) ? $content['user']['name'] : '';
+                if (isset($content['user']['portrait'])) {
+                    $data[$key]['portrait'] = $content['user']['portrait'];
+                } elseif ($content['user']['icon']) {
+                    $data[$key]['portrait'] = $content['user']['icon'];
+                } else {
+                    $data[$key]['portrait'] = '';
+                }
+                
+            }
+
+            $data[$key]['appId']       = isset($value['appId']) ? $value['appId'] : '';
+            $data[$key]['fromUserId']  = isset($value['fromUserId']) ? $value['fromUserId'] : 0;
+            $data[$key]['targetId']    = isset($value['targetId']) ? $value['targetId'] : 0;
+            $data[$key]['targetType']  = isset($value['targetType']) ? $value['targetType'] : 0;
+            $data[$key]['GroupId']     = isset($value['GroupId']) ? $value['GroupId'] : 0;
+            $data[$key]['classname']   = isset($value['classname']) ? $value['classname'] : '';
+            $data[$key]['content']     = isset($content['content']) ? $content['content'] : '';
+            $data[$key]['contentType'] = isset($content['type']) ? $content['type'] : '';
+            $data[$key]['extra']       = isset($content['extra']) ? $content['extra'] : '';
+            $data[$key]['dateTime']    = isset($value['dateTime']) ? date('Y-m-d H:i:s',strtotime($value['dateTime'])) : date('Y-m-d H:i:s',time());
+            $data[$key]['msgUID']      = isset($value['msgUID']) ? $value['msgUID'] : '';
+            $data[$key]['source']      = isset($value['source']) ? $value['source'] : '';
+                
+        }
+
+        if($data) {
+            $liveModel = new LiveModel();
+            $liveModel->addChatHistories($data);
+        }
+        
     }
 }
