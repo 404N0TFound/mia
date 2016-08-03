@@ -41,7 +41,7 @@ class Livesaleskunum extends \FD_Daemon{
             //记录数量
             $redis->set($sale_num_key,$actual_count);
             //发送售卖商品数量的消息
-            $content = NormalUtil::getMessageBody(6,0,'',['count'=>"$actual_count"]);
+            $content = NormalUtil::getMessageBody(6,$liveInfo['chat_room_id'],0,'',['count'=>"$actual_count"]);
 //             $content = NormalUtil::getMessageBody(2,3782852,'this is skusalenum');//test
             $result = $rong_api->messageChatroomPublish(3782852, $liveInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
             if($result['code'] == 200){
