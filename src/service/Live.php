@@ -9,13 +9,14 @@ use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Service\Redbag;
 
-class Live extends \FS_Service {
+class Live extends \mia\miagroup\Lib\Service {
     
     public $liveModel;
     public $rongCloud;//融云聊天室api接口
     
     
     public function __construct() {
+        parent::__construct();
         $this->liveModel = new LiveModel();
         $this->rongCloud = new RongCloudUtil();
     }
