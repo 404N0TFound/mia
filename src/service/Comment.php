@@ -7,9 +7,10 @@ use mia\miagroup\Model\Comment as CommentModel;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Service\News;
 
-class Comment extends \FS_Service {
+class Comment extends \mia\miagroup\Lib\Service {
 
     public function __construct() {
+        parent::__construct();
         $this->userService = new UserService();
         $this->commentModel = new CommentModel();
         $this->newService = new News();

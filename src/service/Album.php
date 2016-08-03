@@ -6,12 +6,13 @@ use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Service\User as UserService;
 use \F_Ice;
 
-class Album extends \FS_Service {
+class Album extends \mia\miagroup\Lib\Service {
 
     public $abumModel = '';
     public $userService = '';
 
     public function __construct() {
+        parent::__construct();
         $this->abumModel = new AlbumModel();
         $this->userService = new UserService();
     }

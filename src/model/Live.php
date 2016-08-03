@@ -190,5 +190,16 @@ class Live {
         $data = $this->liveChatHistoryData->getChathistoryList($cond,$offset,$limit,$orderBy);
         return $data;
     }
+    
+    /**
+     * 记录直播房间最近的一次直播ID
+     * @param unknown $roomId
+     * @param unknown $latestLiveId
+     * @return int
+     */
+    public function recordRoomLatestLive_Id($roomId, $latestLiveId){
+        $data = $this->liveRoomData->recordRoomLatestLive_Id($roomId, $latestLiveId);
+        return $data;
+    }
 
 }

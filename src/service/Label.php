@@ -3,11 +3,12 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Label as LabelModel;
 
-class Label extends \FS_Service {
+class Label extends \mia\miagroup\Lib\Service {
 
     public $labelModel = null;
 
     public function __construct() {
+        parent::__construct();
         $this->labelModel = new LabelModel();
     }
 

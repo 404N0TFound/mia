@@ -11,7 +11,7 @@ use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
 use mia\miagroup\Util\NormalUtil;
 
-class Subject extends \FS_Service {
+class Subject extends \mia\miagroup\Lib\Service {
 
     public $subjectModel = null;
 
@@ -26,6 +26,7 @@ class Subject extends \FS_Service {
     public $albumService = null;
 
     public function __construct() {
+        parent::__construct();
         $this->subjectModel = new SubjectModel();
         $this->labelService = new LabelService();
         $this->userService = new UserService();

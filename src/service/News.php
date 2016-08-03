@@ -4,11 +4,12 @@ namespace mia\miagroup\Service;
 use \FS_Service;
 use mia\miagroup\Model\News as NewsModel;
 
-class News extends FS_Service{
+class News extends \mia\miagroup\Lib\Service {
     
     public $newsModel;
     
     public function __construct(){
+        parent::__construct();
         $this->newsModel = new NewsModel();
     }
     

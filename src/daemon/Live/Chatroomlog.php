@@ -12,7 +12,7 @@ class Chatroomlog extends \FD_Daemon{
         $url = $rong_api->messageHistory($date);
         if(!empty($url)){
             $url_info = pathinfo($url);
-            $chatroom_log_path = \F_Ice::$ins->workApp->config->get('app.chatroom_log_path') . '/chatroomlog' . '/' . date('Ymd') . '/';
+            $chatroom_log_path = \F_Ice::$ins->workApp->config->get('app.chatroom_log_path') . '/chatroomlog' . '/' . date('Ymd',$time) . '/';
             $filename = $chatroom_log_path.$url_info['basename'];
             if(!is_dir($chatroom_log_path)){
                 @mkdir($chatroom_log_path,0777,true);

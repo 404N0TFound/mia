@@ -73,5 +73,5 @@ class Chatroomusernum extends \FD_Daemon {
             return $cache_audience_num;
         }
     }
-    
+
 }

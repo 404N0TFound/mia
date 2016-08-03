@@ -4,11 +4,12 @@ namespace mia\miagroup\Service;
 use \FS_Service;
 use mia\miagroup\Model\UserRelation as UserRelationModel;
 
-class UserRelation extends FS_Service {
+class UserRelation extends \mia\miagroup\Lib\Service {
 
     public $userRelationModel = null;
 
     public function __construct() {
+        parent::__construct();
         $this->userRelationModel = new UserRelationModel();
     }
 
