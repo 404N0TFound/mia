@@ -8,7 +8,7 @@ $appKey = 'pgyu6atqy7lxu';
 $appSecret = 'CiJpWt7B8m71';
 
 $objectName = 'MIA:Msg';//低优先级的
-$objectNameHigh = 'MIA:MsgP0';//高优先级的
+$objectNameHigh = 'MIA:Msg';//高优先级的
 
 //发送消息时的发送人id (暂设为蜜芽兔)
 $fromUserId = 3782852;

@@ -32,6 +32,11 @@ class Splitredbag extends \FD_Daemon {
             if (empty($redbagInfo)) {
                 continue;
             }
+            //判断红包是否有效
+            $redbagStatus = $redBagService->checkRedbagAvailable($settings['redbag']);
+            if ($redbagStatus['code'] > 0) {
+                continue;
+            }
             //判断红包是否已拆散
             //获取rediskey
             $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.redBagKey.splitStatus.key'), $settings['redbag']);
