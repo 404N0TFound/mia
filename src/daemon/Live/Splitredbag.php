@@ -44,10 +44,18 @@ class Splitredbag extends \FD_Daemon {
             if($splitStatus){
                 continue;
             }
+
+            // 主播key
+            $hostKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_id.key'), $room['user_id']);
+            $hostStatus = $redis->exists($hostKey);
+            if(!$hostStatus){
+                continue;
+            }
+            $rongCloudUid = $redis->get($hostKey);
             // 给主播发展示红包消息
             $rong_api = new RongCloudUtil();
-            $content = NormalUtil::getMessageBody(11, 0, '', array('redbag_id' => $settings['redbag']));
-            $rong_api->messagePublish(3782852, $room['user_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectNameHigh'), $content);
+            $content = NormalUtil::getMessageBody(11,$room['chat_room_id'], 0, '', array('redbag_id' => $settings['redbag']));
+            $rong_api->messagePublish(3782852, $rongCloudUid, \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectNameHigh'), $content);
         }
     }
 }
