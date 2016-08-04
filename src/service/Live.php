@@ -727,11 +727,5 @@ class Live extends \FS_Service {
         $data      = $this->liveModel->getChathistoryList($where,0,1);
         return $this->succ($data);
     }
-    
-    public function get(){
-        $redis = new Redis();
-        
-    }
-    
 
 }
