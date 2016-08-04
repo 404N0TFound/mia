@@ -47,8 +47,11 @@ class Live extends \mia\miagroup\Lib\Service {
     
     /**
      * 创建直播
+     * @param $userId 用户id
+     * @param $isLast 是否获取用户最近一次的推流信息
+     * @return json
      */
-    public function addLive($userId) {
+    public function addLive($userId, $isLast=0) {
         //校验是否有直播权限
         $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($roomInfo)){
@@ -71,32 +74,51 @@ class Live extends \mia\miagroup\Lib\Service {
                 }
             }
         }
-        //生成视频流ID和聊天室ID
-        $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
         
-        //获取七牛视频流
         $qiniu = new QiniuUtil();
-        $streamInfo = $qiniu->createStream($streamId);
+        //如果主播继续上次直播
+        if($isLast && !empty($roomInfo['latest_live_id'])){
+            //获取上一次的推流的ID
+            $latest_live_info = $this->liveModel->getLiveInfoById($roomInfo['latest_live_id']);
+            $streamId = $latest_live_info['stream_id'];
+            $streamInfo = $qiniu->getStreamInfoByStreamId($streamId);
+            $chatId = $latest_live_info['chat_room_id'];
+        }else{
+            //生成视频流ID和聊天室ID
+            $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
+            $streamInfo = $qiniu->createStream($streamId);
+        }
+        //获取七牛视频流
         if(empty($streamInfo)){
             //获取七牛的流信息失败
             return $this->error(30002);
         }
-
         //创建聊天室
         $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
         if(!$chatRet){
             //创建聊天室失败
             return $this->error(30001);    
         }
-        //新增直播记录
-        $liveInfo['user_id'] = $userId;
-        $liveInfo['stream_id'] = $streamInfo['id'];
-        $liveInfo['chat_room_id'] = $chatId;
-        $liveInfo['status'] = 1;//创建中
-        $liveInfo['create_time'] = date('Y-m-d H:i:s');
-        $liveId = $this->liveModel->addLive($liveInfo);
+        
+        //如果继续上次直播则不生成直播数据
+        if($isLast && !empty($roomInfo['latest_live_id'])){
+            $setDataLate[] = ['status', 1];//创建中
+            $this->liveModel->updateLiveById($roomInfo['latest_live_id'],$setDataLate);
+            //更新直播房间数据
+            $setRoomData[] = ['live_id',$roomInfo['latest_live_id']];
+        }else{
+            //新增直播记录
+            $liveInfo['user_id'] = $userId;
+            $liveInfo['stream_id'] = $streamInfo->id;
+            $liveInfo['chat_room_id'] = $chatId;
+            $liveInfo['status'] = 1;//创建中
+            $liveInfo['create_time'] = date('Y-m-d H:i:s');
+            $liveId = $this->liveModel->addLive($liveInfo);
+            //更新直播房间数据
+            $setRoomData[] = ['live_id',$liveId];
+        }
+        
         //更新直播房间
-        $setRoomData[] = ['live_id',$liveId];
         $setRoomData[] = ['chat_room_id',$chatId];
         $saveRoomInfo = $this->liveModel->updateLiveRoomById($roomInfo['id'], $setRoomData);
         if(!$saveRoomInfo){
@@ -115,9 +137,8 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error(30001);
         }
         //返回数据
-        $data['qiniu_stream_info'] = json_encode($streamInfo);
+        $data['qiniu_stream_info'] = $streamInfo->toJsonString();
         $data['room_info'] = $roomData;
-        
         return $this->succ($data);
     }
     
@@ -125,9 +146,13 @@ class Live extends \mia\miagroup\Lib\Service {
      * 开始直播
      */
     public function startLive($liveId) {
+        //获取直播信息
+        $live_info = $this->liveModel->getLiveInfoById($liveId);
         //更新直播状态
         $setData[]=['status',3];//直播中
-        $setData[]=['start_time',date('Y-m-d H:i:s')];
+        if(empty($live_info['start_time'])){
+            $setData[]=['start_time',date('Y-m-d H:i:s')];
+        }
         $data = $this->liveModel->updateLiveById($liveId,$setData);
         return $this->succ($data);
     }
