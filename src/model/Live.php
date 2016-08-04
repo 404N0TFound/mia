@@ -44,8 +44,8 @@ class Live {
     /**
      * 获取单个直播信息
      */
-    public function getLiveInfoById($liveId) {
-        $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array());
+    public function getLiveInfoById($liveId,$status=array()) {
+        $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), $status);
         $liveInfo = !empty($liveInfo[$liveId]) ? $liveInfo[$liveId] : [];
         return $liveInfo;
     }
@@ -131,8 +131,8 @@ class Live {
     /**
      * 获取直播列表
      */
-    public function getLiveList($cond, $offset = 0, $limit = 20) {
-        $liveList = $this->liveData->getLiveList($cond, $offset, $limit);
+    public function getLiveList($cond, $offset = 0, $limit = 20, $orderBy='') {
+        $liveList = $this->liveData->getLiveList($cond, $offset, $limit,$orderBy);
         return $liveList;
     }
     

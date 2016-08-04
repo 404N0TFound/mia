@@ -728,5 +728,33 @@ class Live extends \mia\miagroup\Lib\Service {
         $data      = $this->liveModel->getChathistoryList($where,0,1);
         return $this->succ($data);
     }
+    
+    /**
+     * 直播初始化
+     */
+    public function liveInit($userId){
+        //判断用户是否有正在进行的直播（有则结束直播&显示是否继续直播弹层）
+        $currLiveInfo = $this->liveModel->getLiveInfoByUserId($userId,[1,2,3]);
+        if(!empty($currLiveInfo)){
+            //显示
+            $data['show_last_live'] = 1;
+            return $this->succ($data);
+        }
+        //判断用户最近一次的直播的结束时间与当前时间是否相差60分钟（含）相差60分钟以上的则不显示是否继续直播弹层，反之不显示
+        $cond['user_id'] = $userId;
+        $orderBy = 'end_time DESC';
+        $data = $this->liveModel->getLiveList($cond,0,1,$orderBy);
+        if(empty($data)){
+            //不显示
+            $data['show_last_live'] = 0;
+        }else{
+            if(time() - strtotime($data[0]['end_time']) > 3600){
+                $data['show_last_live'] = 0;
+            }else{
+                $data['show_last_live'] = 1;
+            }
+        }
+        return $this->succ($data);
+    }
 
 }
