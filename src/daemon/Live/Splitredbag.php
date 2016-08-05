@@ -7,6 +7,7 @@ use mia\miagroup\Data\Live\LiveRoom as LiveRoomData;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Model\Live as LiveModel;
 
 /**
  * 拆散直播红包
@@ -19,6 +20,7 @@ class Splitredbag extends \FD_Daemon {
         $liveRoomData = new LiveRoomData();
         $redBagService = new RedBagService();
         $redBageModel = new RedBagModel();
+        $liveModel = new LiveModel();
         $redis = new Redis();
         //获取所有正在直播的房间
         $allLiveRooms = $liveRoomData->getAllLiveRoom();
@@ -44,10 +46,16 @@ class Splitredbag extends \FD_Daemon {
             if($splitStatus){
                 continue;
             }
+
+            // 判断是否是主播
+            $rongCloudUid = $liveModel->getRongHostUserId($room['user_id']);
+            if(!$rongCloudUid){
+                continue;
+            }
             // 给主播发展示红包消息
             $rong_api = new RongCloudUtil();
-            $content = NormalUtil::getMessageBody(11, 0, '', array('redbag_id' => $settings['redbag']));
-            $rong_api->messagePublish(3782852, $room['user_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectNameHigh'), $content);
+            $content = NormalUtil::getMessageBody(11,$room['chat_room_id'], 0, '', array('redbag_id' => $settings['redbag']));
+            $rong_api->messagePublish(3782852, $rongCloudUid, \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectNameHigh'), $content);
         }
     }
 }

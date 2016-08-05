@@ -13,12 +13,13 @@ class Live extends \mia\miagroup\Lib\Service {
     
     public $liveModel;
     public $rongCloud;//融云聊天室api接口
-    
+    private $deviceToken;
     
     public function __construct() {
         parent::__construct();
         $this->liveModel = new LiveModel();
         $this->rongCloud = new RongCloudUtil();
+        $this->deviceToken = md5($this->ext_params['device_token']);
     }
     
     /**
@@ -29,19 +30,24 @@ class Live extends \mia\miagroup\Lib\Service {
         $userService = new User();
 
         $userInfo = $userService->getUserInfoByUids([$userId])['data'][$userId];
+        
         if(empty($userInfo)){
             //获取用户信息失败
             return $this->error(31000);
         }
-        $token = $this->rongCloud->getToken($userId, $userInfo['nickname'], $userInfo['icon']);
+
+        $rongCloudUserId = $userId.','.$this->deviceToken;
+        $token = $this->rongCloud->getToken($rongCloudUserId, $userInfo['nickname'], $userInfo['icon']);
         if(!$token){
             //获取rongcloudToken失败
             return $this->error(31000);
         }
-        
+        $userInfo['user_id'] = $rongCloudUserId;
         $data['user_info'] = $userInfo;
         $data['token'] = $token;
-        
+
+        //把融云的用户ID存入缓存中
+        $this->liveModel->addRongUserId($userId,$this->deviceToken);
         return $this->succ($data);
     }
     
@@ -139,6 +145,10 @@ class Live extends \mia\miagroup\Lib\Service {
         //返回数据
         $data['qiniu_stream_info'] = $streamInfo->toJsonString();
         $data['room_info'] = $roomData;
+
+        //创建直播时把主播user_id存入缓存
+        $this->liveModel->addHostLiveUserId($userId,$this->deviceToken);
+
         return $this->succ($data);
     }
     
@@ -188,7 +198,8 @@ class Live extends \mia\miagroup\Lib\Service {
         //发送结束直播消息
         $content = NormalUtil::getMessageBody(9);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
-        
+        //结束直播的时候删除与主播有关的缓存
+        $this->liveModel->delByUserId($uid);
         return $this->succ($setRoomRes);
     }
     
@@ -543,7 +554,8 @@ class Live extends \mia\miagroup\Lib\Service {
      * @param unknown $chatroomId
      */
     public function joinChatRoom($userId,$chatroomId){
-        $data = $this->rongCloud->joinChatRoom($userId, $chatroomId);
+        $rongCloudUserId = $userId.','.$this->deviceToken;
+        $data = $this->rongCloud->joinChatRoom($rongCloudUserId, $chatroomId);
         return $this->succ($data);
     }
 
