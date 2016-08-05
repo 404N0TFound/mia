@@ -252,4 +252,23 @@ class Live {
         return true;
     }
 
+    /**
+     * 通过userId获取主播融云userId
+     *
+     * @return void
+     * @author 
+     **/
+    public function getRongHostUserId($userId)
+    {
+        $redis = new Redis();
+        // 主播key
+        $hostKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_id.key'), $userId);
+        $hostStatus = $redis->exists($hostKey);
+        if(!$hostStatus){
+            return false;
+        }
+        $rongCloudUid = $redis->get($hostKey);
+        return $rongCloudUid ? $rongCloudUid : false;
+    }
+
 }
