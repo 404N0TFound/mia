@@ -58,6 +58,7 @@ class Live extends \FS_Service {
             return $this->error(30000);
         }
         //判断用户是否已经存在直播
+        $makeLive = [];
         $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId, [1, 2, 3]);
         if(!empty($checkLiveExist)){
             foreach ($checkLiveExist as $live) {
@@ -68,44 +69,62 @@ class Live extends \FS_Service {
                         $this->liveModel->updateLiveById($live['id'], $setData);
                         break;
                     case 3: //直播中设为结束有回放
-                        $this->endLive($userId, $roomInfo['id'], $roomInfo['live_id'], $roomInfo['chat_room_id']);
+                        $makeLive = $live;//保存正在直播的直播信息
+                        if(!$isLast){
+                            $this->endLive($userId, $roomInfo['id'], $roomInfo['live_id'], $roomInfo['chat_room_id']);
+                        }
                         break;
+                        
                 }
             }
         }
         
         $qiniu = new QiniuUtil();
-        //如果主播继续上次直播
-        if($isLast && !empty($roomInfo['latest_live_id'])){
-            //获取上一次的推流的ID
-            $latest_live_info = $this->liveModel->getLiveInfoById($roomInfo['latest_live_id']);
-            $streamId = $latest_live_info['stream_id'];
-            $streamInfo = $qiniu->getStreamInfoByStreamId($streamId);
-            $chatId = $latest_live_info['chat_room_id'];
+        //继续上次直播
+        if($isLast){
+            //不存在正在进行的直播
+            if(empty($makeLive)){
+                //记录了上一次的直播ID
+                if(!empty($roomInfo['latest_live_id'])){
+                    //获取上一次的推流的ID
+                    $latest_live_info = $this->liveModel->getLiveInfoById($roomInfo['latest_live_id']);
+                    $streamId = $latest_live_info['stream_id'];
+                    $streamInfo = $qiniu->getStreamInfoByStreamId($streamId);
+                    $chatId = $latest_live_info['chat_room_id'];
+                    //设置直播状态
+                    $setDataLate[] = ['status', 1];//创建中
+                    $this->liveModel->updateLiveById($roomInfo['latest_live_id'],$setDataLate);
+                    //更新直播房间数据
+                    $setRoomData[] = ['live_id',$roomInfo['latest_live_id']];
+                }else{
+                    //生成视频流ID和聊天室ID
+                    $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
+                    $streamInfo = $qiniu->createStream($streamId);
+                    //新增直播记录
+                    $liveInfo['user_id'] = $userId;
+                    $liveInfo['stream_id'] = $streamInfo->id;
+                    $liveInfo['chat_room_id'] = $chatId;
+                    $liveInfo['status'] = 1;//创建中
+                    $liveInfo['create_time'] = date('Y-m-d H:i:s');
+                    $liveId = $this->liveModel->addLive($liveInfo);
+                    //更新直播房间数据
+                    $setRoomData[] = ['live_id',$liveId];
+                }
+            }else{
+                $latest_live_info = $this->liveModel->getLiveInfoById($makeLive['id']);
+                $streamId = $latest_live_info['stream_id'];
+                $streamInfo = $qiniu->getStreamInfoByStreamId($streamId);
+                $chatId = $latest_live_info['chat_room_id'];
+                //设置直播状态
+                $setDataLate[] = ['status', 1];//创建中
+                $this->liveModel->updateLiveById($makeLive['id'],$setDataLate);
+                //更新直播房间数据
+                $setRoomData[] = ['live_id',$makeLive['id']];
+            }
         }else{
             //生成视频流ID和聊天室ID
             $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
             $streamInfo = $qiniu->createStream($streamId);
-        }
-        //获取七牛视频流
-        if(empty($streamInfo)){
-            //获取七牛的流信息失败
-            return $this->error(30002);
-        }
-        //创建聊天室
-        $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
-        if(!$chatRet){
-            //创建聊天室失败
-            return $this->error(30001);    
-        }
-        
-        //如果继续上次直播则不生成直播数据
-        if($isLast && !empty($roomInfo['latest_live_id'])){
-            $setDataLate[] = ['status', 1];//创建中
-            $this->liveModel->updateLiveById($roomInfo['latest_live_id'],$setDataLate);
-            //更新直播房间数据
-            $setRoomData[] = ['live_id',$roomInfo['latest_live_id']];
-        }else{
             //新增直播记录
             $liveInfo['user_id'] = $userId;
             $liveInfo['stream_id'] = $streamInfo->id;
@@ -116,14 +135,20 @@ class Live extends \FS_Service {
             //更新直播房间数据
             $setRoomData[] = ['live_id',$liveId];
         }
-        
         //更新直播房间
         $setRoomData[] = ['chat_room_id',$chatId];
-        $saveRoomInfo = $this->liveModel->updateLiveRoomById($roomInfo['id'], $setRoomData);
-        if(!$saveRoomInfo){
-            //更新房间信息失败
-            return $this->error(30003);
-        }  
+        $this->liveModel->updateLiveRoomById($roomInfo['id'], $setRoomData);
+        
+        //获取七牛的流信息失败
+        if(empty($streamInfo)){
+            return $this->error(30002);
+        }
+        //创建聊天室
+        $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
+        if(!$chatRet){
+            //创建聊天室失败
+            return $this->error(30001);    
+        }
         //获取房间信息，查主库
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $roomData = $this->getRoomLiveById($roomInfo['id'],$userId)['data'];
@@ -183,7 +208,6 @@ class Live extends \FS_Service {
         }
         //更新latest_live_id
         $this->liveModel->recordRoomLatestLive_Id($roomId, $liveId);
-        
         //发送结束直播消息
         $content = NormalUtil::getMessageBody(9);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
@@ -733,21 +757,19 @@ class Live extends \FS_Service {
      */
     public function liveInit($userId){
         //判断用户是否有正在进行的直播（有则结束直播&显示是否继续直播弹层）
-        $currLiveInfo = $this->liveModel->getLiveInfoByUserId($userId,[1,2,3]);
+        $currLiveInfo = $this->liveModel->getLiveInfoByUserId($userId,[3]);
         if(!empty($currLiveInfo)){
             //显示
             $data['show_last_live'] = 1;
             return $this->succ($data);
         }
         //判断用户最近一次的直播的结束时间与当前时间是否相差60分钟（含）相差60分钟以上的则不显示是否继续直播弹层，反之不显示
-        $cond['user_id'] = $userId;
-        $orderBy = 'end_time DESC';
-        $data = $this->liveModel->getLiveList($cond,0,1,$orderBy);
-        if(empty($data)){
-            //不显示
+        $data = $this->liveModel->checkLiveRoomByUserId($userId);
+        if(empty($data['latest_live_id'])){
             $data['show_last_live'] = 0;
         }else{
-            if(time() - strtotime($data[0]['end_time']) > 3600){
+            $latest_live_info = $this->liveModel->getLiveInfoById($data['latest_live_id']);
+            if(time() - strtotime($latest_live_info['end_time']) > 3600){
                 $data['show_last_live'] = 0;
             }else{
                 $data['show_last_live'] = 1;
