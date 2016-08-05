@@ -34,7 +34,7 @@ class LivingCheck extends \FD_Daemon {
             $roomInfos = $this->liveModel->checkLiveRoomByUserIds($userIds);
             //检查已经直播30秒，已经断流的直播
             foreach ($lives as $live) {
-                if(strtotime($live['start_time']) + 1200 < time()){
+                if(strtotime($live['start_time']) + 30 < time()){
                     $status = $this->qiniuUtil->getStatus($live['stream_id']);
                     if($status == 'disconnected'){
                         $this->liveService->endLive($live['user_id'], $roomInfos[$live['user_id']]['id'], $live['id'], $live['chat_room_id']);

@@ -91,21 +91,24 @@ class QiniuUtil {
         $stream = $this->qiniuHub->getStream($streamId);
         $result = $stream->status();
         $returnValue = 'connected';
+        
+        $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $streamId);
+        $redis = new Redis();
         if(isset($result['status']) && $result['status']=='disconnected'){
             //策略： 直播状态首次中断并不立即返回中断状态，而是再次检测到中断并且相差5秒以上，才中断
             //此策略为防止第三方瞬间返回中断然而实际没中断问题
             //获取数量
-            $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $streamId);
-            $redis = new Redis();
             $liveStreamStatus = $redis->get($liveStatusKey);
             $lastDisconnectedTime = intval($redis->get($liveStatusKey));
             if($lastDisconnectedTime > 0){
-                if(time() - $lastDisconnectedTime >= 10){
+                if(time() - $lastDisconnectedTime >= 600){
                     $returnValue = 'disconnected';
                 }
             }else{
                 $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
             }
+        }else{
+            $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
         }
         return $returnValue;
     }
