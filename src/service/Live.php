@@ -510,7 +510,7 @@ class Live extends \FS_Service {
                 $roomRes[$roomInfo['id']]['banners'] = $bannerArr;
                 // 是否显示分享得好礼
                 $roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
-                $roomRes[$roomInfo['id']]['is_show_playback'] = $roomInfo['is_show_playback'];//是否显示回放
+                $roomRes[$roomInfo['id']]['is_show_playback'] = isset($roomInfo['is_show_playback']) ? $roomInfo['is_show_playback'] : '1';//是否显示回放
             }
             // 红包信息
             if (in_array('redbag', $field)) {
