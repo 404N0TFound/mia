@@ -42,27 +42,27 @@ class Chatroomusernum extends \FD_Daemon {
     
     private function increase($cache_audience_num) {
         $cache_audience_num = intval($cache_audience_num);
-        //底数为10至50的随机数，每3s一次变化
+        //底数为30至60的随机数，每3s一次变化
         if ($cache_audience_num == 0) {
-            $cache_audience_num = rand(10, 50);
+            $cache_audience_num = rand(50, 100);
             return $cache_audience_num;
         }
-        if ($cache_audience_num <= 500) {
-            //当$actual_count <= 500，70%概率变化，叠加5至20的随机数
+        if ($cache_audience_num <= 3000) {
+            //当$actual_count <= 3000，70%概率变化，叠加20至60的随机数
             if (rand(0, 100) < 70) {
-                $cache_audience_num += rand(5, 20);
+                $cache_audience_num += rand(20, 60);
             }
             return $cache_audience_num;
-        } else if ($cache_audience_num > 500 && $cache_audience_num <= 1000) {
-            //当500 < $actual_count <= 1000，40%概率变化，叠加-5至20的随机数
+        } else if ($cache_audience_num > 3000 && $cache_audience_num <= 6000) {
+            //当3000 < $actual_count <= 10000，40%概率变化，叠加-5至20的随机数
             if (rand(0, 100) < 40) {
-                $cache_audience_num += rand(-5, 20);
+                $cache_audience_num += rand(-5, 60);
             }
             return $cache_audience_num;
-        } else if ($cache_audience_num > 1000 && $cache_audience_num <= 2000) {
+        } else if ($cache_audience_num > 6000 && $cache_audience_num <= 10000) {
             //当 1000 < $actual_count < 2000，30%概率变化，叠加-5至20的随机数
             if (rand(0, 100) < 30) {
-                $cache_audience_num += rand(-5, 20);
+                $cache_audience_num += rand(-5, 60);
             }
             return $cache_audience_num;
         } else {
