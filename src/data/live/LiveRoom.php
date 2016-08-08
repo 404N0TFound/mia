@@ -95,6 +95,7 @@ class LiveRoom extends \DB_Query {
                     $result[$v['id']]['share'] = $settings['share'];
                     $result[$v['id']]['redbag'] = $settings['redbag'];
                     $result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
+                    $result[$v['id']]['is_show_playback'] = $settings['is_show_playback'];
                     $result[$v['id']]['settings'] = $settings;
                 }
             }
