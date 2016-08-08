@@ -243,6 +243,8 @@ class Live extends \mia\miagroup\Lib\Service {
      * 获取房间当前直播的信息
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0) {
+        //融云userId
+        $rongCloudUserId = $currentUid.','.$this->deviceToken;
         //获取房间信息
         $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag'))['data'][$roomId];
         if(empty($roomData)){
@@ -250,7 +252,7 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error(30003);
         }
         //自己不能观看自己的直播
-        if ($roomData['user_id'] == $currentUid && $roomData['live_info']['status'] == 3) {
+        if ($roomData['user_id'] == $rongCloudUserId && $roomData['live_info']['status'] == 3) {
             return $this->error(30004);
         }
         $roomData['share_icon'] = '分享抽大奖'; //分享得好礼
