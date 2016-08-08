@@ -313,8 +313,13 @@ class Live extends \mia\miagroup\Lib\Service {
                         $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
                         //回放地址
                         $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
-                        //直接播放回放地址
-                        $roomData['status'] = 2;
+                        //如果设置了可以观看回放才可以观看回放
+                        if(isset($roomData['is_show_playback']) && $roomData['is_show_playback'] === '0'){
+                            $roomData['status'] = 0;//不能看回放
+                        }else{
+                            //直接播放回放地址
+                            $roomData['status'] = 2;
+                        }
                     }
                 }
             }else{
