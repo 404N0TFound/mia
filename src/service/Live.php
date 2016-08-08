@@ -249,10 +249,7 @@ class Live extends \mia\miagroup\Lib\Service {
             //没有直播房间信息
             return $this->error(30003);
         }
-        //自己不能观看自己的直播
-        if ($roomData['user_id'] == $currentUid && $roomData['live_info']['status'] == 3) {
-            return $this->error(30004);
-        }
+
         $roomData['share_icon'] = '分享抽大奖'; //分享得好礼
         $roomData['sale_display'] = '0';
         $roomData['online_display'] = '1';
