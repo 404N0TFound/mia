@@ -5,12 +5,13 @@ use \F_Ice;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Model\Praise as PraiseModel;
 
-class Praise extends \FS_Service {
+class Praise extends \mia\miagroup\Lib\Service {
     
     private $userService;
     private $praiseModel;
 
     public function __construct() {
+        parent::__construct();
         $this->userService = new UserService();
         $this->praiseModel = new PraiseModel();
     }

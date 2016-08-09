@@ -123,7 +123,7 @@ class NormalUtil {
      * 构建消息体
      * {"type":3,"extra":"{\"count\":\"10\\u4e07\"}"}
      */
-    public static function getMessageBody($type,$user_id=0,$content='',$extra=array()){
+    public static function getMessageBody($type,$chat_room_id,$user_id=0,$content='',$extra=array()){
         $message = [];
         if(!empty($user_id)){
             $user = new \mia\miagroup\Data\User\User();
@@ -131,32 +131,33 @@ class NormalUtil {
             $nick = $user_info['nickname'] ?: $user_info['username'];
         }
         $extra_json = json_encode($extra);
-
+        $serviceExtra = ['chat_room_id'=>$chat_room_id];
+        
         switch ($type){
             case 0:
-                $message=['type'=>$type,'user'=>['id'=>-1,'name'=>'蜜芽提醒'],'content'=>$content];
+                $message=['type'=>$type,'user'=>['id'=>-1,'name'=>'蜜芽提醒'],'content'=>$content,'service_extra'=>$serviceExtra];
                 break;
             case 1:
             case 2:
             case 4:
             case 8:
-                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'content'=>$content];
+                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'content'=>$content,'service_extra'=>$serviceExtra];
                 break;
             case 3:
-                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'extra'=>$extra_json];
+                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'extra'=>$extra_json,'service_extra'=>$serviceExtra];
                 break;
             case 5:
             case 6:
             case 7:
             case 11:
             case 12:
-                $message=['type'=>$type,'extra'=>$extra_json];
+                $message=['type'=>$type,'extra'=>$extra_json,'service_extra'=>$serviceExtra];
                 break;
             case 9:
-                $message=['type'=>$type];
+                $message=['type'=>$type,'service_extra'=>$serviceExtra];
                 break;
             case 10:
-                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'content'=>$content,'extra'=>$extra_json];
+                $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'content'=>$content,'extra'=>$extra_json,'service_extra'=>$serviceExtra];
                 break;
         }
         

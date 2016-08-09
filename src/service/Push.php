@@ -5,7 +5,7 @@ use mia\miagroup\Model\Push as PushModel;
 use mia\miagroup\Model\User as UserModel;
 use mia\miagroup\Lib\Rabbitmq;
 
-class Push extends \FS_Service
+class Push extends \mia\miagroup\Lib\Service
 {
     public $pushModel;
     public $userModel;
@@ -13,6 +13,7 @@ class Push extends \FS_Service
     
     public function __construct()
     {
+        parent::__construct();
         $this->pushModel = new PushModel;
         $this->userModel = new UserModel;
         $this->rabbitmq  = new Rabbitmq;
