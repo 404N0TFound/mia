@@ -30,7 +30,7 @@
              //记录数量
              $redis->set($audience_num_key, $cache_audience_num);
              //发送在线人数的消息
-             $content = NormalUtil::getMessageBody(5,0,'',['count'=>"$cache_audience_num"]);
+             $content = NormalUtil::getMessageBody(5,$liveInfo['chat_room_id'],0,'',['count'=>"$cache_audience_num"]);
              $result = $rong_api->messageChatroomPublish(3782852, $liveInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectName'), $content);
              if($result['code'] == 200){
                  echo 'success';
