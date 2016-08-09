@@ -174,7 +174,7 @@ class Live extends \FS_Service {
         $live_info = $this->liveModel->getLiveInfoById($liveId);
         //更新直播状态
         $setData[]=['status',3];//直播中
-        if(empty($live_info['start_time'])){
+        if($live_info['start_time'] == '0000-00-00 00:00:00'){
             $setData[]=['start_time',date('Y-m-d H:i:s')];
         }
         $data = $this->liveModel->updateLiveById($liveId,$setData);

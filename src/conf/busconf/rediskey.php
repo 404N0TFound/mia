@@ -34,6 +34,10 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'live_to_video_list',
         'expire_time' => 86400 * 30,
     ],
+    //直播流帧率检测
+    'live_stream_frame'=>[
+        'key' => $liveServicePrefix . 'live_stream_frame_%s',
+    ],
 );
 
 /**
