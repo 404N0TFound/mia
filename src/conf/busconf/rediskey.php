@@ -34,6 +34,21 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'live_to_video_list',
         'expire_time' => 86400 * 30,
     ],
+    //直播流帧率检测
+    'live_stream_frame'=>[
+        'key' => $liveServicePrefix . 'live_stream_frame_%s',
+        'expire_time' => 60,
+    ],
+    //主播用户
+    'live_rong_cloud_user_id' => [ //使用String数据结构
+        'key' => $liveServicePrefix . 'rong_cloud_user_id_%s',
+        'expire_time' => 86400,
+    ],
+    //融云用户hash
+    'live_rong_cloud_user_hash' => [ //使用Hash数据结构
+        'key' => $liveServicePrefix . 'rong_cloud_user_hash_%s',
+        'expire_time' => 86400,
+    ],
 );
 
 /**

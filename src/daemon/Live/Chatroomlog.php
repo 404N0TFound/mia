@@ -106,8 +106,17 @@ class Chatroomlog extends \FD_Daemon{
                 $data[$key]['username'] = '';
                 $data[$key]['portrait'] = '';
             } else {
-                $data[$key]['userId']   = isset($content['user']['id']) ? $content['user']['id'] : 0;
                 $data[$key]['username'] = isset($content['user']['name']) ? $content['user']['name'] : '';
+                if(isset($content['user']['id'])) {
+                    $strpos = strpos($content['user']['id'],',');
+                    if($strpos){
+                        $data[$key]['userId'] = array_shift(explode(',',$content['user']['id']));
+                    }else{
+                        $data[$key]['userId'] = $content['user']['id'];
+                    }
+                }else {
+                    $data[$key]['userId'] = 0;
+                }
                 if (isset($content['user']['portrait'])) {
                     $data[$key]['portrait'] = $content['user']['portrait'];
                 } elseif ($content['user']['icon']) {
@@ -119,8 +128,6 @@ class Chatroomlog extends \FD_Daemon{
             }
 
             $data[$key]['appId']       = isset($value['appId']) ? $value['appId'] : '';
-            $data[$key]['fromUserId']  = isset($value['fromUserId']) ? $value['fromUserId'] : 0;
-            $data[$key]['targetId']    = isset($value['targetId']) ? $value['targetId'] : 0;
             $data[$key]['targetType']  = isset($value['targetType']) ? $value['targetType'] : 0;
             $data[$key]['GroupId']     = isset($value['GroupId']) ? $value['GroupId'] : 0;
             $data[$key]['classname']   = isset($value['classname']) ? $value['classname'] : '';
@@ -130,6 +137,26 @@ class Chatroomlog extends \FD_Daemon{
             $data[$key]['dateTime']    = isset($value['dateTime']) ? date('Y-m-d H:i:s',strtotime($value['dateTime'])) : date('Y-m-d H:i:s',time());
             $data[$key]['msgUID']      = isset($value['msgUID']) ? $value['msgUID'] : '';
             $data[$key]['source']      = isset($value['source']) ? $value['source'] : '';
+            if(isset($value['targetId'])) {
+                $strpos = strpos($value['targetId'],',');
+                if($strpos){
+                    $data[$key]['targetId'] = array_shift(explode(',',$value['targetId']));
+                }else{
+                    $data[$key]['targetId'] = $value['targetId'];
+                }
+            }else {
+                $data[$key]['targetId'] = 0;
+            }
+            if(isset($value['fromUserId'])) {
+                $strpos = strpos($value['fromUserId'],',');
+                if($strpos){
+                    $data[$key]['fromUserId'] = array_shift(explode(',',$value['fromUserId']));
+                }else{
+                    $data[$key]['fromUserId'] = $value['fromUserId'];
+                }
+            }else {
+                $data[$key]['fromUserId'] = 0;
+            }
                 
         }
 
