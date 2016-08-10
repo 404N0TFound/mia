@@ -10,6 +10,7 @@ use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
 use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Service\PointTags as PointTagsService;
 
 class Subject extends \FS_Service {
 
@@ -25,12 +26,15 @@ class Subject extends \FS_Service {
     
     public $albumService = null;
 
+	public $tagsService = null;
+
     public function __construct() {
         $this->subjectModel = new SubjectModel();
         $this->labelService = new LabelService();
         $this->userService = new UserService();
         $this->praiseService = new PraiseService();
         $this->albumService = new AlbumService();
+		$this->tagsService = new PointTagsService();
     }
 
     /**
@@ -232,11 +236,11 @@ class Subject extends \FS_Service {
      */
     public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0) {
         if (empty($subjectInfo)) {
-            return false;
+            return $this->error();
         }
         $subjectSetInfo = array();
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
-            return false;
+            return $this->error();
         }
         // 添加视频
         if ($subjectInfo['video_url']) {
@@ -342,6 +346,14 @@ class Subject extends \FS_Service {
             }
             // 返回标签结构体
             $subjectSetInfo['group_labels'] = $labelArr;
+        }
+
+		//插入标记
+        if(!empty($pointInfo[0])){
+            foreach ($pointInfo as $itemPoint) {
+                //插入帖子标记信息
+                $this->tagsService->saveSubjectTags($subjectId,$itemPoint);
+            }
         }
         
         $subjectSetInfo['id'] = $subjectId;
