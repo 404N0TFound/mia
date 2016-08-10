@@ -5,6 +5,7 @@ use mia\miagroup\Data\Live\Live as LiveData;
 use mia\miagroup\Data\Live\LiveRoom as LiveRoomData;
 use mia\miagroup\Data\Live\ChatHistory as LiveChatHistoryData;
 use mia\miagroup\Lib\Redis;
+use mia\miagroup\Util\NormalUtil;
 class Live {
     
     public $liveData;
@@ -44,8 +45,8 @@ class Live {
     /**
      * 获取单个直播信息
      */
-    public function getLiveInfoById($liveId) {
-        $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), array());
+    public function getLiveInfoById($liveId,$status=array()) {
+        $liveInfo = $this->getBatchLiveInfoByIds(array($liveId), $status);
         $liveInfo = !empty($liveInfo[$liveId]) ? $liveInfo[$liveId] : [];
         return $liveInfo;
     }
@@ -131,8 +132,8 @@ class Live {
     /**
      * 获取直播列表
      */
-    public function getLiveList($cond, $offset = 0, $limit = 20) {
-        $liveList = $this->liveData->getLiveList($cond, $offset, $limit);
+    public function getLiveList($cond, $offset = 0, $limit = 20, $orderBy='') {
+        $liveList = $this->liveData->getLiveList($cond, $offset, $limit,$orderBy);
         return $liveList;
     }
     
@@ -200,6 +201,99 @@ class Live {
     public function recordRoomLatestLive_Id($roomId, $latestLiveId){
         $data = $this->liveRoomData->recordRoomLatestLive_Id($roomId, $latestLiveId);
         return $data;
+    }
+
+    /**
+     * 把融云的UserId放入缓存中
+     *
+     **/
+    public function addRongUserId($userId,$deviceToken)
+    {
+        $rongCloudUserId = $userId.','.$deviceToken;
+
+        $redis = new Redis();
+        $rongHashKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_hash.key'), $userId);
+        if($redis->exists($rongHashKey)){
+            $redis->expire($rongHashKey,NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_hash.expire_time'));
+        }
+        $redis->hsetnx($rongHashKey,$deviceToken,$rongCloudUserId);
+        return true;
+    }
+
+    /**
+     * 添加主播Id到缓存
+     *
+     * @return void
+     * @author 
+     **/
+    public function addHostLiveUserId($userId,$deviceToken)
+    {
+        $rongCloudUserId = $userId.','.$deviceToken;
+
+        $redis = new Redis();
+        $liveRongCloudUserKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_id.key'), $userId);
+        $expire_time          = NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_id.expire_time');
+        $redis                = new Redis();
+        $redis->setex($liveRongCloudUserKey,$rongCloudUserId,$expire_time);
+        return true;
+    }
+
+    /**
+     * 删除与userId有关的缓存
+     *
+     * @return void
+     * @author 
+     **/
+    public function delByUserId($userId)
+    {
+        $redis = new Redis();
+        $redis->del(sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_id.key'), $userId));
+        $redis->del(sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_hash.key'), $userId));
+        return true;
+    }
+
+    /**
+     * 通过userId获取主播融云userId
+     *
+     * @return void
+     * @author 
+     **/
+    public function getRongHostUserId($userId)
+    {
+        $redis = new Redis();
+        // 主播key
+        $hostKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_id.key'), $userId);
+        $hostStatus = $redis->exists($hostKey);
+        if(!$hostStatus){
+            return false;
+        }
+        $rongCloudUid = $redis->get($hostKey);
+        return $rongCloudUid ? $rongCloudUid : false;
+    }
+
+    /**
+     * 根据userId获取融云用户ID
+     *
+     * @return void
+     * @author 
+     **/
+    public function getRongCloudUidsByUserId($userId)
+    {
+        $redis = new Redis();
+        $rongHashKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_hash.key'), $userId);
+        $keyStatus = $redis->exists($rongHashKey);
+        if(!$keyStatus){
+            return [];
+        }
+        $deviceToken = $redis->hkeys($rongHashKey);
+        $rongCloudUids = [];
+        foreach ($deviceToken as $field) {
+            if(!$redis->hexists($rongHashKey,$field)){
+                continue;
+            }
+            $rongCloudUids[] = $redis->hget($rongHashKey,$field);
+        }
+        return $rongCloudUids;
     }
 
 }

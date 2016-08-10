@@ -9,15 +9,17 @@ use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Service\Redbag;
 
-class Live extends \FS_Service {
+class Live extends \mia\miagroup\Lib\Service {
     
     public $liveModel;
     public $rongCloud;//融云聊天室api接口
-    
+    private $deviceToken;
     
     public function __construct() {
+        parent::__construct();
         $this->liveModel = new LiveModel();
         $this->rongCloud = new RongCloudUtil();
+        $this->deviceToken = md5($this->ext_params['device_token']);
     }
     
     /**
@@ -28,26 +30,34 @@ class Live extends \FS_Service {
         $userService = new User();
 
         $userInfo = $userService->getUserInfoByUids([$userId])['data'][$userId];
+        
         if(empty($userInfo)){
             //获取用户信息失败
             return $this->error(31000);
         }
-        $token = $this->rongCloud->getToken($userId, $userInfo['nickname'], $userInfo['icon']);
+
+        $rongCloudUserId = $userId.','.$this->deviceToken;
+        $token = $this->rongCloud->getToken($rongCloudUserId, $userInfo['nickname'], $userInfo['icon']);
         if(!$token){
             //获取rongcloudToken失败
             return $this->error(31000);
         }
-        
+        $userInfo['user_id'] = $rongCloudUserId;
         $data['user_info'] = $userInfo;
         $data['token'] = $token;
-        
+
+        //把融云的用户ID存入缓存中
+        $this->liveModel->addRongUserId($userId,$this->deviceToken);
         return $this->succ($data);
     }
     
     /**
      * 创建直播
+     * @param $userId 用户id
+     * @param $isLast 是否获取用户最近一次的推流信息
+     * @return json
      */
-    public function addLive($userId) {
+    public function addLive($userId, $isLast=0) {
         //校验是否有直播权限
         $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($roomInfo)){
@@ -55,6 +65,7 @@ class Live extends \FS_Service {
             return $this->error(30000);
         }
         //判断用户是否已经存在直播
+        $makeLive = [];
         $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId, [1, 2, 3]);
         if(!empty($checkLiveExist)){
             foreach ($checkLiveExist as $live) {
@@ -65,43 +76,86 @@ class Live extends \FS_Service {
                         $this->liveModel->updateLiveById($live['id'], $setData);
                         break;
                     case 3: //直播中设为结束有回放
-                        $this->endLive($userId, $roomInfo['id'], $roomInfo['live_id'], $roomInfo['chat_room_id']);
+                        $makeLive = $live;//保存正在直播的直播信息
+                        if(!$isLast){
+                            $this->endLive($userId, $roomInfo['id'], $roomInfo['live_id'], $roomInfo['chat_room_id']);
+                        }
                         break;
+                        
                 }
             }
         }
-        //生成视频流ID和聊天室ID
-        $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
         
-        //获取七牛视频流
         $qiniu = new QiniuUtil();
-        $streamInfo = $qiniu->createStream($streamId);
+        //继续上次直播
+        if($isLast){
+            //不存在正在进行的直播
+            if(empty($makeLive)){
+                //记录了上一次的直播ID
+                if(!empty($roomInfo['latest_live_id'])){
+                    //获取上一次的推流的ID
+                    $latest_live_info = $this->liveModel->getLiveInfoById($roomInfo['latest_live_id']);
+                    $streamId = $latest_live_info['stream_id'];
+                    $streamInfo = $qiniu->getStreamInfoByStreamId($streamId);
+                    $chatId = $latest_live_info['chat_room_id'];
+                    //设置直播状态
+                    $setDataLate[] = ['status', 1];//创建中
+                    $this->liveModel->updateLiveById($roomInfo['latest_live_id'],$setDataLate);
+                    //更新直播房间数据
+                    $setRoomData[] = ['live_id',$roomInfo['latest_live_id']];
+                }else{
+                    //生成视频流ID和聊天室ID
+                    $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
+                    $streamInfo = $qiniu->createStream($streamId);
+                    //新增直播记录
+                    $liveInfo['user_id'] = $userId;
+                    $liveInfo['stream_id'] = $streamInfo->id;
+                    $liveInfo['chat_room_id'] = $chatId;
+                    $liveInfo['status'] = 1;//创建中
+                    $liveInfo['create_time'] = date('Y-m-d H:i:s');
+                    $liveId = $this->liveModel->addLive($liveInfo);
+                    //更新直播房间数据
+                    $setRoomData[] = ['live_id',$liveId];
+                }
+            }else{
+                $latest_live_info = $this->liveModel->getLiveInfoById($makeLive['id']);
+                $streamId = $latest_live_info['stream_id'];
+                $streamInfo = $qiniu->getStreamInfoByStreamId($streamId);
+                $chatId = $latest_live_info['chat_room_id'];
+                //设置直播状态
+                $setDataLate[] = ['status', 1];//创建中
+                $this->liveModel->updateLiveById($makeLive['id'],$setDataLate);
+                //更新直播房间数据
+                $setRoomData[] = ['live_id',$makeLive['id']];
+            }
+        }else{
+            //生成视频流ID和聊天室ID
+            $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
+            $streamInfo = $qiniu->createStream($streamId);
+            //新增直播记录
+            $liveInfo['user_id'] = $userId;
+            $liveInfo['stream_id'] = $streamInfo->id;
+            $liveInfo['chat_room_id'] = $chatId;
+            $liveInfo['status'] = 1;//创建中
+            $liveInfo['create_time'] = date('Y-m-d H:i:s');
+            $liveId = $this->liveModel->addLive($liveInfo);
+            //更新直播房间数据
+            $setRoomData[] = ['live_id',$liveId];
+        }
+        //更新直播房间
+        $setRoomData[] = ['chat_room_id',$chatId];
+        $this->liveModel->updateLiveRoomById($roomInfo['id'], $setRoomData);
+        
+        //获取七牛的流信息失败
         if(empty($streamInfo)){
-            //获取七牛的流信息失败
             return $this->error(30002);
         }
-
         //创建聊天室
         $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
         if(!$chatRet){
             //创建聊天室失败
             return $this->error(30001);    
         }
-        //新增直播记录
-        $liveInfo['user_id'] = $userId;
-        $liveInfo['stream_id'] = $streamInfo['id'];
-        $liveInfo['chat_room_id'] = $chatId;
-        $liveInfo['status'] = 1;//创建中
-        $liveInfo['create_time'] = date('Y-m-d H:i:s');
-        $liveId = $this->liveModel->addLive($liveInfo);
-        //更新直播房间
-        $setRoomData[] = ['live_id',$liveId];
-        $setRoomData[] = ['chat_room_id',$chatId];
-        $saveRoomInfo = $this->liveModel->updateLiveRoomById($roomInfo['id'], $setRoomData);
-        if(!$saveRoomInfo){
-            //更新房间信息失败
-            return $this->error(30003);
-        }  
         //获取房间信息，查主库
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $roomData = $this->getRoomLiveById($roomInfo['id'],$userId)['data'];
@@ -114,9 +168,12 @@ class Live extends \FS_Service {
             return $this->error(30001);
         }
         //返回数据
-        $data['qiniu_stream_info'] = json_encode($streamInfo);
+        $data['qiniu_stream_info'] = $streamInfo->toJsonString();
         $data['room_info'] = $roomData;
-        
+
+        //创建直播时把主播user_id存入缓存
+        $this->liveModel->addHostLiveUserId($userId,$this->deviceToken);
+
         return $this->succ($data);
     }
     
@@ -124,9 +181,13 @@ class Live extends \FS_Service {
      * 开始直播
      */
     public function startLive($liveId) {
+        //获取直播信息
+        $live_info = $this->liveModel->getLiveInfoById($liveId);
         //更新直播状态
         $setData[]=['status',3];//直播中
-        $setData[]=['start_time',date('Y-m-d H:i:s')];
+        if($live_info['start_time'] == '0000-00-00 00:00:00' || empty($live_info['start_time'])){
+            $setData[]=['start_time',date('Y-m-d H:i:s')];
+        }
         $data = $this->liveModel->updateLiveById($liveId,$setData);
         return $this->succ($data);
     }
@@ -158,11 +219,11 @@ class Live extends \FS_Service {
         }
         //更新latest_live_id
         $this->liveModel->recordRoomLatestLive_Id($roomId, $liveId);
-        
         //发送结束直播消息
-        $content = NormalUtil::getMessageBody(9);
+        $content = NormalUtil::getMessageBody(9,$chatRoomId);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
-        
+        //结束直播的时候删除与主播有关的缓存
+        $this->liveModel->delByUserId($uid);
         return $this->succ($setRoomRes);
     }
     
@@ -188,10 +249,7 @@ class Live extends \FS_Service {
             //没有直播房间信息
             return $this->error(30003);
         }
-        //自己不能观看自己的直播
-        if ($roomData['user_id'] == $currentUid && $roomData['live_info']['status'] == 3) {
-            return $this->error(30004);
-        }
+
         $roomData['share_icon'] = '分享抽大奖'; //分享得好礼
         $roomData['sale_display'] = '0';
         $roomData['online_display'] = '1';
@@ -252,8 +310,13 @@ class Live extends \FS_Service {
                         $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
                         //回放地址
                         $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
-                        //直接播放回放地址
-                        $roomData['status'] = 2;
+                        //如果设置了可以观看回放才可以观看回放
+                        if(isset($roomData['is_show_playback']) && $roomData['is_show_playback'] === '0'){
+                            $roomData['status'] = 0;//不能看回放
+                        }else{
+                            //直接播放回放地址
+                            $roomData['status'] = 2;
+                        }
                     }
                 }
             }else{
@@ -365,7 +428,7 @@ class Live extends \FS_Service {
                         }
                     }
                     $bannerArr = (count($bannerArr) > 8) ? array_slice($bannerArr,0,8) : $bannerArr;
-                    $content = NormalUtil::getMessageBody(12,0,'',['banners'=>$bannerArr]);
+                    $content = NormalUtil::getMessageBody(12,$roomData['chat_room_id'],0,'',['banners'=>$bannerArr]);
                     $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomData['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
                 }
             }
@@ -456,6 +519,7 @@ class Live extends \FS_Service {
                 $roomRes[$roomInfo['id']]['banners'] = $bannerArr;
                 // 是否显示分享得好礼
                 $roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
+                $roomRes[$roomInfo['id']]['is_show_playback'] = isset($roomInfo['is_show_playback']) ? $roomInfo['is_show_playback'] : '1';//是否显示回放
             }
             // 红包信息
             if (in_array('redbag', $field)) {
@@ -517,7 +581,8 @@ class Live extends \FS_Service {
      * @param unknown $chatroomId
      */
     public function joinChatRoom($userId,$chatroomId){
-        $data = $this->rongCloud->joinChatRoom($userId, $chatroomId);
+        $rongCloudUserId = $userId.','.$this->deviceToken;
+        $data = $this->rongCloud->joinChatRoom($rongCloudUserId, $chatroomId);
         return $this->succ($data);
     }
 
@@ -551,7 +616,7 @@ class Live extends \FS_Service {
         $userService = new User();
         $userInfo = $userService->getUserInfoByUserId($userId)['data'];
         if (!empty($userInfo)) {
-            $content = NormalUtil::getMessageBody(0, \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元红包', $userInfo['nickname'], $redbagNums['data']));
+            $content = NormalUtil::getMessageBody(0,$liveRoomInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元红包', $userInfo['nickname'], $redbagNums['data']));
             $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         }
         $redbagNums = $redbagNums['data'];
@@ -580,7 +645,7 @@ class Live extends \FS_Service {
             return $this->error($splitResult['code']);
         }
         //发送领取红包消息
-        $content = NormalUtil::getMessageBody(7, 0, '', array('redbag_id' => $redBagId));
+        $content = NormalUtil::getMessageBody(7,$liveRoomInfo['chat_room_id'], 0, '', array('redbag_id' => $redBagId));
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         return $this->succ();
     }
@@ -616,7 +681,7 @@ class Live extends \FS_Service {
             return $this->error(30003);
         }
         //发送系统消息
-        $content = NormalUtil::getMessageBody(0, $sendUid, $message);
+        $content = NormalUtil::getMessageBody(0,$roomInfo['chat_room_id'], $sendUid, $message);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         return $this->succ();
     }
@@ -629,14 +694,11 @@ class Live extends \FS_Service {
      */
     public function disableUser($userId,$minute)
     {
-        $data = $this->rongCloud->disableUser($userId,$minute);
-        if($data){
-            return $this->succ($data);
-        }else{
-            //封禁用户失败
-            return $this->error(30005);
+        $rongCloudUids = $this->liveModel->getRongCloudUidsByUserId($userId);
+        foreach ($rongCloudUids as $rongCloudUserId) {
+            $this->rongCloud->disableUser($rongCloudUserId,$minute);
         }
-        
+        return $this->succ();
     }
 
     /**
@@ -700,6 +762,32 @@ class Live extends \FS_Service {
         $where['userId']      = array(':eq', 'userId', $userId);
         $where['contentType'] = array(':eq', 'contentType', 4);
         $data      = $this->liveModel->getChathistoryList($where,0,1);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 直播初始化
+     */
+    public function liveInit($userId){
+        //判断用户是否有正在进行的直播（有则结束直播&显示是否继续直播弹层）
+        $currLiveInfo = $this->liveModel->getLiveInfoByUserId($userId,[3]);
+        if(!empty($currLiveInfo)){
+            //显示
+            $data['show_last_live'] = 1;
+            return $this->succ($data);
+        }
+        //判断用户最近一次的直播的结束时间与当前时间是否相差60分钟（含）相差60分钟以上的则不显示是否继续直播弹层，反之不显示
+        $data = $this->liveModel->checkLiveRoomByUserId($userId);
+        if(empty($data['latest_live_id'])){
+            $data['show_last_live'] = 0;
+        }else{
+            $latest_live_info = $this->liveModel->getLiveInfoById($data['latest_live_id']);
+            if(time() - strtotime($latest_live_info['end_time']) > 3600){
+                $data['show_last_live'] = 0;
+            }else{
+                $data['show_last_live'] = 1;
+            }
+        }
         return $this->succ($data);
     }
 

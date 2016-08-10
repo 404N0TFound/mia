@@ -54,7 +54,7 @@ class Live extends \DB_Query {
      * 获取直播列表
      * index：user_id subject_id start_time create_time
      */
-    public function getLiveList($cond, $offset = 0, $limit = 100) {
+    public function getLiveList($cond, $offset = 0, $limit = 100, $orderBy='') {
         if (empty($cond['user_id']) && empty($cond['subject_id']) && empty($cond['start_time']) && empty($cond['create_time'])) {
             // 不用索引返回false
             return false;
@@ -63,7 +63,7 @@ class Live extends \DB_Query {
         foreach ($cond as $k => $v) {
             $where[] = $v;
         }
-        $orderBy = ''; // 暂定
+//         $orderBy = ''; // 暂定
         $data = $this->getRows($where, '*', $limit, $offset, $orderBy);
         return $data;
     }
@@ -97,4 +97,5 @@ class Live extends \DB_Query {
         $result = $this->getRows($where);
         return $result;
     }
+  
 }

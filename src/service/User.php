@@ -11,11 +11,12 @@ use mia\miagroup\Service\Live;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\Label as labelService;
 
-class User extends FS_Service {
+class User extends \mia\miagroup\Lib\Service {
 
     public $userModel = null;
 
     public function __construct() {
+        parent::__construct();
         $this->userModel = new UserModel();
     }
 

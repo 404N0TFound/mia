@@ -3,11 +3,12 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Redbag as RedbagModel;
 
-class Redbag extends \FS_Service {
+class Redbag extends \mia\miagroup\Lib\Service {
 
     public $redbagModel;
 
     public function __construct() {
+        parent::__construct();
         $this->redbagModel = new RedbagModel();
     }
 
