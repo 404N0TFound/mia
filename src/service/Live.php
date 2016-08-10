@@ -254,7 +254,7 @@ class Live extends \mia\miagroup\Lib\Service {
         $roomData['sale_display'] = '0';
         $roomData['online_display'] = '1';
         //主播自己获取的share_info
-        if($currentUid == $roomData['user_id']){
+        if($currentUid == $roomData['user_id'] && empty($roomData['settings']['share']['title'])) {
         	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.live');
             $share = $liveConfig['liveShare'];
             $liveShare = $liveConfig['liveShareInfo']['live_by_anchor'];
