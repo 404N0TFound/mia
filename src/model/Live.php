@@ -271,4 +271,29 @@ class Live {
         return $rongCloudUid ? $rongCloudUid : false;
     }
 
+    /**
+     * 根据userId获取融云用户ID
+     *
+     * @return void
+     * @author 
+     **/
+    public function getRongCloudUidsByUserId($userId)
+    {
+        $redis = new Redis();
+        $rongHashKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_rong_cloud_user_hash.key'), $userId);
+        $keyStatus = $redis->exists($rongHashKey);
+        if(!$keyStatus){
+            return [];
+        }
+        $deviceToken = $redis->hkeys($rongHashKey);
+        $rongCloudUids = [];
+        foreach ($deviceToken as $field) {
+            if(!$redis->hexists($rongHashKey,$field)){
+                continue;
+            }
+            $rongCloudUids[] = $redis->hget($rongHashKey,$field);
+        }
+        return $rongCloudUids;
+    }
+
 }
