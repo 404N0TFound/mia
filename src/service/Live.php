@@ -694,7 +694,8 @@ class Live extends \mia\miagroup\Lib\Service {
      */
     public function disableUser($userId,$minute)
     {
-        $data = $this->rongCloud->disableUser($userId,$minute);
+        $rongCloudUserId = $userId.','.$this->deviceToken;
+        $data = $this->rongCloud->disableUser($rongCloudUserId,$minute);
         if($data){
             return $this->succ($data);
         }else{
