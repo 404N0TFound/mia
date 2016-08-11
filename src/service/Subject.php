@@ -59,7 +59,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
-            $userArr = $this->userService->getUserInfoByUids($userIds, $currentUid, array("relation", "count"))['data'];
+            $userArr = $this->userService->getUserInfoByUids($userIds, $currentUid, array("relation"))['data'];
         }
         // 获取评论信息
         if (in_array('comment', $field)) {
