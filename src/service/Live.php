@@ -220,7 +220,7 @@ class Live extends \mia\miagroup\Lib\Service {
         //更新latest_live_id
         $this->liveModel->recordRoomLatestLive_Id($roomId, $liveId);
         //发送结束直播消息
-        $content = NormalUtil::getMessageBody(9);
+        $content = NormalUtil::getMessageBody(9,$chatRoomId);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         //结束直播的时候删除与主播有关的缓存
         $this->liveModel->delByUserId($uid);
@@ -254,7 +254,7 @@ class Live extends \mia\miagroup\Lib\Service {
         $roomData['sale_display'] = '0';
         $roomData['online_display'] = '1';
         //主播自己获取的share_info
-        if($currentUid == $roomData['user_id']){
+        if($currentUid == $roomData['user_id'] && empty($roomData['settings']['share']['title'])) {
         	$liveConfig = \F_Ice::$ins->workApp->config->get('busconf.live');
             $share = $liveConfig['liveShare'];
             $liveShare = $liveConfig['liveShareInfo']['live_by_anchor'];
@@ -428,7 +428,7 @@ class Live extends \mia\miagroup\Lib\Service {
                         }
                     }
                     $bannerArr = (count($bannerArr) > 8) ? array_slice($bannerArr,0,8) : $bannerArr;
-                    $content = NormalUtil::getMessageBody(12,0,'',['banners'=>$bannerArr]);
+                    $content = NormalUtil::getMessageBody(12,$roomData['chat_room_id'],0,'',['banners'=>$bannerArr]);
                     $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomData['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
                 }
             }
@@ -616,7 +616,7 @@ class Live extends \mia\miagroup\Lib\Service {
         $userService = new User();
         $userInfo = $userService->getUserInfoByUserId($userId)['data'];
         if (!empty($userInfo)) {
-            $content = NormalUtil::getMessageBody(0, \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元红包', $userInfo['nickname'], $redbagNums['data']));
+            $content = NormalUtil::getMessageBody(0,$liveRoomInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元红包', $userInfo['nickname'], $redbagNums['data']));
             $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         }
         $redbagNums = $redbagNums['data'];
@@ -645,7 +645,7 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error($splitResult['code']);
         }
         //发送领取红包消息
-        $content = NormalUtil::getMessageBody(7, 0, '', array('redbag_id' => $redBagId));
+        $content = NormalUtil::getMessageBody(7,$liveRoomInfo['chat_room_id'], 0, '', array('redbag_id' => $redBagId));
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         return $this->succ();
     }
@@ -681,7 +681,7 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error(30003);
         }
         //发送系统消息
-        $content = NormalUtil::getMessageBody(0, $sendUid, $message);
+        $content = NormalUtil::getMessageBody(0,$roomInfo['chat_room_id'], $sendUid, $message);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $roomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         return $this->succ();
     }
@@ -694,14 +694,11 @@ class Live extends \mia\miagroup\Lib\Service {
      */
     public function disableUser($userId,$minute)
     {
-        $data = $this->rongCloud->disableUser($userId,$minute);
-        if($data){
-            return $this->succ($data);
-        }else{
-            //封禁用户失败
-            return $this->error(30005);
+        $rongCloudUids = $this->liveModel->getRongCloudUidsByUserId($userId);
+        foreach ($rongCloudUids as $rongCloudUserId) {
+            $this->rongCloud->disableUser($rongCloudUserId,$minute);
         }
-        
+        return $this->succ();
     }
 
     /**

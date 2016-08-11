@@ -38,6 +38,8 @@ class Livetovideo extends \FD_Daemon {
             $tomp4 = $qiniu->getSaveAsMp4($liveInfo['stream_id']);
             if (!isset($tomp4['targetUrl']) || empty($tomp4['targetUrl'])) {
                 echo 'm3u8转换成MP4失败' . "\n";
+                //剔除无法转码的
+                $redis->rpop($live_list_key);
                 return;
             }
             $data = json_encode($tomp4);
@@ -51,6 +53,8 @@ class Livetovideo extends \FD_Daemon {
             $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
             if (!isset($mvToVideo['key']) || empty($mvToVideo['key'])) {
                 echo '资源移动失败' . "\n";
+                //剔除无法fetch的
+                $redis->rpop($live_list_key);
                 return;
             }
             
