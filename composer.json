@@ -28,10 +28,10 @@
             "mia\\miagroup\\Data\\News\\":      "src/data/news",
             "mia\\miagroup\\Data\\Live\\":      "src/data/live",
             "mia\\miagroup\\Data\\UserRelation\\":  "src/data/userrelation",
-            "mia\\miagroup\\Data\\Redbag\\":      "src/data/redbag"
-	    "mia\\miagroup\\Data\\Item\\":    "src/data/item",
-	    "mia\\miagroup\\Data\\Order\\":    "src/data/order"
-	    "mia\\miagroup\\Data\\PointTags\\":    "src/data/pointtags"
+            "mia\\miagroup\\Data\\Redbag\\":      "src/data/redbag",
+            "mia\\miagroup\\Data\\Item\\":    "src/data/item",
+            "mia\\miagroup\\Data\\Order\\":    "src/data/order",
+            "mia\\miagroup\\Data\\PointTags\\":    "src/data/pointtags"
         }
     },
     "repositories": [
