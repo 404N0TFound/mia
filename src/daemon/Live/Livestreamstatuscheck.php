@@ -1,5 +1,5 @@
 <?php
-namespace Live;
+namespace mia\miagroup\Daemon\Live;
 
 use \mia\miagroup\Lib\Redis;
 use \mia\miagroup\Util\RongCloudUtil;
@@ -31,7 +31,7 @@ class Livestreamstatuscheck extends \FD_Daemon {
             $frameNum = $redis->zCard($framekey);
             $redis->zadd($framekey,$frameNum,$streamStatusInfo['framesPerSecond']['video']);
             
-            if($frameNum == 5){
+            if($frameNum >= 5){
                 $frameData = $redis->zRange($framekey,0,-1);
                 for($i=0;$i<count($frameData);$i++){
                     if($frameData[$i] < 12){
@@ -44,8 +44,12 @@ class Livestreamstatuscheck extends \FD_Daemon {
                 }
                 //判断是否超过3次不稳定
                 $frameStatusCount = $redis->get($frameStatusKey);
-                if($frameStatusCount > 2){
-                    $tipsText = '您的网络不稳定';
+                if($frameStatusCount > 1){
+                    if($frameStatusCount == 2){
+                        $tipsText = '您的网络不稳定！请切换更好的网络!';
+                    }elseif($frameStatusCount >= 3){
+                        $tipsText = '您的网络非常不稳定！请切换更好的网络!';
+                    }
                     $content = NormalUtil::getMessageBody(2, $$live['chat_room_id'],NormalUtil::getConfig('busconf.rongcloud.fromUserId'),$tipsText);
                     // 判断是否是主播
                     $liveModel = new LiveModel();
@@ -54,7 +58,10 @@ class Livestreamstatuscheck extends \FD_Daemon {
                         //获取主播uid失败
                         continue;
                     }
-                    $rong_api->messagePublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $rongCloudUid, \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectNameHigh'), $content);
+                    //发送3遍
+                    for($r=0;$r<=3;$r++){
+                        $rong_api->messagePublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $rongCloudUid, \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectNameHigh'), $content);
+                    }
                 }
                 if(!empty($frameStatusCount)){
                     $surplusTime = $redis->ttl($frameStatusKey);
