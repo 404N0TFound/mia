@@ -3,7 +3,7 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Item as ItemModel;
 
-class Item extends \FS_Service {
+class Item extends \mia\miagroup\Lib\Service {
     public $itemModel;
     public function __construct() {
         $this->itemModel = new ItemModel();

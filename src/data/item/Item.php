@@ -2,6 +2,7 @@
 namespace mia\miagroup\Data\Item;
 
 use Ice;
+use mia\miagroup\Data\Item\ItemPic;
 
 class Item extends \DB_Query {
 
@@ -28,8 +29,12 @@ class Item extends \DB_Query {
         $data = $this->getRows($where);
         $result = array();
         if (!empty($data)) {
+            //批量获取图片信息
+            $itemPic = new ItemPic();
+            $imgInfo = $itemPic->getBatchItemPicList($itemIds);
             foreach ($data as $v) {
                 $result[$v['id']] = $v;
+                $result[$v['id']]['img'] = $imgInfo[$v['id']] ?: [];
             }
         }
         return $result;

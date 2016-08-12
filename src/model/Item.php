@@ -1,13 +1,17 @@
 <?php
 namespace mia\miagroup\Model;
-use \F_Ice;
+
 use mia\miagroup\Data\Item\Item as ItemData;
+use mia\miagroup\Data\Item\ItemPic as itemPicData;
+
 class Item {
     
     public $itemData;
+    public $itemPicData;
     
     public function __construct() {
         $this->itemData = new ItemData();
+        $this->itemPicData = new itemPicData();
     }
     
     /**
@@ -25,6 +29,14 @@ class Item {
     public function getBatchItemByFlags($relateFlags){
         $itemListData = $this->itemData->getBatchItemByFlags($relateFlags);
         return $itemListData;
+    }
+    
+    /**
+     * 根据item_id获取一组图片
+     */
+    public function getBatchItemPicList($item_id ,$type = 'normal'){
+        $data = $this->itemPicData->getBatchItemPicList($item_id,$type);
+        return $data;
     }
 
 }
