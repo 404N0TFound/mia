@@ -49,6 +49,11 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'rong_cloud_user_hash_%s',
         'expire_time' => 86400,
     ],
+    //金山流信息
+    'live_jinshan_stream_info' => [ //使用String数据结构
+        'key' => $liveServicePrefix . 'jinshan_stream_info_%s',
+        'expire_time' => 86400,
+    ],
 );
 
 /**

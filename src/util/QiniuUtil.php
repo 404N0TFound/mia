@@ -39,8 +39,8 @@ class QiniuUtil {
      */
     public function createStream($streamId) {
         $stream = $this->qiniuHub->createStream((string)$streamId);
-//         $stream = $stream->toJSONString();
-//         $stream = json_decode($stream, true);
+        $stream = $stream->toJSONString();
+        $stream = json_decode($stream, true);
         return $stream;
     }
     
@@ -128,6 +128,8 @@ class QiniuUtil {
      */
     public function getStreamInfoByStreamId($streamId){
         $stream = $this->qiniuHub->getStream($streamId);
+        $stream = $stream->toJSONString();
+        $stream = json_decode($stream, true);
         return $stream;
     }
     

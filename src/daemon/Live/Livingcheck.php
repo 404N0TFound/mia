@@ -23,6 +23,7 @@ class LivingCheck extends \FD_Daemon {
     public function execute() {
         //获取状态为3(直播中)的直播
         $where['status'] = array(':eq', 'status', 3);
+        $where['source'] = array(':eq', 'source', 1);
         $where['create_time'] = array(':gt', 'create_time', time() - 86400 * 30);
         $lives = $this->liveModel->getLiveList($where, 0, 1000);
         if (!empty($lives)) {

@@ -26,7 +26,7 @@ class Livetovideo extends \FD_Daemon {
         $redis = new Redis();
         $liveId = $redis->lindex($live_list_key, -1);
         $liveInfo = $liveModel->getLiveInfoById($liveId);
-        if ($liveInfo['subject_id'] > 0 || $liveInfo['status'] != 4) {
+        if ($liveInfo['subject_id'] > 0 || $liveInfo['status'] != 4 || $liveInfo['source']==2) {
             //剔除已转码完成的
             $redis->rpop($live_list_key);
             return;
