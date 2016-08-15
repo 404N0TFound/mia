@@ -159,7 +159,7 @@ class Live extends \mia\miagroup\Lib\Service {
         $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
         if(!$chatRet){
             //创建聊天室失败
-            return $this->error(30001);    
+            return $this->error(30001);
         }
         //获取房间信息，查主库
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
@@ -173,7 +173,7 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error(30001);
         }
         //返回数据
-        $data['stream_info'] = json_encode($streamInfo);
+        $data['qiniu_stream_info'] = json_encode($streamInfo);
         $data['room_info'] = $roomData;
 
         //创建直播时把主播user_id存入缓存
