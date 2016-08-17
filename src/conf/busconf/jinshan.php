@@ -22,5 +22,3 @@ $live_prefix = 'z2live';
 
 $live_bucket = 'mialive';
 $image_bucket = 'mia-image';
-
-$live_url = 'video2.miyabaobei.com';

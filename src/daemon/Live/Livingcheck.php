@@ -23,7 +23,6 @@ class LivingCheck extends \FD_Daemon {
     public function execute() {
         //获取状态为3(直播中)的直播
         $where['status'] = array(':eq', 'status', 3);
-        $where['source'] = array(':eq', 'source', 1);
         $where['create_time'] = array(':gt', 'create_time', time() - 86400 * 30);
         $lives = $this->liveModel->getLiveList($where, 0, 1000);
         if (!empty($lives)) {
@@ -32,12 +31,18 @@ class LivingCheck extends \FD_Daemon {
             foreach ($lives as $live) {
                 $userIds[] = $live['user_id'];
             }
+
             $roomInfos = $this->liveModel->checkLiveRoomByUserIds($userIds);
             //检查已经直播30秒，已经断流的直播
             foreach ($lives as $live) {
-                if(strtotime($live['start_time']) + 30 < time()){
+                if($live['source']==1 && strtotime($live['start_time']) + 30 < time()){
                     $status = $this->qiniuUtil->getStatus($live['stream_id']);
                     if($status == 'disconnected'){
+                        $this->liveService->endLive($live['user_id'], $roomInfos[$live['user_id']]['id'], $live['id'], $live['chat_room_id']);
+                    }
+                } elseif ($live['source']==2 && strtotime($live['start_time']) + 30 < time()) {
+                    $status = $this->liveModel->getStreamStatusByStreamId($live['stream_id']);
+                    if (time()-intval($status)>30) {
                         $this->liveService->endLive($live['user_id'], $roomInfos[$live['user_id']]['id'], $live['id'], $live['chat_room_id']);
                     }
                 }
