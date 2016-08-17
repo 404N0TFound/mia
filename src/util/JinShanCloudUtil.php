@@ -54,7 +54,7 @@ class JinShanCloudUtil
         $streamname = $this->_stream.$createId;
         $data = [
             'id'      => $streamId,
-            'publish' => $this->_config['live_host']['publish']['rtmp'].'/live/'.$streamname.'?'.$query,
+            'publish' => 'rtmp://'.$this->_config['live_host']['publish']['rtmp'].'/live/'.$streamname.'?'.$query,
         ];
         $streamInfoKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_jinshan_stream_info.key'), $streamId);
         $redis = new Redis();
