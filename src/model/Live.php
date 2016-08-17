@@ -315,4 +315,19 @@ class Live {
         return $liveStreamStatus;
     }
 
+    /**
+     * 添加直播流状态
+     *
+     * @return void
+     * @author 
+     **/
+    public function addStreamStatus($streamId)
+    {
+        $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $streamId);
+        $redis = new Redis();
+        $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
+
+        return true;
+    }
+
 }

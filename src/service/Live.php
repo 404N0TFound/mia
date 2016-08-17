@@ -821,9 +821,8 @@ class Live extends \mia\miagroup\Lib\Service {
         if(empty($liveInfo)){
             return $this->error(30006);
         }
-        $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $liveInfo['stream_id']);
-        $redis = new Redis();
-        $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
-        return $this->succ();
+        
+        $data = $this->liveModel->addStreamStatus($liveInfo['stream_id']);
+        return $this->succ($data);
     }
 }
