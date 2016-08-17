@@ -796,7 +796,6 @@ class Live extends \mia\miagroup\Lib\Service {
         $data = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($data['latest_live_id'])){
             $data['show_last_live'] = 0;
-            $data['source'] = 2;
         }else{
             $latest_live_info = $this->liveModel->getLiveInfoById($data['latest_live_id']);
             if(time() - strtotime($latest_live_info['end_time']) > 3600){
@@ -804,8 +803,8 @@ class Live extends \mia\miagroup\Lib\Service {
             }else{
                 $data['show_last_live'] = 1;
             }
-            $data['source'] = 2;
         }
+        $data['source'] = 2;
         return $this->succ($data);
     }
 
@@ -821,7 +820,7 @@ class Live extends \mia\miagroup\Lib\Service {
         if(empty($liveInfo)){
             return $this->error(30006);
         }
-        
+
         $data = $this->liveModel->addStreamStatus($liveInfo['stream_id']);
         return $this->succ($data);
     }
