@@ -17,6 +17,7 @@
             "mia\\miagroup\\Lib\\":         "src/lib",
             "mia\\miagroup\\Util\\":         "src/util",
             "mia\\miagroup\\Model\\":       "src/model",
+            "mia\\miagroup\\Remote\\":       "src/remote",
             "mia\\miagroup\\Data\\":        "src/data",
             "mia\\miagroup\\Data\\Subject\\":   "src/data/subject",
             "mia\\miagroup\\Data\\Comment\\":   "src/data/comment",
