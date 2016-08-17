@@ -58,7 +58,7 @@ class Live extends \mia\miagroup\Lib\Service {
      * @param $isLast 是否获取用户最近一次的推流信息
      * @return json
      */
-    public function addLive($userId, $isLast=0,$source=2) {
+    public function addLive($userId, $isLast=0,$source=1) {
         //校验是否有直播权限
         $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($roomInfo)){
