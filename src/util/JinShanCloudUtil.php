@@ -54,14 +54,6 @@ class JinShanCloudUtil
         $streamname = $this->_stream.$createId;
         $data = [
             'id'              => $streamId,
-            'createdAt'       => date('Y-m-d\TH:I:s.z'),
-            'updatedAt'       => date('Y-m-d\TH:I:s.z'),
-            'title'           => $createId,
-            'hub'             => $this->_stream,
-            'disabledTill'    => '0',
-            'disabled'        => '',
-            'publishKey'      => '',
-            'publishSecurity' => 'static',
             'host' => [
                 'publish' => [
                     'rtmp' => $this->_config['live_host']['publish']['rtmp'].'/live/'.$streamname.'?'.$query,

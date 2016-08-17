@@ -173,7 +173,12 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error(30001);
         }
         //返回数据
-        $data['qiniu_stream_info'] = json_encode($streamInfo);
+        if($source==1){
+            $data['qiniu_stream_info'] = json_encode($streamInfo);
+        }elseif ($source==2) {
+            $data['jinshan_stream_info'] = json_encode($streamInfo);
+        }
+        
         $data['room_info'] = $roomData;
 
         //创建直播时把主播user_id存入缓存
@@ -784,14 +789,14 @@ class Live extends \mia\miagroup\Lib\Service {
         if(!empty($currLiveInfo)){
             //显示
             $data['show_last_live'] = 1;
-            $data['source'] = $currLiveInfo[0]['source'];
+            $data['source'] = 2;
             return $this->succ($data);
         }
         //判断用户最近一次的直播的结束时间与当前时间是否相差60分钟（含）相差60分钟以上的则不显示是否继续直播弹层，反之不显示
         $data = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($data['latest_live_id'])){
             $data['show_last_live'] = 0;
-            $data['source'] = 1;
+            $data['source'] = 2;
         }else{
             $latest_live_info = $this->liveModel->getLiveInfoById($data['latest_live_id']);
             if(time() - strtotime($latest_live_info['end_time']) > 3600){
@@ -799,7 +804,7 @@ class Live extends \mia\miagroup\Lib\Service {
             }else{
                 $data['show_last_live'] = 1;
             }
-            $data['source'] = $latest_live_info['source'];
+            $data['source'] = 2;
         }
         return $this->succ($data);
     }
