@@ -52,7 +52,7 @@ $liveKey = array(
     //金山流信息
     'live_jinshan_stream_info' => [ //使用String数据结构
         'key' => $liveServicePrefix . 'jinshan_stream_info_%s',
-        'expire_time' => 86400,
+        'expire_time' => 86400 * 30,
     ],
 );
 
