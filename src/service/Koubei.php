@@ -172,17 +172,23 @@ class Koubei extends \FS_Service {
         
         //4、获取用户评分
         $itemScore = $this->koubeiModel->getItemUserScore($itemIds);
-
         //5、获取蜜粉推荐
         $itemRecNums = $this->koubeiModel->getItemRecNums($itemIds);
-
-        if($itemScore > 0){
-            $koubeiRes['total_score'] = $itemScore;//综合评分
-        }
-        if($itemRecNums > 0){
-            $koubeiRes['recom_count'] = $itemRecNums;//蜜粉推荐
-        }
         
+        //综合评分和蜜粉推荐展示逻辑########start
+        // 如综合评分为0，即蜜粉推荐数也为0 ,都不展示（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
+        if($itemScore == 0 && $itemRecNums == 0){
+            return $this->succ($koubeiRes);
+        }
+        //如综合评分不为0，蜜粉推荐数为0,蜜粉推荐数不展示，保留综合评分（适用情况，该商品无4&5星评分）
+        if($itemScore > 0 && $itemRecNums == 0){
+            $koubeiRes['total_score'] = $itemScore;//综合评分
+            return $this->succ($koubeiRes);
+        }
+        //其他情况，都展示
+        $koubeiRes['total_score'] = $itemScore;//综合评分
+        $koubeiRes['recom_count'] = $itemRecNums;//蜜粉推荐
+        #############end
         return $this->succ($koubeiRes);
     }
     
