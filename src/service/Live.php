@@ -184,7 +184,7 @@ class Live extends \mia\miagroup\Lib\Service {
         if($source==1){
             $data['qiniu_stream_info'] = json_encode($streamInfo);
         }elseif ($source==2) {
-            $data['jinshan_stream_info'] = json_encode($streamInfo);
+            $data['jinshan_stream_info'] = $streamInfo['publish'];
         }
         
         $data['room_info'] = $roomData;
