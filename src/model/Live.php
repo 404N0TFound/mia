@@ -296,4 +296,23 @@ class Live {
         return $rongCloudUids;
     }
 
+    /**
+     * 获取直播流状态
+     *
+     * @return void
+     * @author 
+     **/
+    public function getStreamStatusByStreamId($streamId)
+    {
+        $redis = new Redis();
+        $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $streamId);
+        $exists = $redis->exists($liveStatusKey);
+        if(!$exists){
+            return false;
+        }
+
+        $liveStreamStatus = $redis->get($liveStatusKey);
+        return $liveStreamStatus;
+    }
+
 }

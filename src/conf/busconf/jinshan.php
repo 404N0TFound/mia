@@ -15,12 +15,10 @@ $live_host = [
         'hdl'  => 'hdl.live2.miyabaobei.com',
     ]
  ];
-$live_paly_back = 'video2.miyabaobei.com';
+$live_paly_back = 'video2.miyabaobei.com.download.ks-cdn.com';
 $live_snap_shot = 'mia-image.ks3-cn-beijing.ksyun.com';
 
 $live_prefix = 'z2live';
 
 $live_bucket = 'mialive';
 $image_bucket = 'mia-image';
-
-$live_url = 'video2.miyabaobei.com';
