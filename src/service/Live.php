@@ -97,8 +97,13 @@ class Live extends \mia\miagroup\Lib\Service {
                 if(!empty($roomInfo['latest_live_id'])){
                     //获取上一次的推流的ID
                     $latest_live_info = $this->liveModel->getLiveInfoById($roomInfo['latest_live_id']);
+                    if($latest_live_info['source']!=$source){
+                        return $this->error(30008);
+                    }
                     $streamId = $latest_live_info['stream_id'];
+       
                     $streamInfo = $liveCloud->getStreamInfoByStreamId($streamId);
+   
                     $chatId = $latest_live_info['chat_room_id'];
                     //设置直播状态
                     $setDataLate[] = ['status', 1];//创建中
@@ -122,6 +127,9 @@ class Live extends \mia\miagroup\Lib\Service {
                 }
             }else{
                 $latest_live_info = $this->liveModel->getLiveInfoById($makeLive['id']);
+                if($latest_live_info['source']!=$source){
+                        return $this->error(30008);
+                }
                 $streamId = $latest_live_info['stream_id'];
                 $streamInfo = $liveCloud->getStreamInfoByStreamId($streamId);
                 $chatId = $latest_live_info['chat_room_id'];
