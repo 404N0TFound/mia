@@ -128,7 +128,7 @@ class Live extends \mia\miagroup\Lib\Service {
             }else{
                 $latest_live_info = $this->liveModel->getLiveInfoById($makeLive['id']);
                 if($latest_live_info['source']!=$source){
-                        return $this->error(30008);
+                    return $this->error(30008);
                 }
                 $streamId = $latest_live_info['stream_id'];
                 $streamInfo = $liveCloud->getStreamInfoByStreamId($streamId);
