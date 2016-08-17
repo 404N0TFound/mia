@@ -63,6 +63,4 @@ class Item extends \DB_Query {
         return $result;
     }
     
-    
-    
 }
