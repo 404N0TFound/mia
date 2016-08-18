@@ -49,6 +49,11 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'rong_cloud_user_hash_%s',
         'expire_time' => 86400,
     ],
+    //记录直播流不稳定的次数
+    'live_stream_frame_status'=>[
+        'key' => $liveServicePrefix . 'stream_frame_status_%s',
+        'expire_time' => 300,  
+    ],
 );
 
 /**
