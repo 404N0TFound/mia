@@ -237,11 +237,11 @@ class Subject extends \mia\miagroup\Lib\Service {
      */
     public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0) {
         if (empty($subjectInfo)) {
-            return $this->error();
+            return $this->error(500);
         }
         $subjectSetInfo = array();
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
-            return $this->error();
+            return $this->error(500);
         }
         // 添加视频
         if ($subjectInfo['video_url']) {
@@ -288,7 +288,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         unset($subjectSetInfo['ext_info']);
         if (!$insertSubjectRes) {
             // 发布失败
-            return $this->succ();
+            return $this->error(1101);
         }
         // insert_id
         $subjectId = $insertSubjectRes;
@@ -313,6 +313,15 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $subjectSetInfo['small_image_url'][] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $small_image_url;
             }
         }
+        
+        #start赠送用户蜜豆
+        $mibean = new \mia\miagroup\Remote\MiBean();
+        $param['user_id'] = $subjectSetInfo['user_id'];
+        $param['relation_type'] = 'publish_pic';
+        $param['relation_id'] = $subjectId;
+        $param['to_user_id'] = $subjectSetInfo['user_id'];
+        $mibean->add($param);
+        #end赠送用户蜜豆
         
         // 添加蜜芽圈标签
         if (!empty($labelInfos)) {

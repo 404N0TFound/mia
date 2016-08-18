@@ -162,6 +162,13 @@ class Comment extends \mia\miagroup\Lib\Service {
         if ($sendFromUserId != $toUserId) {
             // 发消息
             $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
+            //赠送用户蜜豆
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['user_id'] = $sendFromUserId;
+            $param['relation_type'] = 'receive_comment';
+            $param['relation_id'] = $commentInfo['id'];
+            $param['to_user_id'] = $toUserId;
+            $mibean->add($param);
         }
         
         // 如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
