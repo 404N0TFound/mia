@@ -74,7 +74,7 @@ class Praise extends \mia\miagroup\Lib\Service {
      * @param unknown $iSubjectId
      * @param unknown $userId
      */
-    public function praise($iSubjectId, $userId)
+    public function dotPraise($iSubjectId, $userId)
     {
         
         if (!is_numeric($iSubjectId) || intval($iSubjectId) <= 0 || !is_numeric($userId) || intval($userId) <= 0) {
@@ -159,9 +159,6 @@ class Praise extends \mia\miagroup\Lib\Service {
         $where[] = ['user_id', $userId];
         $where[] = ['status', '1'];
         $this->praiseModel->updatePraise($setData, $where);
-    
-//         $sql = "update {$this->table_subjects} set fancied_count = fancied_count - 1 where id = {$id}";
-//         $res = $this->db_write->query($sql);
 
         //更新图片表之后获取赞数量及是否赞过状态
         $subjectInfo['fancied_by_me'] = false;

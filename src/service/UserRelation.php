@@ -54,7 +54,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
      * @param 关注人 $userId
      * @param 被关注人 $toUserId
      */
-    public function addAttention($userId,$relationUserId, $source=1)
+    public function addRelation($userId,$relationUserId, $source=1)
     {
         //判断当前加关注是否自己
         if($userId == $relationUserId){
