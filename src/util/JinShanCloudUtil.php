@@ -45,7 +45,6 @@ class JinShanCloudUtil
         $this->_client = new Ks3ClientUtil($this->_config['access_key'],$this->_config['secret_key'],$this->_config['endpoint']);
     }
 
-
     public function createStream($createId)
     {
         $data       = [];
@@ -145,6 +144,21 @@ class JinShanCloudUtil
         return $data;
     }
 
+    /**
+     * 获取直播状态
+     *
+     * @return void
+     * @author 
+     **/
+    public function getStatus($streamId)
+    {
+        $streamInfo = $this->_getVdoidAndStreamname($streamId);
+        $streamName = $streamInfo['streamname'];
+        $url = $this->_config['live_stream_status'].'name='.$streamName;
+        $result = json_decode($this->_curlGet($url),true);
+        return $result;
+    }
+
 
     /**
      * 获取签名
@@ -199,6 +213,23 @@ class JinShanCloudUtil
             ];
         }
         return $vdoid;
+    }
+
+    private function _curlGet($url)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_NOBODY, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_SSLVERSION, 1);
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+
     }
 
 }

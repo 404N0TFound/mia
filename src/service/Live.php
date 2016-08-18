@@ -816,20 +816,5 @@ class Live extends \mia\miagroup\Lib\Service {
         return $this->succ($data);
     }
 
-    /**
-     * 金山直播心跳
-     *
-     * @return void
-     * @author 
-     **/
-    public function heartbeat($liveId)
-    {
-        $liveInfo = $this->liveModel->getLiveInfoById($liveId,[3]);
-        if(empty($liveInfo)){
-            return $this->error(30006);
-        }
 
-        $data = $this->liveModel->addStreamStatus($liveInfo['stream_id']);
-        return $this->succ($data);
-    }
 }
