@@ -156,7 +156,27 @@ class JinShanCloudUtil
         $streamName = $streamInfo['streamname'];
         $url = $this->_config['live_stream_status'].'name='.$streamName;
         $result = json_decode($this->_curlGet($url),true);
-        return $result;
+
+        $returnValue = 'connected';
+        $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $streamId);
+        $redis = new Redis();
+        if(empty($result)){
+            //策略： 直播状态首次中断并不立即返回中断状态，而是再次检测到中断并且相差5秒以上，才中断
+            //此策略为防止第三方瞬间返回中断然而实际没中断问题
+            //获取数量
+            $liveStreamStatus = $redis->get($liveStatusKey);
+            $lastDisconnectedTime = intval($liveStreamStatus);
+            if($lastDisconnectedTime > 0){
+                if(time() - $lastDisconnectedTime >= 600){
+                    $returnValue = 'disconnected';
+                }
+            }else{
+                $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
+            }
+        }else{
+            $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
+        }
+        return $returnValue;
     }
 
 
