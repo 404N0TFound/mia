@@ -139,7 +139,7 @@ class JinShanCloudUtil
             ];
             $result = $this->_client->listObjects($args);
             if(isset($result['Contents'][0]) && !empty($result['Contents'][0])){
-                $data['url'] = 'http://'.$this->_config['live_paly_back'].'/'.$result['Contents'][0]['Key'];
+                $data['targetUrl'] = 'http://'.$this->_config['live_paly_back'].'/'.$result['Contents'][0]['Key'];
             }
         }
         return $data;
