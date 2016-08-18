@@ -4,6 +4,7 @@ namespace mia\miagroup\Service;
 use \F_Ice;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Model\Praise as PraiseModel;
+use mia\miagroup\Service\Subject;
 
 class Praise extends \mia\miagroup\Lib\Service {
     
@@ -67,4 +68,107 @@ class Praise extends \mia\miagroup\Lib\Service {
         $isPraised = $this->praiseModel->getBatchSubjectIsPraised($subjectIds, $userId);
         return $this->succ($isPraised);
     }
+    
+    /**
+     * 赞
+     * @param unknown $iSubjectId
+     * @param unknown $userId
+     */
+    public function dotPraise($iSubjectId, $userId)
+    {
+        
+        if (!is_numeric($iSubjectId) || intval($iSubjectId) <= 0 || !is_numeric($userId) || intval($userId) <= 0) {
+            return $this->error(500);
+        }
+        $subject = new Subject();
+        //获取图片信息（包括更新图片表之前获取赞数量）
+        $subjectInfo = $subject->getBatchSubjectInfos(array($iSubjectId), 0, array('user_info','count'))['data'];
+        $subjectInfo = $subjectInfo[$iSubjectId];
+        //检查赞是否存在
+        $praiseArr = $this->praiseModel->checkIsExistFanciedByUserId($userId,$iSubjectId);
+        $praiseInfo = array(
+            "fancied_by_me" => true,
+            "fancied_count" => $subjectInfo['fancied_count']
+        );
+        if (!empty($praiseArr) && $praiseArr['status'] == '1') {
+            return $this->succ($praiseInfo);
+        }
+        $praiseId = 0;
+        if (!empty($praiseArr) && $praiseArr['status'] == '0') {
+            $setInfo = array(
+                ["subject_id", $iSubjectId],
+                ["user_id", $userId],
+                ["status", '1'],
+                ["created", date("Y-m-d H:i:s", time())],
+            );
+            //赞存在且为取消掉的状态，直接更新为赞状态
+            $praiseId = $this->praiseModel->updatePraiseById($setInfo, $praiseArr['id']);
+        }else{
+            $setData = array(
+                "subject_id" => $iSubjectId,
+                "user_id"    => $userId,
+                "status"     => '1',
+                "created"    => date("Y-m-d H:i:s", time()),
+            );
+            $praiseId = $this->praiseModel->insertPraise($setData);
+            #start赠送用户蜜豆
+            // 收到赞+1        （以天为周期，每天收到N个赞，最多可得3次蜜豆奖励）
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['relation_type'] = 'receive_praise';
+            $param['user_id'] = $userId;
+            $param['relation_id'] = $iSubjectId;
+            $param['to_user_id'] = $subjectInfo['user_info']['user_id'];
+            $mibean->add($param);
+            #end赠送用户蜜豆
+        }
+    
+        //更新图片表之后获取赞数量及是否赞过状态
+        $subjectInfo['fancied_by_me'] = true;
+        $subjectInfo['fancied_count'] = $subjectInfo['fancied_count'] + 1;
+    
+        if($userId != $subjectInfo['user_info']['user_id']) {
+            $news = new \mia\miagroup\Service\News();
+            $news->addNews('single', 'group', 'img_like', $userId, $subjectInfo['user_info']['user_id'], $praiseId)['data'];
+        }
+        $praiseInfo['fancied_by_me'] = $subjectInfo['fancied_by_me'];
+        $praiseInfo['fancied_count'] = $subjectInfo['fancied_count'];
+        return $this->succ($praiseInfo);
+    }
+    
+    //取消赞
+    public function cancelPraise($iSubjectId, $userId)
+    {
+        $subject = new Subject();
+        //获取图片信息（包括更新图片表之前获取赞数量）
+        $subjectInfo = $subject->getBatchSubjectInfos(array($iSubjectId), 0, array('count'))['data'];
+        $subjectInfo = $subjectInfo[$iSubjectId];
+        //检查赞是否存在
+        $praiseArr = $this->praiseModel->checkIsExistFanciedByUserId($userId,$iSubjectId);
+        $praiseInfo = array(
+            "fancied_by_me" => false,
+            "fancied_count" => $subjectInfo['fancied_count']
+        );
+        if (empty($praiseArr) || $praiseArr['status'] == '0') {
+            return $this->succ($praiseInfo);
+        }
+        
+        //取消赞
+        $setData[] = ['status','0'];
+        $where[] = ['subject_id', $iSubjectId];
+        $where[] = ['user_id', $userId];
+        $where[] = ['status', '1'];
+        $this->praiseModel->updatePraise($setData, $where);
+
+        //更新图片表之后获取赞数量及是否赞过状态
+        $subjectInfo['fancied_by_me'] = false;
+        $subjectInfo['fancied_count'] = $subjectInfo['fancied_count'] - 1;
+    
+        $praiseInfo = array();
+        $praiseInfo['fancied_by_me'] = $subjectInfo['fancied_by_me'];
+        $praiseInfo['fancied_count'] = $subjectInfo['fancied_count'];
+        return $this->succ($praiseInfo);
+    }
+    
+    
+    
 }

@@ -7,12 +7,13 @@ use ThriftClient\ThriftClient;
 
 class Thrift {
     
-    public $thriftClient;
+    protected $thriftClient;
+    protected $service;
     
     public function __construct($service){
         ThriftClient::config(\F_Ice::$ins->workApp->config->get('thrift.address'));
         // 初始化一个MiBean的实例
-        $this->thriftClient = ThriftClient::instance($service);
+        $this->thriftClient = ThriftClient::instance($this->service);
     }
     
     public function agent($name,$param){

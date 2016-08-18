@@ -267,7 +267,6 @@ class Live extends \mia\miagroup\Lib\Service {
             //没有直播房间信息
             return $this->error(30003);
         }
-
         $roomData['share_icon'] = '分享抽大奖'; //分享得好礼
         $roomData['sale_display'] = '0';
         $roomData['online_display'] = '1';

@@ -81,4 +81,42 @@ class SubjectPraise extends \DB_Query {
         }
         return $praiseRes;
     }
+    
+    public function checkIsExistFanciedByUserId($iUserId, $iSubjectId)
+    {
+        $where = array(["user_id", $iUserId], ["subject_id", $iSubjectId]);
+        $fanciedRes = $this->getRow($where);
+        if (!empty($fanciedRes)) {
+            return $fanciedRes;
+        } else {
+            return array();
+        }
+    }
+    
+    
+    /**
+     * 更新赞
+     * @param unknown $setData
+     * @param unknown $id
+     */
+    public function updatePraiseById($setData,$id){
+        $where[] = ['id',$id];
+        $data = $this->update($setData,$where);
+        if($data){
+            return $id;
+        }else{
+            return 0;
+        }
+    }
+    
+    public function updatePraise($setData,$where){
+        $data = $this->update($setData,$where);
+        return $data;
+    }
+    
+    public function insertPraise($setData){
+        return $this->insert($setData);
+    }
+    
+    
 }

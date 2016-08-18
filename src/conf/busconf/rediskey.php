@@ -69,3 +69,17 @@ $redBagKey = array(
         'expire_time' => 86400 * 30,
     )
 );
+
+/**
+ * 蜜豆相关
+ */
+$miBeanKey = array(
+    //记录赠送蜜豆数量的key
+    'mibean_give_way' => array(
+        'key' => 'mibean_give_%s_%s',
+        'expire_time' => 86400
+    ),
+    
+    
+);
+
