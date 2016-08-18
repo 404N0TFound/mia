@@ -111,6 +111,15 @@ class Praise extends \mia\miagroup\Lib\Service {
                 "created"    => date("Y-m-d H:i:s", time()),
             );
             $praiseId = $this->praiseModel->insertPraise($setData);
+            #start赠送用户蜜豆
+            // 收到赞+1        （以天为周期，每天收到N个赞，最多可得3次蜜豆奖励）
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['relation_type'] = 'receive_praise';
+            $param['user_id'] = $userId;
+            $param['relation_id'] = $iSubjectId;
+            $param['to_user_id'] = $subjectInfo['user_info']['user_id'];
+            $mibean->add($param);
+            #end赠送用户蜜豆
         }
     
         //更新图片表之后获取赞数量及是否赞过状态
@@ -121,16 +130,6 @@ class Praise extends \mia\miagroup\Lib\Service {
             $news = new \mia\miagroup\Service\News();
             $news->addNews('single', 'group', 'img_like', $userId, $subjectInfo['user_info']['user_id'], $praiseId)['data'];
         }
-        #start赠送用户蜜豆
-        // 收到赞+1        （以天为周期，每天收到N个赞，最多可得3次蜜豆奖励）
-        $mibean = new \mia\miagroup\Remote\MiBean();
-        $param['relation_type'] = 'receive_praise';
-        $param['user_id'] = $userId;
-        $param['relation_id'] = $iSubjectId;
-        $param['to_user_id'] = $subjectInfo['user_info']['user_id'];
-        $mibean->add($param);
-        #end赠送用户蜜豆
-        
         $praiseInfo['fancied_by_me'] = $subjectInfo['fancied_by_me'];
         $praiseInfo['fancied_count'] = $subjectInfo['fancied_count'];
         return $this->succ($praiseInfo);

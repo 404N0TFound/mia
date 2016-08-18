@@ -69,26 +69,12 @@ $redBagKey = array(
  * 蜜豆相关
  */
 $miBeanKey = array(
-    //收到赞+1蜜豆,以天为周期，每天收到N个赞，最多可得3次蜜豆奖励
-    'mibean_receive_praise' => array(
-        'key' => 'mibean_receive_praise_%s',
+    //记录赠送蜜豆数量的key
+    'mibean_give_way' => array(
+        'key' => 'mibean_give_%s_%s',
         'expire_time' => 86400
     ),
-    //蜜芽圈发帖+3蜜豆（以天为周期，每天晒N单，最多可得3次蜜豆奖励）
-    'mibean_publish_pic' => array(
-        'key' => 'mibean_publish_pic_%s',
-        'expire_time' => 86400
-    ),
-    //收到别人的评论+1   （以天为周期，每天收到N个别人的评论，最多可得3次蜜豆奖励
-    'mibean_receive_comment' => array(
-        'key' => 'mibean_receive_comment_%s',
-        'expire_time' => 86400
-    ),
-    // 精品贴+5   被推荐到首页（以周为周期，被推荐到首页N次，最多可得2次蜜豆奖励）
-    'mibean_fine_pic' => array(
-        'key' => 'mibean_fine_pic_%s',
-        'expire_time' => 86400
-    ),
+    
     
 );
 

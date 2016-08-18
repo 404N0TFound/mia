@@ -93,7 +93,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             );
             $insertRes = $this->userRelationModel->insertRelation($setInfo);
             //送蜜豆，蜜芽小天使账号不赠送蜜豆
-            if ($relationUserId != 1026069) {
+            if ($relationUserId != 1026069 && $source == 1) {
                 $mibean = new \mia\miagroup\Remote\MiBean();
                 $param['user_id'] = $userId;
                 $param['relation_type'] = 'follow_me';

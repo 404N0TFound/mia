@@ -157,7 +157,6 @@ class Comment extends \mia\miagroup\Lib\Service {
         $subjectInfo = $subjectInfoData[$subjectId];
         $sendFromUserId = $user_id; // 当前登录人id
         $toUserId = $subjectInfo['user_id'];
-        
         // 如果直接评论图片，自己评论自己的图片，不发送消息/push
         if ($sendFromUserId != $toUserId) {
             // 发消息
@@ -170,7 +169,6 @@ class Comment extends \mia\miagroup\Lib\Service {
             $param['to_user_id'] = $toUserId;
             $mibean->add($param);
         }
-        
         // 如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
             $toUserId = $commentInfo['parent_user']['user_id'];
