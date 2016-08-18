@@ -170,7 +170,7 @@ class QiniuUtil {
         $data = [];
         try {
             if ($name == null) {
-                $name = $this->_getVideoFileName($streamId, $format);
+                $name = $this->getVideoFileName($streamId, $format);
             }
             $stream = $this->qiniuHub->getStream($streamId);
             $result = $stream->saveAs($name, $format, $start = 0, $end = time());
@@ -207,7 +207,7 @@ class QiniuUtil {
         $bucket = $this->config['video_bucket'];
         // 生成上传 Token
         $token = $this->qiniuAuth->uploadToken($bucket);
-        $key = $this->_getVideoFileName($filePath);
+        $key = $this->getVideoFileName($filePath);
         return array('token' => $token, 'key' => $key);
     }
 
@@ -221,7 +221,7 @@ class QiniuUtil {
         // 生成上传 Token
         $token = $this->qiniuAuth->uploadToken($bucket);
         // 上传到七牛后保存的文件名
-        $key = $this->_getVideoFileName($filePath);
+        $key = $this->getVideoFileName($filePath);
         // 初始化 UploadManager 对象并进行文件的上传。
         $uploadMgr = new UploadManager();
         // 调用 UploadManager 的 putFile 方法进行文件的上传。
@@ -330,7 +330,7 @@ class QiniuUtil {
         }
         $fileNames = implode('/', $fileNames);
         //拼接后的视频
-        $concatKey = $this->_getVideoFileName($fileNames, 'mp4');
+        $concatKey = $this->getVideoFileName($fileNames, 'mp4');
         $concatKeyPre = explode('.', $concatKey);
         $concatKeyPre = $concatKeyPre[0];
         $fileMP4 = $this->_urlsafe_base64_encode("{$bucket}:{$concatKeyPre}.mp4");
@@ -348,7 +348,7 @@ class QiniuUtil {
     /**
      * 生成视频文件名
      */
-    private function _getVideoFileName($filePath, $suffix = '') {
+    public function getVideoFileName($filePath, $suffix = '') {
         if (strlen($suffix) <= 1) {
             // 获取文件后缀名
             $lenth = strrpos($filePath, '.');
