@@ -3,6 +3,7 @@ namespace mia\miagroup\Daemon\Live;
 use mia\miagroup\Service\Live as LiveService;
 use mia\miagroup\Model\Live as LiveModel;
 use mia\miagroup\Util\QiniuUtil;
+use mia\miagroup\Util\JinShanCloudUtil;
 
 /**
  * 直播状态更新
@@ -18,6 +19,7 @@ class LivingCheck extends \FD_Daemon {
         $this->liveModel = new LiveModel();
         $this->liveService = new LiveService();
         $this->qiniuUtil = new QiniuUtil();
+        $this->jinshanUtil = new JinShanCloudUtil();
     }
     
     public function execute() {
@@ -31,11 +33,13 @@ class LivingCheck extends \FD_Daemon {
             foreach ($lives as $live) {
                 $userIds[] = $live['user_id'];
             }
+
             $roomInfos = $this->liveModel->checkLiveRoomByUserIds($userIds);
             //检查已经直播30秒，已经断流的直播
             foreach ($lives as $live) {
-                if(strtotime($live['start_time']) + 30 < time()){
-                    $status = $this->qiniuUtil->getStatus($live['stream_id']);
+                if($live['source']==1 && strtotime($live['start_time']) + 30 < time()){
+                    $status = $live['source']==1 ? $this->qiniuUtil->getStatus($live['stream_id']) : $this->jinshanUtil->getStatus($live['stream_id']);
+                    
                     if($status == 'disconnected'){
                         $this->liveService->endLive($live['user_id'], $roomInfos[$live['user_id']]['id'], $live['id'], $live['chat_room_id']);
                     }

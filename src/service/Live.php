@@ -6,6 +6,7 @@ use mia\miagroup\Service\User;
 use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Util\QiniuUtil;
+use mia\miagroup\Util\JinShanCloudUtil;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Service\Redbag;
 
@@ -57,7 +58,7 @@ class Live extends \mia\miagroup\Lib\Service {
      * @param $isLast 是否获取用户最近一次的推流信息
      * @return json
      */
-    public function addLive($userId, $isLast=0) {
+    public function addLive($userId, $isLast=0,$source=1) {
         //校验是否有直播权限
         $roomInfo = $this->liveModel->checkLiveRoomByUserId($userId);
         if(empty($roomInfo)){
@@ -85,8 +86,9 @@ class Live extends \mia\miagroup\Lib\Service {
                 }
             }
         }
-        
-        $qiniu = new QiniuUtil();
+
+        $liveCloud = $source==1 ? new QiniuUtil() : new JinShanCloudUtil();
+
         //继续上次直播
         if($isLast){
             //不存在正在进行的直播
@@ -95,8 +97,13 @@ class Live extends \mia\miagroup\Lib\Service {
                 if(!empty($roomInfo['latest_live_id'])){
                     //获取上一次的推流的ID
                     $latest_live_info = $this->liveModel->getLiveInfoById($roomInfo['latest_live_id']);
+                    if($latest_live_info['source']!=$source){
+                        return $this->error(30008);
+                    }
                     $streamId = $latest_live_info['stream_id'];
-                    $streamInfo = $qiniu->getStreamInfoByStreamId($streamId);
+       
+                    $streamInfo = $liveCloud->getStreamInfoByStreamId($streamId);
+   
                     $chatId = $latest_live_info['chat_room_id'];
                     //设置直播状态
                     $setDataLate[] = ['status', 1];//创建中
@@ -106,12 +113,13 @@ class Live extends \mia\miagroup\Lib\Service {
                 }else{
                     //生成视频流ID和聊天室ID
                     $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
-                    $streamInfo = $qiniu->createStream($streamId);
+                    $streamInfo = $liveCloud->createStream($streamId);
                     //新增直播记录
                     $liveInfo['user_id'] = $userId;
-                    $liveInfo['stream_id'] = $streamInfo->id;
+                    $liveInfo['stream_id'] = $streamInfo['id'];
                     $liveInfo['chat_room_id'] = $chatId;
                     $liveInfo['status'] = 1;//创建中
+                    $liveInfo['source'] = $source;
                     $liveInfo['create_time'] = date('Y-m-d H:i:s');
                     $liveId = $this->liveModel->addLive($liveInfo);
                     //更新直播房间数据
@@ -119,8 +127,11 @@ class Live extends \mia\miagroup\Lib\Service {
                 }
             }else{
                 $latest_live_info = $this->liveModel->getLiveInfoById($makeLive['id']);
+                if($latest_live_info['source']!=$source){
+                    return $this->error(30008);
+                }
                 $streamId = $latest_live_info['stream_id'];
-                $streamInfo = $qiniu->getStreamInfoByStreamId($streamId);
+                $streamInfo = $liveCloud->getStreamInfoByStreamId($streamId);
                 $chatId = $latest_live_info['chat_room_id'];
                 //设置直播状态
                 $setDataLate[] = ['status', 1];//创建中
@@ -131,12 +142,14 @@ class Live extends \mia\miagroup\Lib\Service {
         }else{
             //生成视频流ID和聊天室ID
             $streamId = $chatId = $this->_getLiveIncrId($roomInfo['id'])['data'];
-            $streamInfo = $qiniu->createStream($streamId);
+            $streamInfo = $liveCloud->createStream($streamId);
+            
             //新增直播记录
             $liveInfo['user_id'] = $userId;
-            $liveInfo['stream_id'] = $streamInfo->id;
+            $liveInfo['stream_id'] = $streamInfo['id'];
             $liveInfo['chat_room_id'] = $chatId;
             $liveInfo['status'] = 1;//创建中
+            $liveInfo['source'] = $source;//创建中
             $liveInfo['create_time'] = date('Y-m-d H:i:s');
             $liveId = $this->liveModel->addLive($liveInfo);
             //更新直播房间数据
@@ -154,7 +167,7 @@ class Live extends \mia\miagroup\Lib\Service {
         $chatRet = $this->rongCloud->chatroomCreate([$chatId=>'chatRoom'.$chatId]);
         if(!$chatRet){
             //创建聊天室失败
-            return $this->error(30001);    
+            return $this->error(30001);
         }
         //获取房间信息，查主库
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
@@ -168,7 +181,12 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error(30001);
         }
         //返回数据
-        $data['qiniu_stream_info'] = $streamInfo->toJsonString();
+        if($source==1){
+            $data['qiniu_stream_info'] = json_encode($streamInfo);
+        }elseif ($source==2) {
+            $data['jinshan_stream_info'] = $streamInfo['publish'];
+        }
+        
         $data['room_info'] = $roomData;
 
         //创建直播时把主播user_id存入缓存
@@ -295,7 +313,9 @@ class Live extends \mia\miagroup\Lib\Service {
                 }
             }
         }
-        
+
+        $qiniu = new QiniuUtil();
+        $jinshan = new JinShanCloudUtil();
         if(empty($liveId)){
             //直播结束时
             if(empty($roomData['live_id'])){
@@ -305,8 +325,8 @@ class Live extends \mia\miagroup\Lib\Service {
                     if (!empty($liveInfo[$roomData['latest_live_id']])) {
                         $liveInfo = $liveInfo[$roomData['latest_live_id']];
                         // 快照
-                        $qiniuUtil = new QiniuUtil();
-                        $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+                        $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
+                        $roomData['snapshot'] = $liveCloud->getSnapShot($liveInfo['stream_id']);
                         //回放地址
                         $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
                         //如果设置了可以观看回放才可以观看回放
@@ -323,8 +343,8 @@ class Live extends \mia\miagroup\Lib\Service {
                 if (!empty($liveInfo[$roomData['live_id']])) {
                     $liveInfo = $liveInfo[$roomData['live_id']];
                     // 快照
-                    $qiniuUtil = new QiniuUtil();
-                    $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+                    $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
+                    $roomData['snapshot'] = $liveCloud->getSnapShot($liveInfo['stream_id']);
                     //回放地址
                     $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
                 }
@@ -335,8 +355,8 @@ class Live extends \mia\miagroup\Lib\Service {
             if (!empty($liveInfo[$liveId])) {
                 $liveInfo = $liveInfo[$liveId];
                 // 快照
-                $qiniuUtil = new QiniuUtil();
-                $roomData['snapshot'] = $qiniuUtil->getSnapShot($liveInfo['stream_id']);
+                $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
+                $roomData['snapshot'] = $liveCloud->getSnapShot($liveInfo['stream_id']);
                 //回放地址
                 $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
             }
@@ -355,12 +375,15 @@ class Live extends \mia\miagroup\Lib\Service {
         if (empty($liveInfos)) {
             return $this->succ(array());
         }
+  
         $qiniu = new QiniuUtil();
+        $jinshan = new JinShanCloudUtil();
         $redis = new Redis();
         foreach($liveInfos as $k=>$liveInfo){
             //如果是直播中的live要给url地址
+            $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
             if($liveInfo['status'] == 3){
-                $addrInfo = $qiniu->getLiveUrls($liveInfo['stream_id']);
+                $addrInfo = $liveCloud->getLiveUrls($liveInfo['stream_id']);
                 $liveInfo['hls_url'] = $addrInfo['hls'];
                 $liveInfo['hdl_url'] = $addrInfo['hdl'];
                 $liveInfo['rtmp_url'] = $addrInfo['rtmp'];
@@ -376,7 +399,7 @@ class Live extends \mia\miagroup\Lib\Service {
             }
             //如果直播已结束，给回放地址
             if($liveInfo['status'] == 4 || $liveInfo['status'] == 3){
-                $addrInfo = $qiniu->getPalyBackUrls($liveInfo['stream_id']);
+                $addrInfo = $liveCloud->getPalyBackUrls($liveInfo['stream_id']);
                 $liveInfo['play_back_hls_url'] = $addrInfo['hls'];
             }
             $liveInfos[$k] = $liveInfo;
@@ -773,6 +796,7 @@ class Live extends \mia\miagroup\Lib\Service {
         if(!empty($currLiveInfo)){
             //显示
             $data['show_last_live'] = 1;
+            $data['source'] = 2;
             return $this->succ($data);
         }
         //判断用户最近一次的直播的结束时间与当前时间是否相差60分钟（含）相差60分钟以上的则不显示是否继续直播弹层，反之不显示
@@ -787,7 +811,9 @@ class Live extends \mia\miagroup\Lib\Service {
                 $data['show_last_live'] = 1;
             }
         }
+        $data['source'] = 2;
         return $this->succ($data);
     }
+
 
 }
