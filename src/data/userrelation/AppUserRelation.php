@@ -118,75 +118,9 @@ class AppUserRelation extends DB_Query {
      * insert
      */
     public function insertRelation($setData){
-        return $this->insert($setData,true);
+        return $this->insert($setData);
     }
     
-    /**
-     * 添加关注
-     * @param unknown $userId
-     * @param unknown $relationUserId
-     * @param number $srouce 新增srouce 参数默认是1 当传递2时 表示是自动关注
-     * @return boolean|multitype:number
-     */
-//     public function save($userId , $relationUserId , $source = 1 )
-//     {
-//         //初始化数据
-//         $userRelationArr = array("relation_with_me" => 1,"relation_with_him" => 0);
-//         //如果是重复关注
-//         $followHimCount = $this->checkUserIsFollowdUser($relationUserId, $userId);
-//         if ($followHimCount) {
-//             //判断我所关注用户是否关注我
-//             $followMeRes = $this->checkUserIsFollowdUser($userId, $relationUserId);
-//             if ($followMeRes == true) {
-//                 $userRelationArr['relation_with_him'] = 1;
-//             }
-//             return $userRelationArr;
-//         }
-//         //取消关注后再次加关注
-//         $whereNew = array(array("user_id", $userId), array("replation_user_id", $relationUserId),array('status',0));
-//         $newFollowHimCount = $this->count($whereNew);
-//         if ($newFollowHimCount > 0) {
-//             $setStatus = array(array("status", 1),array("create_time", date('Y-m-d H:i:s')));
-//             $setRelationStatus = $this->update($setStatus,$whereNew);
-//             if(!$setRelationStatus) {
-//                 return false;
-//             }
-//         } else {
-//             $setInfo = array(
-//                 "user_id"           => $userId,
-//                 "replation_user_id" => $relationUserId,
-//                 "status"            => 1,
-//                 "source"            => $source,
-//             );
-//             $insertRes = $this->insert($setInfo);
-//             if (!$insertRes) {
-//                 return false;
-//             }
-//             //蜜芽小天使账号不赠送蜜豆
-//             if ($relationUserId != 1026069) {
-// //                 $this->load->model("mibean_model", "mBean");
-// //                 #start赠送用户蜜豆
-// //                 $sendFromUserIdM = $userId;
-// //                 $toUserIdM       = $relationUserId;
-// //                 $this->mBean->sendMiYaBean($type = 'follow_me', $sendFromUserIdM, $relationUserId, $toUserIdM);
-//                 #end赠送用户蜜豆
-//             }
-//         }
-//         //判断我所关注用户是否关注我
-//         $followMeRes = $this->checkUserIsFollowdUser($userId, $relationUserId);
-//         if ($followMeRes) {
-//             $userRelationArr['relation_with_him'] = 1;
-//         }
-//         $type = 'single'; //消息类型
-//         $resourceType = 'group';//消息资源
-//         $resourceSubType = 'follow';//消息资源子类型
-//         $sendFromUserId = $userId;//发送UserId
-//         $toUserId = $relationUserId;//接受UserId
-//         $news = new \mia\miagroup\Service\News();
-//         $sendMsgRes = $news->addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId)['data'];
-        
-//         return $userRelationArr;
-//     }
     
     /**
      * 判断关注关系
@@ -224,7 +158,7 @@ class AppUserRelation extends DB_Query {
             return false;
         }
         $setStatus = array(array("cancle_time", date('Y-m-d H:i:s')),array("status", 0));
-        $setRelationStatus = $this->update($setStatus);
+        $setRelationStatus = $this->update($setStatus,$where);
         if(!$setRelationStatus) {
             return false;
         }
