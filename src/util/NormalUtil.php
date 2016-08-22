@@ -134,29 +134,29 @@ class NormalUtil {
         $serviceExtra = ['chat_room_id'=>$chat_room_id];
         
         switch ($type){
-            case 0:
+            case 0: //系统消息
                 $message=['type'=>$type,'user'=>['id'=>-1,'name'=>'蜜芽提醒'],'content'=>$content,'service_extra'=>$serviceExtra];
                 break;
-            case 1:
-            case 2:
-            case 4:
-            case 8:
+            case 1: //观众加入直播
+            case 2: //用户发布评论
+            case 4: //分享直播
+            case 8: //关注主播
                 $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'content'=>$content,'service_extra'=>$serviceExtra];
                 break;
-            case 3:
+            case 3: //点赞
                 $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'extra'=>$extra_json,'service_extra'=>$serviceExtra];
                 break;
-            case 5:
-            case 6:
-            case 7:
-            case 11:
-            case 12:
+            case 5: //在线人数改变
+            case 6: //已售卖人数改变
+            case 7: //观众显示抢红包按钮
+            case 11: //主播显示发红包按钮
+            case 12: //直播展位改变
                 $message=['type'=>$type,'extra'=>$extra_json,'service_extra'=>$serviceExtra];
                 break;
-            case 9:
+            case 9: //直播结束
                 $message=['type'=>$type,'service_extra'=>$serviceExtra];
                 break;
-            case 10:
+            case 10: //主播直播过程中状态改变
                 $message=['type'=>$type,'user'=>['id'=>$user_id,'name'=>$nick],'content'=>$content,'extra'=>$extra_json,'service_extra'=>$serviceExtra];
                 break;
         }

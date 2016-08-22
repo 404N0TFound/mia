@@ -14,15 +14,15 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'audience_online_num_%s',
         'expire_time' => 3600,
     ),
-    //以售卖的商品数
+    //已售卖的商品数
     'live_sale_num' => array(
         'key' => $liveServicePrefix . 'sale_num_%s',
         'expire_time' => 3600,
     ),
-    //以售卖的商品数
+    //直播推流状态
     'live_stream_status' => array(
         'key' => $liveServicePrefix . 'stream_status_%s',
-        'expire_time' => 60,
+        'expire_time' => 86400,
     ),
     //直播转换成视频-状态记录
     'live_to_video' => [ //使用String数据结构
@@ -53,6 +53,11 @@ $liveKey = array(
     'live_jinshan_stream_info' => [ //使用String数据结构
         'key' => $liveServicePrefix . 'jinshan_stream_info_%s',
         'expire_time' => 86400 * 30,
+    ],
+    //记录直播流不稳定的次数
+    'live_stream_frame_status'=>[
+        'key' => $liveServicePrefix . 'stream_frame_status_%s',
+        'expire_time' => 300,  
     ],
 );
 

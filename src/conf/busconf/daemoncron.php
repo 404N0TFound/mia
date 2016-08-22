@@ -67,3 +67,23 @@ $cron_list['live_to_video'] = array(
     'start_time' => '2016-07-11 00:00:00',
     'interval' => 3
 );
+
+//对直播流的帧率检测，发现异常发消息给主播
+$cron_list['live_stream_frame_check'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=live --action=Livestreamstatuscheck",
+    'start_time' => '2016-08-11 00:00:00',
+    'interval' => 10
+);
+
+//处理推荐池里的推荐帖子
+$cron_list['subject_group_recommend_pool'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=Grouprecommendpool",
+    'start_time' => '2016-08-11 00:00:00',
+    'interval' => 900
+);
+
+

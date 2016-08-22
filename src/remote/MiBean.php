@@ -65,7 +65,7 @@ class MiBean extends Thrift{
             }
         }elseif($param['relation_type'] == 'fine_pic'){
             //  精品贴+5   被推荐到首页（以周为周期，被推荐到首页N次，最多可得2次蜜豆奖励）
-            $mibean_fine_pic_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['user_id']);
+            $mibean_fine_pic_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['to_user_id']);
             $mibean_fine_pic_num = $redis->get($mibean_fine_pic_key);
             if($mibean_fine_pic_num < 2){
                 //加1蜜豆
@@ -73,7 +73,9 @@ class MiBean extends Thrift{
                 $data = $this->agent('add', $param);
                 if($data['code'] == 200){
                     $redis->incrBy($mibean_fine_pic_key,1);
-                    $redis->expireAt($mibean_fine_pic_key,strtotime(date('Y-m-d 23:59:59')));
+                    $w = date('w') == 0 ? 7 : date('w');
+                    $fine_pic_time = (7-$w)*86400 + strtotime(date('Y-m-d 23:59:59'));
+                    $redis->expireAt($mibean_fine_pic_key,$fine_pic_time);
                 }
             }
         }else{
@@ -87,6 +89,14 @@ class MiBean extends Thrift{
      */
     public function sub($param){
         $data = $this->agent('sub', $param);
+        return $data;
+    }
+    
+    /**
+     * 检测蜜豆是否送过
+     */
+    public function check($param){
+        $data = $this->agent('check', $param);
         return $data;
     }
     
