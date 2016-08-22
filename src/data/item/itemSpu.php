@@ -1,35 +1,58 @@
 <?php
-namespace mia\miagroup\Data\Item;
-
-use Ice;
-use mia\miagroup\Data\Item\ItemSpu;
-
-class ItemSpu extends \DB_Query {
-
-    protected $dbResource = 'miagroup';
-
-    protected $tableName = 'spu_sku_relation';
-
-    protected $mapping = array();
-
+ namespace mia\miagroup\Data\Item;
+ 
+ use Ice;
+ use mia\miagroup\Data\Item\ItemSpu;
+ 
+ class ItemSpu extends \DB_Query {
+ 
+     protected $dbResource = 'miagroup';
+ 
+     protected $tableName = 'spu_sku_relation';
+ 
+     protected $mapping = array();
+ 
+     /**
+      * èŽ·å–å•†å“ç›¸å…³spu
+      * @param int $itemId
+      */
+     public function getSpuByItemId($itemId)
+     {
+         $result = array();        
+         if (empty($itemId)) {
+             return $result;
+         }
+         $where = array();
+         $where[] = ['item_id', $itemId];
+         
+         $data = $this->getRows($where);
+ 
+         if (!empty($data)) {
+             foreach ($data as $v) {
+                 $result[] = $v['spu_id'];
+             }
+         }
+         return $result;
+    }
+    
     /**
-     * »ñÈ¡ÉÌÆ·Ïà¹Øspu
-     * @param int $itemId
+     * èŽ·å–spuçš„å•†å“
+     * @param int $spuId
      */
-    public function getSpuByItemId($itemId)
+    public function getItemBySpuId($spuId)
     {
-        $result = array();        
-        if (empty($itemId)) {
+        $result = array();
+        if (empty($spuId)) {
             return $result;
         }
         $where = array();
-        $where[] = ['item_id', $itemId];
-        
+        $where[] = ['spu_id', $spuId];
+         
         $data = $this->getRows($where);
-
+         
         if (!empty($data)) {
             foreach ($data as $v) {
-                $result[] = $v['spu_id'];
+                $result[] = $v['item_id'];
             }
         }
         return $result;

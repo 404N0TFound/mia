@@ -136,23 +136,31 @@ class Koubei extends \FS_Service {
     /**
      * 获取口碑列表
      */
-    public function getItemKoubeiList($itemId, $page=1, $count=20, $userId){
+    public function getItemKoubeiList($itemId, $page=1, $count=20, $userId)
+    {
         $koubeiRes = array("koubei_info" => array());
         if(!$itemId){
             return $this->succ($koubeiRes);
         }
         //1、检查该商品是否是套装
         $itemService = new ItemService();
-        $spuIds = $itemService->getItemRelateSpu($itemId)['data'];//获取套装id
-        if(!empty($spuIds)){
-            //如果是套装，则将itemId和spuId拼一起，达成单品与套装互通，用于获取口碑
-            array_push($spuIds,$itemId);
-            $itemIds = $spuIds;
+        //（1）如果$itemId为套装id，查出该套装的商品id
+        $itemIds = $itemService->getSpuRelateItem($itemId)['data'];
+        if(!empty($itemIds)){
+            //将套装id和套装的商品id组合一起，达成套装和套装对应的商品的互通
+            array_push($itemIds,$itemId);
         }else{
-            //如果不是套装，直接用itemId去获取口碑
-            $itemIds = array($itemId);
+            //（2）如果$itemId不是套装id，而是商品id，则查出该商品是否参与了套装
+            $spuIds = $itemService->getItemRelateSpu($itemId)['data'];//获取套装id
+            if(!empty($spuIds)){
+                //如果商品参与了套装，将itemId和spuId拼一起，达成单品与套装互通，用于获取口碑
+                array_push($spuIds,$itemId);
+                $itemIds = $spuIds;
+            }else{
+                //如果该商品没有参与套装，直接用itemId去获取口碑
+                $itemIds = array($itemId);
+            }
         }
-        
         //2、获取口碑数量,如果口碑小于等于0，直接返回空数组
         $koubeiNums = $this->koubeiModel->getItemKoubeiNums($itemIds);
         if($koubeiNums <=0){

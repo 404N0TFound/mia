@@ -44,6 +44,15 @@ class Item {
     }
     
     /**
+     * 根据spu_id获取商品
+     * @param  $spuId 套装id
+     */
+    public function getItemBySpuId($spuId){
+        $spuData = $this->itemSpuData->getSpuByItemId($spuId);
+        return $spuData;
+    }
+    
+    /**
      * 根据item_id获取一组图片
      */
     public function getBatchItemPicList($item_id ,$type = 'normal'){
