@@ -10,7 +10,7 @@ class Thrift {
     protected $thriftClient;
     protected $service;
     
-    public function __construct($service){
+    public function __construct(){
         ThriftClient::config(\F_Ice::$ins->workApp->config->get('thrift.address'));
         // 初始化一个MiBean的实例
         $this->thriftClient = ThriftClient::instance($this->service);
