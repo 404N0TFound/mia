@@ -132,73 +132,105 @@ class Koubei extends \FS_Service {
         
         return $this->succ($koubeiInsertId);
     }
-
+    
     /**
-     * 获取商品口碑列表
-     * @param int $itemId 商品id
-     * @param int $page 页码
-     * @param int $count 每页数量
-     * @param int $userId 用户id
+     * 获取口碑列表
      */
-    public function getKoubeiList($itemId, $page=1, $count=20, $userId){
-        $koubeiRes = array( "total_score"=> 0, "recom_count" => 0 ,"koubei_info" => array());
-        //1、获取关联商品id
-        $itemService = new ItemService();
-        $itemInfo = $itemService->getItemList([$itemId])['data'][$itemId];//获取商品信息
-        //（1）如果商品不存在，则返回空
-        if(empty($itemInfo)){
+    public function getItemKoubeiList($itemId, $page=1, $count=20, $userId)
+    {
+        $koubeiRes = array("koubei_info" => array());
+        if(!$itemId){
             return $this->succ($koubeiRes);
         }
-        
-        $relateItemArr = array();
-        $relateItemIds = array();
-        if(!empty($itemInfo['relate_flag'])){
-            //（2）如果存在，且关联标识不为空，根据其关联标识获取关联商品id
-            $relateItemArr = $itemService->getRelateItemList([$itemInfo['relate_flag']])['data'][$itemInfo['relate_flag']];
-            $relateItemIds = array_keys($relateItemArr);
+        //1、检查该商品是否是套装
+        $itemService = new ItemService();
+        //（1）如果$itemId为套装id，查出该套装的商品id
+        $itemIds = $itemService->getSpuRelateItem($itemId)['data'];
+        if(!empty($itemIds)){
+            //将套装id和套装的商品id组合一起，达成套装和套装对应的商品的互通
+            array_push($itemIds,$itemId);
         }else{
-            //(3)如果商品存在，且关联标识为空，则直接取商品id
-            $relateItemIds = array($itemInfo['id']);
+            //（2）如果$itemId不是套装id，而是商品id，则查出该商品是否参与了套装
+            $spuIds = $itemService->getItemRelateSpu($itemId)['data'];//获取套装id
+            if(!empty($spuIds)){
+                //如果商品参与了套装，将itemId和spuId拼一起，达成单品与套装互通，用于获取口碑
+                array_push($spuIds,$itemId);
+                $itemIds = $spuIds;
+            }else{
+                //如果该商品没有参与套装，直接用itemId去获取口碑
+                $itemIds = array($itemId);
+            }
         }
         //2、获取口碑数量,如果口碑小于等于0，直接返回空数组
-        $koubeiNums = $this->koubeiModel->getItemKoubeiNums($relateItemIds);
+        $koubeiNums = $this->koubeiModel->getItemKoubeiNums($itemIds);
         if($koubeiNums <=0){
             return $this->succ($koubeiRes);
         }
-        //3、获取用户评分
-        $itemScore = $this->koubeiModel->getItemUserScore($relateItemIds);
-        //4、获取蜜粉推荐
-        $itemRecNums = $this->koubeiModel->getItemRecNums($relateItemIds);
-        //5、根据商品id或者关联商品id批量获取口碑信息
-        $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubeiArr = $this->koubeiModel->getKoubeiList($relateItemIds,$count, $offset);
         
+        //通过商品id获取口碑id
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
+        if(empty($koubeiIds)){
+            return $this->succ($koubeiRes);
+        }
+        
+        //3、获取口碑信息
+        $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId);
+        $koubeiRes['koubei_info'] = $koubeiInfo;
+        
+        //4、获取用户评分
+        $itemScore = $this->koubeiModel->getItemUserScore($itemIds);
+        //5、获取蜜粉推荐
+        $itemRecNums = $this->koubeiModel->getItemRecNums($itemIds);
+        
+        //综合评分和蜜粉推荐展示逻辑########start
+        // 如综合评分为0，即蜜粉推荐数也为0 ,都不展示（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
+        if($itemScore == 0 && $itemRecNums == 0){
+            return $this->succ($koubeiRes);
+        }
+        //如综合评分不为0，蜜粉推荐数为0,蜜粉推荐数不展示，保留综合评分（适用情况，该商品无4&5星评分）
+        if($itemScore > 0 && $itemRecNums == 0){
+            $koubeiRes['total_score'] = $itemScore;//综合评分
+            return $this->succ($koubeiRes);
+        }
+        //其他情况，都展示
+        $koubeiRes['total_score'] = $itemScore;//综合评分
+        $koubeiRes['recom_count'] = $itemRecNums;//蜜粉推荐
+        #############end
+        return $this->succ($koubeiRes);
+    }
+    
+    /**
+     * 根据口碑ID获取口碑信息
+     */
+    public function getBatchKoubeiByIds($koubeiIds,$userId) {
+        $koubeiInfo = array();
+        //批量获取口碑信息
+        $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status = array(2));
         foreach($koubeiArr as $koubei){
             if(empty($koubei['subject_id'])) continue;
+            //收集subjectids
             $subjectId[] = $koubei['subject_id'];
-            
+        
             $itemKoubei[$koubei['subject_id']] = array(
                 'rank' => $koubei['rank'],
                 'score' => $koubei['score'],
                 'item_size' => $koubei['item_size']) ;
         }
-        //6、根据口碑中帖子id批量获取帖子信息（subject service）
+        //3、根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , array('user_info', 'count', 'comment', 'group_labels', 'praise_info'));
         foreach( $itemKoubei as $key => $value)
         {
             if(!empty($subjectRes['data'][$key]))
             {
                 $subjectRes['data'][$key]['item_koubei'] = $value;
-                $koubeiRes['koubei_info'][] = $subjectRes['data'][$key];
+                //口碑信息拼装到帖子
+                $koubeiInfo[] = $subjectRes['data'][$key];
             }
         }
-        
-        $koubeiRes['total_score'] = $itemScore;//综合评分
-        $koubeiRes['recom_count'] = $itemRecNums;//蜜粉推荐
-        
-        return $this->succ($koubeiRes);
+        return $koubeiInfo;
     }
-    
+
     //获取口碑的不变分数
     private function calImmutableScore($data)
     {
@@ -229,5 +261,5 @@ class Koubei extends \FS_Service {
         $immutable_score += $data['score'] * 0.5 + 0.3 * 10 * $hasPic + $data['rank'] * 6 ;
         return $immutable_score;
     }
-
+    
 }

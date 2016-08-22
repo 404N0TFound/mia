@@ -10,6 +10,24 @@ class Item extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 获取商品相关的套装id
+     * @param $itemId 商品id
+     */
+    public function getItemRelateSpu($itemId){
+        $spuArr = $this->itemModel->getSpuByItemId($itemId);
+        return $this->succ($spuArr);
+    }
+    
+    /**
+     * 获取套装的商品
+     * @param $spuId 套装id
+     */
+    public function getSpuRelateItem($spuId){
+        $itmeArr = $this->itemModel->getItemBySpuId($spuId);
+        return $this->succ($itmeArr);
+    }
+    
+    /**
      * 根据商品id批量获取商品
      * @param int $itemIds
      */
