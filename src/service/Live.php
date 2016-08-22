@@ -65,6 +65,14 @@ class Live extends \mia\miagroup\Lib\Service {
             //没有直播权限
             return $this->error(30000);
         }
+
+        //直播标题
+        $liveTitle = '';
+        $settings  = json_decode($roomInfo['settings'],true);
+        if(isset($settings['title']) && !empty($settings['title'])){
+            $liveTitle = $settings['title'];
+        }
+
         //判断用户是否已经存在直播
         $makeLive = [];
         $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId, [1, 2, 3]);
@@ -120,6 +128,7 @@ class Live extends \mia\miagroup\Lib\Service {
                     $liveInfo['chat_room_id'] = $chatId;
                     $liveInfo['status'] = 1;//创建中
                     $liveInfo['source'] = $source;
+                    $liveInfo['title'] = $liveTitle;
                     $liveInfo['create_time'] = date('Y-m-d H:i:s');
                     $liveId = $this->liveModel->addLive($liveInfo);
                     //更新直播房间数据
@@ -149,7 +158,8 @@ class Live extends \mia\miagroup\Lib\Service {
             $liveInfo['stream_id'] = $streamInfo['id'];
             $liveInfo['chat_room_id'] = $chatId;
             $liveInfo['status'] = 1;//创建中
-            $liveInfo['source'] = $source;//创建中
+            $liveInfo['source'] = $source;
+            $liveInfo['title'] = $liveTitle;
             $liveInfo['create_time'] = date('Y-m-d H:i:s');
             $liveId = $this->liveModel->addLive($liveInfo);
             //更新直播房间数据
@@ -793,25 +803,48 @@ class Live extends \mia\miagroup\Lib\Service {
     public function liveInit($userId){
         //判断用户是否有正在进行的直播（有则结束直播&显示是否继续直播弹层）
         $currLiveInfo = $this->liveModel->getLiveInfoByUserId($userId,[3]);
+
+        //获取房间直播流SDK类型
+        $data     = $this->liveModel->checkLiveRoomByUserId($userId);
+        $settings = json_decode($data['settings'],true);
+        $source   = 1;
+        if(isset($settings['source']) && !empty($settings['source'])){
+            $source = $settings['source'];
+        }
+
         if(!empty($currLiveInfo)){
             //显示
             $data['show_last_live'] = 1;
-            $data['source'] = 2;
+            $data['source'] = $source;
             return $this->succ($data);
         }
-        //判断用户最近一次的直播的结束时间与当前时间是否相差60分钟（含）相差60分钟以上的则不显示是否继续直播弹层，反之不显示
-        $data = $this->liveModel->checkLiveRoomByUserId($userId);
+
+        //判断用户最近一次的直播的结束时间与当前时间是否相差60分钟（含）相差60分钟以上或者当前直播流SDK与上次直播流SDK不一样的则不显示是否继续直播弹层，反之则显示
         if(empty($data['latest_live_id'])){
             $data['show_last_live'] = 0;
         }else{
             $latest_live_info = $this->liveModel->getLiveInfoById($data['latest_live_id']);
-            if(time() - strtotime($latest_live_info['end_time']) > 3600){
+            if(time() - strtotime($latest_live_info['end_time']) > 3600 || $source != $latest_live_info['source']){
                 $data['show_last_live'] = 0;
             }else{
                 $data['show_last_live'] = 1;
             }
         }
-        $data['source'] = 2;
+        $data['source'] = $source;
+        return $this->succ($data);
+    }
+
+    /**
+     * UMS设置在线人数系数
+     * @return 
+     */
+    public function addOnlineUsers($liveId,$onlineUserNum)
+    {
+        if (empty($liveId) || empty($onlineUserNum)) {
+            return $this->error(500);
+        }
+
+        $data = $this->liveModel->addChatRoomUsers($liveId,$onlineUserNum);
         return $this->succ($data);
     }
 
