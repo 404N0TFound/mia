@@ -161,15 +161,23 @@ class Koubei extends \FS_Service {
                 $itemIds = array($itemId);
             }
         }
+        //只取单品及单品套装，过滤掉多品套装
+        $itemIdArr = array();
+        $itemArr = $itemService->getItemList($itemIds)['data'];
+        foreach($itemArr as $item){
+            if($item['is_spu'] == 0 || ($item['is_spu'] == 1 && $item['spu_type'] == 1)){
+                $itemIdArr[] = $item['id'];
+            }
+        }
         //2、获取口碑数量,如果口碑小于等于0，直接返回空数组
-        $koubeiNums = $this->koubeiModel->getItemKoubeiNums($itemIds);
+        $koubeiNums = $this->koubeiModel->getItemKoubeiNums($itemIdArr);
         if($koubeiNums <=0){
             return $this->succ($koubeiRes);
         }
         
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
+        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIdArr,$count,$offset);
         if(empty($koubeiIds)){
             return $this->succ($koubeiRes);
         }
@@ -179,9 +187,9 @@ class Koubei extends \FS_Service {
         $koubeiRes['koubei_info'] = $koubeiInfo;
         
         //4、获取用户评分
-        $itemScore = $this->koubeiModel->getItemUserScore($itemIds);
+        $itemScore = $this->koubeiModel->getItemUserScore($itemIdArr);
         //5、获取蜜粉推荐
-        $itemRecNums = $this->koubeiModel->getItemRecNums($itemIds);
+        $itemRecNums = $this->koubeiModel->getItemRecNums($itemIdArr);
         
         //综合评分和蜜粉推荐展示逻辑########start
         // 如综合评分为0，即蜜粉推荐数也为0 ,都不展示（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
