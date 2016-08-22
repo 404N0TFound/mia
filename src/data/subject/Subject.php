@@ -80,6 +80,7 @@ class Subject extends \DB_Query {
     /**
      * 更新帖子
      *
+     * @param type $subjectId   int/aray      
      * @param type $setData            
      * @param type $where            
      * @param type $orderBy            
@@ -87,11 +88,29 @@ class Subject extends \DB_Query {
      * @return int
      */
     public function updateSubject($setData, $subjectId) {
-        if (intval($subjectId) <= 0) {
-            return false;
-        }
         $where[] = ['id', $subjectId];
         $data = $this->update($setData, $where);
         return $data;
     }
+    
+    /**
+     * 设置图片为推荐图片
+     * @param array $subjects
+     * @param int $setStatus
+     * @return boolean
+     */
+    public function setSubjectRecommendStatus($ids, $setStatus = 1)
+    {    
+        $setData[] = ['update_time',date('Y-m-d H:i:s')];
+        $setData[] = ['is_fine',$setStatus];   
+        $where[] = ['id',$ids];
+        
+        $affectRow = $this->update($setData,$where);
+        if ($affectRow) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
 }

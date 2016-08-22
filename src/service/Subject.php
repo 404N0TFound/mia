@@ -489,5 +489,37 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         return $shareStruct;
     }
+    
+    /**
+     * 批量给帖子加精
+     */
+    public function subjectAddFine($subjectId){
+        $subjectId = is_array($subjectId) ? $subjectId : [$subjectId];
+        //查询图片信息
+        $subjects_info = $this->subjectModel->getSubjectByIds($subjectId);
+        
+        $affect = $this->subjectModel->setSubjectRecommendStatus($subjectId);
+        if(!$affect){
+            return $this->error(201,'帖子加精失败!');
+        }
+        //送蜜豆
+        $mibean = new \mia\miagroup\Remote\MiBean();
+        foreach($subjects_info as $subject_info){
+            $param = array(
+                'user_id'           => $subject_info['user_id'],//操作人
+                'mibean'            => 5,
+                'relation_type'     => 'fine_pic',
+                'relation_id'       => $subject_info['id'],
+                'to_user_id'        => $subject_info['user_id']
+            );
+            
+            $data = $mibean->check($param);
+            if($data['code'] != 200){
+                $data = $mibean->add($param);
+            }
+        }
+        return $this->succ($data);
+    }
+    
 }
 
