@@ -144,40 +144,44 @@ class Koubei extends \FS_Service {
         }
         //1、检查该商品是否是套装
         $itemService = new ItemService();
-        //（1）如果$itemId为套装id，查出该套装的商品id
-        $itemIds = $itemService->getSpuRelateItem($itemId)['data'];
-        if(!empty($itemIds)){
-            //将套装id和套装的商品id组合一起，达成套装和套装对应的商品的互通
-            array_push($itemIds,$itemId);
-        }else{
-            //（2）如果$itemId不是套装id，而是商品id，则查出该商品是否参与了套装
-            $spuIds = $itemService->getItemRelateSpu($itemId)['data'];//获取套装id
-            if(!empty($spuIds)){
-                //如果商品参与了套装，将itemId和spuId拼一起，达成单品与套装互通，用于获取口碑
-                array_push($spuIds,$itemId);
-                $itemIds = $spuIds;
+        $itemInfo = $itemService->getItemList([$itemId])['data'][$itemId];
+        if(empty($itemInfo)){
+            return $this->succ($koubeiRes);
+        }
+        $itemIds = array();
+        //如果是单品，直接取商品口碑
+        if($itemInfo['is_spu'] == 0){
+            $itemIds = array($itemId);
+        }elseif($itemInfo['is_spu'] == 1 && $itemInfo['spu_type'] == 1){//是单品套装的情况
+            //根据套装id获取套装的商品
+            $spuItemId = $itemService->getItemRelateSpu($itemId)['data'];
+            //根据套装的商品，获取商品的所有套装，实现套装和套装的互通
+            $itemIdArr = $itemService->getSpuRelateItem($spuItemId[0])['data'];
+            //如果该商品还有其他套装
+            if(count($itemIdArr) >1){
+                //过滤掉其他套装中为多品套装的
+                $itemArr = $itemService->getItemList($itemIdArr)['data'];
+                foreach($itemArr as $item){
+                    if($item['is_spu'] == 1 && $item['spu_type'] == 1){
+                        $itemIds[] = $item['id'];
+                    }
+                }
             }else{
-                //如果该商品没有参与套装，直接用itemId去获取口碑
-                $itemIds = array($itemId);
+                $itemIds = $itemIdArr;
             }
+            //将套装的商品id和所有套装id拼在一起，实现单品和套装互通
+            array_push($itemIds, $spuItemId[0]);
         }
-        //只取单品及单品套装，过滤掉多品套装
-        $itemIdArr = array();
-        $itemArr = $itemService->getItemList($itemIds)['data'];
-        foreach($itemArr as $item){
-            if($item['is_spu'] == 0 || ($item['is_spu'] == 1 && $item['spu_type'] == 1)){
-                $itemIdArr[] = $item['id'];
-            }
-        }
+        
         //2、获取口碑数量,如果口碑小于等于0，直接返回空数组
-        $koubeiNums = $this->koubeiModel->getItemKoubeiNums($itemIdArr);
+        $koubeiNums = $this->koubeiModel->getItemKoubeiNums($itemIds);
         if($koubeiNums <=0){
             return $this->succ($koubeiRes);
         }
         
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIdArr,$count,$offset);
+        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
         if(empty($koubeiIds)){
             return $this->succ($koubeiRes);
         }
@@ -187,9 +191,9 @@ class Koubei extends \FS_Service {
         $koubeiRes['koubei_info'] = $koubeiInfo;
         
         //4、获取用户评分
-        $itemScore = $this->koubeiModel->getItemUserScore($itemIdArr);
+        $itemScore = $this->koubeiModel->getItemUserScore($itemIds);
         //5、获取蜜粉推荐
-        $itemRecNums = $this->koubeiModel->getItemRecNums($itemIdArr);
+        $itemRecNums = $this->koubeiModel->getItemRecNums($itemIds);
         
         //综合评分和蜜粉推荐展示逻辑########start
         // 如综合评分为0，即蜜粉推荐数也为0 ,都不展示（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
