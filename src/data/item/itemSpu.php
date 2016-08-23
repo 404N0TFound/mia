@@ -2,7 +2,6 @@
  namespace mia\miagroup\Data\Item;
  
  use Ice;
- use mia\miagroup\Data\Item\ItemSpu;
  
  class ItemSpu extends \DB_Query {
  

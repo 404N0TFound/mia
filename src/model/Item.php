@@ -48,7 +48,7 @@ class Item {
      * @param  $spuId 套装id
      */
     public function getItemBySpuId($spuId){
-        $spuData = $this->itemSpuData->getSpuByItemId($spuId);
+        $spuData = $this->itemSpuData->getItemBySpuId($spuId);
         return $spuData;
     }
     

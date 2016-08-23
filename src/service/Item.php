@@ -13,7 +13,7 @@ class Item extends \mia\miagroup\Lib\Service {
      * 获取商品相关的套装id
      * @param $itemId 商品id
      */
-    public function getItemRelateSpu($itemId){
+    public function getSpuRelateItem($itemId){
         $spuArr = $this->itemModel->getSpuByItemId($itemId);
         return $this->succ($spuArr);
     }
@@ -22,7 +22,7 @@ class Item extends \mia\miagroup\Lib\Service {
      * 获取套装的商品
      * @param $spuId 套装id
      */
-    public function getSpuRelateItem($spuId){
+    public function getItemRelateSpu($spuId){
         $itmeArr = $this->itemModel->getItemBySpuId($spuId);
         return $this->succ($itmeArr);
     }
