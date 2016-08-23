@@ -4,7 +4,7 @@
  use mia\miagroup\Util\RongCloudUtil;
  use mia\miagroup\Util\NormalUtil;
  use mia\miagroup\Data\Live\Live as LiveData;
-use mia\miagroup\Model\Live as LiveModel;
+ use mia\miagroup\Model\Live as LiveModel;
  use mia\miagroup\Lib\Redis;
  
  /**

@@ -336,7 +336,7 @@ class Live {
      **/
     public function getRoomInfoByUserId($userId,$status=[1])
     {
-        $data = $this->liveData->getRoomInfoByUserIds($userId,$status)[$userId];
+        $data = $this->liveRoomData->getRoomInfoByUserIds($userId,$status)[$userId];
         return $data;
     }
 
