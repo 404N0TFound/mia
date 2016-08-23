@@ -234,17 +234,20 @@ class Live extends \mia\miagroup\Lib\Service {
         $setData[] = ['status', 4];//结束直播
         $setData[] = ['end_time',date('Y-m-d H:i:s')];
         $data = $this->liveModel->updateLiveById($liveId,$setData);
-        if(!$data){
-            //更新房间信息失败 +日志
+
+        // 获取房间信息
+        $roomInfo = $this->liveModel->getRoomInfoByRoomId($roomId);
+
+        if(!$roomInfo['settings']['is_show_playback']){
+            $roomInfo['settings']['is_show_playback'] = 1;
+            $setInfo = ['settings' => $roomInfo['settings']];
+            $this->liveModel->updateRoomSettingsById($roomId, $setInfo);
         }
-        
         //更新直播房间
         $roomSetData[] = ['live_id',''];
         $roomSetData[] = ['chat_room_id',''];
         $setRoomRes = $this->liveModel->updateLiveRoomById($roomId, $roomSetData);
-        if(!$setRoomRes){
-            //更新直播房间信息失败 + 日志
-        }
+
         //更新latest_live_id
         $this->liveModel->recordRoomLatestLive_Id($roomId, $liveId);
         //发送结束直播消息
@@ -831,20 +834,6 @@ class Live extends \mia\miagroup\Lib\Service {
             }
         }
         $data['source'] = $source;
-        return $this->succ($data);
-    }
-
-    /**
-     * UMS设置在线人数系数
-     * @return 
-     */
-    public function addOnlineUsers($liveId,$onlineUserNum)
-    {
-        if (empty($liveId) || empty($onlineUserNum)) {
-            return $this->error(500);
-        }
-
-        $data = $this->liveModel->addChatRoomUsers($liveId,$onlineUserNum);
         return $this->succ($data);
     }
 
