@@ -151,7 +151,14 @@ class Koubei extends \FS_Service {
         $itemIds = array();
         //如果是单品，直接取商品口碑
         if($itemInfo['is_spu'] == 0){
-            $itemIds = array($itemId);
+            $relatedItems = $itemService->getRelateItemList([$itemInfo['relate_flag']])['data'];
+            if(!empty($relatedItems)){
+                foreach($relatedItems as $rItem){
+                    $itemIds[] = $rItem['id'];
+                }
+            }else{
+                $itemIds = array($itemId);
+            }
         }elseif($itemInfo['is_spu'] == 1 && $itemInfo['spu_type'] == 1){//是单品套装的情况
             //根据套装id获取套装的商品
             $spuItemId = $itemService->getItemRelateSpu($itemId)['data'];

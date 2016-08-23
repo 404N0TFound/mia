@@ -52,7 +52,7 @@ class Item extends \DB_Query {
         $result = array();
         if (!empty($data)) {
             foreach ($data as $v) {
-                $result[$v['relate_flag']][$v['id']] = $v;
+                $result[$v['id']] = $v;
             }
         }
         return $result;
