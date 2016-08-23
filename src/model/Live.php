@@ -331,15 +331,16 @@ class Live {
     }
 
     /**
-     * 给聊天室添加用户数
+     * 给聊天室添加用户系数
      * @param $liveId 直播ID
-     * @param $audienceOnlineNum 用户系数
+     * @param $usersNum 用户系数
      */
-    public function addChatRoomUsers($liveId,$audienceOnlineNum)
+    public function addChatRoomUsers($liveId,$usersNum)
     {
         $redis = new Redis();
-        $online_users_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_audience_online_num.key'),$liveId);
-        $redis->set($online_users_key,$audienceOnlineNum);
+        $users_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_online_users_num.key'),$liveId);
+        $expire_time = \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_online_users_num.expire_time');
+        $redis->setex($users_num_key,$usersNum,$expire_time);
         return true;
     }
 

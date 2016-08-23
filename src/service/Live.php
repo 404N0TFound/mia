@@ -237,7 +237,19 @@ class Live extends \mia\miagroup\Lib\Service {
         if(!$data){
             //更新房间信息失败 +日志
         }
-        
+        // 获取房间信息
+        $roomInfo = $this->liveModel->getRoomInfoByRoomId($roomId);
+        if(empty($roomInfo)){
+            //获取房间信息 + 日志
+        }
+        if(!$roomInfo['settings']['is_show_playback']){
+            $roomInfo['settings']['is_show_playback'] = 1;
+            $setInfo = ['settings' => $roomInfo['settings']];
+            $updateSetting = $this->liveModel->updateRoomSettingsById($roomId, $setInfo);
+            if(!$updateSetting){
+                // 更新房间回放设置失败 + 日志
+            }
+        }
         //更新直播房间
         $roomSetData[] = ['live_id',''];
         $roomSetData[] = ['chat_room_id',''];
@@ -838,13 +850,13 @@ class Live extends \mia\miagroup\Lib\Service {
      * UMS设置在线人数系数
      * @return 
      */
-    public function addOnlineUsers($liveId,$onlineUserNum)
+    public function addOnlineUsers($liveId,$userNum)
     {
-        if (empty($liveId) || empty($onlineUserNum)) {
+        if (empty($liveId) || empty($userNum)) {
             return $this->error(500);
         }
 
-        $data = $this->liveModel->addChatRoomUsers($liveId,$onlineUserNum);
+        $data = $this->liveModel->addChatRoomUsers($liveId,$userNum);
         return $this->succ($data);
     }
 
