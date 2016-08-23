@@ -4,6 +4,7 @@
  use mia\miagroup\Util\RongCloudUtil;
  use mia\miagroup\Util\NormalUtil;
  use mia\miagroup\Data\Live\Live as LiveData;
+use mia\miagroup\Model\Live as LiveModel;
  use mia\miagroup\Lib\Redis;
  
  /**
@@ -16,6 +17,7 @@
      public function execute() {
  
          $liveData = new LiveData();
+         $liveModel = new LiveModel();
          $rong_api = new RongCloudUtil();
          $redis = new Redis();
          
@@ -24,12 +26,15 @@
          foreach($result as $liveInfo){
              //获取数量
              $audience_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_audience_online_num.key'),$liveInfo['id']);
-             //用户系数
-             $users_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_online_users_num.key'),$liveInfo['id']);
              $cache_audience_num = $redis->get($audience_num_key);
-             $usersNum = $redis->get($users_num_key);
+
+             $roomInfo = $liveModel->getRoomInfoByUserId($liveInfo['user_id']);
+             $userNum = 10000;
+             if(isset($roomInfo['user_num']) && !empty($roomInfo['user_num'])){
+                $userNum = $roomInfo['user_num'];
+             }
              //变化数量
-             $cache_audience_num = $this->increase($cache_audience_num,$usersNum);
+             $cache_audience_num = $this->increase($cache_audience_num,$userNum);
              //记录数量
              $redis->set($audience_num_key, $cache_audience_num);
              //发送在线人数的消息

@@ -59,11 +59,7 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'stream_frame_status_%s',
         'expire_time' => 300,  
     ],
-    //在线用户系数
-    'live_online_users_num'=>[//使用String数据结构
-        'key' => $liveServicePrefix . 'online_users_num_%s',
-        'expire_time' => 86400,
-    ],
+
 );
 
 /**

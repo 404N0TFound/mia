@@ -331,17 +331,13 @@ class Live {
     }
 
     /**
-     * 给聊天室添加用户系数
-     * @param $liveId 直播ID
-     * @param $usersNum 用户系数
-     */
-    public function addChatRoomUsers($liveId,$usersNum)
+     * 根据user_id获取房间信息
+     *
+     **/
+    public function getRoomInfoByUserId($userId,$status=[1])
     {
-        $redis = new Redis();
-        $users_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_online_users_num.key'),$liveId);
-        $expire_time = \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_online_users_num.expire_time');
-        $redis->setex($users_num_key,$usersNum,$expire_time);
-        return true;
+        $data = $this->liveData->getRoomInfoByUserIds($userId,$status)[$userId];
+        return $data;
     }
 
 }
