@@ -64,7 +64,7 @@ class JinShanCloudUtil
 
     public function getStreamInfoByStreamId($streamId)
     {
-        $streamInfoKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_jinshan_stream.key'), $streamId);
+        $streamInfoKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_jinshan_stream_info.key'), $streamId);
         $data = [];
         $redis = new Redis();
         if($redis->exists($streamInfoKey)){
