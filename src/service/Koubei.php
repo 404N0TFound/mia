@@ -167,10 +167,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $itemIds = array();
         //如果是单品，直接取商品口碑
         if($itemInfo['is_spu'] == 0){
-            $relatedItems = $itemService->getRelateItemList([$itemInfo['relate_flag']])['data'];
-            if(!empty($relatedItems)){
-                foreach($relatedItems as $rItem){
-                    $itemIds[] = $rItem['id'];
+            if(!empty($itemInfo['relate_flag'])){
+                $relatedItems = $itemService->getRelateItemList([$itemInfo['relate_flag']])['data'];
+                if(!empty($relatedItems)){
+                    foreach($relatedItems as $rItem){
+                        $itemIds[] = $rItem['id'];
+                    }
                 }
             }else{
                 $itemIds = array($itemId);
