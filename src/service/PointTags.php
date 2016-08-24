@@ -4,7 +4,7 @@ namespace mia\miagroup\Service;
 use mia\miagroup\Model\PointTags as TagsModel;
 use mia\miagroup\Service\Item as ItemService;
 
-class PointTags extends \FS_Service {
+class PointTags extends \mia\miagroup\Lib\Service {
     
     public $tagsModel;
     public $itemService;

@@ -7,7 +7,7 @@ use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Util\EmojiUtil;
 
-class Koubei extends \FS_Service {
+class Koubei extends \mia\miagroup\Lib\Service {
     
     public $koubeiModel;
     public $subjectService;
@@ -73,6 +73,14 @@ class Koubei extends \FS_Service {
         {
             return $this->error(6101);
         }
+        
+        //发蜜豆
+        $mibean = new \mia\miagroup\Remote\MiBean();
+        $param['user_id'] = 3782852;//蜜芽兔
+        $param['to_user_id'] = $koubeiData['user_id'];
+        $param['relation_type'] = "send_koubei";
+        $param['relation_id'] = $koubeiInsertId;
+        
         //保存口碑相关图片信息
         if(!empty($koubeiData['image_infos'])){
             foreach ($koubeiData['image_infos'] as $path) {
@@ -87,7 +95,15 @@ class Koubei extends \FS_Service {
                     $this->koubeiModel->saveKoubeiPic($koubeiPicData);
                 }
             }
+            // 发布商品口碑+商品图片，获得10个蜜豆奖励
+            $param['mibean'] = 10;
+            $mibean->add($param);
+        }else{
+            //发布商品口碑，获得5个蜜豆奖励
+            $param['mibean'] = 5;
+            $mibean->add($param);
         }
+        
         //发口碑同时发布蜜芽圈帖子
         //#############start
         $subjectInfo = array();
