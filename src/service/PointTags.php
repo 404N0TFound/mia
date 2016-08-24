@@ -59,4 +59,64 @@ class PointTags extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($insertId);
     }
+    
+    /**
+     * 保存蜜芽圈帖子标记信息
+     * @param $subjectId 帖子id
+     * @param itemIds array() 帖子标记信息
+     */
+    public function saveBatchSubjectTags($subjectId,$itemIds){
+        
+        //判断是否已经存在过
+        $info = $this->tagsModel->getInfoByIds($subjectId, $itemIds);
+        $res_item_id = array_column($info, 'item_id');
+        $itemIds = array_diff($itemIds, $res_item_id);
+        if(empty($itemIds)){
+            return $this->error(201,'请不要重复添加！');
+        }
+        $itemInfos = $this->itemService->getItemList($itemIds)['data'];
+        foreach($itemInfos as $itemId => $itemInfo){
+            $tagSetInfo = array(
+                "point_id" => 0,
+                "title"       => $itemInfo['name'],
+                "type"        => 'sku',
+                "resource_id" => $itemInfo['brand_id'],
+                "subject_id" => $subjectId,
+                "item_id"     => $itemInfo['id'],
+                "product_type"   => 1,
+                "is_spu"      => 0,
+            );
+            $setData[] = $tagSetInfo;
+        }
+        $data = $this->tagsModel->saveBatchSubjectTags($setData);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 删除标记
+     */
+    public function delSubjectTag($point_id){
+        
+    }
+    
+    /**
+     * 批量查帖子相关商品id
+     * @param $subjectIds array() 图片ids
+     * @return array() 图片相关商品id列表
+     */
+    public function getBatchSubjectItmeIds($subjectIds){
+        $data = $this->tagsModel->getBatchSubjectItmeIds($subjectIds);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 删除帖子关联商品
+     */
+    public function delSubjectTagById($subjectId,$itemIds){
+        $data = $this->tagsModel->delSubjectTagById($subjectId, $itemIds);
+        return $this->succ($data);
+    }
+    
+    
+    
 }
