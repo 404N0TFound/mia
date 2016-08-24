@@ -59,5 +59,11 @@ class Item {
         $data = $this->itemPicData->getBatchItemPicList($item_id,$type);
         return $data;
     }
+    
+    //批量获取商品信息
+    public function getBatchItemBrandByIds($itemsIds)
+    {
+        return $this->itemData->getBatchItemBrandByIds($itemsIds);
+    }
 
 }

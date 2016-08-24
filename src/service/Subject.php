@@ -521,5 +521,32 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($data);
     }
     
+    /**
+     * 批量查询帖子相关商品信息
+     */
+    public function getBatchSubjectItemInfos($subjectIds) {
+        $itemIds = array();
+        $pointTag = new \mia\miagroup\Service\PointTags();
+        $subjectItemArr = $pointTag->getBatchSubjectItmeIds($subjectIds)['data'];
+        foreach ($subjectItemArr as $subjectItem) {
+            $itemIds = is_array($subjectItem) ? array_merge($itemIds, $subjectItem) : $itemIds;
+        }
+
+        $item = new \mia\miagroup\Service\Item();
+        $itemInfos = $item->getBatchItemBrandByIds($itemIds)['data'];
+        $result = array();
+        foreach ($subjectItemArr as $subjectId => $subjectItem) {
+            foreach ($subjectItem as $itemId) {
+                if (!empty($itemInfos[$itemId])) {
+                    $result[$subjectId][$itemId] = $itemInfos[$itemId];
+                }
+            }
+        }
+        return $this->succ($result);
+    }
+    
+
+    
+    
 }
 

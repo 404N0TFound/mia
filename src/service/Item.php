@@ -43,4 +43,11 @@ class Item extends \mia\miagroup\Lib\Service {
         $itemInList = $this->itemModel->getBatchItemByFlags($relateFlags);
         return $this->succ($itemInList);
     }
+    
+    //批量获取商品信息
+    public function getBatchItemBrandByIds($itemsIds)
+    {
+        $data = $this->itemModel->getBatchItemBrandByIds($itemsIds);
+        return $this->succ($data);
+    }
 }

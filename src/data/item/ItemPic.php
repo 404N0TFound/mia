@@ -37,4 +37,19 @@ class ItemPic extends \DB_Query {
         return $data;
     }
     
+    /**
+     * 获取商品图片
+     * @param unknown $item_id
+     * @param unknown $index
+     * @param string $type
+     */
+    public function getSingleItemPicInfo($item_id, $index, $type='normal'){
+        $where[] = ['item_id',$item_id];
+        $where[] = ['type',$type];
+        $where[] = ['index',$index];
+        $where[] = ['status',1];
+        
+        return $this->getRow($where,'local_url');
+    }
+    
 }

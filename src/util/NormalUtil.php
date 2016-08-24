@@ -173,4 +173,58 @@ class NormalUtil {
         return $data;
     }
     
+    public static function show_picture($size,$item_id)
+    {
+        $path = self::getHashPath($item_id);
+        switch ($size) {
+            case '80_80':
+                $num = 1;
+                break;
+            case '217_200':
+                $num = 2;
+                break;
+            case '314_288':
+                $num = 3;
+                break;
+            case '447_447':
+                $num = 4;
+                break;
+            case '300_200':
+                $num = 5;
+                break;
+            default:
+                $num = 1;
+                $size = '80_80';
+                break;
+        }
+        if (1) {
+            $date = date("Y-m-d");
+            $pic = \F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $path . $item_id . '_normal_' . $num . '.jpg';
+        } else {
+            $pic = '/resources/images/normal/normal'.$size.'.jpg';
+        }
+        $switch = TRUE;
+        if ($switch) {
+            $itemPic = new \mia\miagroup\Data\Item\ItemPic();
+            $row = $itemPic->getSingleItemPicInfo($item_id, $num);
+            if (!$row) {
+                return '';
+            }
+            $pic = \F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $row['local_url'];
+        }
+        if(empty($pic)) {
+            $pic = '';
+        }
+        return $pic;
+    }
+    
+    public static function getHashPath($soursId)
+    {
+        $hashFirPath = floor($soursId / 100000);
+        $hashSecPath = floor($soursId / 1000);
+        $newSavePath = 'item/' . $hashFirPath . "/" . $hashSecPath . "/";
+        return $newSavePath;
+    }
+    
+    
 }
