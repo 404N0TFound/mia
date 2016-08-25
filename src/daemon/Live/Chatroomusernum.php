@@ -28,10 +28,11 @@
              $audience_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_audience_online_num.key'),$liveInfo['id']);
              $cache_audience_num = $redis->get($audience_num_key);
 
-             $roomInfo = $liveModel->getRoomInfoByUserId($liveInfo['user_id']);
+             $roomInfo = $liveModel->checkLiveRoomByUserId($liveInfo['user_id']);
              $userNum = 10000;
-             if(isset($roomInfo['user_num']) && !empty($roomInfo['user_num'])){
-                $userNum = $roomInfo['user_num'];
+             $settings  = json_decode($roomInfo['settings'],true);
+             if(isset($settings['user_num']) && !empty($settings['user_num'])){
+                 $userNum = $settings['user_num'];
              }
              //变化数量
              $cache_audience_num = $this->increase($cache_audience_num,$userNum);

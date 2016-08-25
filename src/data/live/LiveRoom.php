@@ -147,34 +147,5 @@ class LiveRoom extends \DB_Query {
         return $affection;
     }
     
-    /**
-     * 根据user_id获取房间信息
-     *
-     **/
-    public function getRoomInfoByUserIds($userIds,$status = [1])
-    {
-        if (empty($userIds)) {
-            return [];
-        }
-        $where = [];
-        $where[] = ['user_id', $userIds];
-        if(!empty($status)){
-            $where[] = ['status', $status];
-        }
-        $result = $this->getRows($where);
-        foreach ($result as $v) {
-            $result[$v['user_id']] = $v;
-            $settings = json_decode($v['settings'], true);
-            $result[$v['user_id']]['banners'] = is_array($settings['banners']) ? array_values($settings['banners']) : array();
-            $result[$v['user_id']]['share'] = $settings['share'];
-            $result[$v['user_id']]['redbag'] = $settings['redbag'];
-            $result[$v['user_id']]['is_show_gift'] = $settings['is_show_gift'];
-            $result[$v['user_id']]['is_show_playback'] = $settings['is_show_playback'];
-            $result[$v['user_id']]['source'] = $settings['source'];
-            $result[$v['user_id']]['title'] = $settings['title'];
-            $result[$v['user_id']]['user_num'] = $settings['user_num'];
-            $result[$v['user_id']]['settings'] = $settings;
-        }
-        return $result;
-    }
+
 }

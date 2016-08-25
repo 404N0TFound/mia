@@ -330,14 +330,5 @@ class Live {
         return true;
     }
 
-    /**
-     * 根据user_id获取房间信息
-     *
-     **/
-    public function getRoomInfoByUserId($userId,$status=[1])
-    {
-        $data = $this->liveRoomData->getRoomInfoByUserIds($userId,$status)[$userId];
-        return $data;
-    }
 
 }
