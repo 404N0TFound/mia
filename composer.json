@@ -38,7 +38,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "git@dev10.gitlab.miyabaobei.com:miaservice/iceframework.git"
+            "url": "git@dev45.gitlab.miyabaobei.com:miaservice/iceframework.git"
         },
         {
             "packagist": false
