@@ -56,9 +56,11 @@ class Livetovideo extends \FD_Daemon {
         if($liveInfo['source'] == 1) {
             // 判断七牛是否已经转换完成
             $status = $qiniu->getVideoPfopStatus($liveToVideoValue['persistentId']);
-            if($status){
-                $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
+            if(!$status){
+                return;
             }
+            $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
+
         }elseif ($liveInfo['source'] == 2) {
             //把金山的回放移到七牛上
             $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
