@@ -147,7 +147,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         $commentInfo['id'] = $this->commentModel->addComment($commentInfo);
         
         // 获取入库的评论
-        $comment = $this->getBatchComments(array($commentInfo['id']), array())['data'];
+        $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'))['data'];
         if (!empty($comment[$commentId])) {
             $commentInfo = $comment[$commentInfo['id']];
         }
