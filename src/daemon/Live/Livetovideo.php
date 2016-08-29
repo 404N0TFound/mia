@@ -24,7 +24,6 @@ class Livetovideo extends \FD_Daemon {
         
         // 获取待转换成视频的直播回放
         $live_list_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_to_video_list.key');
-        $redis = new Redis();
         $liveId = $redis->lindex($live_list_key, -1);
         $liveInfo = $liveModel->getLiveInfoById($liveId);
         if ($liveInfo['subject_id'] > 0 || $liveInfo['status'] != 4) {
