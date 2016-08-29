@@ -512,9 +512,9 @@ class Subject extends \mia\miagroup\Lib\Service {
                 'relation_id'       => $subject_info['id'],
                 'to_user_id'        => $subject_info['user_id']
             );
-            
+            //验证是否送过
             $data = $mibean->check($param);
-            if($data['code'] != 200){
+            if(empty($data['data'])){
                 $data = $mibean->add($param);
             }
         }

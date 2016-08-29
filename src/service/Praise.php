@@ -112,13 +112,16 @@ class Praise extends \mia\miagroup\Lib\Service {
             );
             $praiseId = $this->praiseModel->insertPraise($setData);
             #start赠送用户蜜豆
-            // 收到赞+1        （以天为周期，每天收到N个赞，最多可得3次蜜豆奖励）
-            $mibean = new \mia\miagroup\Remote\MiBean();
-            $param['relation_type'] = 'receive_praise';
-            $param['user_id'] = $userId;
-            $param['relation_id'] = $iSubjectId;
-            $param['to_user_id'] = $subjectInfo['user_info']['user_id'];
-            $mibean->add($param);
+            //自己给自己点赞不送蜜豆
+            if($subjectInfo['user_id'] != $userId){
+                // 收到赞+1        （以天为周期，每天收到N个赞，最多可得3次蜜豆奖励）
+                $mibean = new \mia\miagroup\Remote\MiBean();
+                $param['relation_type'] = 'receive_praise';
+                $param['user_id'] = $userId;
+                $param['relation_id'] = $iSubjectId;
+                $param['to_user_id'] = $subjectInfo['user_info']['user_id'];
+                $mibean->add($param);
+            }
             #end赠送用户蜜豆
         }
     
