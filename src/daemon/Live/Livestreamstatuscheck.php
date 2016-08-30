@@ -4,6 +4,7 @@ namespace mia\miagroup\Daemon\Live;
 use \mia\miagroup\Lib\Redis;
 use \mia\miagroup\Util\RongCloudUtil;
 use \mia\miagroup\Util\QiniuUtil;
+use \mia\miagroup\Util\JinShanCloudUtil;
 use \mia\miagroup\Data\Live\Live as LiveData;
 use \mia\miagroup\Model\Live as LiveModel;
 use \mia\miagroup\Util\NormalUtil;
@@ -20,16 +21,24 @@ class Livestreamstatuscheck extends \FD_Daemon {
         $liveData = new LiveData();
         $rong_api = new RongCloudUtil();
         $qiniu = new QiniuUtil();
+        $jinshan = new JinShanCloudUtil();
     
         //获取正在直播的聊天室的id
         $result = $liveData->getBatchLiveInfo();
         foreach($result as $live){
             $framekey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame.key'),$live['chat_room_id']);
             $frameStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame_status.key'),$live['chat_room_id']);
-
-            $streamStatusInfo = $qiniu->getRawStatus($live['stream_id']);
+            if($live['source']==1){
+                $streamStatusInfo = $qiniu->getRawStatus($live['stream_id']);
+                $frame_rate = $streamStatusInfo['framesPerSecond']['video'];
+            } elseif ($live['source']==2) {
+                $streamName = array_shift(explode('-',$live['stream_id']));
+                $streamStatusInfo = $jinshan->getRawStatus($live['stream_id']);
+                $frame_rate = $streamStatusInfo['app']['live'][$streamName]['video']['frame_rate'];
+            }
+            
             $frameNum = $redis->zCard($framekey);
-            $redis->zadd($framekey,$frameNum,$streamStatusInfo['framesPerSecond']['video']);
+            $redis->zadd($framekey,$frameNum,$frame_rate);
             
             if($frameNum >= 5){
                 $frameData = $redis->zRange($framekey,0,-1);
@@ -50,7 +59,7 @@ class Livestreamstatuscheck extends \FD_Daemon {
                     }elseif($frameStatusCount >= 3){
                         $tipsText = '您的网络非常不稳定！请切换更好的网络!';
                     }
-                    $content = NormalUtil::getMessageBody(2, $$live['chat_room_id'],NormalUtil::getConfig('busconf.rongcloud.fromUserId'),$tipsText);
+                    $content = NormalUtil::getMessageBody(2, $live['chat_room_id'],NormalUtil::getConfig('busconf.rongcloud.fromUserId'),$tipsText);
                     // 判断是否是主播
                     $liveModel = new LiveModel();
                     $rongCloudUid = $liveModel->getRongHostUserId($live['user_id']);
