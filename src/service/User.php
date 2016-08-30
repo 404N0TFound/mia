@@ -151,7 +151,7 @@ class User extends \mia\miagroup\Lib\Service {
             unset($userInfo['child_sex']);
         }
         
-        $userInfo['level_number'] = $userInfo['level']; // 用户等级
+        $userInfo['level_number'] = 'Lv.' . $userInfo['level']; // 用户等级
         $userInfo['status'] = $userInfo['status'];
         
         return $this->succ($userInfo);
