@@ -148,10 +148,9 @@ class Comment extends \mia\miagroup\Lib\Service {
         
         // 获取入库的评论
         $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'))['data'];
-        if (!empty($comment[$commentId])) {
+        if (!empty($comment[$commentInfo['id']])) {
             $commentInfo = $comment[$commentInfo['id']];
         }
-        
         $this->subjectService = new Subject();
         $subjectInfoData = $this->subjectService->getBatchSubjectInfos(array($subjectId), 0, array())['data'];
         $subjectInfo = $subjectInfoData[$subjectId];
