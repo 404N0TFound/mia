@@ -28,97 +28,101 @@ class UserRelation {
         return $data;
     }
     
-    // 批量获取用户是否关注了我
+    /**
+     * 批量获取用户是否关注了我
+     */
     public function getMeRelationWithUser($loginUserId, $userIds) {
         $data = $this->appUserRelation->getMeRelationWithUser($loginUserId, $userIds);
         return $data;
     }
     
-    // 批量获取粉丝数
+    /**
+     * 批量获取粉丝数
+     */
     public function getCountBatchUserFanS($userIds) {
         $relationInfos = $this->appUserRelation->getCountBatchUserFanS($userIds);
         return $relationInfos;
     }
     
-    // 获取用户的关注数
+    /**
+     * 批量获取用户的关注数
+     */
     public function getCountBatchUserAtten($userIds) {
         $relationInfos = $this->appUserRelation->getCountBatchUserAtten($userIds);
         return $relationInfos;
     }
-    /**
-     * 添加关注
-     * @param unknown $userId
-     * @param unknown $relationUserId
-     * @param number $srouce 新增srouce 参数默认是1 当传递2时 表示是自动关注
-     * @return boolean|multitype:number
-     */
-//     public function save($userId , $relationUserId , $source = 1 ){
-//         return $this->appUserRelation->save($userId, $relationUserId, $source);
-//     }
     
     /**
-     * 判断关注关系
-     * @param unknown $iUserId
-     * @param unknown $followdUserId
+     * 获取两个用户之间的关系
      */
-    public function checkUserIsFollowdUser($iUserId, $followdUserId, $status=1)
-    {
-        return $this->appUserRelation->checkUserIsFollowdUser($iUserId, $followdUserId,$status);
+    public function getRelation($userId, $relationUserId) {
+        $relationMe = $this->appUserRelation->getRelationByBothUid($userId, $relationUserId);
+        $relationHim = $this->appUserRelation->getRelationByBothUid($relationUserId, $userId);
+        $relation['relation_with_me'] = $relationMe ? intval($relationMe['status']) : 0;
+        $relation['relation_with_him'] = $relationHim ? intval($relationHim['status']) : 0;
+        return $relation;
     }
     
     /**
-     * 更新关注状态
-     * @param unknown $userId
-     * @param unknown $relationUserId
+     * 是否关注过
      */
-    public function updateRelationStatus($userId,$relationUserId,$status=0){
-        return $this->appUserRelation->updateRelationStatus($userId,$relationUserId,$status);
+    public function isExistRelation($userId, $relationUserId) {
+        $relation = $this->appUserRelation->getRelationByBothUid($userId, $relationUserId);
+        return $relation;
     }
     
     /**
-     * insert
+     * 加关注
      */
-    public function insertRelation($setData){
-        return $this->appUserRelation->insertRelation($setData);
+    public function addRelation($userId, $relationUserId, $source) {
+        $meRelation = $this->appUserRelation->getRelationByBothUid($userId, $relationUserId);
+        if (!empty($meRelation)) {
+            //更新为关注状态
+            $this->appUserRelation->updateRelationStatus($userId, $relationUserId, array('status' => 1, 'create_time' => date('Y-m-d H:i:s')));
+        } else {
+            //新的关注关系
+            $setInfo = array(
+                "user_id"           => $userId,
+                "replation_user_id" => $relationUserId,
+                "status"            => 1,
+                "source"            => $source,
+            );
+            $insertRes = $this->appUserRelation->insertRelation($setInfo);
+        }
+        $relation = $this->getRelation($userId, $relationUserId);
+        return $relation;
     }
-    
     
     /**
      * 取消关注
      * @param unknown $userId
      * @param unknown $relationUserId
      */
-    public function remove($userId, $relationUserId)
-    {
-        return $this->appUserRelation->remove($userId, $relationUserId);
-    }
-    
-    /**用户粉丝与关注关系
-     * @param int $relationId被关注用户
-     * @param int $userId关注用户
-     * @param $page
-     * @param $iPageSize
-     * @return array|bool
-     */
-    public function userRelaption($relationId=0, $userId=0, $page, $iPageSize)
-    {
-        return $this->appUserRelation->userRelaption($relationId, $userId, $page, $iPageSize);
+    public function removeRelation($userId, $relationUserId) {
+        $meRelation = $this->appUserRelation->getRelationByBothUid($userId, $relationUserId);
+        if ($meRelation['status'] == 1) {
+            //更新为关注状态
+            $this->appUserRelation->updateRelationStatus($userId, $relationUserId, array('status' => 0, 'cancle_time' => date('Y-m-d H:i:s')));
+        }
+        $relation = $this->getRelation($userId, $relationUserId);
+        return $relation;
     }
     
     /**
-     * @param int $userId关注用户id （查看关注时必须存在）
-     * @param int $relationId被关注用户id （查看粉丝时必须存在）
-     * @param $page
-     * @param $iPageSize
-     * @return array|bool
+     * 获取用户的关注列表
      */
-    public function NotLogUserRelaption($userId = 0, $relationId = 0, $page, $iPageSize) {
-        return $this->appUserRelation->NotLogUserRelaption($userId, $relationId, $page, $iPageSize);
+    public function getAttentionListByUid($userId, $page = 0, $limit = 20) {
+        $start = ($page - 1) * $limit;
+        $data = $this->appUserRelation->getAttentionListByUid($userId, $start, $limit);
+        return $data;
     }
     
-
-    public function getOtherUserAttenList($loginUserId, $userId, $page, $iPageSize){
-        return $this->appUserRelation->getOtherUserAttenList($loginUserId, $userId, $page, $iPageSize);
+    /**
+     * 获取用户的粉丝列表
+     */
+    public function getFansListByUid($userId, $page = 0, $limit = 20) {
+        $start = ($page - 1) * $limit;
+        $data = $this->appUserRelation->getFansListByUid($userId, $start, $limit);
+        return $data;
     }
-    
 }
