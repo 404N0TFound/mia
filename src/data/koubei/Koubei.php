@@ -13,13 +13,14 @@ class Koubei extends \DB_Query {
     
     
     /**
-     * 根据商品id批量获取商品口碑信息
+     * 根据商品id批量获取商品口碑id
      * @param array() $itemIds 商品id
      * @return array()
      */
-    public function getBatchItemKoubei($itemIds, $limit = 20, $offset = 0, $orderBy = false) {
+    public function getKoubeiIdsByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false) {
+        $result = array();
         if (empty($itemIds)) {
-            return array();
+            return $result;
         }
         $where = array();
         $where[] = ['item_id', $itemIds];
@@ -28,7 +29,37 @@ class Koubei extends \DB_Query {
         
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
-        return $data;
+        if (!empty($data)) {
+            foreach($data as $v){
+                $result[] = $v['id'];
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * 根据口碑id批量获取口碑信息
+     * @param array() $koubeiIds 口碑id
+     * @return array()
+     */
+    public function getBatchKoubeiByIds($koubeiIds, $status = array(2)) 
+    {
+        $result = array();
+        if (empty($koubeiIds)) {
+            return $result;
+        }
+        $where = array();
+        $where[] = ['id', $koubeiIds];
+        $where[] = ['status', 2];
+    
+        $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
+        $data = $this->getRows($where,$fields);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[$v['id']] = $v;
+            }
+        }
+        return $result;
     }
     
     /**
@@ -66,7 +97,7 @@ class Koubei extends \DB_Query {
     public function getKoubeiByOrderItem($orderId, $itemId)
     {
         if(empty($orderId) || empty($itemId)){
-            return false;
+            return array();
         }
         
         $where = array();

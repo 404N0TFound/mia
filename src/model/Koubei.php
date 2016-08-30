@@ -32,14 +32,37 @@ class Koubei {
     }
     
     /**
-     * 获取商品口碑列表
+     * 获取商品口碑ids列表
      * @param array $itemIds 商品id
-     * @param $where
+     * @param $limit
+     * @param $offset
      */
-    public function getKoubeiList($itemIds, $limit, $offset){
+    public function getKoubeiIds($itemIds, $limit, $offset){
+        if (empty($itemIds)) {
+            return array();
+        }
         $orderBy = 'rank_score desc, created_time desc';
-        $koubeiData = $this->koubeiData->getBatchItemKoubei($itemIds, $limit, $offset, $orderBy);
+        $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy);
         return $koubeiData;
+    }
+    
+    /**
+     * 批量获取商品口碑
+     * @param array $KoubeiIds 口碑id
+     * @param $status
+     */
+    public function getBatchKoubeiByIds($KoubeiIds,$status){
+        if (empty($KoubeiIds)) {
+            return array();
+        }
+        $koubeiData = $this->koubeiData->getBatchKoubeiByIds($KoubeiIds, $status);
+        $koubeiInfos = array();
+        foreach ($KoubeiIds as $koubeiId) {
+            if (!empty($koubeiData[$koubeiId])) {
+                $koubeiInfos[$koubeiId] = $koubeiData[$koubeiId];
+            }
+        }
+        return $koubeiInfos;
     }
     
     /**
@@ -47,6 +70,9 @@ class Koubei {
      * @param $itemIds int 商品id
      */
     public function getItemKoubeiNums($itemIds){
+        if(empty($itemIds)){
+            return 0;
+        }
         $filed = ' count(*) as nums ';
         $where = array();
         $where['item_id'] = $itemIds;
@@ -62,6 +88,9 @@ class Koubei {
      * @param $itemIds int 商品id
      */
     public function getItemUserScore($itemIds){
+        if(empty($itemIds)){
+            return 0;
+        }
         $filed = ' AVG(score) as nums ';
         $where = array();
         $where['item_id'] = $itemIds;
@@ -76,6 +105,9 @@ class Koubei {
      * @param $itemIds int 商品id
      */
     public function getItemRecNums($itemIds){
+        if(empty($itemIds)){
+            return 0;
+        }
         $filed = ' count(*) as nums ';
         $where = array();
         $where['item_id'] = $itemIds;
@@ -93,6 +125,12 @@ class Koubei {
      */
     public function getItemKoubeiInfo($orderId, $itemId)
     {
+        if(intval($orderId) < 0 || intval($itemId) < 0){
+            return array();
+        }
+        $orderId = intval($orderId);
+        $itemId = intval($itemId);
+        
         $koubeiInfo = $this->koubeiData->getKoubeiByOrderItem($orderId, $itemId);
         return $koubeiInfo;
     }

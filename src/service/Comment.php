@@ -147,23 +147,27 @@ class Comment extends \mia\miagroup\Lib\Service {
         $commentInfo['id'] = $this->commentModel->addComment($commentInfo);
         
         // 获取入库的评论
-        $comment = $this->getBatchComments(array($commentInfo['id']), array())['data'];
-        if (!empty($comment[$commentId])) {
+        $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'))['data'];
+        if (!empty($comment[$commentInfo['id']])) {
             $commentInfo = $comment[$commentInfo['id']];
         }
-        
         $this->subjectService = new Subject();
         $subjectInfoData = $this->subjectService->getBatchSubjectInfos(array($subjectId), 0, array())['data'];
         $subjectInfo = $subjectInfoData[$subjectId];
         $sendFromUserId = $user_id; // 当前登录人id
         $toUserId = $subjectInfo['user_id'];
-        
         // 如果直接评论图片，自己评论自己的图片，不发送消息/push
         if ($sendFromUserId != $toUserId) {
             // 发消息
             $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
+            //赠送用户蜜豆
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['user_id'] = $sendFromUserId;
+            $param['relation_type'] = 'receive_comment';
+            $param['relation_id'] = $commentInfo['id'];
+            $param['to_user_id'] = $toUserId;
+            $mibean->add($param);
         }
-        
         // 如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
             $toUserId = $commentInfo['parent_user']['user_id'];

@@ -96,6 +96,9 @@ class LiveRoom extends \DB_Query {
                     $result[$v['id']]['redbag'] = $settings['redbag'];
                     $result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
                     $result[$v['id']]['is_show_playback'] = $settings['is_show_playback'];
+                    $result[$v['id']]['source'] = $settings['source'];
+                    $result[$v['id']]['title'] = $settings['title'];
+                    $result[$v['id']]['user_num'] = $settings['user_num'];
                     $result[$v['id']]['settings'] = $settings;
                 }
             }
@@ -144,5 +147,5 @@ class LiveRoom extends \DB_Query {
         return $affection;
     }
     
-    
+
 }

@@ -9,10 +9,19 @@ class AppUserRelation extends DB_Query {
 
     protected $tableName = 'app_user_relation';
 
-    protected $mapping = array('id' => 'i', 'user_id' => 'i', 'replation_user_id' => 'i', 'create_time' => 's', 'cancle_time' => 's', 'status' => 'i');
+    protected $mapping = array(
+        'id' => 'i', 
+        'user_id' => 'i', 
+        'replation_user_id' => 'i', 
+        'create_time' => 's', 
+        'cancle_time' => 's', 
+        'status' => 'i'
+    );
     
-    // 批量获取我是否关注了用户
-    public function getUserRelationWithMe($loginUserId, $userIds) {
+    /**
+     * 批量获取我是否关注了用户
+     */
+    public function getUserRelationWithMe($userId, $userIds) {
         $relationArr = array();
         
         if (is_array($userIds)) {
@@ -21,7 +30,7 @@ class AppUserRelation extends DB_Query {
             $where[] = array(':eq', 'replation_user_id', $userIds);
         }
         
-        $where[] = array(':eq', 'user_id', $loginUserId);
+        $where[] = array(':eq', 'user_id', $userId);
         $fields = "replation_user_id as user_id,status";
         
         $relationStatus = $this->getRows($where, $fields);
@@ -38,8 +47,10 @@ class AppUserRelation extends DB_Query {
         return $relationArr;
     }
     
-    // 批量获取用户是否关注了我
-    public function getMeRelationWithUser($loginUserId, $userIds) {
+    /**
+     * 批量获取用户是否关注了我
+     */
+    public function getMeRelationWithUser($userId, $userIds) {
         if (is_array($userIds)) {
             
             $where[] = array(':in', 'user_id', $userIds);
@@ -47,7 +58,7 @@ class AppUserRelation extends DB_Query {
             $where[] = array(':eq', 'user_id', $userIds);
         }
         
-        $where[] = array(':eq', 'replation_user_id', $loginUserId);
+        $where[] = array(':eq', 'replation_user_id', $userId);
         
         $relationStatus = $this->getRows($where, ' user_id,status');
         
@@ -65,7 +76,7 @@ class AppUserRelation extends DB_Query {
         return $relationArr;
     }
 
-    /*
+    /**
      * 批量获取用户的粉丝数
      */
     public function getCountBatchUserFanS($userIds) {
@@ -85,7 +96,9 @@ class AppUserRelation extends DB_Query {
         return $numArr;
     }
     
-    // 获取用户的关注数
+    /**
+     * 批量用户的关注数
+     */
     public function getCountBatchUserAtten($userIds) {
         $where[] = ['user_id', $userIds];
         $where[] = [':>', 'status', 0];
@@ -100,5 +113,75 @@ class AppUserRelation extends DB_Query {
         }
         
         return $numArr;
+    }
+    
+    /**
+     * 更新关注状态
+     * @param unknown $userId
+     * @param unknown $relationUserId
+     */
+    public function updateRelationStatus($userId, $relationUserId, $setData){
+        $data = array();
+        if (!empty($setData['status'])) {
+            $data[] = array("status", $setData['status']);
+        }
+        if (!empty($setData['create_time'])) {
+            $data[] = array("status", $setData['create_time']);
+        }
+        if (!empty($setData['cancle_time'])) {
+            $data[] = array("status", $setData['cancle_time']);
+        }
+        $where = array(array("user_id", $userId), array("replation_user_id", $relationUserId));
+        $setRelationStatus = $this->update($data, $where);
+        return $setRelationStatus;
+    }
+    
+    /**
+     * insert
+     */
+    public function insertRelation($setData){
+        return $this->insert($setData);
+    }
+    
+    /**
+     * 获取两人关注关系
+     */
+    public function getRelationByBothUid($userId, $relationUserId) {
+        $where[] = ['user_id', $userId];
+        $where[] = ['replation_user_id', $relationUserId];
+        $relation = $this->getRow($where);
+        return $relation;
+    }
+    
+    /**
+     * 获取用户的关注列表
+     */
+    public function getAttentionListByUid($userId, $start = 0, $limit = 20) {
+        $where[] = array(':eq', 'user_id', $userId);
+        $where[] = array(':eq', 'status', 1);
+        $data = $this->getRows($where, 'replation_user_id', $limit, $start, 'create_time desc');
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[] = $v['replation_user_id'];
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * 获取用户的粉丝列表
+     */
+    public function getFansListByUid($userId, $start = 0, $limit = 20) {
+        $where[] = array(':eq', 'replation_user_id', $userId);
+        $where[] = array(':eq', 'status', 1);
+        $data = $this->getRows($where, 'user_id', $limit, $start, 'create_time desc');
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[] = $v['user_id'];
+            }
+        }
+        return $result;
     }
 }

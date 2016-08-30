@@ -49,11 +49,17 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'rong_cloud_user_hash_%s',
         'expire_time' => 86400,
     ],
+    //金山流信息
+    'live_jinshan_stream_info' => [ //使用String数据结构
+        'key' => $liveServicePrefix . 'jinshan_stream_info_%s',
+        'expire_time' => 86400 * 30,
+    ],
     //记录直播流不稳定的次数
     'live_stream_frame_status'=>[
         'key' => $liveServicePrefix . 'stream_frame_status_%s',
         'expire_time' => 300,  
     ],
+
 );
 
 /**
@@ -69,3 +75,17 @@ $redBagKey = array(
         'expire_time' => 86400 * 30,
     )
 );
+
+/**
+ * 蜜豆相关
+ */
+$miBeanKey = array(
+    //记录赠送蜜豆数量的key
+    'mibean_give_way' => array(
+        'key' => 'mibean_give_%s_%s',
+        'expire_time' => 86400
+    ),
+    
+    
+);
+

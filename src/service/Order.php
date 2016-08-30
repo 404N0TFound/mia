@@ -3,7 +3,7 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Order as OrderModel;
 
-class Order extends \FS_Service {
+class Order extends \mia\miagroup\Lib\Service {
     
     public $orderModel;
     

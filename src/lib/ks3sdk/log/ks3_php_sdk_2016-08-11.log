@@ -1,0 +1,57 @@
+Thu, 11 Aug 2016 03:10:06 GMT INFO
+------------------Logging Start-------------------------
+method->listBuckets args->a:0:{}
+stringToSing->
+GET
+
+application/xml
+Thu, 11 Aug 2016 03:10:06 GMT
+/
+request url->s:31:"http://ks3-cn-beijing.ksyun.com";
+request headers->a:4:{s:10:"User-Agent";s:15:"ks3-kss-php-sdk";s:12:"Content-Type";s:15:"application/xml";s:4:"Date";s:29:"Thu, 11 Aug 2016 03:10:06 GMT";s:13:"Authorization";s:53:"KSS viyItWWbR0VgFI9ya06O:HgilXcwmJzrrUes5pKGCfNlmsmc=";}
+request body->
+request read stream length->
+request read stream seek position->
+response code->200
+response headers->a:8:{s:6:"server";s:7:"Tengine";s:4:"date";s:29:"Thu, 11 Aug 2016 03:10:12 GMT";s:12:"content-type";s:15:"application/xml";s:17:"transfer-encoding";s:7:"chunked";s:10:"connection";s:10:"keep-alive";s:21:"x-application-context";s:11:"application";s:16:"x-kss-request-id";s:32:"5c3fd564d1f24cf0b9146b28e0b44fce";s:5:"_info";a:27:{s:3:"url";s:32:"http://ks3-cn-beijing.ksyun.com/";s:12:"content_type";s:15:"application/xml";s:9:"http_code";i:200;s:11:"header_size";i:244;s:12:"request_size";i:323;s:8:"filetime";i:-1;s:17:"ssl_verify_result";i:0;s:14:"redirect_count";i:0;s:10:"total_time";d:0.055523999999999997;s:15:"namelookup_time";d:0.012355;s:12:"connect_time";d:0.036322;s:16:"pretransfer_time";d:0.036499999999999998;s:11:"size_upload";d:0;s:13:"size_download";d:336;s:14:"speed_download";d:6051;s:12:"speed_upload";d:0;s:23:"download_content_length";d:-1;s:21:"upload_content_length";d:0;s:18:"starttransfer_time";d:0.055383000000000002;s:13:"redirect_time";d:0;s:12:"redirect_url";s:0:"";s:10:"primary_ip";s:14:"111.206.217.37";s:8:"certinfo";a:0:{}s:12:"primary_port";i:80;s:8:"local_ip";s:9:"10.0.2.15";s:10:"local_port";i:46294;s:6:"method";s:3:"GET";}}
+response body-><?xml version="1.0" encoding="UTF-8" standalone="yes"?><ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>NzM0MTAwNjY=</ID><DisplayName>NzM0MTAwNjY=</DisplayName></Owner><Buckets><Bucket><Name>opstest</Name><CreationDate>2016-08-01T10:27:29.000Z</CreationDate></Bucket></Buckets></ListAllMyBucketsResult>
+------------------Logging End-------------------------
+
+Thu, 11 Aug 2016 03:16:04 GMT INFO
+------------------Logging Start-------------------------
+method->listBuckets args->a:0:{}
+stringToSing->
+GET
+
+application/xml
+Thu, 11 Aug 2016 03:16:04 GMT
+/
+request url->s:31:"http://ks3-cn-beijing.ksyun.com";
+request headers->a:4:{s:10:"User-Agent";s:15:"ks3-kss-php-sdk";s:12:"Content-Type";s:15:"application/xml";s:4:"Date";s:29:"Thu, 11 Aug 2016 03:16:04 GMT";s:13:"Authorization";s:53:"KSS viyItWWbR0VgFI9ya06O:fQrKaZXCwebeg5GveYv4mFNMVBQ=";}
+request body->
+request read stream length->
+request read stream seek position->
+response code->200
+response headers->a:8:{s:6:"server";s:7:"Tengine";s:4:"date";s:29:"Thu, 11 Aug 2016 03:16:10 GMT";s:12:"content-type";s:15:"application/xml";s:17:"transfer-encoding";s:7:"chunked";s:10:"connection";s:10:"keep-alive";s:21:"x-application-context";s:11:"application";s:16:"x-kss-request-id";s:32:"d2328035a32b42699c97eea79a8714d6";s:5:"_info";a:27:{s:3:"url";s:32:"http://ks3-cn-beijing.ksyun.com/";s:12:"content_type";s:15:"application/xml";s:9:"http_code";i:200;s:11:"header_size";i:244;s:12:"request_size";i:323;s:8:"filetime";i:-1;s:17:"ssl_verify_result";i:0;s:14:"redirect_count";i:0;s:10:"total_time";d:0.085581000000000004;s:15:"namelookup_time";d:0.013741;s:12:"connect_time";d:0.020858000000000002;s:16:"pretransfer_time";d:0.021031999999999999;s:11:"size_upload";d:0;s:13:"size_download";d:336;s:14:"speed_download";d:3926;s:12:"speed_upload";d:0;s:23:"download_content_length";d:-1;s:21:"upload_content_length";d:0;s:18:"starttransfer_time";d:0.085474999999999995;s:13:"redirect_time";d:0;s:12:"redirect_url";s:0:"";s:10:"primary_ip";s:14:"111.206.217.37";s:8:"certinfo";a:0:{}s:12:"primary_port";i:80;s:8:"local_ip";s:9:"10.0.2.15";s:10:"local_port";i:46298;s:6:"method";s:3:"GET";}}
+response body-><?xml version="1.0" encoding="UTF-8" standalone="yes"?><ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>NzM0MTAwNjY=</ID><DisplayName>NzM0MTAwNjY=</DisplayName></Owner><Buckets><Bucket><Name>opstest</Name><CreationDate>2016-08-01T10:27:29.000Z</CreationDate></Bucket></Buckets></ListAllMyBucketsResult>
+------------------Logging End-------------------------
+
+Thu, 11 Aug 2016 03:16:48 GMT INFO
+------------------Logging Start-------------------------
+method->listBuckets args->a:0:{}
+stringToSing->
+GET
+
+application/xml
+Thu, 11 Aug 2016 03:16:48 GMT
+/
+request url->s:31:"http://ks3-cn-beijing.ksyun.com";
+request headers->a:4:{s:10:"User-Agent";s:15:"ks3-kss-php-sdk";s:12:"Content-Type";s:15:"application/xml";s:4:"Date";s:29:"Thu, 11 Aug 2016 03:16:48 GMT";s:13:"Authorization";s:53:"KSS viyItWWbR0VgFI9ya06O:gkAY5ukxw2ed8EntsVOdacBp2Xw=";}
+request body->
+request read stream length->
+request read stream seek position->
+response code->200
+response headers->a:8:{s:6:"server";s:7:"Tengine";s:4:"date";s:29:"Thu, 11 Aug 2016 03:16:55 GMT";s:12:"content-type";s:15:"application/xml";s:17:"transfer-encoding";s:7:"chunked";s:10:"connection";s:10:"keep-alive";s:21:"x-application-context";s:11:"application";s:16:"x-kss-request-id";s:32:"6c3b2add1e2346f1b2f7a6241278579d";s:5:"_info";a:27:{s:3:"url";s:32:"http://ks3-cn-beijing.ksyun.com/";s:12:"content_type";s:15:"application/xml";s:9:"http_code";i:200;s:11:"header_size";i:244;s:12:"request_size";i:323;s:8:"filetime";i:-1;s:17:"ssl_verify_result";i:0;s:14:"redirect_count";i:0;s:10:"total_time";d:0.032481999999999997;s:15:"namelookup_time";d:0.0042319999999999997;s:12:"connect_time";d:0.011627999999999999;s:16:"pretransfer_time";d:0.011805;s:11:"size_upload";d:0;s:13:"size_download";d:336;s:14:"speed_download";d:10344;s:12:"speed_upload";d:0;s:23:"download_content_length";d:-1;s:21:"upload_content_length";d:0;s:18:"starttransfer_time";d:0.032378999999999998;s:13:"redirect_time";d:0;s:12:"redirect_url";s:0:"";s:10:"primary_ip";s:14:"111.206.217.37";s:8:"certinfo";a:0:{}s:12:"primary_port";i:80;s:8:"local_ip";s:9:"10.0.2.15";s:10:"local_port";i:46301;s:6:"method";s:3:"GET";}}
+response body-><?xml version="1.0" encoding="UTF-8" standalone="yes"?><ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Owner><ID>NzM0MTAwNjY=</ID><DisplayName>NzM0MTAwNjY=</DisplayName></Owner><Buckets><Bucket><Name>opstest</Name><CreationDate>2016-08-01T10:27:29.000Z</CreationDate></Bucket></Buckets></ListAllMyBucketsResult>
+------------------Logging End-------------------------
+

@@ -39,4 +39,27 @@ class Praise {
         $isPraised = $this->subjectPraiseData->getBatchSubjectIsPraised($subjectIds, $userId);
         return $isPraised;
     }
+    
+    public function checkIsExistFanciedByUserId($iUserId, $iSubjectId)
+    {
+        return $this->subjectPraiseData->checkIsExistFanciedByUserId($iUserId, $iSubjectId);
+    }
+    
+    /**
+     * 更新赞
+     * @param unknown $setData
+     * @param unknown $id
+     */
+    public function updatePraiseById($setData,$id){
+        return $this->subjectPraiseData->updatePraiseById($setData,$id);
+    }
+    
+    public function updatePraise($setData,$where){
+        return $this->subjectPraiseData->updatePraise($setData, $where);
+    }
+    
+    public function insertPraise($setData){
+        return $this->subjectPraiseData->insertPraise($setData);
+    }
+    
 }

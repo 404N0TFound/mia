@@ -3,6 +3,7 @@ namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Subject\Video as VideoData;
+use mia\miagroup\Data\Subject\GroupSubjectRecommendPool;
 
 class Subject {
 
@@ -120,4 +121,36 @@ class Subject {
         }
         return $result;
     }
+    
+    /**
+     * 获取推荐池列表
+     * @return multitype:multitype:unknown
+     */
+    public function getRecommendSubjectIdList(){
+        $recommendData = new GroupSubjectRecommendPool();
+        return $recommendData->getRecommendSubjectIdList();
+    }
+    
+    /**
+     * 设置推荐池中的状态为已经推荐过
+     * @param array $ids
+     * @param int $setStatus
+     * @return boolean
+     */
+    public function setRecommendorStatus($ids, $status = 1){
+        $recommendData = new GroupSubjectRecommendPool();
+        return $recommendData->setRecommendorStatus($ids, $status);
+    }
+    
+    /**
+     * 设置图片为推荐图片
+     * @param array ids
+     * @param int $setStatus
+     * @return boolean
+     */
+    public function setSubjectRecommendStatus($ids, $setStatus = 1)
+    {
+        return $this->subjectData->setSubjectRecommendStatus($ids,$setStatus);
+    }
+    
 }

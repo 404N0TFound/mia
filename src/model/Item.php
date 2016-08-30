@@ -1,13 +1,20 @@
 <?php
 namespace mia\miagroup\Model;
-use \F_Ice;
+
 use mia\miagroup\Data\Item\Item as ItemData;
+use mia\miagroup\Data\Item\ItemPic as ItemPicData;
+use mia\miagroup\Data\Item\ItemSpu as ItemSpuData;
+
 class Item {
     
     public $itemData;
+    public $itemPicData;
+    public $itemSpuData;
     
     public function __construct() {
         $this->itemData = new ItemData();
+        $this->itemPicData = new ItemPicData();
+        $this->itemSpuData = new ItemSpuData();
     }
     
     /**
@@ -25,6 +32,38 @@ class Item {
     public function getBatchItemByFlags($relateFlags){
         $itemListData = $this->itemData->getBatchItemByFlags($relateFlags);
         return $itemListData;
+    }
+    
+    /**
+     * 根据商品id获取套装id
+     * @param  $itemId 商品id
+     */
+    public function getSpuByItemId($itemId){
+        $spuData = $this->itemSpuData->getSpuByItemId($itemId);
+        return $spuData;
+    }
+    
+    /**
+     * 根据spu_id获取商品
+     * @param  $spuId 套装id
+     */
+    public function getItemBySpuId($spuId){
+        $spuData = $this->itemSpuData->getItemBySpuId($spuId);
+        return $spuData;
+    }
+    
+    /**
+     * 根据item_id获取一组图片
+     */
+    public function getBatchItemPicList($item_id ,$type = 'normal'){
+        $data = $this->itemPicData->getBatchItemPicList($item_id,$type);
+        return $data;
+    }
+    
+    //批量获取商品信息
+    public function getBatchItemBrandByIds($itemsIds)
+    {
+        return $this->itemData->getBatchItemBrandByIds($itemsIds);
     }
 
 }

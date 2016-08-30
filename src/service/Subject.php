@@ -107,6 +107,10 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectRes[$subjectInfo['id']]['text'] = $subjectInfo['text'];
             $subjectRes[$subjectInfo['id']]['status'] = $subjectInfo['status'];
             $subjectRes[$subjectInfo['id']]['is_top'] = $subjectInfo['is_top'];
+            $subjectRes[$subjectInfo['id']]['user_id'] = $subjectInfo['user_id'];
+            $subjectRes[$subjectInfo['id']]['is_fine'] = $subjectInfo['is_fine'];
+            $subjectRes[$subjectInfo['id']]['show_age'] = $subjectInfo['show_age'];
+            $subjectRes[$subjectInfo['id']]['share_count'] = $subjectInfo['share_count'];
             // 处理帖子图片地址
             $imageUrl = array();
             $smallImageUrl = array();
@@ -237,11 +241,11 @@ class Subject extends \mia\miagroup\Lib\Service {
      */
     public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0) {
         if (empty($subjectInfo)) {
-            return $this->error();
+            return $this->error(500);
         }
         $subjectSetInfo = array();
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
-            return $this->error();
+            return $this->error(500);
         }
         // 添加视频
         if ($subjectInfo['video_url']) {
@@ -288,7 +292,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         unset($subjectSetInfo['ext_info']);
         if (!$insertSubjectRes) {
             // 发布失败
-            return $this->succ();
+            return $this->error(1101);
         }
         // insert_id
         $subjectId = $insertSubjectRes;
@@ -313,6 +317,15 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $subjectSetInfo['small_image_url'][] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $small_image_url;
             }
         }
+        
+        #start赠送用户蜜豆
+        $mibean = new \mia\miagroup\Remote\MiBean();
+        $param['user_id'] = $subjectSetInfo['user_id'];
+        $param['relation_type'] = 'publish_pic';
+        $param['relation_id'] = $subjectId;
+        $param['to_user_id'] = $subjectSetInfo['user_id'];
+        $mibean->add($param);
+        #end赠送用户蜜豆
         
         // 添加蜜芽圈标签
         if (!empty($labelInfos)) {
@@ -476,5 +489,64 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         return $shareStruct;
     }
+    
+    /**
+     * 批量给帖子加精
+     */
+    public function subjectAddFine($subjectId){
+        $subjectId = is_array($subjectId) ? $subjectId : [$subjectId];
+        //查询图片信息
+        $subjects_info = $this->subjectModel->getSubjectByIds($subjectId);
+        
+        $affect = $this->subjectModel->setSubjectRecommendStatus($subjectId);
+        if(!$affect){
+            return $this->error(201,'帖子加精失败!');
+        }
+        //送蜜豆
+        $mibean = new \mia\miagroup\Remote\MiBean();
+        foreach($subjects_info as $subject_info){
+            $param = array(
+                'user_id'           => $subject_info['user_id'],//操作人
+                'mibean'            => 5,
+                'relation_type'     => 'fine_pic',
+                'relation_id'       => $subject_info['id'],
+                'to_user_id'        => $subject_info['user_id']
+            );
+            //验证是否送过
+            $data = $mibean->check($param);
+            if(empty($data['data'])){
+                $data = $mibean->add($param);
+            }
+        }
+        return $this->succ($data);
+    }
+    
+    /**
+     * 批量查询帖子相关商品信息
+     */
+    public function getBatchSubjectItemInfos($subjectIds) {
+        $itemIds = array();
+        $pointTag = new \mia\miagroup\Service\PointTags();
+        $subjectItemArr = $pointTag->getBatchSubjectItmeIds($subjectIds)['data'];
+        foreach ($subjectItemArr as $subjectItem) {
+            $itemIds = is_array($subjectItem) ? array_merge($itemIds, $subjectItem) : $itemIds;
+        }
+
+        $item = new \mia\miagroup\Service\Item();
+        $itemInfos = $item->getBatchItemBrandByIds($itemIds)['data'];
+        $result = array();
+        foreach ($subjectItemArr as $subjectId => $subjectItem) {
+            foreach ($subjectItem as $itemId) {
+                if (!empty($itemInfos[$itemId])) {
+                    $result[$subjectId][$itemId] = $itemInfos[$itemId];
+                }
+            }
+        }
+        return $this->succ($result);
+    }
+    
+
+    
+    
 }
 
