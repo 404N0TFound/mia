@@ -50,7 +50,7 @@ class Livestreamstatuscheck extends \FD_Daemon {
                     }elseif($frameStatusCount >= 3){
                         $tipsText = '您的网络非常不稳定！请切换更好的网络!';
                     }
-                    $content = NormalUtil::getMessageBody(2, $$live['chat_room_id'],NormalUtil::getConfig('busconf.rongcloud.fromUserId'),$tipsText);
+                    $content = NormalUtil::getMessageBody(2, $live['chat_room_id'],NormalUtil::getConfig('busconf.rongcloud.fromUserId'),$tipsText);
                     // 判断是否是主播
                     $liveModel = new LiveModel();
                     $rongCloudUid = $liveModel->getRongHostUserId($live['user_id']);
