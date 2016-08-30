@@ -1,7 +1,6 @@
 <?php
 namespace mia\miagroup\Service;
 
-use \FS_Service;
 use \F_Ice;
 use mia\miagroup\Model\User as UserModel;
 use mia\miagroup\Service\UserRelation;
@@ -151,7 +150,9 @@ class User extends \mia\miagroup\Lib\Service {
             unset($userInfo['child_sex']);
         }
         
-        $userInfo['level_number'] = 'Lv.' . $userInfo['level']; // 用户等级
+        $userInfo['level_number'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level']; // 用户等级
+        $userInfo['level_id'] = $userInfo['level']; // 用户等级ID
+        $userInfo['level'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_name']; // 用户等级
         $userInfo['status'] = $userInfo['status'];
         
         return $this->succ($userInfo);
