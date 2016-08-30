@@ -151,8 +151,8 @@ class User extends \mia\miagroup\Lib\Service {
         }
         
         $userInfo['level_number'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level']; // 用户等级
-        $userInfo['level_id'] = $userInfo['level']; // 用户等级ID
-        $userInfo['level'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_name']; // 用户等级
+        $userInfo['level_id'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_id'];; // 用户等级ID
+        $userInfo['level'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_name']; // 用户等级名称
         $userInfo['status'] = $userInfo['status'];
         
         return $this->succ($userInfo);
