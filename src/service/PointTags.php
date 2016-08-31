@@ -20,27 +20,24 @@ class PointTags extends \mia\miagroup\Lib\Service {
      * @param $tagsData array() 帖子标记信息
      */
     public function saveSubjectTags($subjectId,$tagInfo){
-        if(empty($tagInfo)){
-            return $this->error();
+        if(intval($tagInfo['item_id']) < 0){
+            return $this->error(6105);
         }
         $itemInfo = $this->itemService->getItemList([$tagInfo['item_id']])['data'][$tagInfo['item_id']];
         //品牌id
+        $resourceId = 0;
         if (isset($itemInfo['brand_id']) && intval($itemInfo['brand_id']) > 0) {
             $resourceId = intval($itemInfo['brand_id']);
-        }else{
-             return $this->error();
         }
         //商品id
+        $itemId = 0;
         if (isset($itemInfo['id']) && intval($itemInfo['id']) > 0) {
             $itemId = intval($itemInfo['id']);
-        }else{
-             return $this->error();
         }
         //商品名称 ---title
+        $title = "";
         if (isset($itemInfo['name']) && !empty($itemInfo['name']) ) {
             $title = $itemInfo['name'];
-        }else{
-             return $this->error();
         }
         
         $tagSetInfo = array(
