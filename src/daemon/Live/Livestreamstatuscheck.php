@@ -26,6 +26,12 @@ class Livestreamstatuscheck extends \FD_Daemon {
         //获取正在直播的聊天室的id
         $result = $liveData->getBatchLiveInfo();
         foreach($result as $live){
+            
+            //只检测开播5分钟之后的直播
+            if(strtotime($live['start_time']) + 300 > time()){
+                continue;
+            }
+            
             $framekey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame.key'),$live['chat_room_id']);
             $frameStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame_status.key'),$live['chat_room_id']);
             if($live['source']==1){

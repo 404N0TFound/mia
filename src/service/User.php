@@ -149,10 +149,15 @@ class User extends \mia\miagroup\Lib\Service {
         } else {
             unset($userInfo['child_sex']);
         }
+        if(substr($this->ext_params['version'],-5,3) == '4_6'){
+            $userInfo['level'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_name']; // 用户等级名称
+            $userInfo['level_number'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level']; // 用户等级
+        }else{
+            $userInfo['level'] = '';
+            $userInfo['level_number'] = 0;
+        }
         
-        $userInfo['level_number'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level']; // 用户等级
-        $userInfo['level_id'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_id'];; // 用户等级ID
-        $userInfo['level'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_name']; // 用户等级名称
+        $userInfo['level_id'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_id']; // 用户等级ID
         $userInfo['status'] = $userInfo['status'];
         
         return $this->succ($userInfo);
