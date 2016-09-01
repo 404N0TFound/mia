@@ -837,5 +837,23 @@ class Live extends \mia\miagroup\Lib\Service {
         return $this->succ($data);
     }
 
+    /**
+     * 
+     * @param  [int] $liveId
+     * @param  [array] $fields
+     * @return 
+     */
+    public function updateLiveByIiveId($liveId,$fields)
+    {
+        if (empty($liveId) || !is_array($fields)) {
+            return $this->error(500);
+        }
+        $setInfo=[];
+        foreach ($fields as $key => $value) {
+            $setInfo[] = [$key,$value];
+        }
+        $data = $this->liveModel->updateLiveById($liveId,$setInfo);
+        return $this->succ($data);
+    }
 
 }

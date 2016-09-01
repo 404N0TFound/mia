@@ -152,10 +152,7 @@ class JinShanCloudUtil
      **/
     public function getStatus($streamId)
     {
-        $streamInfo = $this->_getVdoidAndStreamname($streamId);
-        $streamName = $streamInfo['streamname'];
-        $url = $this->_config['live_stream_status'].'name='.$streamName;
-        $result = json_decode($this->_curlGet($url),true);
+        $result = $this->getRawStatus($streamId);
 
         $returnValue = 'connected';
         $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $streamId);
@@ -177,6 +174,15 @@ class JinShanCloudUtil
             $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
         }
         return $returnValue;
+    }
+
+    public function getRawStatus($streamId)
+    {
+        $streamInfo = $this->_getVdoidAndStreamname($streamId);
+        $streamName = $streamInfo['streamname'];
+        $url = $this->_config['live_stream_status'].'name='.$streamName;
+        $result = json_decode($this->_curlGet($url),true);
+        return $result;
     }
 
 
