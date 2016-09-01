@@ -122,8 +122,8 @@ class AppUserRelation extends DB_Query {
      */
     public function updateRelationStatus($userId, $relationUserId, $setData){
         $data = array();
-        if (!empty($setData['status'])) {
-            $data[] = array("status", $setData['status']);
+        if (isset($setData['status'])) {
+            $data[] = array("status", intval($setData['status']));
         }
         if (!empty($setData['create_time'])) {
             $data[] = array("create_time", $setData['create_time']);
