@@ -126,10 +126,10 @@ class AppUserRelation extends DB_Query {
             $data[] = array("status", $setData['status']);
         }
         if (!empty($setData['create_time'])) {
-            $data[] = array("status", $setData['create_time']);
+            $data[] = array("create_time", $setData['create_time']);
         }
         if (!empty($setData['cancle_time'])) {
-            $data[] = array("status", $setData['cancle_time']);
+            $data[] = array("cancle_time", $setData['cancle_time']);
         }
         $where = array(array("user_id", $userId), array("replation_user_id", $relationUserId));
         $setRelationStatus = $this->update($data, $where);
