@@ -201,7 +201,7 @@ class AlbumArticle extends \DB_Query {
             $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
             $limit = $params['iPageSize'];
         }
-        $orderBy = array('create_time DESC');
+        $orderBy = array('recommend_time DESC');
         $idArr = $this->getRows($where, array('subject_id'), $limit, $offset, $orderBy);
         if($idArr){
             foreach($idArr as $value){
