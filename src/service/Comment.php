@@ -146,8 +146,11 @@ class Comment extends \mia\miagroup\Lib\Service {
         // 记录评论信息
         $commentInfo['id'] = $this->commentModel->addComment($commentInfo);
         
-        // 获取入库的评论
+        // 获取入库的评论,查主库
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'))['data'];
+        \DB_Query::switchCluster($preNode);
+        
         if (!empty($comment[$commentInfo['id']])) {
             $commentInfo = $comment[$commentInfo['id']];
         }
