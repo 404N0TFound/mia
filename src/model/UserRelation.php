@@ -89,7 +89,10 @@ class UserRelation {
             );
             $insertRes = $this->appUserRelation->insertRelation($setInfo);
         }
+        //更新状态查主库
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $relation = $this->getRelation($userId, $relationUserId);
+        \DB_Query::switchCluster($preNode);
         return $relation;
     }
     
@@ -101,10 +104,13 @@ class UserRelation {
     public function removeRelation($userId, $relationUserId) {
         $meRelation = $this->appUserRelation->getRelationByBothUid($userId, $relationUserId);
         if ($meRelation['status'] == 1) {
-            //更新为关注状态
+            //更新为非关注状态
             $this->appUserRelation->updateRelationStatus($userId, $relationUserId, array('status' => 0, 'cancle_time' => date('Y-m-d H:i:s')));
         }
+        //更新状态查主库
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $relation = $this->getRelation($userId, $relationUserId);
+        \DB_Query::switchCluster($preNode);
         return $relation;
     }
     
