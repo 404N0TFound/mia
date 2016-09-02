@@ -19,7 +19,7 @@ class GroupDoozer extends \DB_Query {
         $where = array();
         $where[] = array(':eq', 'status', 1);
         $orderBy = array('create_time DESC');
-        $userIdRes = $this->getRows($where, array('user_id'), $orderBy);
+        $userIdRes = $this->getRows($where, array('user_id'), 1000, 0, $orderBy);
         $userIdArr = array();
         if ($userIdRes) {
             foreach ($userIdRes as $value) {
