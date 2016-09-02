@@ -134,10 +134,9 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         $userInfos = $userService->getUserInfoByUids($userIds, $currentUid)['data'];
         //获取关注数
         $total = $this->userRelationModel->getCountBatchUserAtten(array($userId));
-        $total = $total[$userId];
     
-        $arrResult['total'] = $total;
-        $arrResult['user_list'] = array_values($userInfos);
+        $arrResult['total'] = isset($total[$userId]) ? intval($total[$userId]) : 0;
+        $arrResult['user_list'] = !empty($userInfos) ? array_values($userInfos) : array();
         return $this->succ($arrResult);
     }
     
@@ -157,10 +156,9 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         $userInfos = $userService->getUserInfoByUids($userIds, $currentUid)['data'];
         //获取关注数
         $total = $this->userRelationModel->getCountBatchUserFans(array($userId));
-        $total = $total[$userId];
         
-        $arrResult['total'] = $total;
-        $arrResult['user_list'] = array_values($userInfos);
+        $arrResult['total'] = isset($total[$userId]) ? intval($total[$userId]) : 0;
+        $arrResult['user_list'] = !empty($userInfos) ? array_values($userInfos) : array();
         return $this->succ($arrResult);
     }
     
