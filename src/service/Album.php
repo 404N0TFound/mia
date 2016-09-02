@@ -81,8 +81,12 @@ class Album extends \mia\miagroup\Lib\Service {
         $userIdRes = $this->abumModel->getGroupDoozerList();
         $User = new \mia\miagroup\Service\User();
         $userInfo = $User->getUserInfoByUids($userIdRes,$user_id);
+        $users = array();
         if( isset($userInfo['data']) && $userInfo['data']){
-            $response['users'] = array_values($userInfo['data']);
+            foreach($userIdRes as $userId){
+                $users[] = $userInfo['data'][$userId];
+            }
+            $response['users'] = array_values($users);
         }
         
         return $this->succ($response);
