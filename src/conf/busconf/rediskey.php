@@ -5,6 +5,8 @@ $basePrefix = 'miagroup_';
 $liveServicePrefix = $basePrefix . 'live_';
 //红包服务相关key前缀
 $redBagServicePrefix = $basePrefix . 'redbag_';
+//代金券服务相关key前缀
+$couponServicePrefix = $basePrefix . 'coupon_';
 /**
  * 直播相关的redisKey
  */
@@ -87,5 +89,19 @@ $miBeanKey = array(
     ),
     
     
+);
+
+/**
+ * 代金券相关的redisKey
+ */
+$couponKey = array(
+    'sendCoupon' =>array(
+        'key' => $couponServicePrefix . 'send_coupon_%s',
+        'expire_time' => 86400 * 30,
+    ),
+    'sendStatus' =>array( //使用String数据结构
+        'key' => $couponServicePrefix . 'send_status_%s',
+        'expire_time' => 86400 * 30,
+    )
 );
 
