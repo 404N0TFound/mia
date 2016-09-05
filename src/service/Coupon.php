@@ -2,7 +2,7 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Coupon as CouponModel;
-use \mia\miagroup\Remote\Coupon as CouponRemote;
+use mia\miagroup\Remote\Coupon as CouponRemote;
 
 class Coupon extends \mia\miagroup\Lib\Service {
 
@@ -27,7 +27,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
         if (empty($userId) || empty($batchCode)) {
             return $this->error(500);
         }
-        $bindRes = $this->couponRemote = bindCouponByBatchCode($type, $userId, $batchCode);
+        $bindRes = $this->couponRemote->bindCouponByBatchCode($type, $userId, $batchCode);
         if($bindRes != true){
             return $this->error(1633);
         }
@@ -61,7 +61,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
         if (empty($batchCode) || empty($userId)) {
             return $this->error(500);
         }
-        $couponLists = $this->couponRemote->queryUserCouponByBatchCode($userId, $batchCode, $page, $limit);
+        $couponLists = $this->couponRemote->queryUserCouponByBatchCode($userId, [$batchCode], $page, $limit);
         if(!$couponLists){
             return $this->error(1637);
         }
@@ -73,15 +73,15 @@ class Coupon extends \mia\miagroup\Lib\Service {
      * @param string $batchCode
      * @param int $userId
      */
-    public function checkIsReceivedCoupon($batchCode, $userId){
-        if (empty($batchCodes) || empty($userId)) {
+    public function checkIsReceivedCoupon($userId, $batchCode){
+        if (empty($batchCode) || empty($userId)) {
             return $this->error(500);
         }
         $couponInfo = $this->getPersonalCoupons($userId, $batchCode);
         if($couponInfo['code'] == 0){
-            $this->error(1631);
+            return $this->error(1631);
         }else{
-            $this->succ(true);
+            return $this->succ(true);
         }
         
     }
