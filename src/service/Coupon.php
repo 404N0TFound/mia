@@ -8,26 +8,29 @@ class Coupon extends \mia\miagroup\Lib\Service {
 
     public $couponModel;
     public $couponRemote;
+    private $version;
 
-    public function __construct() {
+    public function __construct($version='android_4_7_0') {
         parent::__construct();
+        $this->version = $version ? $version : $this->ext_params['version'];
         $this->couponModel = new CouponModel();
-        $this->couponRemote = new CouponRemote();
+        $this->couponRemote = new CouponRemote($this->version);
     }
 
     /**
      * 根据批次绑定代金券
      * @param int type 类型【签到,神舟,积分兑换,】
-     * @param int user_id 用户id
-     * @param stringt batch_code 代金券批次编号
-     * @return array|bool array(array('batch_codexxx'=>'error inf'))
+     * @param int $userId 用户id
+     * @param stringt $batchCode 代金券批次编号
      */
     public function bindCoupon($type, $userId, $batchCode) {
         if (empty($userId) || empty($batchCode)) {
             return $this->error(500);
         }
-        
         $bindRes = $this->couponRemote = bindCouponByBatchCode($type, $userId, $batchCode);
+        if($bindRes != true){
+            return $this->error(1633);
+        }
         return $this->succ($bindRes);
     }
 
@@ -35,42 +38,53 @@ class Coupon extends \mia\miagroup\Lib\Service {
     /**
      * 获取代金券批次剩余数量
      * @param string $batchCode 代金券批次号
-     * @return array|null
      */
     public function getCouponRemainNums($batchCode) {
         if (empty($batchCode)) {
             return $this->error(500);
         }
         $couponNums = $this->couponRemote->getRemainCoupon([$batchCode]);
+        if(!$couponNums){
+            return $this->error(1635);
+        }
         return $this->succ($couponNums);
     }
     
     /**
      * 获取个人绑定代金券列表
-     * @param int $user_id
-     * @param string $batch_codes
-     * @param int $page_no
-     * @param int $page_size
-     * @return array|null
+     * @param int $userId
+     * @param string $batchCode
+     * @param int $page
+     * @param int $limit
      */
-    public function getPersonalCoupons($user_id, $batch_codes, $page_no, $page_size) {
-        if (empty($batchCode) || empty($user_id)) {
+    public function getPersonalCoupons($userId, $batchCode, $page=1, $limit=1) {
+        if (empty($batchCode) || empty($userId)) {
             return $this->error(500);
         }
-        $couponLists = $this->couponRemote->queryUserCouponByBatchCode($user_id, $batch_codes, $page_no, $page_size);
+        $couponLists = $this->couponRemote->queryUserCouponByBatchCode($userId, $batchCode, $page, $limit);
+        if(!$couponLists){
+            return $this->error(1637);
+        }
         return $this->succ($couponLists);
     }
-
+    
     /**
-     * 查看用户是否已经领取过该代金券，用于领取代金券
+     * 检查优惠券是否已领取过
+     * @param string $batchCode
+     * @param int $userId
      */
-    public function isReceivedCoupon($couponId, $uid) {
-        if (empty($couponId)) {
+    public function checkIsReceivedCoupon($batchCode, $userId){
+        if (empty($batchCodes) || empty($userId)) {
             return $this->error(500);
         }
-        //查出个人领取代金券的详情，如果存在则领取过
+        $couponInfo = $this->getPersonalCoupons($userId, $batchCode);
+        if($couponInfo['code'] == 0){
+            $this->error(1631);
+        }else{
+            $this->succ(true);
+        }
+        
     }
-    
     
     /**
      * 检验代金券批次号是否可用
@@ -81,5 +95,20 @@ class Coupon extends \mia\miagroup\Lib\Service {
         //获取批次详情，再根据详情里的数据，判断批次的有效性
         //或者直接调用判断批次有效性的服务
     }
+    
+    /**
+     * 检验代金券批次号是否发发送过
+     */
+    public function checkBatchCodeIsSended($batchCode){
+        
+    }
+    
+    /**
+     * 代金券发送成功后将批次号放入redis，用来验证是否发送过用
+     */
+    public function setBatchCodeToRedis ($batchCode){
+        
+    }
+    
     
 }
