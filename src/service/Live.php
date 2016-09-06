@@ -2,7 +2,6 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Live as LiveModel;
-use mia\miagroup\Model\Coupon as CouponModel;
 use mia\miagroup\Service\User;
 use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Util\NormalUtil;
@@ -15,14 +14,12 @@ use mia\miagroup\Service\Coupon;
 class Live extends \mia\miagroup\Lib\Service {
     
     public $liveModel;
-    public $couponModel;
     public $rongCloud;//融云聊天室api接口
     private $deviceToken;
     private $version;
     public function __construct() {
         parent::__construct();
         $this->liveModel = new LiveModel();
-        $this->couponModel = new CouponModel();
         $this->rongCloud = new RongCloudUtil();
         $this->deviceToken = md5($this->ext_params['device_token']);
         $this->version = $this->ext_params['version'];
@@ -335,7 +332,7 @@ class Live extends \mia\miagroup\Lib\Service {
         if(isset($roomData['coupon']['batch_code']) && !empty($roomData['coupon']['batch_code'])){
 
             $batchCode = $roomData['coupon']['batch_code'];
-            $couponService = new coupon($this->version);
+            $couponService = new Coupon($this->version);
 
             //判断优惠是否已发完
             $couponNum = $couponService->getCouponRemainNums($batchCode)['data'];
@@ -529,6 +526,8 @@ class Live extends \mia\miagroup\Lib\Service {
         if (in_array('live_info', $field)) {
             $liveArr = $this->getBatchLiveInfoByIds($liveIdArr)['data'];
         }
+
+        $couponService = new Coupon();
         //将主播信息整合到房间信息中
         $roomRes = array();
         foreach($roomIds as $roomId){
@@ -592,10 +591,10 @@ class Live extends \mia\miagroup\Lib\Service {
             if (in_array('coupon', $field)) {
                 if (!empty($roomInfo['coupon'])) {
                     $batch_code = $roomInfo['coupon']['batch_code'];
-                    $startTime = $this->couponModel->getSendCouponStartTime($roomInfo['live_id']);
+                    $startTime = $couponService->getSendCouponStartTime($roomInfo['live_id'])['data'];
                     if(!$startTime){
                         $startTime = time();
-                        $this->couponModel->addSendCouponSatrtTime($roomInfo['live_id'],$startTime);
+                        $couponService->addSendCouponSatrtTime($roomInfo['live_id'],$startTime);
                     }
                     $countdown = $startTime+$roomInfo['coupon']['countdown'];
                     $roomRes[$roomInfo['id']]['coupon']['batch_code'] = $batch_code;

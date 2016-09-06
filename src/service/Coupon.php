@@ -108,5 +108,28 @@ class Coupon extends \mia\miagroup\Lib\Service {
         return $this->succ(true);
     }
     
+    /**
+     * 发送代金券的时候把发送时间保存到redis
+     */
+    public function addSendCouponSatrtTime($liveId,$sendTime)
+    {
+        if (empty($liveId) || empty($sendTime)) {
+            return $this->error(500);
+        }
+        $data = $this->couponModel->addSendCouponSatrtTime($liveId,$sendTime);
+        return $this->succ($data);
+    }
+
+    /**
+     * 获取发送代金券的发送时间
+     */
+    public function getSendCouponStartTime($liveId)
+    {
+        if (empty($liveId)) {
+            return $this->error(500);
+        }
+        $data = $this->couponModel->getSendCouponStartTime($liveId);
+        return $this->succ($data);
+    }
     
 }
