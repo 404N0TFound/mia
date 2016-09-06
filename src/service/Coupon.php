@@ -3,6 +3,7 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Coupon as CouponModel;
 use mia\miagroup\Remote\Coupon as CouponRemote;
+use mia\miagroup\Service\Live;
 
 class Coupon extends \mia\miagroup\Lib\Service {
 
@@ -63,7 +64,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
         }
         $couponLists = $this->couponRemote->queryUserCouponByBatchCode($userId, [$batchCode], $page, $limit);
         if(!$couponLists){
-            return $this->error(1637);
+            return $this->error(1632);
         }
         return $this->succ($couponLists);
     }
@@ -86,28 +87,30 @@ class Coupon extends \mia\miagroup\Lib\Service {
         
     }
     
-    /**
-     * 检验代金券批次号是否可用
-     * @param array $batchCode
-     * @return int 0为代金券可用，其他返回错误码则为不可用
-     */
-    public function checkBatchCodeAvailable($batchCode){
-        //获取批次详情，再根据详情里的数据，判断批次的有效性
-        //或者直接调用判断批次有效性的服务
-    }
     
     /**
      * 检验代金券批次号是否发发送过
      */
-    public function checkBatchCodeIsSended($batchCode){
-        
+    public function checkBatchCodeIsSent($liveId){
+        if (empty($liveId)) {
+            return $this->error(500);
+        }
+        $couponStatus = $this->couponModel->checkBatchCodeIsSent($liveId);
+        if($couponStatus == false){
+            return $this->error(1636);
+        }
+        return $this->succ(true);
     }
     
     /**
      * 代金券发送成功后将批次号放入redis，用来验证是否发送过用
      */
-    public function setBatchCodeToRedis ($batchCode){
-        
+    public function setBatchCodeToRedis ($liveId,$batchCode){
+        if (empty($liveId) || empty($batchCode)) {
+            return $this->error(500);
+        }
+        $couponRes = $this->couponModel->setBatchCodeToRedis($liveId,$batchCode);
+        return $this->succ(true);
     }
     
     
