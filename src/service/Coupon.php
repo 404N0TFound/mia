@@ -12,7 +12,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
 
     public function __construct($version='android_4_7_0') {
         parent::__construct();
-        $this->version = $version ? $version : $this->ext_params['version'];
+        $this->version = $this->ext_params['version'] ? $this->ext_params['version'] : $version;
         $this->couponModel = new CouponModel();
         $this->couponRemote = new CouponRemote($this->version);
     }
@@ -23,11 +23,11 @@ class Coupon extends \mia\miagroup\Lib\Service {
      * @param int $userId 用户id
      * @param stringt $batchCode 代金券批次编号
      */
-    public function bindCoupon($type, $userId, $batchCode) {
+    public function bindCoupon($userId, $batchCode) {
         if (empty($userId) || empty($batchCode)) {
             return $this->error(500);
         }
-        $bindRes = $this->couponRemote->bindCouponByBatchCode($type, $userId, $batchCode);
+        $bindRes = $this->couponRemote->bindCouponByBatchCode($userId, $batchCode);
         if($bindRes != true){
             return $this->error(1633);
         }
@@ -78,10 +78,10 @@ class Coupon extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $couponInfo = $this->getPersonalCoupons($userId, $batchCode);
-        if($couponInfo['code'] == 0){
+        if($couponInfo['code'] > 0 || $couponInfo['data']['total_count']>0){
             return $this->error(1631);
         }else{
-            return $this->succ(true);
+            return $this->succ(0);
         }
         
     }

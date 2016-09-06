@@ -2,6 +2,7 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Live as LiveModel;
+use mia\miagroup\Model\Coupon as CouponModel;
 use mia\miagroup\Service\User;
 use mia\miagroup\Util\RongCloudUtil;
 use mia\miagroup\Util\NormalUtil;
@@ -9,18 +10,22 @@ use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Util\JinShanCloudUtil;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Service\Redbag;
+use mia\miagroup\Service\Coupon;
 
 class Live extends \mia\miagroup\Lib\Service {
     
     public $liveModel;
+    public $couponModel;
     public $rongCloud;//融云聊天室api接口
     private $deviceToken;
-    
+    private $version;
     public function __construct() {
         parent::__construct();
         $this->liveModel = new LiveModel();
+        $this->couponModel = new CouponModel();
         $this->rongCloud = new RongCloudUtil();
         $this->deviceToken = md5($this->ext_params['device_token']);
+        $this->version = $this->ext_params['version'];
     }
     
     /**
@@ -327,6 +332,29 @@ class Live extends \mia\miagroup\Lib\Service {
             }
         }
 
+        if(isset($roomData['coupon']['batch_code']) && !empty($roomData['coupon']['batch_code'])){
+            $couponService = new coupon();
+
+            //判断是否过期
+            $couponStatus = $couponService->checkCouponAvailable($roomData['coupon']['batch_code']);
+            if($couponStatus['code']>0){
+                unset($roomData['coupon']);
+            }else{
+                //判断优惠是否已发完
+                $couponNum = $couponService->getCouponRemainNums($roomData['coupon']['batch_code'])['data'];
+                if(!$couponNum[$batchCode]['remain']){
+                    unset($roomData['coupon']);
+                }else{
+                    $roomData['coupon']['nums'] = $couponNum[$batchCode]['remain'];
+                    //判断是否已经领取过
+                    $couponReceived = $couponService->checkIsReceivedCoupon($batchCode, $currentUid);
+                    $roomData['coupon']['is_received'] = $couponReceived['code'] ? 1 : 0;
+                }
+
+            }
+            
+        }
+
         $qiniu = new QiniuUtil();
         $jinshan = new JinShanCloudUtil();
         if(empty($liveId)){
@@ -556,11 +584,27 @@ class Live extends \mia\miagroup\Lib\Service {
                 $roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
                 $roomRes[$roomInfo['id']]['is_show_playback'] = isset($roomInfo['is_show_playback']) ? $roomInfo['is_show_playback'] : '1';//是否显示回放
             }
+
             // 红包信息
             if (in_array('redbag', $field)) {
                 if (!empty($roomInfo['redbag'])) {
                     $redbagId = $roomInfo['redbag'];
                     $roomRes[$roomInfo['id']]['redbag']['id'] = $roomInfo['redbag'];
+                }
+            }
+
+            // 优惠券信息
+            if (in_array('coupon', $field)) {
+                if (!empty($roomInfo['coupon'])) {
+                    $batch_code = $roomInfo['coupon']['batch_code'];
+                    $startTime = $this->couponModel->getSendCouponStartTime($roomInfo['live_id']);
+                    if(!$startTime){
+                        $startTime = time();
+                        $this->couponModel->addSendCouponSatrtTime($roomInfo['live_id'],$startTime);
+                    }
+                    $countdown = $startTime+$roomInfo['coupon']['countdown'];
+                    $roomRes[$roomInfo['id']]['coupon']['batch_code'] = $batch_code;
+                    $roomRes[$roomInfo['id']]['coupon']['countdown'] = $countdown;
                 }
             }
             
@@ -854,6 +898,80 @@ class Live extends \mia\miagroup\Lib\Service {
         }
         $data = $this->liveModel->updateLiveById($liveId,$setInfo);
         return $this->succ($data);
+    }
+
+    /**
+     * 发送领取优惠券消息
+     */
+    public function sendLiveCoupon($userId,$roomId,$batchCode)
+    {
+        // 获取直播房间信息
+        $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('coupon'))['data'];
+        $liveRoomInfo = $liveRoomInfo[$roomId];
+        // 判断直播间是否配置了优惠券
+        if (empty($liveRoomInfo['coupon'])) {
+            return $this->error('1636');
+        }
+        // 判断该优惠券是否绑定了直播房间
+        if ($liveRoomInfo['coupon']['batch_code'] != $batchCode) {
+            return $this->error('1636');
+        }
+
+        $countdown = $liveRoomInfo['coupon']['countdown'];
+
+        //发送领取优惠券消息
+        $content = NormalUtil::getMessageBody(13,$liveRoomInfo['chat_room_id'], 0, '', array('batch_code' => $batchCode,'countdown'=>$countdown));
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
+        return $this->succ();
+    }
+
+    /**
+     * 领取直播优惠券
+     */
+    public function getLiveCoupon($userId,$roomId,$batchCode)
+    {
+        // 获取直播房间信息
+        $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('coupon'))['data'];
+        $liveRoomInfo = $liveRoomInfo[$roomId];
+        // 判断直播间是否配置了优惠券
+        if (empty($liveRoomInfo['coupon'])) {
+            return $this->error('1632');
+        }
+        // 判断该优惠券是否绑定了直播房间
+        if ($liveRoomInfo['coupon']['batch_code'] != $batchCode) {
+            return $this->error('1632');
+        }
+
+        $couponService = new Coupon($this->version);
+        // 是否已领取
+        $couponReceived = $couponService->checkIsReceivedCoupon($batchCode, $userId);
+        if ($couponReceived['code']>0) {
+            return $this->error('1631');
+        }
+        // 领优惠券
+        $couponBind = $couponService->bindCoupon($userId, $batchCode);
+        if ($couponBind['code'] > 0) {
+            return $this->error('1633');
+        }
+
+        //获取优惠券信息
+        $couponInfo = $couponService->getPersonalCoupons($userId,$batchCode);
+        if($couponInfo['code']>0){
+            return $this->error($couponInfo['code']);
+        }
+
+        $couponMoney = $couponInfo['coupon_info_list'][0]['value'];
+
+        //发送抢到优惠券的消息
+        $userService = new User();
+        $userInfo = $userService->getUserInfoByUserId($userId)['data'];
+        if (!empty($userInfo)) {
+            $content = NormalUtil::getMessageBody(0,$liveRoomInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元优惠券', $userInfo['nickname'], $couponMoney));
+            $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
+        }
+
+        $success = array('money' => $couponMoney . '元', 'success_msg' => '恭喜！抢到%s优惠券，快去买买买~');
+        return $this->succ($success);
     }
 
 }

@@ -102,6 +102,11 @@ $couponKey = array(
     'sendStatus' =>array( //使用String数据结构
         'key' => $couponServicePrefix . 'send_status_%s',
         'expire_time' => 86400 * 30,
+    ),
+    //发送代金券开始时间戳
+    'send_coupon_start_time' =>array( //使用String数据结构
+        'key' => $couponServicePrefix . 'start_time_%s',
+        'expire_time' => 86400,
     )
 );
 
