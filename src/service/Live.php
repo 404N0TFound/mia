@@ -943,6 +943,13 @@ class Live extends \mia\miagroup\Lib\Service {
         if ($couponReceived) {
             return $this->error('1631');
         }
+
+        //判断优惠是否已发完
+        $couponNum = $couponService->getCouponRemainNums($batchCode)['data'];
+        if(!$couponNum[$batchCode]['remain']){
+            $this->error('1635');
+        }
+
         // 领优惠券
         $couponBind = $couponService->bindCoupon($userId, $batchCode);
         if ($couponBind['code'] > 0) {
