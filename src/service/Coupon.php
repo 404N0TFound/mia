@@ -12,7 +12,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
 
     public function __construct($version='android_4_7_0') {
         parent::__construct();
-        $this->version = $version ? $version : $this->ext_params['version'];
+        $this->version = $this->ext_params['version'] ? $this->ext_params['version'] : $version;
         $this->couponModel = new CouponModel();
         $this->couponRemote = new CouponRemote($this->version);
     }
@@ -78,10 +78,10 @@ class Coupon extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $couponInfo = $this->getPersonalCoupons($userId, $batchCode);
-        if($couponInfo['code'] > 0){
-            return $this->error($couponInfo['code']);
+        if($couponInfo['code'] > 0 || $couponInfo['data']['total_count']>0){
+            return $this->error(1631);
         }else{
-            return $this->succ($couponInfo['data']['total_count']);
+            return $this->succ(0);
         }
         
     }
