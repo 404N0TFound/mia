@@ -151,6 +151,7 @@ class NormalUtil {
             case 7: //观众显示抢红包按钮
             case 11: //主播显示发红包按钮
             case 12: //直播展位改变
+            case 13: //观众显示抢优惠券按钮
                 $message=['type'=>$type,'extra'=>$extra_json,'service_extra'=>$serviceExtra];
                 break;
             case 9: //直播结束

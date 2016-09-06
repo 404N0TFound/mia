@@ -115,43 +115,13 @@ class Coupon
      * @param stringt batch_code 代金券批次编号
      * @return array|bool array(array('batch_codexxx'=>'error inf'))
      */
-    public function bindCouponByBatchCode($type, $user_id, $batch_code='')
+    public function bindCouponByBatchCode($user_id, $batch_code='')
     {
-        $batch_type = array('default', 'sign', 'score');
-        if(!in_array($type, $batch_type))
-            return array('param'=>'param type wrong');
-    
-        switch ($type){
-            case 'sign':
-                $batch_code = 'test-ck3-20160811-5';     #签到批次代金券编号
-                $batch_code = 'score_exchange-2016-08-18-3';
-                break;
-            case 'shenzhou':
-                $batch_code = 'test-ck3-20160811-5';     #神舟活动代金券编号
-                $batch_code = 'score_exchange-2016-08-18-3';
-                break;
-            case 'score':
-                //$batch_code = 'test-ck3-20160811-5';     #积分兑换代金券编号
-                $batch_code = 'score_exchange-2016-08-18-3';     
-                break;
-            case 'default':
-                if(empty($batch_code))     #使用参数中的batch_code绑定代金券
-                    return array('param'=>'param batch_code wrong');
-        }
-    
 
         $couponBinds = array();
-        if(is_array($batch_code)){
-            foreach($batch_code as $v){
-                $tmp = array('batchCode'=>$v, 'count'=>1);
-                $couponBinds[] = new \miasrv\coupon\api\TCouponBind($tmp);
-            }
-        }else{
-            $tmp = array('batchCode'=>$batch_code, 'count'=>1);
-            $couponBinds[] = new \miasrv\coupon\api\TCouponBind($tmp);
-        }
+        $tmp = array('batchCode'=>$batch_code, 'count'=>1);
+        $couponBinds[] = new \miasrv\coupon\api\TCouponBind($tmp);
 
-    
         $param = array(
             'tCouponBinds' => $couponBinds,
             'uid'          => $user_id,
@@ -166,11 +136,6 @@ class Coupon
             }
             return $error_map;     
         }
-    
-        if($type==='sign' && isset($res->couponCodes[0])){
-            return array('result'=>true, 'code'=>$res->couponCodes[0]);
-        }
-
         return true;
     }
 
