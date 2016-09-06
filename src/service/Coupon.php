@@ -77,13 +77,8 @@ class Coupon extends \mia\miagroup\Lib\Service {
         if (empty($batchCode) || empty($userId)) {
             return $this->error(500);
         }
-        $couponInfo = $this->getPersonalCoupons($userId, $batchCode);
-        if($couponInfo['code'] > 0 || $couponInfo['data']['total_count']>0){
-            return $this->error(1631);
-        }else{
-            return $this->succ(0);
-        }
-        
+        $couponInfo = $this->getPersonalCoupons($userId, $batchCode)['data'];
+        return $this->succ($couponInfo['total_count']);
     }
     
     /**

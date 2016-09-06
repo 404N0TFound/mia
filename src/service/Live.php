@@ -280,7 +280,7 @@ class Live extends \mia\miagroup\Lib\Service {
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0) {
         //获取房间信息
-        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag'))['data'][$roomId];
+        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag','coupon'))['data'][$roomId];
         if(empty($roomData)){
             //没有直播房间信息
             return $this->error(30003);
@@ -333,24 +333,19 @@ class Live extends \mia\miagroup\Lib\Service {
         }
 
         if(isset($roomData['coupon']['batch_code']) && !empty($roomData['coupon']['batch_code'])){
-            $couponService = new coupon();
 
-            //判断是否过期
-            $couponStatus = $couponService->checkCouponAvailable($roomData['coupon']['batch_code']);
-            if($couponStatus['code']>0){
+            $batchCode = $roomData['coupon']['batch_code'];
+            $couponService = new coupon($this->version);
+
+            //判断优惠是否已发完
+            $couponNum = $couponService->getCouponRemainNums($batchCode)['data'];
+            if(!$couponNum[$batchCode]['remain']){
                 unset($roomData['coupon']);
             }else{
-                //判断优惠是否已发完
-                $couponNum = $couponService->getCouponRemainNums($roomData['coupon']['batch_code'])['data'];
-                if(!$couponNum[$batchCode]['remain']){
-                    unset($roomData['coupon']);
-                }else{
-                    $roomData['coupon']['nums'] = $couponNum[$batchCode]['remain'];
-                    //判断是否已经领取过
-                    $couponReceived = $couponService->checkIsReceivedCoupon($batchCode, $currentUid);
-                    $roomData['coupon']['is_received'] = $couponReceived['code'] ? 1 : 0;
-                }
-
+                $roomData['coupon']['nums'] = $couponNum[$batchCode]['remain'];
+                //判断是否已经领取过
+                $couponReceived = $couponService->checkIsReceivedCoupon($currentUid,$batchCode)['data'];
+                $roomData['coupon']['is_received'] = $couponReceived ? 1 : 0;
             }
             
         }
@@ -944,8 +939,8 @@ class Live extends \mia\miagroup\Lib\Service {
 
         $couponService = new Coupon($this->version);
         // 是否已领取
-        $couponReceived = $couponService->checkIsReceivedCoupon($batchCode, $userId);
-        if ($couponReceived['code']>0) {
+        $couponReceived = $couponService->checkIsReceivedCoupon($userId,$batchCode)['data'];
+        if ($couponReceived) {
             return $this->error('1631');
         }
         // 领优惠券
@@ -960,7 +955,7 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error($couponInfo['code']);
         }
 
-        $couponMoney = $couponInfo['coupon_info_list'][0]['value'];
+        $couponMoney = $couponInfo['data']['coupon_info_list'][0]['value'];
 
         //发送抢到优惠券的消息
         $userService = new User();
