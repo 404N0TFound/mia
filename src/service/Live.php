@@ -911,12 +911,21 @@ class Live extends \mia\miagroup\Lib\Service {
         if ($liveRoomInfo['coupon']['batch_code'] != $batchCode) {
             return $this->error('1636');
         }
-
+        //倒计时
         $countdown = $liveRoomInfo['coupon']['countdown'];
-
+        //判断该优惠券是否发送过，避免重复发送
+        $couponService = new coupon();
+        $sendStatus = $couponService->checkBatchCodeIsSent($liveRoomInfo['live_id']);
+        if($sendStatus['code'] != 0){
+            return $this->error('1636');
+        }
+        
         //发送领取优惠券消息
         $content = NormalUtil::getMessageBody(13,$liveRoomInfo['chat_room_id'], 0, '', array('batch_code' => $batchCode,'countdown'=>$countdown));
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
+        //发送过后记录下来，用于避免重复发送用
+        $couponService->setBatchCodeToRedis($liveRoomInfo['live_id'],$batchCode);
+        
         return $this->succ();
     }
 
