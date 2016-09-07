@@ -199,5 +199,42 @@ class User extends \mia\miagroup\Lib\Service {
     }
 
 
+    /**
+     * 头条导入用户
+     */
+    public function syncHeadLineUser($username, $nickname, $avatar, $category, $checkExist = 1) {
+        //如果checkExist==1，nickname重复不再生成新用户
+        if ($checkExist == 1) {
+            $userId = $this->userModel->getUidByNickName($nickname);
+            if (intval($userId) > 0) {
+                //用户归类
+                $this->userModel->setHeadlineUserCategory($userId, $category);
+                return $this->succ(array('uid' => $userId, 'is_exist' => 1));
+            }
+        }
+        //校验userName是否已存在
+        $userId = $this->userModel->getUidByUserName($username);
+        if (intval($userId) > 0) {
+            //用户归类
+            $this->userModel->setHeadlineUserCategory($userId, $category);
+            return $this->succ(array('uid' => $userId, 'is_exist' => 1));
+        }
+        //主表插入
+        $userInfo['username'] = $username;
+        $userInfo['nickname'] = $nickname;
+        $userInfo['icon'] = $avatar;
+        $userInfo['password'] = 'a255220a91378ba2f4aad17300ed8ab7';
+        $userInfo['group_id'] = 10;
+        $userInfo['relation'] = 3;
+        $userInfo['create_date'] = date('Y-m-d H:i:s');
+        $userId = $this->userModel->addUser($userInfo);
+        if (intval($userId) > 0) {
+            //用户归类
+            $this->userModel->setHeadlineUserCategory($userId, $category);
+            return $this->succ(array('uid' => $userId, 'is_exist' => 0));
+        } else {
+            return $this->error(500);
+        }
+    }
     
 }

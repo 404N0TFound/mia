@@ -5,6 +5,7 @@ use mia\miagroup\Data\Album\AlbumArticle as AlbumArticleData;
 use mia\miagroup\Data\Album\Album as AlbumData;
 use mia\miagroup\Data\Album\AlbumPermission as AlbumPermissionData;
 use mia\miagroup\Data\User\GroupDoozer as GroupDoozer;
+use function Qiniu\json_decode;
 
 class Album {
 
@@ -56,13 +57,26 @@ class Album {
                 }
                 if($img_pic){
                     $res[$key]['cover_image'] = array();
-                    $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] .$img_pic['url'];
+                    if ($img_pic['source'] == 'local') {
+                        $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $img_pic['url'];
+                    } else {
+                        $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $img_pic['url'];
+                    }
                     $res[$key]['cover_image']['width'] = $img_pic['width'];
                     $res[$key]['cover_image']['height'] = $img_pic['height'];
                     $res[$key]['cover_image']['content'] = $img_pic['content'];
                 }
                 $res[$key]['album_info'] = array();
-                
+                if (!empty($value['ext_info']['images'])) {
+                    foreach ($value['ext_info']['images'] as $image) {
+                        if ($image['source'] == 'local') {
+                            $image['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image['url'];
+                        } else {
+                            $image['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $image['url'];
+                        }
+                        $res[$key]['images'][] = $image;
+                    }
+                }
                 if($AlbumInfo){
                     $res[$key]['album_info']['id'] = $AlbumInfo[$value['album_id']]['id'];
                     $res[$key]['album_info']['user_id'] = $AlbumInfo[$value['album_id']]['user_id'];
@@ -302,7 +316,12 @@ class Album {
      * @return array() true false
      */
     public function addAlbumFile($insert){
-        return $this->albumData->addAlbumFile($insert);
+        $albumFile = $this->albumData->getAlbumFileByUidAndTitle($insert['user_id'], $insert['title']);
+        if (!empty($albumFile)) {
+            return $albumFile['id'];
+        }
+        $albumFileId = $this->albumData->addAlbumFile($insert);
+        return $albumFileId;
     }
     
     /**
@@ -327,7 +346,7 @@ class Album {
             'cover_image'=>$insert['cover_image'],
             'content'=>$insert['content'],
             'content_original'=>$insert['content_original'],
-            'ext_info'=>$insert['ext_info'],
+            'ext_info'=>json_encode($insert['ext_info']),
             'status'=>$insert['status'],
             'create_time'=>date("Y-m-d H:i:s")
         );
@@ -342,5 +361,17 @@ class Album {
      */
     public function getAlbumPermissionByUserId($user_id){
         return $this->albumPermissionData->getAlbumPermissionByUserId($user_id);
+    }
+    
+    /**
+     * 添加用户专栏权限
+     */
+    public function addAlbumPermission($userId, $source = 'ums', $reason = '', $operator = 0) {
+        $data = $this->getAlbumPermissionByUserId($userId);
+        if (!empty($data)) {
+            return $data['id'];
+        }
+        $data = $this->albumPermissionData->addAlbumPermission($userId, $source, $reason, $operator);
+        return $data;
     }
 }

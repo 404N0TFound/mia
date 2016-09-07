@@ -247,12 +247,18 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
             return $this->error(500);
         }
+        if (strtotime($subjectInfo['created']) > 0) {
+            $subjectSetInfo['created'] = $subjectInfo['created'];
+        } else {
+            $subjectSetInfo['created'] = date("Y-m-d H:i:s", time());
+        }
         // 添加视频
         if ($subjectInfo['video_url']) {
             $videoInfo['user_id'] = $subjectInfo['user_info']['user_id'];
             $videoInfo['video_origin_url'] = $subjectInfo['video_url'];
             $videoInfo['source'] = 'qiniu';
             $videoInfo['status'] = 2;
+            $videoInfo['create_time'] = $subjectSetInfo['created'];
             $videoId = $this->addSubjectVideo($videoInfo, true)['data'];
             if ($videoId > 0) {
                 // 如果有视频，subject状态置为转码中
@@ -269,7 +275,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         } else {
             $subjectSetInfo['text'] = '';
         }
-        $subjectSetInfo['created'] = date("Y-m-d H:i:s", time());
+        if (intval($subjectInfo['source']) > 0) {
+            $subjectSetInfo['source'] = $subjectInfo['source'];
+        }
         // ext_info保存帖子口碑关联信息
         if (intval($koubeiId) > 0) {
             $subjectSetInfo['ext_info']['koubei']['id'] = $koubeiId;
@@ -406,6 +414,11 @@ class Subject extends \mia\miagroup\Lib\Service {
         $insertData['create_time'] = date('Y-m-d H:i:s');
         $insertData['source'] = !empty($videoInfo['source']) ? $videoInfo['source'] : '';
         $insertData['status'] = in_array($videoInfo['status'], array(1, 2)) ? $videoInfo['status'] : 0;
+        if (strtotime($videoInfo['create_time']) > 0) {
+            $insertData['create_time'] = $videoInfo['create_time'];
+        } else {
+            $insertData['create_time'] = date("Y-m-d H:i:s", time());
+        }
         if (!empty($videoInfo['cover_image'])) {
             $insertData['ext_info']['cover_image'] = $videoInfo['cover_image'];
         }
@@ -545,8 +558,36 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($result);
     }
     
-
-    
-    
+    /**
+     * 头条导入帖子数据
+     */
+    public function syncHeadLineSubject($subject) {
+        if (empty($subject['user_id'])) {
+            return $this->error('500');
+        }
+        $subjectInfo = array('user_info' => array('user_id' => $subject['user_id']));
+        $subjectInfo['source'] = 3;
+        if (!empty($subject['title'])) {
+            $subjectInfo['title'] = $subject['title'];
+        }
+        if (!empty($subject['text'])) {
+            $subjectInfo['text'] = $subject['text'];
+        }
+        if (!empty($subject['video_url'])) {
+            $subjectInfo['video_url'] = $subject['video_url'];
+        }
+        if (!empty($subject['created'])) {
+            $subjectInfo['created'] = $subject['created'];
+        }
+        if (!empty($subject['view_num'])) {
+            $subjectInfo['created'] = $subject['created'];
+        }
+        $result = $this->issue($subjectInfo);
+        if ($result['code'] > 0) {
+            return $this->error($result['code']);
+        } else {
+            return $this->succ($result['data']);
+        }
+    }
 }
 

@@ -23,5 +23,19 @@ class AlbumPermission extends \DB_Query {
         return $data;
     }
 
-    
+    /**
+     * 添加用户专栏权限
+     */
+    public function addAlbumPermission($userId, $source = 'ums', $reason = '', $operator = 0) {
+        $insertData['user_id'] = $userId;
+        $insertData['source'] = $source;
+        if (!empty($reason)) {
+            $insertData['reason'] = $reason;
+        }
+        if (intval($operator) > 0) {
+            $insertData['operator'] = $operator;
+        }
+        $data = $this->insert($insertData);
+        return $data;
+    }
 }
