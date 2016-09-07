@@ -509,17 +509,26 @@ class Album extends \mia\miagroup\Lib\Service {
                 $labelInfos[$key]['id'] = $value['id'];
                 $labelInfos[$key]['title'] = $value['title'];
             }
-            $params['ext_info'] = json_encode(array('label'=>$labelInfos));
+            $params['ext_info'] = array('label'=>$labelInfos);
         }
         
-        if(isset($insert['image_infos'])){
+        if(isset($insert['image_infos'])){ //封面图
             $params['cover_image'] = json_encode(
                 array(
                     'width'=>$insert['image_infos']['width'],
                     'height'=>$insert['image_infos']['height'],
                     'url'=>$insert['image_infos']['url'],
-                    'content'=>''
+                    'content'=>'',
+                    'source' => isset($insert['image_infos']['source']) ? $insert['image_infos']['source'] : ''
                 ));
+        }
+        
+        if (!empty($insert['images'])) { //其他图
+            $params['ext_info'] = array('images'=>$insert['images']);
+        }
+        
+        if (strtotime($insert['create_time']) > 0) {
+            $params['create_time'] = $insert['create_time'];
         }
         
         $res = $this->abumModel->addAlbum($params);
@@ -619,7 +628,8 @@ class Album extends \mia\miagroup\Lib\Service {
                     'width'=>$params['image_infos']['width'],
                     'height'=>$params['image_infos']['height'],
                     'url'=>$params['image_infos']['url'],
-                    'content'=>''
+                    'content'=>'',
+                    'source' => isset($insert['image_infos']['source']) ? $params['image_infos']['source'] : ''
                 ));
         $paramGetArticle = array();
         $paramGetArticle['id'] = $params['article_id'];
@@ -655,5 +665,64 @@ class Album extends \mia\miagroup\Lib\Service {
         $qiNiuSDK = new QiniuUtil();
         $res = $qiNiuSDK -> getUploadTokenAndKey($filePath);
         return $this->succ($res);
+    }
+    
+    /**
+     * 添加用户专栏权限
+     */
+    public function addAlbumPermission($userId, $source = 'ums', $reason = '', $operator = 0) {
+        if(empty($userId)){
+            return $this->error('500');
+        }
+        $this->abumModel->addAlbumPermission($userId, $source, $reason, $operator);
+        return $this->succ();
+    }
+    
+    /**
+     * 头条导入专栏数据
+     */
+    public function syncHeadLineArticle($article) {
+        if (empty($article['cover_image']) && empty($article['images'])) {
+            return $this->error('500','no image');
+        }
+        if (empty($article['user_id'])) {
+            return $this->error('500','no user_id');
+        }
+        //设置专栏发布权限
+        $this->abumModel->addAlbumPermission($article['user_id'], 'system', 'headline_crawl');
+        //获取"未分类"专辑id
+        $albumId = $this->abumModel->addAlbumFile(array('user_id' => $article['user_id'], 'title' => '未分类'));
+        //入article表
+        $article['album_id'] = $albumId;
+        if (empty($article['cover_image'])) {
+            if (!empty($article['images'])) {
+                $article['cover_image'] = reset($article['images']);
+            }
+        }
+        if (!empty($article['cover_image'])) {
+            $article['image_infos'] = $article['cover_image'];
+            $article['image_infos']['source'] = 'local';
+            unset($article['cover_image']);
+        }
+        if (!empty($article['images'])) {
+            foreach ($article['images'] as $k => $v) {
+                $article['images'][$k]['source'] = 'local';
+            }
+        }
+        $addArticle = $this->addAlbum($article);
+        //入subject表
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $subjectInfo = array('user_info' => array('user_id' => $article['user_id']));
+        $subjectInfo['created'] = $article['create_time'];
+        $subjectRes = $subjectService->issue($subjectInfo)['data'];
+        //更新subjectid
+        if ($subjectRes['id']) {
+            $paramsArticle = array();
+            $paramsArticle['user_id'] = $article['user_id'];
+            $paramsArticle['album_id'] = $albumId;
+            $paramsArticle['id'] = $addArticle;
+            $res = $this->abumModel->updateAlbumArticle($paramsArticle, array('subject_id' => $subjectRes['id'], 'status' => 1));
+        }
+        return $this->succ($addArticle);
     }
 }

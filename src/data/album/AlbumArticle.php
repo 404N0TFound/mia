@@ -83,8 +83,9 @@ class AlbumArticle extends \DB_Query {
             $where[] = array(':in', 'id', $articleIds);
         }
         $orderBy = array('create_time DESC');
-        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
         foreach ($data as $v) {
+            $v['ext_info'] = json_decode($v['ext_info'], true);
             $result[$v['id']] = $v;
         }
         return $result;

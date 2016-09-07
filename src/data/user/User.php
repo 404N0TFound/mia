@@ -39,4 +39,44 @@ class User extends DB_Query {
         
         return $user_data;
     }
+    
+    /**
+     * 新增用户
+     */
+    public function addUser($userInfo) {
+        $data = $this->insert($userInfo);
+        return $data;
+    }
+    
+    /**
+     * 根据username查询uid
+     */
+    public function getUidByUserName($userName) {
+        if (empty($userName)) {
+            return false;
+        }
+        $where[] = array('username', $userName);
+        $data = $this->getRow($where, 'id');
+        if (!empty($data)) {
+            return $data['id'];
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * 根据nickname查询uid
+     */
+    public function getUidByNickName($nickName) {
+        if (empty($nickName)) {
+            return false;
+        }
+        $where[] = array('nickname', $nickName);
+        $data = $this->getRow($where, 'id');
+        if (!empty($data)) {
+            return $data['id'];
+        } else {
+            return false;
+        }
+    }
 }

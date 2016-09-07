@@ -4,6 +4,7 @@ namespace mia\miagroup\Model;
 use mia\miagroup\Data\User\User as UserData;
 use mia\miagroup\Data\User\GroupSubjectUserExperts;
 use mia\miagroup\Data\User\AppDeviceToken as AppDeviceTokenData;
+use mia\miagroup\Data\User\HeadLineUserCategory as HeadLineUserCategoryData;
 
 class User {
 
@@ -50,5 +51,46 @@ class User {
         $appDeviceTokenData = new AppDeviceTokenData();
         $data = $appDeviceTokenData->getDeviceTokenByUserId($userId);
         return $data;
+    }
+    
+    /**
+     * 根据nickname获取用户id
+     */
+    public function getUidByNickName($nickName) {
+        $userData = new UserData();
+        $userId = $userData->getUidByNickName($nickName);
+        return $userId;
+    }
+    
+    /**
+     * 根据username获取用户id
+     */
+    public function getUidByUserName($userName) {
+        $userData = new UserData();
+        $userId = $userData->getUidByUserName($userName);
+        return $userId;
+    }
+    
+    /**
+     * 新增用户
+     */
+    public function addUser($userInfo) {
+        $userData = new UserData();
+        $data = $userData->addUser($userInfo);
+        return $data;
+    }
+    
+    /**
+     * 设置头条抓取用户分类
+     */
+    public function setHeadlineUserCategory($userId, $category) {
+        $headLineUserCategory = new HeadLineUserCategoryData();
+        $data = $headLineUserCategory->getDataByUid($userId);
+        if (!empty($data)) {
+            return $data['id'];
+        } else {
+            $data = $headLineUserCategory->addUserCategory($userId, $category);
+            return $data;
+        }
     }
 }
