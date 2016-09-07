@@ -5,7 +5,6 @@ use mia\miagroup\Data\Album\AlbumArticle as AlbumArticleData;
 use mia\miagroup\Data\Album\Album as AlbumData;
 use mia\miagroup\Data\Album\AlbumPermission as AlbumPermissionData;
 use mia\miagroup\Data\User\GroupDoozer as GroupDoozer;
-use function Qiniu\json_decode;
 
 class Album {
 
