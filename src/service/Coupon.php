@@ -42,7 +42,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
      * @param array $batchCodes 代金券批次号
      */
     public function getCouponRemainNums($batchCodes) {
-        if (empty($batchCodes)) {
+        if (empty($batchCodes) || !is_array($batchCodes)) {
             return $this->error(500);
         }
         $couponNums = $this->couponRemote->getRemainCoupon($batchCodes);
@@ -54,10 +54,10 @@ class Coupon extends \mia\miagroup\Lib\Service {
     
     /**
      * 获取代金券批次
-     * @param string $batchCodes 代金券批次号
+     * @param array $batchCodes 代金券批次号
      */
     public function getBatchCodeList($batchCodes) {
-        if (empty($batchCodes)) {
+        if (empty($batchCodes) || !is_array($batchCodes)) {
             return $this->error(500);
         }
         $batchCodeList = $this->couponRemote->getBatchCodeList($batchCodes);
@@ -68,6 +68,28 @@ class Coupon extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 检查优惠券是否已过期
+     * @param array $batchCodes
+     */
+    public function checkBatchCodeIsExpired($batchCodes){
+        if (empty($batchCodes) || !is_array($batchCodes)) {
+            return $this->error(500);
+        }
+        $batchCodeInfo = $this->getBatchCodeList($batchCodes);
+        //如果批次不存在，给出不存在提示
+        if($batchCodeInfo['code'] != 0){
+            return $this->error($batchCodeInfo['code']);
+        }
+        
+        //当前时间大于过期时间，给出过期提示
+        $expiredTime = strtotime($batchCodeInfo['data'][$batchCodes[0]]['expire_timestamp']);
+        if(time() > $expiredTime){
+            return $this->error(1638);
+        }
+        return $this->succ(true);
+    }
+    
+    /**
      * 获取个人绑定代金券列表
      * @param int $userId
      * @param array $batchCodes
@@ -75,7 +97,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
      * @param int $limit
      */
     public function getPersonalCoupons($userId, $batchCodes, $page=1, $limit=1) {
-        if (empty($batchCodes) || empty($userId)) {
+        if (empty($batchCodes) || !is_array($batchCodes) || empty($userId)) {
             return $this->error(500);
         }
         $couponLists = $this->couponRemote->queryUserCouponByBatchCode($userId, $batchCodes, $page, $limit);
@@ -91,7 +113,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
      * @param int $userId
      */
     public function checkIsReceivedCoupon($userId, $batchCodes){
-        if (empty($batchCodes) || empty($userId)) {
+        if (empty($batchCodes) || !is_array($batchCodes) || empty($userId)) {
             return $this->error(500);
         }
         $couponInfo = $this->getPersonalCoupons($userId, $batchCodes);
