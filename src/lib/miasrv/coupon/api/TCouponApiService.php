@@ -59,6 +59,12 @@ interface TCouponApiServiceIf {
    * @return \miasrv\coupon\api\TResultQueryUserCouponByBatchCode
    */
   public function queryUserCouponByBatchCode(\miasrv\coupon\api\TParamsQueryUserCouponByBatchCode $params, \miasrv\common\CommonParams $att);
+  /**
+   * @param \miasrv\coupon\api\TParamsQueryCouponInfoList $params
+   * @param \miasrv\common\CommonParams $att
+   * @return \miasrv\coupon\api\TResultQueryCouponInfoList
+   */
+  public function queryCouponInfoList(\miasrv\coupon\api\TParamsQueryCouponInfoList $params, \miasrv\common\CommonParams $att);
 }
 
 class TCouponApiServiceClient implements \miasrv\coupon\api\TCouponApiServiceIf {
@@ -434,6 +440,58 @@ class TCouponApiServiceClient implements \miasrv\coupon\api\TCouponApiServiceIf 
       return $result->success;
     }
     throw new \Exception("queryUserCouponByBatchCode failed: unknown result");
+  }
+
+  public function queryCouponInfoList(\miasrv\coupon\api\TParamsQueryCouponInfoList $params, \miasrv\common\CommonParams $att)
+  {
+    $this->send_queryCouponInfoList($params, $att);
+    return $this->recv_queryCouponInfoList();
+  }
+
+  public function send_queryCouponInfoList(\miasrv\coupon\api\TParamsQueryCouponInfoList $params, \miasrv\common\CommonParams $att)
+  {
+    $args = new \miasrv\coupon\api\TCouponApiService_queryCouponInfoList_args();
+    $args->params = $params;
+    $args->att = $att;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'queryCouponInfoList', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('queryCouponInfoList', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_queryCouponInfoList()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\miasrv\coupon\api\TCouponApiService_queryCouponInfoList_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \miasrv\coupon\api\TCouponApiService_queryCouponInfoList_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    throw new \Exception("queryCouponInfoList failed: unknown result");
   }
 
 }
@@ -1741,6 +1799,194 @@ class TCouponApiService_queryUserCouponByBatchCode_result {
   public function write($output) {
     $xfer = 0;
     $xfer += $output->writeStructBegin('TCouponApiService_queryUserCouponByBatchCode_result');
+    if ($this->success !== null) {
+      if (!is_object($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::STRUCT, 0);
+      $xfer += $this->success->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class TCouponApiService_queryCouponInfoList_args {
+  static $_TSPEC;
+
+  /**
+   * @var \miasrv\coupon\api\TParamsQueryCouponInfoList
+   */
+  public $params = null;
+  /**
+   * @var \miasrv\common\CommonParams
+   */
+  public $att = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'params',
+          'type' => TType::STRUCT,
+          'class' => '\miasrv\coupon\api\TParamsQueryCouponInfoList',
+          ),
+        2 => array(
+          'var' => 'att',
+          'type' => TType::STRUCT,
+          'class' => '\miasrv\common\CommonParams',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['params'])) {
+        $this->params = $vals['params'];
+      }
+      if (isset($vals['att'])) {
+        $this->att = $vals['att'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'TCouponApiService_queryCouponInfoList_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->params = new \miasrv\coupon\api\TParamsQueryCouponInfoList();
+            $xfer += $this->params->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRUCT) {
+            $this->att = new \miasrv\common\CommonParams();
+            $xfer += $this->att->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('TCouponApiService_queryCouponInfoList_args');
+    if ($this->params !== null) {
+      if (!is_object($this->params)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('params', TType::STRUCT, 1);
+      $xfer += $this->params->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->att !== null) {
+      if (!is_object($this->att)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('att', TType::STRUCT, 2);
+      $xfer += $this->att->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class TCouponApiService_queryCouponInfoList_result {
+  static $_TSPEC;
+
+  /**
+   * @var \miasrv\coupon\api\TResultQueryCouponInfoList
+   */
+  public $success = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::STRUCT,
+          'class' => '\miasrv\coupon\api\TResultQueryCouponInfoList',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'TCouponApiService_queryCouponInfoList_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::STRUCT) {
+            $this->success = new \miasrv\coupon\api\TResultQueryCouponInfoList();
+            $xfer += $this->success->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('TCouponApiService_queryCouponInfoList_result');
     if ($this->success !== null) {
       if (!is_object($this->success)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
