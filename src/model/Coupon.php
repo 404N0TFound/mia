@@ -30,9 +30,9 @@ class Coupon {
     /**
      * 发送代金券的时候把发送时间保存到redis
      */
-    public function addSendCouponSatrtTime($live_id,$sendTime)
+    public function addSendCouponSatrtTime($live_id,$batchCode,$sendTime)
     {
-        $timeKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.send_coupon_start_time.key'), $live_id);
+        $timeKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.send_coupon_start_time.key'), $live_id.$batchCode);
         $redis = new Redis();
         $redis->setex($timeKey, $sendTime, \F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.send_coupon_start_time.expire_time'));
         return true;
@@ -41,9 +41,9 @@ class Coupon {
     /**
      * 获取发送代金券的发送时间
      */
-    public function getSendCouponStartTime($live_id)
+    public function getSendCouponStartTime($live_id,$batchCode)
     {
-        $timeKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.send_coupon_start_time.key'), $live_id);
+        $timeKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.send_coupon_start_time.key'), $live_id.$batchCode);
         $redis = new Redis();
         $sendTime = $redis->get($timeKey);
 

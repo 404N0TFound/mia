@@ -602,14 +602,16 @@ class Live extends \mia\miagroup\Lib\Service {
 
             // 优惠券信息
             if (in_array('coupon', $field)) {
+
                 if (!empty($roomInfo['coupon'])) {
                     $batch_code = $roomInfo['coupon']['batch_code'];
-
+                    
                     //倒计时
-                    $startTime = $couponService->getSendCouponStartTime($roomInfo['live_id'])['data'];
+                    $startTime = $couponService->getSendCouponStartTime($roomInfo['live_id'],$batch_code)['data'];
+
                     if(!$startTime){
                         $startTime = time();
-                        $couponService->addSendCouponSatrtTime($roomInfo['live_id'],$startTime);
+                        $couponService->addSendCouponSatrtTime($roomInfo['live_id'],$batch_code,$startTime);
                     }
                     $countdown = $startTime+$roomInfo['coupon']['countdown']-time()>0 ? $startTime+$roomInfo['coupon']['countdown']-time() : 0;
                     $roomRes[$roomInfo['id']]['coupon']['batch_code'] = $batch_code;
