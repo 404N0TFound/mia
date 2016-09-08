@@ -938,7 +938,7 @@ class Live extends \mia\miagroup\Lib\Service {
             return $this->error($batchCodeExpiredStatus['code']);
         }
         //判断该优惠券是否发送过，避免重复发送
-        $sendStatus = $couponService->checkBatchCodeIsSent($liveRoomInfo['live_id']);
+        $sendStatus = $couponService->checkBatchCodeIsSent($liveRoomInfo['live_id'],$batchCode);
         if($sendStatus['code'] != 0){
             return $this->error('1636');
         }

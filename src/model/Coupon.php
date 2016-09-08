@@ -9,7 +9,7 @@ class Coupon {
      * 发券后将批次号信息放入redis
      */
     public function setBatchCodeToRedis($liveId,$batchCode){
-        $batchCodeKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.sendCoupon.key'), $liveId);
+        $batchCodeKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.sendCoupon.key'), $liveId.$batchCode);
         $redis = new Redis();
         $redis->setex($batchCodeKey, $batchCode, \F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.sendCoupon.expire_time'));
         return true;
@@ -17,8 +17,8 @@ class Coupon {
     /**
      * 检验券是否已发送（查看批次号是否存在于redis中）
      */
-    public function checkBatchCodeIsSent($liveId) {
-        $batchCodeKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.sendCoupon.key'), $liveId);
+    public function checkBatchCodeIsSent($liveId,$batchCode) {
+        $batchCodeKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.couponKey.sendCoupon.key'), $liveId.$batchCode);
         $redis = new Redis();
         $batchCodeRes = $redis->exists($batchCodeKey);
         if($batchCodeRes){
