@@ -127,11 +127,11 @@ class Coupon extends \mia\miagroup\Lib\Service {
     /**
      * 检验代金券批次号是否发发送过
      */
-    public function checkBatchCodeIsSent($liveId){
-        if (empty($liveId)) {
+    public function checkBatchCodeIsSent($liveId,$batchCode){
+        if (empty($liveId)|| empty($batchCode)) {
             return $this->error(500);
         }
-        $couponStatus = $this->couponModel->checkBatchCodeIsSent($liveId);
+        $couponStatus = $this->couponModel->checkBatchCodeIsSent($liveId,$batchCode);
         if($couponStatus == false){
             return $this->error(1636);
         }
