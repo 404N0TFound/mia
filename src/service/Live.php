@@ -330,20 +330,32 @@ class Live extends \mia\miagroup\Lib\Service {
         }
 
         if(isset($roomData['coupon']['batch_code']) && !empty($roomData['coupon']['batch_code'])){
-
             $batchCode = $roomData['coupon']['batch_code'];
             $couponService = new Coupon($this->version);
 
-            //判断优惠是否已发完
-            $couponNum = $couponService->getCouponRemainNums([$batchCode])['data'];
-            if(!$couponNum[$batchCode]['remain']){
+            //判断是否过期
+            $couponStatus = $couponService->checkBatchCodeIsExpired([$batchCode]);
+            if($couponStatus['code']>0){
                 unset($roomData['coupon']);
             }else{
-                $roomData['coupon']['nums'] = $couponNum[$batchCode]['remain'];
-                //判断是否已经领取过
-                $couponReceived = $couponService->checkIsReceivedCoupon($currentUid,[$batchCode])['code'];
-                $roomData['coupon']['is_received'] = $couponReceived == 0 ? 0 : 1;
+                $batchCodeExpiredStatus = $couponService->checkBatchCodeIsExpired([$batchCode]);
+                if($batchCodeExpiredStatus['code'] > 0 && $roomData['user_id'] == $currentUid){
+                    unset($roomData['coupon']);
+                }
+                //判断优惠是否已发完
+                $couponNum = $couponService->getCouponRemainNums([$batchCode])['data'];
+                if(!$couponNum[$batchCode]['remain']){
+                    unset($roomData['coupon']);
+                }else{
+                    //剩余数量
+                    $roomData['coupon']['nums'] = $couponNum[$batchCode]['remain'];
+                    //判断是否已经领取过
+                    $couponReceived = $couponService->checkIsReceivedCoupon($currentUid,[$batchCode])['code'];
+                    $roomData['coupon']['is_received'] = $couponReceived == 0 ? 0 : 1;
+                    
+                }
             }
+
             
         }
 
@@ -528,6 +540,7 @@ class Live extends \mia\miagroup\Lib\Service {
         }
 
         $couponService = new Coupon();
+
         //将主播信息整合到房间信息中
         $roomRes = array();
         foreach($roomIds as $roomId){
@@ -591,14 +604,19 @@ class Live extends \mia\miagroup\Lib\Service {
             if (in_array('coupon', $field)) {
                 if (!empty($roomInfo['coupon'])) {
                     $batch_code = $roomInfo['coupon']['batch_code'];
-                    $startTime = $couponService->getSendCouponStartTime($roomInfo['live_id'])['data'];
+
+                    //倒计时
+                    $startTime = $couponService->getSendCouponStartTime($roomData['live_id'])['data'];
                     if(!$startTime){
                         $startTime = time();
-                        $couponService->addSendCouponSatrtTime($roomInfo['live_id'],$startTime);
+                        $couponService->addSendCouponSatrtTime($roomData['live_id'],$startTime);
                     }
                     $countdown = $startTime+$roomInfo['coupon']['countdown'];
                     $roomRes[$roomInfo['id']]['coupon']['batch_code'] = $batch_code;
                     $roomRes[$roomInfo['id']]['coupon']['countdown'] = $countdown;
+                    //代金券面额
+                    $money = $couponService->getBatchCodeList([$batch_code])['data'][$batch_code]['value'];
+                    $roomRes[$roomInfo['id']]['coupon']['money'] = $money;
                 }
             }
             
@@ -910,8 +928,6 @@ class Live extends \mia\miagroup\Lib\Service {
         if ($liveRoomInfo['coupon']['batch_code'] != $batchCode) {
             return $this->error('1636');
         }
-        //倒计时
-        $countdown = $liveRoomInfo['coupon']['countdown'];
         
         $couponService = new Coupon();
         
@@ -924,9 +940,12 @@ class Live extends \mia\miagroup\Lib\Service {
         if($sendStatus['code'] != 0){
             return $this->error('1636');
         }
-        
+        //倒计时
+        $countdown = $liveRoomInfo['coupon']['countdown'];
+        $money = $liveRoomInfo['coupon']['money'];
+        $coupon = ['batch_code'=>$batch_code,'countdown'=>$countdown,'money'=>$money];
         //发送领取优惠券消息
-        $content = NormalUtil::getMessageBody(13,$liveRoomInfo['chat_room_id'], 0, '', array('batch_code' => $batchCode,'countdown'=>$countdown));
+        $content = NormalUtil::getMessageBody(13,$liveRoomInfo['chat_room_id'], 0, '', ['coupon'=>$coupon]);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         //发送过后记录下来，用于避免重复发送用
         $couponService->setBatchCodeToRedis($liveRoomInfo['live_id'],$batchCode);
