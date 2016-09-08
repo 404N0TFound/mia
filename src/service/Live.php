@@ -606,10 +606,10 @@ class Live extends \mia\miagroup\Lib\Service {
                     $batch_code = $roomInfo['coupon']['batch_code'];
 
                     //倒计时
-                    $startTime = $couponService->getSendCouponStartTime($roomData['live_id'])['data'];
+                    $startTime = $couponService->getSendCouponStartTime($roomInfo['live_id'])['data'];
                     if(!$startTime){
                         $startTime = time();
-                        $couponService->addSendCouponSatrtTime($roomData['live_id'],$startTime);
+                        $couponService->addSendCouponSatrtTime($roomInfo['live_id'],$startTime);
                     }
                     $countdown = $startTime+$roomInfo['coupon']['countdown'];
                     $roomRes[$roomInfo['id']]['coupon']['batch_code'] = $batch_code;
