@@ -912,8 +912,14 @@ class Live extends \mia\miagroup\Lib\Service {
         }
         //倒计时
         $countdown = $liveRoomInfo['coupon']['countdown'];
-        //判断该优惠券是否发送过，避免重复发送
+        
         $couponService = new Coupon();
+        
+        $batchCodeExpiredStatus = $couponService->checkBatchCodeIsExpired([$batchCode]);
+        if($batchCodeExpiredStatus['code'] != 0){
+            return $this->error($batchCodeExpiredStatus['code']);
+        }
+        //判断该优惠券是否发送过，避免重复发送
         $sendStatus = $couponService->checkBatchCodeIsSent($liveRoomInfo['live_id']);
         if($sendStatus['code'] != 0){
             return $this->error('1636');

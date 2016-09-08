@@ -54,7 +54,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
     
     /**
      * 获取代金券批次
-     * @param string $batchCodes 代金券批次号
+     * @param array $batchCodes 代金券批次号
      */
     public function getBatchCodeList($batchCodes) {
         if (empty($batchCodes)) {
@@ -65,6 +65,28 @@ class Coupon extends \mia\miagroup\Lib\Service {
             return $this->error(1637);
         }
         return $this->succ($batchCodeList);
+    }
+    
+    /**
+     * 检查优惠券是否已过期
+     * @param array $batchCodes
+     */
+    public function checkBatchCodeIsExpired($batchCodes){
+        if (empty($batchCodes)) {
+            return $this->error(500);
+        }
+        $batchCodeInfo = $this->getBatchCodeList($batchCodes);
+        //如果批次不存在，给出不存在提示
+        if($batchCodeInfo['code'] != 0){
+            return $this->error($batchCodeInfo['code']);
+        }
+        
+        //当前时间大于过期时间，给出过期提示
+        $currentTime = date('Y-m-d H:i:s',time());
+        if($currentTime > $batchCodeInfo['data'][$batchCodes[0]]['expire_timestamp']){
+            return $this->error(1638);
+        }
+        return $this->succ(true);
     }
     
     /**
