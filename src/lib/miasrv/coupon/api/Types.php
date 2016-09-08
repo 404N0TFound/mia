@@ -2577,7 +2577,7 @@ class TResultQueryUserCouponByBatchCode {
   /**
    * @var \miasrv\coupon\api\TCoupon[]
    */
-  public $cuponList = null;
+  public $couponList = null;
   /**
    * @var int
    */
@@ -2611,7 +2611,7 @@ class TResultQueryUserCouponByBatchCode {
           'type' => TType::STRING,
           ),
         5 => array(
-          'var' => 'cuponList',
+          'var' => 'couponList',
           'type' => TType::LST,
           'etype' => TType::STRUCT,
           'elem' => array(
@@ -2646,8 +2646,8 @@ class TResultQueryUserCouponByBatchCode {
       if (isset($vals['requestId'])) {
         $this->requestId = $vals['requestId'];
       }
-      if (isset($vals['cuponList'])) {
-        $this->cuponList = $vals['cuponList'];
+      if (isset($vals['couponList'])) {
+        $this->couponList = $vals['couponList'];
       }
       if (isset($vals['pageNo'])) {
         $this->pageNo = $vals['pageNo'];
@@ -2710,7 +2710,7 @@ class TResultQueryUserCouponByBatchCode {
           break;
         case 5:
           if ($ftype == TType::LST) {
-            $this->cuponList = array();
+            $this->couponList = array();
             $_size67 = 0;
             $_etype70 = 0;
             $xfer += $input->readListBegin($_etype70, $_size67);
@@ -2719,7 +2719,7 @@ class TResultQueryUserCouponByBatchCode {
               $elem72 = null;
               $elem72 = new \miasrv\coupon\api\TCoupon();
               $xfer += $elem72->read($input);
-              $this->cuponList []= $elem72;
+              $this->couponList []= $elem72;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -2780,15 +2780,15 @@ class TResultQueryUserCouponByBatchCode {
       $xfer += $output->writeString($this->requestId);
       $xfer += $output->writeFieldEnd();
     }
-    if ($this->cuponList !== null) {
-      if (!is_array($this->cuponList)) {
+    if ($this->couponList !== null) {
+      if (!is_array($this->couponList)) {
         throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
       }
-      $xfer += $output->writeFieldBegin('cuponList', TType::LST, 5);
+      $xfer += $output->writeFieldBegin('couponList', TType::LST, 5);
       {
-        $output->writeListBegin(TType::STRUCT, count($this->cuponList));
+        $output->writeListBegin(TType::STRUCT, count($this->couponList));
         {
-          foreach ($this->cuponList as $iter73)
+          foreach ($this->couponList as $iter73)
           {
             $xfer += $iter73->write($output);
           }
@@ -2980,6 +2980,883 @@ class TParamsQueryUserCouponByBatchCode {
     if ($this->pageSize !== null) {
       $xfer += $output->writeFieldBegin('pageSize', TType::I32, 4);
       $xfer += $output->writeI32($this->pageSize);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class TCouponBatchInfo {
+  static $_TSPEC;
+
+  /**
+   * @var string
+   */
+  public $batchCode = null;
+  /**
+   * @var int
+   */
+  public $applyId = null;
+  /**
+   * @var double
+   */
+  public $value = null;
+  /**
+   * @var double
+   */
+  public $minPrice = null;
+  /**
+   * @var int
+   */
+  public $type = null;
+  /**
+   * @var int
+   */
+  public $useNum = null;
+  /**
+   * @var int
+   */
+  public $status = null;
+  /**
+   * @var int
+   */
+  public $generateAmount = null;
+  /**
+   * @var string
+   */
+  public $useRang = null;
+  /**
+   * @var int
+   */
+  public $businessType = null;
+  /**
+   * @var int
+   */
+  public $businessId = null;
+  /**
+   * @var int
+   */
+  public $couponStatus = null;
+  /**
+   * @var string
+   */
+  public $insertDate = null;
+  /**
+   * @var int
+   */
+  public $isPassword = null;
+  /**
+   * @var string
+   */
+  public $passwordCode = null;
+  /**
+   * @var int
+   */
+  public $timeValidType = null;
+  /**
+   * @var int
+   */
+  public $validDay = null;
+  /**
+   * @var string
+   */
+  public $startTimestamp = null;
+  /**
+   * @var string
+   */
+  public $expireTimestamp = null;
+  /**
+   * @var string
+   */
+  public $receiveStartDate = null;
+  /**
+   * @var string
+   */
+  public $receiveEndDate = null;
+  /**
+   * @var int
+   */
+  public $receiveTotalLimit = null;
+  /**
+   * @var int
+   */
+  public $generateType = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'batchCode',
+          'type' => TType::STRING,
+          ),
+        2 => array(
+          'var' => 'applyId',
+          'type' => TType::I32,
+          ),
+        3 => array(
+          'var' => 'value',
+          'type' => TType::DOUBLE,
+          ),
+        4 => array(
+          'var' => 'minPrice',
+          'type' => TType::DOUBLE,
+          ),
+        5 => array(
+          'var' => 'type',
+          'type' => TType::I32,
+          ),
+        6 => array(
+          'var' => 'useNum',
+          'type' => TType::I32,
+          ),
+        7 => array(
+          'var' => 'status',
+          'type' => TType::I32,
+          ),
+        8 => array(
+          'var' => 'generateAmount',
+          'type' => TType::I32,
+          ),
+        9 => array(
+          'var' => 'useRang',
+          'type' => TType::STRING,
+          ),
+        10 => array(
+          'var' => 'businessType',
+          'type' => TType::I32,
+          ),
+        11 => array(
+          'var' => 'businessId',
+          'type' => TType::I32,
+          ),
+        12 => array(
+          'var' => 'couponStatus',
+          'type' => TType::I32,
+          ),
+        13 => array(
+          'var' => 'insertDate',
+          'type' => TType::STRING,
+          ),
+        14 => array(
+          'var' => 'isPassword',
+          'type' => TType::I32,
+          ),
+        15 => array(
+          'var' => 'passwordCode',
+          'type' => TType::STRING,
+          ),
+        16 => array(
+          'var' => 'timeValidType',
+          'type' => TType::I32,
+          ),
+        17 => array(
+          'var' => 'validDay',
+          'type' => TType::I32,
+          ),
+        18 => array(
+          'var' => 'startTimestamp',
+          'type' => TType::STRING,
+          ),
+        19 => array(
+          'var' => 'expireTimestamp',
+          'type' => TType::STRING,
+          ),
+        20 => array(
+          'var' => 'receiveStartDate',
+          'type' => TType::STRING,
+          ),
+        21 => array(
+          'var' => 'receiveEndDate',
+          'type' => TType::STRING,
+          ),
+        22 => array(
+          'var' => 'receiveTotalLimit',
+          'type' => TType::I32,
+          ),
+        23 => array(
+          'var' => 'generateType',
+          'type' => TType::I32,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['batchCode'])) {
+        $this->batchCode = $vals['batchCode'];
+      }
+      if (isset($vals['applyId'])) {
+        $this->applyId = $vals['applyId'];
+      }
+      if (isset($vals['value'])) {
+        $this->value = $vals['value'];
+      }
+      if (isset($vals['minPrice'])) {
+        $this->minPrice = $vals['minPrice'];
+      }
+      if (isset($vals['type'])) {
+        $this->type = $vals['type'];
+      }
+      if (isset($vals['useNum'])) {
+        $this->useNum = $vals['useNum'];
+      }
+      if (isset($vals['status'])) {
+        $this->status = $vals['status'];
+      }
+      if (isset($vals['generateAmount'])) {
+        $this->generateAmount = $vals['generateAmount'];
+      }
+      if (isset($vals['useRang'])) {
+        $this->useRang = $vals['useRang'];
+      }
+      if (isset($vals['businessType'])) {
+        $this->businessType = $vals['businessType'];
+      }
+      if (isset($vals['businessId'])) {
+        $this->businessId = $vals['businessId'];
+      }
+      if (isset($vals['couponStatus'])) {
+        $this->couponStatus = $vals['couponStatus'];
+      }
+      if (isset($vals['insertDate'])) {
+        $this->insertDate = $vals['insertDate'];
+      }
+      if (isset($vals['isPassword'])) {
+        $this->isPassword = $vals['isPassword'];
+      }
+      if (isset($vals['passwordCode'])) {
+        $this->passwordCode = $vals['passwordCode'];
+      }
+      if (isset($vals['timeValidType'])) {
+        $this->timeValidType = $vals['timeValidType'];
+      }
+      if (isset($vals['validDay'])) {
+        $this->validDay = $vals['validDay'];
+      }
+      if (isset($vals['startTimestamp'])) {
+        $this->startTimestamp = $vals['startTimestamp'];
+      }
+      if (isset($vals['expireTimestamp'])) {
+        $this->expireTimestamp = $vals['expireTimestamp'];
+      }
+      if (isset($vals['receiveStartDate'])) {
+        $this->receiveStartDate = $vals['receiveStartDate'];
+      }
+      if (isset($vals['receiveEndDate'])) {
+        $this->receiveEndDate = $vals['receiveEndDate'];
+      }
+      if (isset($vals['receiveTotalLimit'])) {
+        $this->receiveTotalLimit = $vals['receiveTotalLimit'];
+      }
+      if (isset($vals['generateType'])) {
+        $this->generateType = $vals['generateType'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'TCouponBatchInfo';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->batchCode);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->applyId);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::DOUBLE) {
+            $xfer += $input->readDouble($this->value);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::DOUBLE) {
+            $xfer += $input->readDouble($this->minPrice);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->type);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 6:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->useNum);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 7:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->status);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 8:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->generateAmount);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 9:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->useRang);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 10:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->businessType);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 11:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->businessId);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 12:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->couponStatus);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 13:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->insertDate);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 14:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->isPassword);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 15:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->passwordCode);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 16:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->timeValidType);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 17:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->validDay);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 18:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->startTimestamp);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 19:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->expireTimestamp);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 20:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->receiveStartDate);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 21:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->receiveEndDate);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 22:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->receiveTotalLimit);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 23:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->generateType);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('TCouponBatchInfo');
+    if ($this->batchCode !== null) {
+      $xfer += $output->writeFieldBegin('batchCode', TType::STRING, 1);
+      $xfer += $output->writeString($this->batchCode);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->applyId !== null) {
+      $xfer += $output->writeFieldBegin('applyId', TType::I32, 2);
+      $xfer += $output->writeI32($this->applyId);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->value !== null) {
+      $xfer += $output->writeFieldBegin('value', TType::DOUBLE, 3);
+      $xfer += $output->writeDouble($this->value);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->minPrice !== null) {
+      $xfer += $output->writeFieldBegin('minPrice', TType::DOUBLE, 4);
+      $xfer += $output->writeDouble($this->minPrice);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->type !== null) {
+      $xfer += $output->writeFieldBegin('type', TType::I32, 5);
+      $xfer += $output->writeI32($this->type);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->useNum !== null) {
+      $xfer += $output->writeFieldBegin('useNum', TType::I32, 6);
+      $xfer += $output->writeI32($this->useNum);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->status !== null) {
+      $xfer += $output->writeFieldBegin('status', TType::I32, 7);
+      $xfer += $output->writeI32($this->status);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->generateAmount !== null) {
+      $xfer += $output->writeFieldBegin('generateAmount', TType::I32, 8);
+      $xfer += $output->writeI32($this->generateAmount);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->useRang !== null) {
+      $xfer += $output->writeFieldBegin('useRang', TType::STRING, 9);
+      $xfer += $output->writeString($this->useRang);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->businessType !== null) {
+      $xfer += $output->writeFieldBegin('businessType', TType::I32, 10);
+      $xfer += $output->writeI32($this->businessType);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->businessId !== null) {
+      $xfer += $output->writeFieldBegin('businessId', TType::I32, 11);
+      $xfer += $output->writeI32($this->businessId);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->couponStatus !== null) {
+      $xfer += $output->writeFieldBegin('couponStatus', TType::I32, 12);
+      $xfer += $output->writeI32($this->couponStatus);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->insertDate !== null) {
+      $xfer += $output->writeFieldBegin('insertDate', TType::STRING, 13);
+      $xfer += $output->writeString($this->insertDate);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->isPassword !== null) {
+      $xfer += $output->writeFieldBegin('isPassword', TType::I32, 14);
+      $xfer += $output->writeI32($this->isPassword);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->passwordCode !== null) {
+      $xfer += $output->writeFieldBegin('passwordCode', TType::STRING, 15);
+      $xfer += $output->writeString($this->passwordCode);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->timeValidType !== null) {
+      $xfer += $output->writeFieldBegin('timeValidType', TType::I32, 16);
+      $xfer += $output->writeI32($this->timeValidType);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->validDay !== null) {
+      $xfer += $output->writeFieldBegin('validDay', TType::I32, 17);
+      $xfer += $output->writeI32($this->validDay);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->startTimestamp !== null) {
+      $xfer += $output->writeFieldBegin('startTimestamp', TType::STRING, 18);
+      $xfer += $output->writeString($this->startTimestamp);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->expireTimestamp !== null) {
+      $xfer += $output->writeFieldBegin('expireTimestamp', TType::STRING, 19);
+      $xfer += $output->writeString($this->expireTimestamp);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->receiveStartDate !== null) {
+      $xfer += $output->writeFieldBegin('receiveStartDate', TType::STRING, 20);
+      $xfer += $output->writeString($this->receiveStartDate);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->receiveEndDate !== null) {
+      $xfer += $output->writeFieldBegin('receiveEndDate', TType::STRING, 21);
+      $xfer += $output->writeString($this->receiveEndDate);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->receiveTotalLimit !== null) {
+      $xfer += $output->writeFieldBegin('receiveTotalLimit', TType::I32, 22);
+      $xfer += $output->writeI32($this->receiveTotalLimit);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->generateType !== null) {
+      $xfer += $output->writeFieldBegin('generateType', TType::I32, 23);
+      $xfer += $output->writeI32($this->generateType);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class TParamsQueryCouponInfoList {
+  static $_TSPEC;
+
+  /**
+   * @var string[]
+   */
+  public $batchCodes = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'batchCodes',
+          'type' => TType::LST,
+          'etype' => TType::STRING,
+          'elem' => array(
+            'type' => TType::STRING,
+            ),
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['batchCodes'])) {
+        $this->batchCodes = $vals['batchCodes'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'TParamsQueryCouponInfoList';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::LST) {
+            $this->batchCodes = array();
+            $_size81 = 0;
+            $_etype84 = 0;
+            $xfer += $input->readListBegin($_etype84, $_size81);
+            for ($_i85 = 0; $_i85 < $_size81; ++$_i85)
+            {
+              $elem86 = null;
+              $xfer += $input->readString($elem86);
+              $this->batchCodes []= $elem86;
+            }
+            $xfer += $input->readListEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('TParamsQueryCouponInfoList');
+    if ($this->batchCodes !== null) {
+      if (!is_array($this->batchCodes)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('batchCodes', TType::LST, 1);
+      {
+        $output->writeListBegin(TType::STRING, count($this->batchCodes));
+        {
+          foreach ($this->batchCodes as $iter87)
+          {
+            $xfer += $output->writeString($iter87);
+          }
+        }
+        $output->writeListEnd();
+      }
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class TResultQueryCouponInfoList {
+  static $_TSPEC;
+
+  /**
+   * @var int
+   */
+  public $code = null;
+  /**
+   * @var string
+   */
+  public $msg = null;
+  /**
+   * @var string
+   */
+  public $alert = null;
+  /**
+   * @var string
+   */
+  public $requestId = null;
+  /**
+   * @var \miasrv\coupon\api\TCouponBatchInfo[]
+   */
+  public $pageList = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'code',
+          'type' => TType::I32,
+          ),
+        2 => array(
+          'var' => 'msg',
+          'type' => TType::STRING,
+          ),
+        3 => array(
+          'var' => 'alert',
+          'type' => TType::STRING,
+          ),
+        4 => array(
+          'var' => 'requestId',
+          'type' => TType::STRING,
+          ),
+        5 => array(
+          'var' => 'pageList',
+          'type' => TType::LST,
+          'etype' => TType::STRUCT,
+          'elem' => array(
+            'type' => TType::STRUCT,
+            'class' => '\miasrv\coupon\api\TCouponBatchInfo',
+            ),
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['code'])) {
+        $this->code = $vals['code'];
+      }
+      if (isset($vals['msg'])) {
+        $this->msg = $vals['msg'];
+      }
+      if (isset($vals['alert'])) {
+        $this->alert = $vals['alert'];
+      }
+      if (isset($vals['requestId'])) {
+        $this->requestId = $vals['requestId'];
+      }
+      if (isset($vals['pageList'])) {
+        $this->pageList = $vals['pageList'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'TResultQueryCouponInfoList';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::I32) {
+            $xfer += $input->readI32($this->code);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 2:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->msg);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 3:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->alert);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 4:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->requestId);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 5:
+          if ($ftype == TType::LST) {
+            $this->pageList = array();
+            $_size88 = 0;
+            $_etype91 = 0;
+            $xfer += $input->readListBegin($_etype91, $_size88);
+            for ($_i92 = 0; $_i92 < $_size88; ++$_i92)
+            {
+              $elem93 = null;
+              $elem93 = new \miasrv\coupon\api\TCouponBatchInfo();
+              $xfer += $elem93->read($input);
+              $this->pageList []= $elem93;
+            }
+            $xfer += $input->readListEnd();
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('TResultQueryCouponInfoList');
+    if ($this->code !== null) {
+      $xfer += $output->writeFieldBegin('code', TType::I32, 1);
+      $xfer += $output->writeI32($this->code);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->msg !== null) {
+      $xfer += $output->writeFieldBegin('msg', TType::STRING, 2);
+      $xfer += $output->writeString($this->msg);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->alert !== null) {
+      $xfer += $output->writeFieldBegin('alert', TType::STRING, 3);
+      $xfer += $output->writeString($this->alert);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->requestId !== null) {
+      $xfer += $output->writeFieldBegin('requestId', TType::STRING, 4);
+      $xfer += $output->writeString($this->requestId);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->pageList !== null) {
+      if (!is_array($this->pageList)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('pageList', TType::LST, 5);
+      {
+        $output->writeListBegin(TType::STRUCT, count($this->pageList));
+        {
+          foreach ($this->pageList as $iter94)
+          {
+            $xfer += $iter94->write($output);
+          }
+        }
+        $output->writeListEnd();
+      }
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();

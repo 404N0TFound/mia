@@ -335,14 +335,14 @@ class Live extends \mia\miagroup\Lib\Service {
             $couponService = new Coupon($this->version);
 
             //判断优惠是否已发完
-            $couponNum = $couponService->getCouponRemainNums($batchCode)['data'];
+            $couponNum = $couponService->getCouponRemainNums([$batchCode])['data'];
             if(!$couponNum[$batchCode]['remain']){
                 unset($roomData['coupon']);
             }else{
                 $roomData['coupon']['nums'] = $couponNum[$batchCode]['remain'];
                 //判断是否已经领取过
-                $couponReceived = $couponService->checkIsReceivedCoupon($currentUid,$batchCode)['data'];
-                $roomData['coupon']['is_received'] = $couponReceived ? 1 : 0;
+                $couponReceived = $couponService->checkIsReceivedCoupon($currentUid,[$batchCode])['code'];
+                $roomData['coupon']['is_received'] = $couponReceived == 0 ? 0 : 1;
             }
             
         }
@@ -947,13 +947,13 @@ class Live extends \mia\miagroup\Lib\Service {
 
         $couponService = new Coupon($this->version);
         // 是否已领取
-        $couponReceived = $couponService->checkIsReceivedCoupon($userId,$batchCode)['data'];
-        if ($couponReceived) {
+        $couponReceived = $couponService->checkIsReceivedCoupon($userId,[$batchCode]);
+        if ($couponReceived['code'] != 0) {
             return $this->error('1631');
         }
 
         //判断优惠是否已发完
-        $couponNum = $couponService->getCouponRemainNums($batchCode)['data'];
+        $couponNum = $couponService->getCouponRemainNums([$batchCode])['data'];
         if(!$couponNum[$batchCode]['remain']){
             $this->error('1635');
         }
@@ -965,9 +965,9 @@ class Live extends \mia\miagroup\Lib\Service {
         }
 
         //获取优惠券信息
-        $couponInfo = $couponService->getPersonalCoupons($userId,$batchCode);
+        $couponInfo = $couponService->getPersonalCoupons($userId,[$batchCode]);
         if($couponInfo['code']>0){
-            return $this->error($couponInfo['code']);
+            return $this->error('1632');
         }
 
         $couponMoney = $couponInfo['data']['coupon_info_list'][0]['value'];

@@ -47,7 +47,29 @@ class Coupon
         }
     }
 
-
+    /**
+     * 获取代金券批次信息
+     * @param array $batchCodes
+     * @return array|null
+     */
+    public function getBatchCodeList($batchCodes=[])
+    {
+        $param = [
+            'batchCodes' => $batchCodes,
+        ];
+    
+        $couponParam = new \miasrv\coupon\api\TParamsQueryCouponInfoList($param);
+        $res = $this->apiClient->queryCouponInfoList($couponParam, $this->commonParams);
+        if (isset($res->code) && $res->code == 0) {
+            $result = array();
+            foreach ($res->pageList as $k => $v) {
+                $result[$v->batchCode] = (array)$v;
+            }
+            return $result;
+        } else {
+            return null;
+        }
+    }
 
     /**
      * 查询用户绑定的优惠券详细信息
@@ -68,10 +90,9 @@ class Coupon
 
         $coupon_param = new \miasrv\coupon\api\TParamsQueryUserCouponByBatchCode($param);
         $res = $this->apiClient->queryUserCouponByBatchCode($coupon_param, $this->commonParams);
-
         if (isset($res->code) && $res->code == 0) {
             $item_list = array();
-            foreach ($res->cuponList as $item) {
+            foreach ($res->couponList as $item) {
                 $item_list[] = [
                     'couponCode'    => $item->couponCode,
                     'value'         => $item->value,
@@ -153,4 +174,5 @@ class Coupon
         $commonStr = ($iVersion/100).'|'.$clientOsPath;
         return $commonStr;
     }
+    
 }
