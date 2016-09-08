@@ -59,7 +59,7 @@ class CouponClient {
     private function _getClient($type = 'api')
     {
         if (!isset($this->config[$type])) {
-            throw new Exception($type . ' coupon service not defined', 500);
+            throw new \Exception($type . ' coupon service not defined', 500);
         }
         if (!isset($this->client[$type])) {
             $host = $this->config[$type]['host'];
@@ -81,7 +81,7 @@ class CouponClient {
             } else if ($type == 'trade') {
                 $this->client[$type] = new TCouponTradeServiceClient($this->protocol[$type]);
             } else {
-                throw new Exception($type . ' coupon service not defined', 500);
+                throw new \Exception($type . ' coupon service not defined', 500);
             }
         }
         return $this->client[$type];
