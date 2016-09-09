@@ -9,15 +9,15 @@ use \mia\miagroup\Data\HeadLine\HeadLineUserCategory;
 class HeadLine {
 
     private $headLineChannelData;
-    private $headLineChannelContentData;
+    //private $headLineChannelContentData;
     private $headLineTopicData;
-    private $headLineUserCategoryData;
+    //private $headLineUserCategoryData;
 
     public function __construct() {
         $this->headLineChannelData = new HeadLineChannel();
-        $this->headLineChannelContentData = new HeadLineChannelContent();
+        //$this->headLineChannelContentData = new HeadLineChannelContent();
         $this->headLineTopicData = new HeadLineTopic();
-        $this->headLineUserCategoryData = new HeadLineUserCategory();
+        //$this->headLineUserCategoryData = new HeadLineUserCategory();
     }
     
     /**
@@ -30,22 +30,44 @@ class HeadLine {
     /**
      * 获取头条栏目
      */
-    public function getHeadLineChannels() {
-        //@donghui
+    public function getHeadLineChannels($channelIds, $status = array(1)) {
+        if(empty($channelIds)){
+            return array();
+        }
+        $data = $this->headLineChannelData->getHeadLineChannelByIds($channelIds, $status);
+        return $data;
     }
     
     /**
      * 新增头条栏目
      */
     public function addHeadLineChannel($channelInfo) {
-        //@donghui
+        $data = $this->headLineChannelData->addHeadLineChannel($channelInfo);
+        return $data;
     }
     
     /**
      * 更新头条栏目
      */
-    public function updateHeadLineChannel($channelId, $updateData) {
-        //@donghui
+    public function updateHeadLineChannel($channelId, $channelInfo) {
+        $data = $this->headLineChannelData->updateHeadLineChannel($channelId, $channelInfo);
+        return $data;
+    }
+    
+    /**
+     * 设置栏目的上下线状态
+     */
+    public function setChannelStatusByIds($channelIds, $status = 1) {
+        $data = $this->headLineChannelData->setChannelStatusByIds($channelIds, $status);
+        return $data;
+    }
+    
+    /**
+     * 删除栏目
+     */
+    public function deleteHeadLineChannel($channelId) {
+        $data = $this->headLineChannelData->deleteHeadLineChannel($channelId);
+        return $data;
     }
     
     /**
@@ -73,23 +95,44 @@ class HeadLine {
     }
     
     /**
+     * 获取头条专题
+     */
+    public function getHeadLineTopics($topicIds, $status = array(1)) {
+        if(empty($topicIds)){
+            return array();
+        }
+        $data = $this->headLineTopicData->getHeadLineTopicByIds($channelIds, $status);
+        return $data;
+    }
+    /**
      * 新增头条专题
      */
     public function addHeadLineTopic($topicInfo) {
-        //@donghui
+        $data = $this->headLineTopicData->addHeadLineTopic($topicInfo);
+        return $data;
     }
     
     /**
      * 编辑头条专题
      */
-    public function editHeadLineTopic($id, $topicInfo) {
-        //@donghui
+    public function editHeadLineTopic($topicId, $topicInfo) {
+        $data = $this->headLineTopicData->updateHeadLineTopic($topicId, $topicInfo);
+        return $data;
     }
     
     /**
      * 删除头条专题
      */
-    public function delHeadLineTopic($id) {
-        //@donghui
+    public function delHeadLineTopic($topicId) {
+        $data = $this->headLineTopicData->deleteHeadLineTopic($topicId);
+        return $data;
+    }
+    
+    /**
+     * 设置专题的上下线状态
+     */
+    public function setTopicStatusByIds($topicIds, $status = 1) {
+        $data = $this->headLineTopicData->setTopicStatusByIds($topicIds, $status);
+        return $data;
     }
 }
