@@ -56,7 +56,9 @@ class Album {
                 }
                 if($img_pic){
                     $res[$key]['cover_image'] = array();
-                    if ($img_pic['source'] == 'local') {
+                    if (strpos($img_pic['url'], 'http') === 0) {
+                        $res[$key]['cover_image']['url'] = $img_pic['url'];
+                    } else if($img_pic['source'] == 'local') {
                         $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $img_pic['url'];
                     } else {
                         $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $img_pic['url'];
@@ -68,7 +70,9 @@ class Album {
                 $res[$key]['album_info'] = array();
                 if (!empty($value['ext_info']['images'])) {
                     foreach ($value['ext_info']['images'] as $image) {
-                        if ($image['source'] == 'local') {
+                        if (strpos($image['url'], 'http') === 0) {
+                            $image['url'] = $image['url'];
+                        } else if ($image['source'] == 'local') {
                             $image['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image['url'];
                         } else {
                             $image['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $image['url'];

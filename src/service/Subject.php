@@ -582,11 +582,21 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (!empty($subject['view_num'])) {
             $subjectInfo['created'] = $subject['created'];
         }
+        $uniqueFlag = md5(json_encode($subject));
+        $redis = new \mia\miagroup\Lib\Redis();
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.headLineKey.syncUniqueFlag.key'), $uniqueFlag);
+        $isExist = $redis->exists($key);
+        if ($isExist) {
+            return $this->error('500','exist');
+        }
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $result = $this->issue($subjectInfo);
+        \DB_Query::switchCluster($preNode);
+        $redis->set($key, 1);
         if ($result['code'] > 0) {
             return $this->error($result['code']);
         } else {
-            return $this->succ($result['data']);
+            return $this->succ($result['data']['id']);
         }
     }
 }

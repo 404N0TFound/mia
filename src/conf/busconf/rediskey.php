@@ -7,6 +7,9 @@ $liveServicePrefix = $basePrefix . 'live_';
 $redBagServicePrefix = $basePrefix . 'redbag_';
 //代金券服务相关key前缀
 $couponServicePrefix = $basePrefix . 'coupon_';
+//头条服务相关key前缀
+$headLineServicePrefix = $basePrefix . 'headline_';
+
 /**
  * 直播相关的redisKey
  */
@@ -106,3 +109,12 @@ $couponKey = array(
     )
 );
 
+/**
+ * 头条相关的rediskey
+ */
+$headLineKey = array(
+    'syncUniqueFlag' =>array( //同步数据唯一校验
+        'key' => $headLineServicePrefix . 'sync_unique_flag_%s',
+        'expire_time' => 86400,
+    ),
+);
