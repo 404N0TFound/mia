@@ -52,6 +52,21 @@ class RecommendedHeadline
         return json_decode($res,true);
     }
 
+    public function headlineRelate()
+    {
+        $url = $this->config['remote'].$this->config['action']['relate'];
+        $res = $this->_curlPost($url);
+        return json_decode($res,true);
+    }
+
+
+    public function headlineRead()
+    {
+        $url = $this->config['remote'].$this->config['action']['read'];
+        $res = $this->_curlPost($url);
+        return json_decode($res,true);
+    }
+
 
 
     private function _curlPost($url,$headers=[])
