@@ -3,14 +3,15 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\HeadLine as HeadLineModel;
 use Qiniu\Auth;
-
+use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 class HeadLine extends \mia\miagroup\Lib\Service {
     
     public $headLineModel;
-    
+    public $headlineRemote;
     public function __construct() {
         parent::__construct();
-        $this->$headLineModel = new HeadLineModel();
+        $this->headLineModel = new HeadLineModel();
+        $this->headlineRemote = new HeadlineRemote();
     }
     
     /**
@@ -26,8 +27,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 获取首页轮播头条
      */
-    public function getHomePageHeadLines() {
-        //@chaojiang
+    public function getHomePageHeadLines()
+    {
+        $channelId = 1;
+        $data = $this->headLineModel->getHeadLinesByChannel($channelId);
+        return $this->succ($data);
     }
     
     /**
@@ -40,15 +44,25 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 头条内容查看告知
      */
-    public function headLineReadNotify($currentUid, $subjectId, $channelId = 0) {
-        //@chaojiang
+    public function headLineReadNotify($currentUid, $subjectId, $channelId = 0)
+    {
+        if(empty($currentUid) || empty($subjectId)){
+            return $this->error(500);
+        }
+        $data = $this->headlineRemote->headlineRead($currentUid, $subjectId, $channelId);
+        return $this->succ($data);
     }
     
     /**
      * 获取头条的相关头条
      */
-    public function getRelatedHeadLines($subjectId, $channelId = 0, $currentUid = 0) {
-        //@chaojiang
+    public function getRelatedHeadLines($subjectId, $currentUid, $channelId = 0)
+    {
+        if(empty($currentUid) || empty($subjectId)){
+            return $this->error(500);
+        }
+        $data = $this->headlineRemote->headlineRelate($subjectId, $currentUid,$channelId);
+        return $this->succ($data);
     }
     
     /**
@@ -82,9 +96,16 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 新增运营头条
      */
-    public function addOperateHeadLine($headLineInfo) {
-        //@donghui
-        //归纳头条所有type，校验头条type
+    public function addOperateHeadLine($headLineInfo)
+    {
+        if(empty($headLineInfo) || !is_array($headLineInfo)){
+            return $this->error(500);
+        }
+        if(!in_array($headLineInfo['relation_type'], [1,2,3,4,5,6])){
+            return $this->error(500);
+        }
+        $data = $this->headLineModel->addOperateHeadLine($headLineInfo);
+        return $this->succ($data);
     }
     
     /**
@@ -93,13 +114,22 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     public function editOperateHeadLine($id, $headLineInfo) {
         //@donghui
         //只能编辑ext_info、page、row、begin_time、end_time
+        if(empty($id) || empty($headLineInfo) || !is_array($headLineInfo)){
+            return $this->error(500);
+        }
+        $data = $this->headLineModel->editOperateHeadLine($id,$headLineInfo);
+        return $this->succ($data);
     }
     
     /**
      * 删除运营头条
      */
     public function delOperateHeadLine($id) {
-        //@donghui
+        if(empty($id)){
+            return $this->error(500);
+        }
+        $data = $this->headLineModel->delOperateHeadLine($id);
+        return $this->succ($data);
     }
     
     /**

@@ -24,7 +24,8 @@ class HeadLine {
      * 根据头条栏目获取头条
      */
     public function getHeadLinesByChannel($channelId) {
-        //@chaojiang
+        $data = $this->headLineChannelContentData->getHeadLinesByChannel($channelId);
+        return $data;
     }
     
     /**
@@ -51,25 +52,33 @@ class HeadLine {
     /**
      * 新增运营头条
      */
-    public function addOperateHeadLine($headLineInfo) {
+    public function addOperateHeadLine($headLineInfo)
+    {
         //@donghui
         //归纳头条所有type，校验头条type
         //归纳所有ext_info，校验ext_info
+        $data = $this->headLineChannelContentData->addOperateHeadLine($headLineInfo);
+        return $data;
     }
     
     /**
      * 编辑运营头条
      */
-    public function editOperateHeadLine($id, $headLineInfo) {
+    public function editOperateHeadLine($id, $headLineInfo)
+    {
         //@donghui
         //只能编辑ext_info、page、row、begin_time、end_time
+        $data = $this->headLineChannelContentData->updateHeadlineById($id,$headLineInfo);
+        return $data;
     }
     
     /**
      * 删除运营头条
      */
-    public function delOperateHeadLine($id) {
-        //@donghui
+    public function delOperateHeadLine($id)
+    {
+        $data = $this->headLineChannelContentData->delHeadlineById($id);
+        return $data;
     }
     
     /**

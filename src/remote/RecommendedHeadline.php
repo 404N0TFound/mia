@@ -29,7 +29,7 @@ class RecommendedHeadline
 
 
 
-    public function headlineRelate($subjectId, $channelId, $userId)
+    public function headlineRelate($subjectId, $userId, $channelId)
     {
         $params = [
             'uid'=>$userId,
