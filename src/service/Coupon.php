@@ -80,9 +80,8 @@ class Coupon extends \mia\miagroup\Lib\Service {
         if($batchCodeInfo['code'] != 0){
             return $this->error($batchCodeInfo['code']);
         }
-        
         //当前时间大于过期时间，给出过期提示
-        $expiredTime = strtotime($batchCodeInfo['data'][$batchCodes[0]]['expire_timestamp']);
+        $expiredTime = strtotime($batchCodeInfo['data'][$batchCodes[0]]['expireTimestamp']);
         if(time() > $expiredTime){
             return $this->error(1638);
         }
