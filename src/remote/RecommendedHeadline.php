@@ -5,71 +5,58 @@ class RecommendedHeadline
 
     public function __construct()
     {
-        $this->config = \F_Ice::$ins->workApp->config->get('headline.host');
+        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.headline');
     }
 
     /**
-     * 首次访问列表
+     * 根据action获取头条列表
+     * @param  init $userId
+     * @param  init $channelId
+     * @param  string $action  [init,refresh,next,home_banner]
      * @return array
      */
-    public function listInit()
+    public function headlineList($userId,$channelId,$action='init')
     {
-        $url = $this->config['remote'].$this->config['action']['init'];
-        $res = $this->_curlPost($url);
-        return json_decode($res,true);
-    }
-
-    /**
-     * 顶部下拉
-     * @return array
-     */
-    public function listRefresh()
-    {
-        $url = $this->config['remote'].$this->config['action']['refresh'];
-        $res = $this->_curlPost($url);
-        return json_decode($res,true);
-    }
-
-    /**
-     * 底部上拉
-     * @return array
-     */
-    public function listNext()
-    {
-        $url = $this->config['remote'].$this->config['action']['next'];
-        $res = $this->_curlPost($url);
-        return json_decode($res,true);
-    }
-
-    /**
-     * 首页滚动广告
-     * @return array
-     */
-    public function listHomeBanner()
-    {
-        $url = $this->config['remote'].$this->config['action']['banner'];
-        $res = $this->_curlPost($url);
-        return json_decode($res,true);
-    }
-
-    public function headlineRelate()
-    {
-        $url = $this->config['remote'].$this->config['action']['relate'];
-        $res = $this->_curlPost($url);
-        return json_decode($res,true);
-    }
-
-
-    public function headlineRead()
-    {
-        $url = $this->config['remote'].$this->config['action']['read'];
-        $res = $this->_curlPost($url);
+        $params = [
+            'uid'    => $userId,
+            'tab_id' => $channelId,
+            'action' => $action,
+        ];
+        $url = $this->config['remote'].'list/'.$action;
+        $res = $this->_curlPost($url,$params);
         return json_decode($res,true);
     }
 
 
 
-    private function _curlPost($url,$headers=[])
+    public function headlineRelate($subjectId, $channelId, $userId)
+    {
+        $params = [
+            'uid'=>$userId,
+            'doc_id'=>$subjectId,
+            'tab_id'=>$channelId,
+        ];
+        $url = $this->config['remote'].'doc/relate';
+        $res = $this->_curlPost($url,$params);
+        return json_decode($res,true);
+    }
+
+
+    public function headlineRead($userId,$subjectId,$channelId)
+    {
+        $params = [
+            'uid'=>$userId,
+            'doc_id'=>$subjectId,
+            'tab_id'=>$channelId,
+        ];
+        $url = $this->config['remote'].'doc/read';
+        $res = $this->_curlPost($url,$params);
+        return json_decode($res,true);
+    }
+
+
+
+    private function _curlPost($url,$params,$headers=[])
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -84,6 +71,7 @@ class RecommendedHeadline
         curl_setopt($ch, CURLOPT_NOBODY, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         curl_setopt($ch, CURLOPT_SSLVERSION, 1);
