@@ -1007,7 +1007,8 @@ class Live extends \mia\miagroup\Lib\Service {
             $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         }
 
-        $success = array('money' => $couponMoney . '元', 'success_msg' => '恭喜！抢到%s优惠券，快去买买买~');
+        $success_msg = sprintf('恭喜！抢到%s元优惠券，快去买买买~',$couponMoney);
+        $success = array('success_msg' =>$success_msg);
         return $this->succ($success);
     }
 
