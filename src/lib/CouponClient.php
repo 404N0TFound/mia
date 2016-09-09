@@ -2,7 +2,7 @@
 namespace mia\miagroup\Lib;
 
 
-require_once __DIR__ . '/Thrift/lib/Thrift/ClassLoader/ThriftClassLoader.php';
+require_once __DIR__ . '/Thrift/Lib/Thrift/ClassLoader/ThriftClassLoader.php';
 use Thrift\ClassLoader\ThriftClassLoader;
 
 $loader = new ThriftClassLoader();

@@ -29,22 +29,23 @@ class Coupon extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $bindRes = $this->couponRemote->bindCouponByBatchCode($userId, $batchCode);
-        if($bindRes != true){
+        if($bindRes === true){
+            return $this->succ($bindRes);
+        }else{
             return $this->error(1633);
         }
-        return $this->succ($bindRes);
     }
 
 
     /**
      * 获取代金券批次剩余数量
-     * @param string $batchCode 代金券批次号
+     * @param array $batchCodes 代金券批次号
      */
-    public function getCouponRemainNums($batchCode) {
-        if (empty($batchCode)) {
+    public function getCouponRemainNums($batchCodes) {
+        if (empty($batchCodes) || !is_array($batchCodes)) {
             return $this->error(500);
         }
-        $couponNums = $this->couponRemote->getRemainCoupon([$batchCode]);
+        $couponNums = $this->couponRemote->getRemainCoupon($batchCodes);
         if(!$couponNums){
             return $this->error(1635);
         }
@@ -52,17 +53,53 @@ class Coupon extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 获取代金券批次
+     * @param array $batchCodes 代金券批次号
+     */
+    public function getBatchCodeList($batchCodes) {
+        if (empty($batchCodes) || !is_array($batchCodes)) {
+            return $this->error(500);
+        }
+        $batchCodeList = $this->couponRemote->getBatchCodeList($batchCodes);
+        if(!$batchCodeList){
+            return $this->error(1637);
+        }
+        return $this->succ($batchCodeList);
+    }
+    
+    /**
+     * 检查优惠券是否已过期
+     * @param array $batchCodes
+     */
+    public function checkBatchCodeIsExpired($batchCodes){
+        if (empty($batchCodes) || !is_array($batchCodes)) {
+            return $this->error(500);
+        }
+        $batchCodeInfo = $this->getBatchCodeList($batchCodes);
+        //如果批次不存在，给出不存在提示
+        if($batchCodeInfo['code'] != 0){
+            return $this->error($batchCodeInfo['code']);
+        }
+        //当前时间大于过期时间，给出过期提示
+        $expiredTime = strtotime($batchCodeInfo['data'][$batchCodes[0]]['expireTimestamp']);
+        if(time() > $expiredTime){
+            return $this->error(1638);
+        }
+        return $this->succ(true);
+    }
+    
+    /**
      * 获取个人绑定代金券列表
      * @param int $userId
-     * @param string $batchCode
+     * @param array $batchCodes
      * @param int $page
      * @param int $limit
      */
-    public function getPersonalCoupons($userId, $batchCode, $page=1, $limit=1) {
-        if (empty($batchCode) || empty($userId)) {
+    public function getPersonalCoupons($userId, $batchCodes, $page=1, $limit=1) {
+        if (empty($batchCodes) || !is_array($batchCodes) || empty($userId)) {
             return $this->error(500);
         }
-        $couponLists = $this->couponRemote->queryUserCouponByBatchCode($userId, [$batchCode], $page, $limit);
+        $couponLists = $this->couponRemote->queryUserCouponByBatchCode($userId, $batchCodes, $page, $limit);
         if(!$couponLists){
             return $this->error(1632);
         }
@@ -71,26 +108,29 @@ class Coupon extends \mia\miagroup\Lib\Service {
     
     /**
      * 检查优惠券是否已领取过
-     * @param string $batchCode
+     * @param array $batchCodes
      * @param int $userId
      */
-    public function checkIsReceivedCoupon($userId, $batchCode){
-        if (empty($batchCode) || empty($userId)) {
+    public function checkIsReceivedCoupon($userId, $batchCodes){
+        if (empty($batchCodes) || !is_array($batchCodes) || empty($userId)) {
             return $this->error(500);
         }
-        $couponInfo = $this->getPersonalCoupons($userId, $batchCode)['data'];
-        return $this->succ($couponInfo['total_count']);
+        $couponInfo = $this->getPersonalCoupons($userId, $batchCodes);
+        if($couponInfo['code'] == 0){
+            return $this->error(1631);
+        }
+        return $this->succ(true);
     }
     
     
     /**
      * 检验代金券批次号是否发发送过
      */
-    public function checkBatchCodeIsSent($liveId){
-        if (empty($liveId)) {
+    public function checkBatchCodeIsSent($liveId,$batchCode){
+        if (empty($liveId)|| empty($batchCode)) {
             return $this->error(500);
         }
-        $couponStatus = $this->couponModel->checkBatchCodeIsSent($liveId);
+        $couponStatus = $this->couponModel->checkBatchCodeIsSent($liveId,$batchCode);
         if($couponStatus == false){
             return $this->error(1636);
         }
@@ -111,24 +151,24 @@ class Coupon extends \mia\miagroup\Lib\Service {
     /**
      * 发送代金券的时候把发送时间保存到redis
      */
-    public function addSendCouponSatrtTime($liveId,$sendTime)
+    public function addSendCouponSatrtTime($liveId,$batchCode,$sendTime)
     {
-        if (empty($liveId) || empty($sendTime)) {
+        if (empty($liveId) || empty($batchCode) || empty($sendTime)) {
             return $this->error(500);
         }
-        $data = $this->couponModel->addSendCouponSatrtTime($liveId,$sendTime);
+        $data = $this->couponModel->addSendCouponSatrtTime($liveId,$batchCode,$sendTime);
         return $this->succ($data);
     }
 
     /**
      * 获取发送代金券的发送时间
      */
-    public function getSendCouponStartTime($liveId)
+    public function getSendCouponStartTime($liveId,$batchCode)
     {
-        if (empty($liveId)) {
+        if (empty($liveId) || empty($batchCode)) {
             return $this->error(500);
         }
-        $data = $this->couponModel->getSendCouponStartTime($liveId);
+        $data = $this->couponModel->getSendCouponStartTime($liveId,$batchCode);
         return $this->succ($data);
     }
     
