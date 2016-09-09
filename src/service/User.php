@@ -203,6 +203,7 @@ class User extends \mia\miagroup\Lib\Service {
      * 头条导入用户
      */
     public function syncHeadLineUser($username, $nickname, $avatar, $category, $checkExist = 1) {
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         //如果checkExist==1，nickname重复不再生成新用户
         if ($checkExist == 1) {
             $userId = $this->userModel->getUidByNickName($nickname);
@@ -228,6 +229,7 @@ class User extends \mia\miagroup\Lib\Service {
         $userInfo['relation'] = 3;
         $userInfo['create_date'] = date('Y-m-d H:i:s');
         $userId = $this->userModel->addUser($userInfo);
+        \DB_Query::switchCluster($preNode);
         if (intval($userId) > 0) {
             //用户归类
             $this->userModel->setHeadlineUserCategory($userId, $category);
