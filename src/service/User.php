@@ -202,7 +202,12 @@ class User extends \mia\miagroup\Lib\Service {
     /**
      * 头条导入用户
      */
-    public function syncHeadLineUser($username, $nickname, $avatar, $category, $checkExist = 1) {
+    public function syncHeadLineUser($userinfo) {
+        $username = $userinfo['username'];
+        $nickname = $userinfo['nickname'];
+        $avatar = $userinfo['avatar'];
+        $category = $userinfo['category'];
+        $checkExist = $userinfo['checkExist'];
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         //如果checkExist==1，nickname重复不再生成新用户
         if ($checkExist == 1) {
