@@ -113,4 +113,16 @@ class Subject extends \DB_Query {
         }
     }
     
+    /**
+     * 更新帖子计数
+     */
+    public function updateSubjectCount($subjectId, $countType, $num) {
+        if (empty($subjectId)) {
+            return false;
+        }
+        if (!in_array('view_num', $countType)) {
+            return false;
+        }
+        $sql = "update group_subjects set $countType += $num";
+    }
 }

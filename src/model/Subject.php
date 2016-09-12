@@ -153,4 +153,18 @@ class Subject {
         return $this->subjectData->setSubjectRecommendStatus($ids,$setStatus);
     }
     
+    /**
+     * 帖子阅读写入队列
+     */
+    public function viewNumRecord($subject) {
+        
+    }
+    
+    /**
+     * 读取帖子阅读记录
+     * @param int $num 获取队列中的条数
+     */
+     public function getViewNumRecord($num) {
+         
+     }
 }

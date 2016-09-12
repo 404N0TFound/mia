@@ -223,6 +223,23 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($subjectRes);
     }
     
+    /**
+     * 获取单张图片信息
+     */
+    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
+        $subjectInfo = $this->getBatchSubjectInfos(array($subjectId), $currentUid, $field, $status);
+        $subjectInfo = $subjectInfo[$subjectId];
+        if (empty($subjectInfo)) {
+            return $this->succ(array());
+        }
+        if (in_array('view_num_record', $field)) {
+            //阅读量计数
+        }
+        if (in_array('read_sync', $field)) {
+            //通知头条推荐服务
+        }
+    }
+    
     
     /**
      * 批量获取用户发布的帖子数
