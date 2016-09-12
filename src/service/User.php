@@ -204,7 +204,7 @@ class User extends \mia\miagroup\Lib\Service {
      */
     public function syncHeadLineUser($userinfo) {
         $username = mb_strlen($userinfo['username'], 'utf8') > 18 ? mb_substr($userinfo['username'], 0, 18) : $userinfo['username'];
-        $nickname = mb_strlen($userinfo['nickname'], 'utf8') > 16 ? mb_substr($userinfo['nickname'], 0, 16) : $userinfo['username'];
+        $nickname = mb_strlen($userinfo['nickname'], 'utf8') > 16 ? mb_substr($userinfo['nickname'], 0, 16) : $userinfo['nickname'];
         $avatar = $userinfo['avatar'];
         $category = $userinfo['category'];
         $checkExist = $userinfo['checkExist'];
