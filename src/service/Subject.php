@@ -226,7 +226,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     /**
      * 获取单张图片信息
      */
-    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
+    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
         $subjectInfo = $this->getBatchSubjectInfos(array($subjectId), $currentUid, $field, $status);
         $subjectInfo = $subjectInfo[$subjectId];
         if (empty($subjectInfo)) {
