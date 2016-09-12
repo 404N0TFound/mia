@@ -4,33 +4,116 @@ namespace mia\miagroup\Service;
 use mia\miagroup\Model\HeadLine as HeadLineModel;
 use Qiniu\Auth;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
+use mia\miagroup\Service\Subject as SubjectServer;
+use mia\miagroup\Service\Album as AlbumServer;
+use mia\miagroup\Service\Live as LiveServer;
 class HeadLine extends \mia\miagroup\Lib\Service {
     
     public $headLineModel;
     public $headlineRemote;
+    public $liveServer;
+    public $albumServer;
+    public $subjectServer;
+
+    private $headlineType;
     public function __construct() {
         parent::__construct();
-        $this->headLineModel = new HeadLineModel();
+        $this->headLineModel  = new HeadLineModel();
         $this->headlineRemote = new HeadlineRemote();
+        $this->subjectServer  = new SubjectServer();
+        $this->liveServer     = new LiveServer();
+        $this->albumServer    = new AlbumServer();
     }
     
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $page=1, $action = 'init',$currentUid = 0,$subjectIds=[]) {
+    public function getHeadLinesByChannel($channelId, $page=1, $count=10, $action = 'init',$currentUid = 0, $headlineIds = array(),$isRecommend = 1) {
         //@chaojiang
         //先调用服务
         //调用model
-        //merge数据
+        // merge数据
+        if(empty($channelId) || empty($page) || empty($count) || empty($action)){
+            return $this->error(500);
+        }
+
+        if($isRecommend){
+            $remote = $this->headlineRemote->headlineList($currentUid,$channelId,$action);
+        }
+        
+        $content = $this->headLineModel->getHeadLinesByChannel($channelId,$page);
+        $datas = array_merge($headlineIds,$remote['data']['list'], $content);
+        $subjects = [];
+        $lives    = [];
+        $albums   = [];
+        $topics   = [];
+        foreach ($datas as $key => $value) {
+            //专栏
+            if ($value['relation_type'] == 'album') {
+                $albums[] = $value['relation_id'];
+            //直播
+            } elseif ($value['relation_type'] == 'live') {
+                $lives[] = $value['relation_id'];
+            //视频
+            } elseif ($value['relation_type'] == 'video') {
+                $subjects[] = $value['relation_id'];
+            //专题
+            } elseif ($value['relation_type'] == 'topic') {
+                $topics[] = $value['relation_id'];
+            }
+        }
+
+        $subjectList = $this->subjectServer->getBatchSubjectInfos($subjects)['data'];
+        foreach ($subjectList as $key => $value) {
+            $value['id'] = $key.'-video';
+            $value['type'] = 'video';
+            $sub[$value['id']] = $value;
+        }
+        $albumsList  = $this->albumServer->getBatchAlbumBySubjectId($albums)['data'];
+        foreach ($albumsList as $key => $value) {
+            $value['id'] = $key.'-album';
+            $value['type'] = 'album';
+            $alb[$value['id']] = $value;
+        }
+
+        $liveList = $this->liveServer->getLiveRoomByIds($lives)['data'];
+        foreach ($liveList as $key => $value) {
+            $value['id'] = $key.'-live';
+            $value['type'] = 'live';
+            $live[$value['id']] = $value;
+        }
+
+        $result = array_merge($sub,$alb,$live);
+
+        // $result = array();
+        // for ($i = 1; $i <= $count;$i++) {
+        //     if (!empty($headline[$i])) {
+        //         $tmp = reset($subjectIds);
+        //     } else {
+        //         $tmp = $headline[$i];
+        //     }
+        //     switch ($tmp['type']) {
+        //         case 'value':
+        //             # code...
+        //             break;
+                
+        //         default:
+        //             # code...
+        //             break;
+        //     }
+            
+        // }
+
     }
-    
+
+
     /**
      * 获取首页轮播头条
      */
     public function getHomePageHeadLines()
     {
         $channelId = 1;
-        $data = $this->headLineModel->getHeadLinesByChannel($channelId);
+        $data = $this->getHeadLinesByChannel($channelId);
         return $this->succ($data);
     }
     
@@ -49,9 +132,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 头条内容查看告知
      */
-    public function headLineReadNotify($currentUid, $subjectId, $channelId = 0)
+    public function headLineReadNotify($channelId, $subjectId,$type='video',$currentUid=0)
     {
-        if(empty($currentUid) || empty($subjectId)){
+        if(empty($channelId) || empty($subjectId)){
             return $this->error(500);
         }
         $data = $this->headlineRemote->headlineRead($currentUid, $subjectId, $channelId);
@@ -61,7 +144,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 获取头条的相关头条
      */
-    public function getRelatedHeadLines($subjectId, $currentUid, $channelId = 0)
+    public function getRelatedHeadLines($channelId,$subjectId, $currentUid= 0)
     {
         if(empty($currentUid) || empty($subjectId)){
             return $this->error(500);
@@ -136,7 +219,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($delRes);
     }
-    
+
     /**
      * 新增运营头条
      */

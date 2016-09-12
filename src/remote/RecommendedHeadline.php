@@ -33,7 +33,7 @@ class RecommendedHeadline
     {
         $params = [
             'uid'=>$userId,
-            'doc_id'=>$subjectId,
+            'docid'=>$subjectId,
             'tab_id'=>$channelId,
         ];
         $url = $this->config['remote'].'doc/relate';
@@ -46,7 +46,7 @@ class RecommendedHeadline
     {
         $params = [
             'uid'=>$userId,
-            'doc_id'=>$subjectId,
+            'docid'=>$subjectId,
             'tab_id'=>$channelId,
         ];
         $url = $this->config['remote'].'doc/read';

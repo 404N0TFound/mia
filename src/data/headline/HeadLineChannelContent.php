@@ -17,12 +17,14 @@ class HeadLineChannelContent extends \DB_Query {
         if (empty($channelId)) {
             return [];
         }
-        $where[] = ['channel_id', $channelId];
-        $where[] = ['page', $page];
+        $where[] = [':eq','channel_id', $channelId];
+        $where[] = [':eq','page', $page];
+        $where[] = [':ge', 'begin_time', date('Y-m-d H:i:s',time())];
+        $where[] = [':le', 'end_time', date('Y-m-d H:i:s',time())];
         $data = $this->getRows($where);
         $result = [];
         foreach ($data as $v) {
-            $result[$v['channel_id']] = $v;
+            $result[$v['relation_id'].'-'.$v['relation_type']] = $v;
         }
         return $result;
     }
