@@ -11,5 +11,9 @@ $address = array(
         'service_name' => 'coupon_api_service',
         'recv_timeout' => 20000
     ),
+
+    'headline' => [
+        'remote' => 'http://yangjian_dev.recommend.mia.com/api/',
+    ],
 );
     

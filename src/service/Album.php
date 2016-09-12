@@ -688,6 +688,15 @@ class Album extends \mia\miagroup\Lib\Service {
         if (empty($article['user_id'])) {
             return $this->error('500','no user_id');
         }
+        $uniqueFlag = md5(json_encode($article));
+        $redis = new \mia\miagroup\Lib\Redis();
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.headLineKey.syncUniqueFlag.key'), $uniqueFlag);
+        $isExist = $redis->exists($key);
+        if ($isExist) {
+            return $this->error('500','exist');
+        }
+        
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         //设置专栏发布权限
         $this->abumModel->addAlbumPermission($article['user_id'], 'system', 'headline_crawl');
         //获取"未分类"专辑id
@@ -701,12 +710,12 @@ class Album extends \mia\miagroup\Lib\Service {
         }
         if (!empty($article['cover_image'])) {
             $article['image_infos'] = $article['cover_image'];
-            $article['image_infos']['source'] = 'local';
+            $article['image_infos']['source'] = 'jinshan';
             unset($article['cover_image']);
         }
         if (!empty($article['images'])) {
             foreach ($article['images'] as $k => $v) {
-                $article['images'][$k]['source'] = 'local';
+                $article['images'][$k]['source'] = 'jinshan';
             }
         }
         $addArticle = $this->addAlbum($article);
@@ -723,6 +732,8 @@ class Album extends \mia\miagroup\Lib\Service {
             $paramsArticle['id'] = $addArticle;
             $res = $this->abumModel->updateAlbumArticle($paramsArticle, array('subject_id' => $subjectRes['id'], 'status' => 1));
         }
-        return $this->succ($addArticle);
+        \DB_Query::switchCluster($preNode);
+        $redis->set($key, 1);
+        return $this->succ($subjectRes['id']);
     }
 }

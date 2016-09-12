@@ -223,6 +223,23 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($subjectRes);
     }
     
+    /**
+     * 获取单张图片信息
+     */
+    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
+        $subjectInfo = $this->getBatchSubjectInfos(array($subjectId), $currentUid, $field, $status);
+        $subjectInfo = $subjectInfo[$subjectId];
+        if (empty($subjectInfo)) {
+            return $this->succ(array());
+        }
+        if (in_array('view_num_record', $field)) {
+            //阅读量计数
+        }
+        if (in_array('read_sync', $field)) {
+            //通知头条推荐服务
+        }
+    }
+    
     
     /**
      * 批量获取用户发布的帖子数
@@ -582,11 +599,21 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (!empty($subject['view_num'])) {
             $subjectInfo['created'] = $subject['created'];
         }
+        $uniqueFlag = md5(json_encode($subject));
+        $redis = new \mia\miagroup\Lib\Redis();
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.headLineKey.syncUniqueFlag.key'), $uniqueFlag);
+        $isExist = $redis->exists($key);
+        if ($isExist) {
+            return $this->error('500','exist');
+        }
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $result = $this->issue($subjectInfo);
+        \DB_Query::switchCluster($preNode);
+        $redis->set($key, 1);
         if ($result['code'] > 0) {
             return $this->error($result['code']);
         } else {
-            return $this->succ($result['data']);
+            return $this->succ($result['data']['id']);
         }
     }
 }

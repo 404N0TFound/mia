@@ -16,8 +16,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $action, $currentUid = 0) {
+    public function getHeadLinesByChannel($channelId, $page=1, $action = 'init',$currentUid = 0,$subjectIds=[]) {
         //@chaojiang
+        //先调用服务
+        //调用model
+        //merge数据
     }
     
     /**
