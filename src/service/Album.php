@@ -723,7 +723,7 @@ class Album extends \mia\miagroup\Lib\Service {
         $subjectService = new \mia\miagroup\Service\Subject();
         $subjectInfo = array('user_info' => array('user_id' => $article['user_id']));
         $subjectInfo['created'] = $article['create_time'];
-        $subjectRes = $subjectService->issue($subjectInfo)['data'];
+        $subjectRes = $subjectService->syncHeadLineSubject($subjectInfo)['data'];
         //更新subjectid
         if ($subjectRes['id']) {
             $paramsArticle = array();

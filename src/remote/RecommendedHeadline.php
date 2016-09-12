@@ -29,11 +29,11 @@ class RecommendedHeadline
 
 
 
-    public function headlineRelate($subjectId, $channelId, $userId)
+    public function headlineRelate($subjectId, $userId, $channelId)
     {
         $params = [
             'uid'=>$userId,
-            'doc_id'=>$subjectId,
+            'docid'=>$subjectId,
             'tab_id'=>$channelId,
         ];
         $url = $this->config['remote'].'doc/relate';
@@ -46,7 +46,7 @@ class RecommendedHeadline
     {
         $params = [
             'uid'=>$userId,
-            'doc_id'=>$subjectId,
+            'docid'=>$subjectId,
             'tab_id'=>$channelId,
         ];
         $url = $this->config['remote'].'doc/read';
