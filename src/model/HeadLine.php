@@ -23,8 +23,10 @@ class HeadLine {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId) {
-        $data = $this->headLineChannelContentData->getHeadLinesByChannel($channelId);
+    public function getHeadLinesByChannel($channelId,$page=1) {
+        $data = $this->headLineChannelContentData->getHeadLinesByChannel($channelId,$page);
+        //处理位置冲突
+        //输出结果集以位置为KEY
         return $data;
     }
     
