@@ -203,8 +203,8 @@ class User extends \mia\miagroup\Lib\Service {
      * 头条导入用户
      */
     public function syncHeadLineUser($userinfo) {
-        $username = $userinfo['username'];
-        $nickname = $userinfo['nickname'];
+        $username = mb_strlen($userinfo['username'], 'utf8') > 18 ? mb_substr($userinfo['username'], 0, 18) : $userinfo['username'];
+        $nickname = mb_strlen($userinfo['nickname'], 'utf8') > 16 ? mb_substr($userinfo['nickname'], 0, 16) : $userinfo['username'];
         $avatar = $userinfo['avatar'];
         $category = $userinfo['category'];
         $checkExist = $userinfo['checkExist'];
