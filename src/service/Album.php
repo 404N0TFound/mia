@@ -682,7 +682,6 @@ class Album extends \mia\miagroup\Lib\Service {
      * 头条导入专栏数据
      */
     public function syncHeadLineArticle($article) {
-        ini_set('display_errors', 'On');
         if (empty($article['cover_image']) && empty($article['images'])) {
             return $this->error('500','no image');
         }
