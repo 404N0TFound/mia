@@ -162,5 +162,18 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         return $this->succ($arrResult);
     }
     
+    /**
+     * 获取我关注的所有用户
+     */
+    public function getAllAttentionUser($userId) {
+        
+    }
+    
+    /**
+     * 获取我关注所有专家
+     */
+    public function getAllAttentionExpert($userId) {
+        
+    }
 }
 
