@@ -24,14 +24,13 @@ class Feed extends \mia\miagroup\Lib\Service {
      * 获取我发布的帖子
      */
     public function getPersonalSubject($userId, $page = 1, $count = 10) {
+        if(empty($userId)){
+            return [];
+        }
         //获取我发布的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids([$userId],$page,$count);
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
-
-        if($subjectsList['code']>0){
-            return $this->error($subjectsList['code']);
-        }
         return $this->succ($subjectsList['data']);
     }
     
@@ -40,7 +39,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      */
     public function getFeedSubject($userId, $page = 1, $count = 10) {
         if(empty($userId)){
-            return $this->error(500);
+            return [];
         }
         //获取我关注的用户列表
         $userIds = $this->userRelationService->getAllAttentionUser($userId)['data'];
@@ -48,10 +47,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count);
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
-        
-        if($subjectsList['code']>0){
-            return $this->error($subjectsList['code']);
-        }
+
         return $this->succ($subjectsList['data']);
     }
     
@@ -60,7 +56,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      */
     public function getExpertFeedSubject($userId, $page = 1, $count = 10) {
         if(empty($userId)){
-            return $this->error(500);
+            return [];
         }
         //获取我关注的专家列表
         $expertUserIds = $this->userRelationService->getAllAttentionExpert($userId)['data'];
@@ -69,9 +65,6 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
 
-        if($subjectsList['code']>0){
-            return $this->error($subjectsList['code']);
-        }
         return $this->succ($subjectsList['data']);
     } 
     
@@ -80,7 +73,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      */
     public function getLabelFeedSubject($userId, $page = 1, $count = 10) {
         if(empty($userId)){
-            return $this->error(500);
+            return [];
         }
         //获取我关注的标签列表
         $lableIds = $this->labelService->getAllAttentLabel($userId)['data'];
@@ -89,9 +82,6 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
 
-        if($subjectsList['code']>0){
-            return $this->error($subjectsList['code']);
-        }
         return $this->succ($subjectsList['data']);
     }
 }
