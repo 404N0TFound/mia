@@ -166,14 +166,23 @@ class UserRelation extends \mia\miagroup\Lib\Service {
      * 获取我关注的所有用户
      */
     public function getAllAttentionUser($userId) {
-        
+        if(empty($userId)){
+            return $this->error(500);
+        }
+        $userIds = $this->userRelationModel->getAttentionListByUid($userId, 1, false);
+        return $this->succ($userIds);
     }
     
     /**
-     * 获取我关注所有专家
+     * 获取我关注所有专家列表
      */
     public function getAllAttentionExpert($userId) {
-        
+        if(empty($userId)){
+            return $this->error(500);
+        }
+        $userIds = $this->getAllAttentionUser($userId)['data'];
+        $expertUserIds = $this->userRelationModel->getAttentionExpertList($userIds);
+        return $this->succ($expertUserIds);
     }
 }
 
