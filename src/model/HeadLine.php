@@ -4,20 +4,17 @@ namespace mia\miagroup\Model;
 use \mia\miagroup\Data\HeadLine\HeadLineChannel;
 use \mia\miagroup\Data\HeadLine\HeadLineChannelContent;
 use \mia\miagroup\Data\HeadLine\HeadLineTopic;
-use \mia\miagroup\Data\HeadLine\HeadLineUserCategory;
 
 class HeadLine {
 
     private $headLineChannelData;
-    //private $headLineChannelContentData;
+    private $headLineChannelContentData;
     private $headLineTopicData;
-    //private $headLineUserCategoryData;
 
     public function __construct() {
         $this->headLineChannelData = new HeadLineChannel();
-        //$this->headLineChannelContentData = new HeadLineChannelContent();
+        $this->headLineChannelContentData = new HeadLineChannelContent();
         $this->headLineTopicData = new HeadLineTopic();
-        //$this->headLineUserCategoryData = new HeadLineUserCategory();
     }
     
     /**
@@ -25,8 +22,25 @@ class HeadLine {
      */
     public function getHeadLinesByChannel($channelId,$page=1) {
         $data = $this->headLineChannelContentData->getHeadLinesByChannel($channelId,$page);
-        //处理位置冲突
-        //输出结果集以位置为KEY
+        if (!empty($data)) {
+            //以row为key重新拼装
+            $sortedRowData = array();
+            foreach ($data as $v) {
+                $sortedRowData[$v['row']][] = $v;
+            }
+            foreach ($sortedRowData as $rowData) {
+                if (count($rowData) > 1) {
+                    //如果位置有重复，随机出一个
+                    $randkey = array_rand($rowData, 1);
+                    unset($rowData[$randkey]);
+                    foreach ($rowData as $v) {
+                        $key = $v['relation_id'] . '_' . $v['relation_type'];
+                        unset($data[$key]);
+                    }
+                }
+            }
+        }
+        
         return $data;
     }
     
@@ -112,7 +126,14 @@ class HeadLine {
         if(empty($topicIds)){
             return array();
         }
-        $data = $this->headLineTopicData->getHeadLineTopicByIds($channelIds, $status);
+        $data = $this->headLineTopicData->getHeadLineTopicByIds($topicIds, $status);
+        if(!empty($data)){
+            foreach ($data as $key=> $topic){
+                $topicInfo = json_decode($topic['topic_info'], true);
+                $data[$key]['id'] = $topic['id'];
+                $data[$key]['title'] = $topicInfo['title'];
+            }
+        }
         return $data;
     }
     /**

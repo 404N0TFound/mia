@@ -36,7 +36,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      */
     public function getFeedSubject($userId, $page = 1, $count = 10) {
         if(empty($userId)){
-            return $this->error(500);
+            return $this->error(array());
         }
         //获取我关注的用户列表
         $userIds = $this->userRelationService->getAllAttentionUser($userId);
@@ -52,7 +52,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      */
     public function getExpertFeedSubject($userId, $page = 1, $count = 10) {
         if(empty($userId)){
-            return $this->error(500);
+            return $this->succ(array());
         }
         //获取我关注的专家列表
         $expertUserIds = $this->userRelationService->getAllAttentionExpert($userId);
