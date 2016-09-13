@@ -24,9 +24,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      * 获取我发布的帖子
      */
     public function getPersonalSubject($userId, $page = 1, $count = 10) {
-        if(empty($userId)){
-            return [];
-        }
+
         //获取我发布的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids([$userId],$page,$count);
         //获取帖子详细信息
@@ -38,9 +36,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      * 获取我关注用户的帖子
      */
     public function getFeedSubject($userId, $page = 1, $count = 10) {
-        if(empty($userId)){
-            return [];
-        }
+
         //获取我关注的用户列表
         $userIds = $this->userRelationService->getAllAttentionUser($userId)['data'];
         //获取我关注用户的帖子列表
@@ -55,9 +51,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      * 获取我关注专家用户的帖子
      */
     public function getExpertFeedSubject($userId, $page = 1, $count = 10) {
-        if(empty($userId)){
-            return [];
-        }
+
         //获取我关注的专家列表
         $expertUserIds = $this->userRelationService->getAllAttentionExpert($userId)['data'];
         //获取我关注专家的帖子列表
@@ -72,9 +66,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      * 获取我关注标签的帖子
      */
     public function getLabelFeedSubject($userId, $page = 1, $count = 10) {
-        if(empty($userId)){
-            return [];
-        }
+
         //获取我关注的标签列表
         $lableIds = $this->labelService->getAllAttentLabel($userId)['data'];
         //获取我关注标签的帖子列表
