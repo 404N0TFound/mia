@@ -19,12 +19,20 @@ class RecommendedHeadline
     {
         $params = [
             'uid'    => $userId,
-            'tab_id' => $channelId,
+            'tabid' => $channelId,
             'action' => $action,
         ];
         $url = $this->config['remote'].'list/'.$action;
         $res = $this->_curlPost($url,$params);
-        return json_decode($res,true);
+        
+        $data = [];
+        if (!empty($res['list'])) {
+            foreach ($res['list'] as $v) {
+                $data[] = $v . '_subject';
+            }
+        }
+        
+        return $data;
     }
 
 
@@ -34,11 +42,11 @@ class RecommendedHeadline
         $params = [
             'uid'=>$userId,
             'docid'=>$subjectId,
-            'tab_id'=>$channelId,
+            'tabid'=>$channelId,
         ];
         $url = $this->config['remote'].'doc/relate';
         $res = $this->_curlPost($url,$params);
-        return json_decode($res,true);
+        return $res['list'];
     }
 
 
@@ -47,11 +55,11 @@ class RecommendedHeadline
         $params = [
             'uid'=>$userId,
             'docid'=>$subjectId,
-            'tab_id'=>$channelId,
+            'tabid'=>$channelId,
         ];
         $url = $this->config['remote'].'doc/read';
-        $res = $this->_curlPost($url,$params);
-        return json_decode($res,true);
+        $this->_curlPost($url,$params);
+        return true;
     }
 
 
@@ -77,7 +85,13 @@ class RecommendedHeadline
         curl_setopt($ch, CURLOPT_SSLVERSION, 1);
 
         $result = curl_exec($ch);
+        $result = json_decode($result, true);
         curl_close($ch);
-        return $result;
+        
+        if ($result['ret'] != 0) {
+            return false;
+        } else {
+            return $result['data'];
+        }
     }
 }

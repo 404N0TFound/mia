@@ -76,4 +76,21 @@ class Label extends \mia\miagroup\Lib\Service {
         return $this->succ($data);
     }
 
+    /**
+     * 获取我关注的所有标签
+     */
+    public function getAllAttentLabel($userId)
+    {
+        $data = $this->labelModel->getLabelListByUid($userId);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 批量获取标签下的帖子
+     */
+    public function getBatchSubjectIdsByLabelIds($labelIds,$page=1,$limit=10)
+    {
+        $data = $this->labelModel->getSubjectListByLableIds($labelIds,$page,$limit);
+        return $this->succ($data);
+    }
 }
