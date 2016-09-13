@@ -44,4 +44,45 @@ class SubjectLabelRelation extends \DB_Query {
         $insertLabel = $this->insert($labelRelationInfo);
         return $insertLabel;
     }
+
+
+    /**
+     * 根据userId获取标签
+     */
+    public function getLabelListByUid($userId)
+    {
+        if(empty($userId)){
+            return [];
+        }
+        $where[] = ['user_id',$userId];
+        $where[] = ['status',1];
+
+        $data = $this->getRows($where,'label_id',false,false,'id desc');
+        $result = [];
+        foreach ($data as $key => $value) {
+            $result[] = $value['label_id'];
+        }
+        return $result;
+    }
+
+    
+    /**
+     * 根据标签ID获取帖子列表
+     */
+    public function getSubjectListByLableIds($lableIds,$offset,$limit)
+    {
+        if(!is_array($lableIds)){
+            return [];
+        }
+
+        $where[] = ['label_id',$lableIds];
+        $where[] = ['status',1];
+
+        $data = $this->getRows($where,'subject_id',$limit,$offset,'id desc');
+        $result = [];
+        foreach ($data as $key => $value) {
+            $result[$value['subject_id']] = $value['subject_id'];
+        }
+        return $result;
+    }
 }
