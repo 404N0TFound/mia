@@ -578,7 +578,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     /**
      * 头条导入帖子数据
      */
-    public function syncHeadLineSubject($subject) {
+    public function syncHeadLineSubject($subject, $existCheck = 1) {
         if (empty($subject['user_id'])) {
             return $this->error('500');
         }
@@ -604,7 +604,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.headLineKey.syncUniqueFlag.key'), $uniqueFlag);
         $isExist = $redis->exists($key);
         if ($isExist) {
-            return $this->error('500','exist');
+            if ($existCheck) {
+                return $this->error('500','exist');
+            }
         }
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $result = $this->issue($subjectInfo);

@@ -683,7 +683,7 @@ class Album extends \mia\miagroup\Lib\Service {
      */
     public function syncHeadLineArticle($article) {
         if (empty($article['cover_image']) && empty($article['images'])) {
-            return $this->error('500','no image');
+            //return $this->error('500','no image');
         }
         if (empty($article['user_id'])) {
             return $this->error('500','no user_id');
@@ -723,17 +723,17 @@ class Album extends \mia\miagroup\Lib\Service {
         $subjectService = new \mia\miagroup\Service\Subject();
         $subjectInfo = array('user_info' => array('user_id' => $article['user_id']));
         $subjectInfo['created'] = $article['create_time'];
-        $subjectRes = $subjectService->syncHeadLineSubject($subjectInfo)['data'];
+        $subjectid = $subjectService->syncHeadLineSubject($subjectInfo, 0)['data'];
         //更新subjectid
-        if ($subjectRes['id']) {
+        if ($subjectid) {
             $paramsArticle = array();
             $paramsArticle['user_id'] = $article['user_id'];
             $paramsArticle['album_id'] = $albumId;
             $paramsArticle['id'] = $addArticle;
-            $res = $this->abumModel->updateAlbumArticle($paramsArticle, array('subject_id' => $subjectRes['id'], 'status' => 1));
+            $res = $this->abumModel->updateAlbumArticle($paramsArticle, array('subject_id' => $subjectid, 'status' => 1));
         }
         \DB_Query::switchCluster($preNode);
         $redis->set($key, 1);
-        return $this->succ($subjectRes['id']);
+        return $this->succ($subjectid);
     }
 }
