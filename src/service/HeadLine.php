@@ -113,6 +113,10 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      */
     public function getTopicHeadLines($topicId) {
         $topicInfo = $this->getHeadLineTopics(array($topicId));
+        $topicInfo = $topicInfo[$topicId];
+        if (empty($topicInfo)) {
+            return $this->succ(array('headline_list' => array(), 'headline_topic' => (object)array()));
+        }
         $subjectIds = $topicInfo['subject_ids'];
         $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds);
         $headLineList = array();
