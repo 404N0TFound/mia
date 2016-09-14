@@ -446,7 +446,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                     }
                     break;
             }
-            $headLineList[] = $tmpData;
+            if (!empty($tmpData)) {
+                $headLineList[] = $tmpData;
+            }
         }
         return $headLineList;
     }
