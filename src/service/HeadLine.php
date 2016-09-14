@@ -58,7 +58,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         
         //获取推荐服务数据
         if ($isRecommend == 1) {
-            $headLineData = $this->headlineRemote->headlineList($currentUid, $channelId, $action);
+            $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid);
             //格式化客户端上传的headlineIds
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_merge($headlineIds, $headLineData);
@@ -96,15 +96,16 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 头条内容查看告知
      */
-    public function headLineReadNotify($channelId, $subjectId, $currentUid = 0)
+    public function headLineReadNotify($subjectId, $channelId ,$currentUid = 0, $type ='video')
     {
         if(empty($channelId) || empty($subjectId)){
-            return $this->error(500);
+            return $this->succ(array());
         }
-        $data = $this->headlineRemote->headlineRead($currentUid, $subjectId, $channelId);
+        $data = $this->headlineRemote->headlineRead($channelId, $subjectId, $currentUid);
         return $this->succ($data);
     }
     
+
     /**
      * 获取专题下的头条
      */
