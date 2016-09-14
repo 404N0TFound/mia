@@ -13,7 +13,7 @@ $address = array(
     ),
 
     'headline' => [
-        'remote' => 'http://yangjian_dev.recommend.mia.com/api/',
+        'remote' => 'http://alpha_stage.recommend.mia.com/api/',
     ],
 );
     
