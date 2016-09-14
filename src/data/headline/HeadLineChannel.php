@@ -50,13 +50,12 @@ class HeadLineChannel extends \DB_Query {
     /**
      * 根据栏目ids获取头条栏目
      */
-    public function getHeadLineChannelByIds($channelIds, $status = array(1)) {
+    public function getHeadLineChannelByIds($channelIds = array(), $status = array(1)) {
         $result = array();
-        if (empty($channelIds)) {
-            return $result;
-        }
         $where = array();
-        $where[] = ['id', $channelIds];
+        if (!empty($channelIds)) {
+            $where[] = ['id', $channelIds];
+        }
         $where[] = ['status', $status];
         
         $data = $this->getRows($where);

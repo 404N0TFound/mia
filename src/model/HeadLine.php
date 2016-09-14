@@ -47,10 +47,7 @@ class HeadLine {
     /**
      * 获取头条栏目
      */
-    public function getHeadLineChannels($channelIds, $status = array(1)) {
-        if(empty($channelIds)){
-            return array();
-        }
+    public function getHeadLineChannels($channelIds = array(), $status = array(1)) {
         $data = $this->headLineChannelData->getHeadLineChannelByIds($channelIds, $status);
         return $data;
     }
@@ -92,9 +89,9 @@ class HeadLine {
      */
     public function addOperateHeadLine($headLineInfo)
     {
-        //@donghui
-        //归纳头条所有type，校验头条type
-        //归纳所有ext_info，校验ext_info
+        if (is_array($headLineInfo['ext_info']) && !empty($headLineInfo['ext_info'])) {
+            $headLineInfo['ext_info'] = json_encode($headLineInfo['ext_info']);
+        }
         $data = $this->headLineChannelContentData->addOperateHeadLine($headLineInfo);
         return $data;
     }
@@ -104,9 +101,18 @@ class HeadLine {
      */
     public function editOperateHeadLine($id, $headLineInfo)
     {
-        //@donghui
-        //只能编辑ext_info、page、row、begin_time、end_time
+        if (is_array($headLineInfo['ext_info']) && !empty($headLineInfo['ext_info'])) {
+            $headLineInfo['ext_info'] = json_encode($headLineInfo['ext_info']);
+        }
         $data = $this->headLineChannelContentData->updateHeadlineById($id,$headLineInfo);
+        return $data;
+    }
+    
+    /**
+     * 根据ID查询运营头条
+     */
+    public function getHeadLineById($id) {
+        $data = $this->headLineChannelContentData->getHeadLineById($id);
         return $data;
     }
     

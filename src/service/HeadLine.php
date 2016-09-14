@@ -74,9 +74,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 获取头条栏目
      */
     public function getHeadLineChannels($channelIds, $status = array(1)) {
-        if (empty($channelIds) || empty($status) || !is_array($channelIds) || !is_array($status)) {
-            return $this->error(500);
-        }
+        //获取所有栏目
         $channelRes = $this->headLineModel->getHeadLineChannels($channelIds, $status);
         //获取对外屏蔽的栏目
         $shieldIds = array();
@@ -213,8 +211,26 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if(empty($headLineInfo) || !is_array($headLineInfo)){
             return $this->error(500);
         }
-        if(!in_array($headLineInfo['relation_type'], [1,2,3,4,5,6])){
+        //relation_type校验
+        if(!in_array($headLineInfo['relation_type'], $this->headlineConfig['clientServerMapping'])){
             return $this->error(500);
+        }
+        $setData = array();
+        $setData['channel_id'] = $headLineInfo['channel_id'];
+        $setData['relation_id'] = $headLineInfo['relation_id'];
+        $setData['relation_type'] = $headLineInfo['relation_type'];
+        $setData['page'] = $headLineInfo['page'];
+        $setData['row'] = $headLineInfo['row'];
+        $setData['begin_time'] = $headLineInfo['begin_time'];
+        $setData['end_time'] = $headLineInfo['end_time'];
+        if (!empty($headLineInfo['title'])) {
+            $setData['ext_info']['title'] = $headLineInfo['title'];
+        }
+        if (!empty($headLineInfo['text'])) {
+            $setData['ext_info']['text'] = $headLineInfo['text'];
+        }
+        if (!empty($headLineInfo['cover_image'])) {
+            $setData['ext_info']['cover_image'] = $headLineInfo['cover_image'];
         }
         $data = $this->headLineModel->addOperateHeadLine($headLineInfo);
         return $this->succ($data);
@@ -224,12 +240,33 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 编辑运营头条
      */
     public function editOperateHeadLine($id, $headLineInfo) {
-        //@donghui
-        //只能编辑ext_info、page、row、begin_time、end_time
-        if(empty($id) || empty($headLineInfo) || !is_array($headLineInfo)){
+        $headline = $this->headLineModel->getHeadLineById($id);
+        if (empty($headline)) {
             return $this->error(500);
         }
-        $data = $this->headLineModel->editOperateHeadLine($id,$headLineInfo);
+        $setData['ext_info'] = $headline['ext_info'];
+        if (!empty($headLineInfo['page'])) {
+            $setData['page'] = $headLineInfo['page'];
+        }
+        if (!empty($headLineInfo['row'])) {
+            $setData['row'] = $headLineInfo['row'];
+        }
+        if (!empty($headLineInfo['begin_time'])) {
+            $setData['begin_time'] = $headLineInfo['begin_time'];
+        }
+        if (!empty($headLineInfo['end_time'])) {
+            $setData['end_time'] = $headLineInfo['end_time'];
+        }
+        if (isset($headLineInfo['title'])) {
+            $setData['ext_info']['title'] = $headLineInfo['title'];
+        }
+        if (isset($headLineInfo['text'])) {
+            $setData['ext_info']['text'] = $headLineInfo['text'];
+        }
+        if (isset($headLineInfo['cover_image'])) {
+            $setData['ext_info']['cover_image'] = $headLineInfo['cover_image'];
+        }
+        $data = $this->headLineModel->editOperateHeadLine($id, $headLineInfo);
         return $this->succ($data);
     }
     

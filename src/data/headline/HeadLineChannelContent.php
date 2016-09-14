@@ -31,12 +31,18 @@ class HeadLineChannelContent extends \DB_Query {
         return $result;
     }
 
+    /**
+     * 添加头条
+     */
     public function addOperateHeadLine($headlineData)
     {
         $data = $this->insert($headlineData);
         return $data;
     }
 
+    /**
+     * 更新头条
+     */
     public function updateHeadlineById($id, $setData)
     {
         $where[] = ['id', $id];
@@ -44,7 +50,9 @@ class HeadLineChannelContent extends \DB_Query {
         return $data;
     }
 
-
+    /**
+     * 删除头条
+     */
     public function delHeadlineById($id)
     {
         $where[] = ['id',$id];
@@ -52,5 +60,18 @@ class HeadLineChannelContent extends \DB_Query {
         return $data;
     }
 
-
+    /**
+     * 根据ID查询头条
+     */
+    public function getHeadLineById($id) {
+        if (intval($id) <= 0) {
+            return false;
+        }
+        $where[] = [':eq','id', $id];
+        $data = $this->getRow($where);
+        if (!empty($data)) {
+            $data['ext_info'] = json_decode($data['ext_info'], true);
+        }
+        return $data;
+    }
 }
