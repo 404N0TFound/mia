@@ -132,6 +132,7 @@ class HeadLine {
                 $topicInfo = json_decode($topic['topic_info'], true);
                 $data[$key]['id'] = $topic['id'];
                 $data[$key]['title'] = $topicInfo['title'];
+                $data[$key]['subject_ids'] = json_decode($topic['subject_ids'], true);
             }
         }
         return $data;
@@ -140,6 +141,7 @@ class HeadLine {
      * 新增头条专题
      */
     public function addHeadLineTopic($topicInfo) {
+        $topicInfo['subject_ids'] = json_encode($topicInfo['subject_ids']);
         $data = $this->headLineTopicData->addHeadLineTopic($topicInfo);
         return $data;
     }

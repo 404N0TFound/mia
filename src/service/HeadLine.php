@@ -104,7 +104,32 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $data = $this->headlineRemote->headlineRelate($subjectId, $currentUid,$channelId);
-        return $this->succ($data);
+        $subjects = $this->subjectServer->getBatchSubjectInfos($data);
+        return $this->succ($subjects);
+    }
+    
+    /**
+     * 获取专题下的头条
+     */
+    public function getTopicHeadLines($topicId) {
+        $topicInfo = $this->getHeadLineTopics(array($topicId));
+        $subjectIds = $topicInfo['subject_ids'];
+        $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds);
+        $headLineList = array();
+        foreach ($subjects as $subject) {
+            $tmpData = null;
+            if (!empty($subject['album_article'])) {
+                $tmpData['id'] = $subject['id'] . '_album';
+                $tmpData['type'] = 'album';
+                $tmpData['album'] = $subject;
+            } else if (!empty($subject['video_info'])) {
+                $tmpData['id'] = $subject['id'] . '_album';
+                $tmpData['type'] = 'video';
+                $tmpData['video'] = $subject;
+            }
+            $headLineList[] = $tmpData;
+        }
+        return $this->succ(array('headline_list' => $headLineList, 'headline_topic' => $topicInfo));
     }
     
     /**
