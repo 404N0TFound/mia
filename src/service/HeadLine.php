@@ -32,7 +32,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = 'init', $currentUid = 0, $headlineIds = array(), $isRecommend = 1) {
+    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array(), $isRecommend = 1) {
         if(empty($channelId)){
             return $this->succ(array());
         }
@@ -77,10 +77,20 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if (empty($channelIds) || empty($status) || !is_array($channelIds) || !is_array($status)) {
             return $this->error(500);
         }
-        
         $channelRes = $this->headLineModel->getHeadLineChannels($channelIds, $status);
-        
-        return $this->succ($channelRes);
+        //获取对外屏蔽的栏目
+        $shieldIds = array();
+        foreach ($this->headlineConfig['lockedChannel'] as $config) {
+            if (isset($config['shield']) && $config['shield'] == 1) {
+                $shieldIds[] = $config['id'];
+            }
+        }
+        foreach ($channelRes as $key => $channel) {
+            if (in_array($channel['id'], $shieldIds)) {
+                unset($channelRes[$key]);
+            }
+        }
+        return $this->succ(array('channel_list' => array_values($channelRes)));
     }
     
     /**
@@ -93,19 +103,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         $data = $this->headlineRemote->headlineRead($currentUid, $subjectId, $channelId);
         return $this->succ($data);
-    }
-    
-    /**
-     * 获取头条的相关头条
-     */
-    public function getRelatedHeadLines($channelId,$subjectId, $currentUid= 0)
-    {
-        if(empty($currentUid) || empty($subjectId)){
-            return $this->error(500);
-        }
-        $data = $this->headlineRemote->headlineRelate($subjectId, $currentUid,$channelId);
-        $subjects = $this->subjectServer->getBatchSubjectInfos($data);
-        return $this->succ($subjects);
     }
     
     /**
@@ -194,6 +191,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      */
     public function delHeadLineChannel($channelId) {
         if(empty($channelId)){
+            return $this->error(500);
+        }
+        //获取被锁定的栏目
+        $lockedIds = array_column($this->headlineConfig['lockedChannel'], id);
+        if (in_array($channelId, $lockedIds)) {
             return $this->error(500);
         }
         $delRes = $this->headLineModel->deleteHeadLineChannel($channelId);

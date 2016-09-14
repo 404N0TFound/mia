@@ -20,14 +20,6 @@ $lockedChannel = array(
 );
 
 /**
- * 需要展示的锁定栏目
- */
-$onShowChannel = array(
-    1 => '推荐',
-    2 => '订阅'
-);
-
-/**
  * 客户端头条展示类型与服务端类型的映射 
  */
 $clientServerMapping = array(

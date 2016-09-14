@@ -18,7 +18,9 @@ class HeadLineChannelContent extends \DB_Query {
             return [];
         }
         $where[] = [':eq','channel_id', $channelId];
-        $where[] = [':eq','page', $page];
+        if (intval($page) > 0) {
+            $where[] = [':eq','page', $page];
+        }
         $where[] = [':le', 'begin_time', date('Y-m-d H:i:s',time())];
         $where[] = [':ge', 'end_time', date('Y-m-d H:i:s',time())];
         $data = $this->getRows($where);
