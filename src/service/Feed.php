@@ -24,7 +24,9 @@ class Feed extends \mia\miagroup\Lib\Service {
      * 获取我发布的帖子
      */
     public function getPersonalSubject($userId, $page = 1, $count = 10) {
-
+        if(empty($userId)){
+            return $this->succ(array());
+        }
         //获取我发布的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids([$userId],$page,$count);
         //获取帖子详细信息
@@ -70,7 +72,9 @@ class Feed extends \mia\miagroup\Lib\Service {
      * 获取我关注标签的帖子
      */
     public function getLabelFeedSubject($userId, $page = 1, $count = 10) {
-
+        if(empty($userId)){
+            return $this->succ(array());
+        }
         //获取我关注的标签列表
         $lableIds = $this->labelService->getAllAttentLabel($userId)['data'];
         //获取我关注标签的帖子列表
