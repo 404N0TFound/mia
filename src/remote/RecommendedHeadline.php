@@ -15,12 +15,12 @@ class RecommendedHeadline
      * @param  string $action  [init,refresh,next,home_banner]
      * @return array
      */
-    public function headlineList($userId,$channelId,$action='init')
+    public function headlineList($channelId,$action='init',$userId=0)
     {
         $params = [
-            'uid'    => $userId,
-            'tabid' => $channelId,
-            'action' => $action,
+            'user_id' => $userId,
+            'tab_id'  => $channelId,
+            'action'  => $action,
         ];
         $url = $this->config['remote'].'list/'.$action;
         $res = $this->_curlPost($url,$params);
@@ -37,12 +37,12 @@ class RecommendedHeadline
 
 
 
-    public function headlineRelate($subjectId, $userId, $channelId)
+    public function headlineRelate($channelId,$subjectId, $userId=0)
     {
         $params = [
-            'uid'=>$userId,
-            'docid'=>$subjectId,
-            'tabid'=>$channelId,
+            'user_id' => $userId,
+            'doc_id'  => $subjectId,
+            'tab_id'  => $channelId,
         ];
         $url = $this->config['remote'].'doc/relate';
         $res = $this->_curlPost($url,$params);
@@ -50,12 +50,12 @@ class RecommendedHeadline
     }
 
 
-    public function headlineRead($userId,$subjectId,$channelId)
+    public function headlineRead($channelId,$subjectId,$userId=0)
     {
         $params = [
-            'uid'=>$userId,
-            'docid'=>$subjectId,
-            'tabid'=>$channelId,
+            'user_id' => $userId,
+            'doc_id'  => $subjectId,
+            'tab_id'  => $channelId,
         ];
         $url = $this->config['remote'].'doc/read';
         $this->_curlPost($url,$params);
