@@ -105,6 +105,26 @@ class Label {
         $data = $this->labelData->getLabelID();
         return $data;
     }
+
+    /**
+     * 根据userId获取标签
+     */
+    public function getLabelListByUid($userId)
+    {
+        $data = $this->labelRelation->getLabelListByUid($userId);
+        return $data;
+    }
+
+
+    /**
+     * 根据标签ID获取帖子列表
+     */
+    public function getSubjectListByLableIds($lableIds,$page=1,$limit=10)
+    {
+        $start = ($page-1)*$limit;
+        $data = $this->labelRelation->getSubjectListByLableIds($lableIds,$start,$limit);
+        return $data;
+    }
     
     
 }
