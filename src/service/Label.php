@@ -2,6 +2,7 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Label as LabelModel;
+use mia\miagroup\Service\Subject as SubjectService;
 
 class Label extends \mia\miagroup\Lib\Service {
 
@@ -55,28 +56,58 @@ class Label extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 获取标签ID
-     */
-    public function getLabelID(){
-        $data = $this->labelModel->getLabelID($labelIds);
-        return $this->succ($data);
-    }
-
-    /**
      * 获取我关注的所有标签
      */
     public function getAllAttentLabel($userId)
     {
-        $data = $this->labelModel->getLabelListByUid($userId);
-        return $this->succ($data);
+        $labelIds = $this->labelModel->getLabelListByUid($userId);
+        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        return $this->succ($labelInfos);
     }
     
     /**
      * 批量获取标签下的帖子
      */
-    public function getBatchSubjectIdsByLabelIds($labelIds,$page=1,$limit=10)
+    public function getBatchSubjectIdsByLabelIds($labelIds,$currentUid,$page=1,$limit=10)
     {
-        $data = $this->labelModel->getSubjectListByLableIds($labelIds,$page,$limit);
+        $subjectIds = $this->labelModel->getSubjectListByLableIds($labelIds,$page,$limit);
+        $subjectService = new SubjectService();
+        $data = $subjectService->getBatchSubjectInfos($subjectIds,$currentUid,array('user_info', 'count', 'comment', 'group_labels', 'praise_info'));
         return $this->succ($data);
+    }
+    
+    /**
+     * 关注标签
+     */
+    public function focusLabel($userId, $labelIds) {
+        
+    }
+    
+    /**
+     * 取消关注标签
+     */
+    public function cancelFocusLabel($userId, $labelId) {
+        
+    }
+    
+    /**
+     * 获取全部归档标签
+     */
+    public function getArchiveLalbels() {
+        
+    }
+    
+    /**
+     * 获取新人推荐标签
+     */
+    public function getNewUserRecommendLabels() {
+        
+    }
+    
+    /**
+     * 获取全部推荐标签
+     */
+    public function getRecommendLabels() {
+        
     }
 }
