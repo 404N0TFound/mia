@@ -261,7 +261,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //阅读量计数
             $this->subjectModel->viewNumRecord($subjectId);
         }
-        if (!empty($dmSync['refer_subject_id']) && !empty($dmSync['refer_channel_id'])) {
+        if (!empty($dmSync['refer_subject_id']) || !empty($dmSync['refer_channel_id'])) {
             //相关帖子
             $headlineRemote = new HeadlineRemote();
             $subjectId = array_shift(explode('_',$dmSync['refer_subject_id']));

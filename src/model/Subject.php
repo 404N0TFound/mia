@@ -180,9 +180,8 @@ class Subject {
         
         $result = [];
         for($i=0;$i<$num;$i++){
-            $data = json_decode($redis->lindex($read_num_key, -1),true);
+            $data = json_decode($redis->rpop($read_num_key),true);
             $result[$data['subject_id']] += intval($data['num']);
-            $redis->rpop($read_num_key);
         }
         return $result;
      }
