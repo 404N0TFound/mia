@@ -7,6 +7,7 @@ use mia\miagroup\Service\Subject as SubjectServer;
 use mia\miagroup\Service\Album as AlbumServer;
 use mia\miagroup\Service\Live as LiveServer;
 use mia\miagroup\Service\Feed as FeedServer;
+use mia\miagroup\Service\User as UserServer;
 class HeadLine extends \mia\miagroup\Lib\Service {
     
     private $headLineModel;
@@ -15,6 +16,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     private $albumServer;
     private $subjectServer;
     private $feedServer;
+    private $userServer;
     private $headlineConfig;
 
     
@@ -26,6 +28,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $this->liveServer     = new LiveServer();
         $this->albumServer    = new AlbumServer();
         $this->feedServer     = new FeedServer();
+        $this->userServer     = new UserServer();
         $this->headlineConfig = \F_Ice::$ins->workApp->config->get('busconf.headline');
     }
     
@@ -68,6 +71,16 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         //获取格式化的头条输出数据
         $headLineList = $this->_getFormatHeadlineData(is_array($headLineData) ? $headLineData : array(), $operationData);
         return $this->succ($headLineList);
+    }
+
+    /**
+     * 获取推荐的订阅用户
+     */
+    public function getHeadLineRecommenduser($currentUid=0)
+    {
+        $expertIds = $this->headlineConfig['expert'];
+        $data = $this->userServer->getUserInfoByUids($expertIds,$currentUid)['data'];
+        return $this->succ($data);
     }
 
     /**
