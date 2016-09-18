@@ -11,6 +11,7 @@ use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
+use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 
 class Subject extends \mia\miagroup\Lib\Service {
 
@@ -224,20 +225,51 @@ class Subject extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 获取单张图片信息
+     * 获取单条帖子信息
      */
     public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
         $subjectInfo = $this->getBatchSubjectInfos(array($subjectId), $currentUid, $field, $status);
-        $subjectInfo = $subjectInfo[$subjectId];
+        $subjectInfo = $subjectInfo['data'][$subjectId];
         if (empty($subjectInfo)) {
             return $this->succ(array());
         }
+
+        //如果是专栏，获取作者的其他专栏
+        if (!empty($subjectInfo['album_article'])) { 
+            $con = [
+                'user_id'   => $subjectInfo['user_info']['user_id'],
+                'iPageSize' => 5,
+            ];
+            $albumServiceData = $this->albumService->getArticleList($con);
+            $albumServiceData = $albumServiceData['data'];
+            $albumArticleList = array();
+            if (!empty($albumServiceData['article_list'])) {
+                foreach ($albumServiceData['article_list'] as $article) {
+                    //排除当前的
+                    if ($article['album_article']['subject_id'] != $id) {
+                        $albumArticleList[] = $article;
+                    }
+                }
+            }
+            if (!empty($albumArticleList)) {
+                //最多显示3条，输出4条给客户端显示全部
+                $subjectInfo['recent_article'] = count($albumArticleList) > 4 ? array_slice($albumArticleList, 0, 4) : $albumArticleList;
+            }
+        }
+
         if (in_array('view_num_record', $field)) {
             //阅读量计数
+            $this->subjectModel->viewNumRecord($subjectId);
         }
-        if (in_array('read_sync', $field)) {
-            //通知头条推荐服务
+        if (!empty($dmSync['refer_subject_id']) && !empty($dmSync['refer_channel_id'])) {
+            //相关帖子
+            $headlineRemote = new HeadlineRemote();
+            $subjectId = array_shift(explode('_',$dmSync['refer_subject_id']));
+            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'],$subjectId,$currentUid);
+            $recommend = $this->getBatchSubjectInfos($subjectIds);
+            $subjectInfo['recommend'] = $recommend['data'];
         }
+        return $this->succ($subjectInfo);
     }
     
     
