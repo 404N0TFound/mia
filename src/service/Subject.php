@@ -15,17 +15,11 @@ use mia\miagroup\Service\PointTags as PointTagsService;
 class Subject extends \mia\miagroup\Lib\Service {
 
     public $subjectModel = null;
-
     public $labelService = null;
-
     public $userService = null;
-
     public $commentService = null;
-
     public $praiseService = null;
-    
     public $albumService = null;
-
 	public $tagsService = null;
 
     public function __construct() {
@@ -435,23 +429,6 @@ class Subject extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 删除帖子
-     */
-    public function deleteSubject($subjectId, $currentUid) {
-        if (intval($subjectId) < 0 || intval($currentUid) < 0) {
-            return $this->error(500);
-        }
-        $subjectInfo = $this->subjectModel->getSubjectByIds(array($subjectId));
-        $subjectInfo = $subjectInfo[$subjectId];
-        if (empty($subjectInfo) || $subjectInfo['user_id'] != $currentUid) {
-            return $this->error(500);
-        }
-        $s_setData = [['status', 0]];
-        $this->subjectModel->updateSubject($s_setData, $subjectId);
-        return $this->succ();
-    }
-
-    /**
      * 批量查询视频信息
      */
     public function getBatchVideoInfos($videoIds, $videoType = 'm3u8') {
@@ -530,8 +507,29 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($result);
     }
-    
 
+    /**
+     * 删除帖子
+     */
+    public function deleteSubject($subjectId) {
+        //设置删除状态
+        if (intval($subjectId) < 0) {
+            return $this->error(500);
+        }
+        $s_setData = [['status', 0]];
+        $this->subjectModel->updateSubject($s_setData, $subjectId);
+        //删除关联口碑
+        return $this->succ();
+    }
+    
+    /**
+     * 获取推荐帖子
+     */
+    public function getRecommendSubjects($currentUid = 0, $page = 1, $limit = 10) {
+        //获取置顶列表
+        //获取推荐列表
+        //获取帖子信息
+    }
     
     
 }
