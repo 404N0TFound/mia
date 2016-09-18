@@ -18,5 +18,10 @@ class Viewnumsync extends \FD_Daemon{
         //从队列中读取阅读量计数
         //按subject_id sum
         //更新数据库计数
+        $readNums = $this->subjectModel->getViewNumRecord(100);
+        foreach ($readNums as $subjectId => $num) {
+            $this->subjectData->updateSubjectCount($subjectId,$num);
+        }
+        
     }
 }

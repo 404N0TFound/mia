@@ -9,6 +9,8 @@ $redBagServicePrefix = $basePrefix . 'redbag_';
 $couponServicePrefix = $basePrefix . 'coupon_';
 //头条服务相关key前缀
 $headLineServicePrefix = $basePrefix . 'headline_';
+//帖子相关key前缀
+$subjectServicePrefix = $basePrefix . 'subject_';
 
 /**
  * 直播相关的redisKey
@@ -118,3 +120,11 @@ $headLineKey = array(
         'expire_time' => 86400,
     ),
 );
+
+//帖子相关rediskey
+$subjectKey = [
+    'subject_read_num' => [//使用List数据结构
+        'key' => $subjectServicePrefix . 'read_num',
+        'expire_time' => 86400 * 30,
+    ],
+];
