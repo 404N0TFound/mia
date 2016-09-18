@@ -80,6 +80,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     {
         $expertIds = $this->headlineConfig['expert'];
         $data = $this->userServer->getUserInfoByUids($expertIds,$currentUid)['data'];
+        $data = array_values($data);
         return $this->succ($data);
     }
 
