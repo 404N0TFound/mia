@@ -434,6 +434,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         if (!empty($subject['album_article'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
                             $tmpData['type'] = 'album';
+                            $subject['album_article']['cover_image'] = !empty($subject['album_article']['cover_image']) ? $subject['album_article']['cover_image'] : null;
                             $tmpData['album'] = $subject;
                         } else if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
