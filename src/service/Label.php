@@ -23,10 +23,6 @@ class Label extends \mia\miagroup\Lib\Service {
 
     /**
      * 保存蜜芽圈标签关系记录
-     *
-     * @param array $labelRelationInfo
-     *            图片标签关系信息
-     * @return bool
      */
     public function saveLabelRelation($labelRelationInfo) {
         $data = $this->labelModel->saveLabelRelation($labelRelationInfo);
@@ -34,27 +30,17 @@ class Label extends \mia\miagroup\Lib\Service {
     }
 
     /**
-     * 判断标签记录是否存在(用于图片发布，避免主辅库不同步，从主库查)
-     *
-     * @param string $labelTitle
-     *            标签标题
-     * @return bool
-     */
-    public function checkIsExistByLabelTitle($labelTitle) {
-        $data = $this->labelModel->checkIsExistByLabelTitle($labelTitle);
-        return $this->succ($data);
-    }
-
-    /**
      * 保存蜜芽圈标签
-     *
-     * @param array $labelInfo
-     *            标签信息
-     * @return int 标签id
      */
     public function addLabel($labelTitle) {
-        $data = $this->labelModel->addLabel($labelTitle);
-        return $this->succ($data);
+        $labelResult = $this->labelModel->checkIsExistByLabelTitle($labelTitle);
+        if (empty($labelResult)) {
+            // 如果没有存在，则保存该自定义标签
+            $insertId = $this->labelModel->addLabel($labelTitle);
+        } else {
+            $insertId = $labelResult['id'];
+        }
+        return $this->succ($insertId);
     }
     
     /**
