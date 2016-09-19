@@ -80,6 +80,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $this->commentService = new CommentService();
             $commentCounts = $this->commentService->getBatchCommentNums($subjectIds)['data'];
             $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
+            $viewCounts = $this->getBatchSubjectViewCount($subjectIds)['data'];
         }
         // 获取赞用户
         if (in_array('praise_info', $field)) {
@@ -174,6 +175,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['fancied_count'] = intval($praiseCounts[$subjectInfo['id']]);
+                $subjectRes[$subjectInfo['id']]['view_count'] = intval($viewCounts[$subjectInfo['id']]);
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
@@ -605,6 +607,25 @@ class Subject extends \mia\miagroup\Lib\Service {
             }
         }
         return $this->succ($result);
+    }
+    
+    /**
+     * 批量查询帖子阅读数
+     */
+    public function getBatchSubjectViewCount($subjectIds) {
+        $subjects = $this->subjectModel->getSubjectByIds($subjectIds, array());
+        $subjectCountArr = array();
+        $numRatio = 3; //放大倍数
+        foreach ($subjects as $subjectId => $subject) {
+            if (intval($subject['view_num']) > 0) {
+                $subjectCountArr[$subjectId] = $subject['view_num'] * $numRatio;
+            } else {
+                //如果阅读数为零，设置初始阅读数
+                $viewNum = rand(200, 300);
+                $subjectCountArr[$subjectId] = $viewNum * $numRatio;
+                $this->subjectModel->viewNumRecord($subjectId, $viewNum);
+            }
+        }
     }
     
     /**

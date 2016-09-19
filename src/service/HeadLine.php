@@ -298,9 +298,39 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     
     /**
      * 获取头条专题
+     * @param $field 额外字段 count
      */
-    public function getHeadLineTopics($topicIds, $status = array(1)) {
+    public function getHeadLineTopics($topicIds, $field = array(), $status = array(1)) {
         $topicRes = $this->headLineModel->getHeadLineTopics($topicIds, $status);
+        //收集帖子ID
+        $subjectIds = array();
+        foreach ($topicRes as $topic) {
+            $subjectIds = is_array($topic['subject_ids']) ? array_merge($subjectIds, $topic['subject_ids']) : $subjectIds;
+        }
+        //获取专题相关计数
+        if (in_array('count', $field)) {
+            $praiseService = new \mia\miagroup\Service\Praise();
+            $subjectPraiseCounts = $praiseService->getBatchSubjectPraises($subjectIds)['data'];
+            $subjectViewCounts = $this->subjectServer->getBatchSubjectViewCount($subjectIds)['data'];
+        }
+        //拼装专题数据
+        foreach ($topicRes as $topicId => $topic) {
+            if (in_array('count', $field)) {
+                foreach ($topic['subject_ids'] as $subjectId) {
+                    if (intval($topicRes[$topicId]['fancied_count']) > 0) {
+                        $topicRes[$topicId]['fancied_count'] += (isset($subjectPraiseCounts[$subjectId]) ? $subjectPraiseCounts[$subjectId] : 0);
+                    } else {
+                        $topicRes[$topicId]['fancied_count'] = isset($subjectPraiseCounts[$subjectId]) ? $subjectPraiseCounts[$subjectId] : 0;
+                    }
+                    if (intval($topicRes[$topicId]['view_num']) > 0) {
+                        $topicRes[$topicId]['view_num'] += (isset($subjectViewCounts[$subjectId]) ? intval($subjectViewCounts[$subjectId]) : 0);
+                    } else {
+                        $topicRes[$topicId]['view_num'] = isset($subjectViewCounts[$subjectId]) ? intval($subjectViewCounts[$subjectId]) : 0;
+                    }
+                }
+                
+            }
+        }
         return $this->succ($topicRes);
     }
     
@@ -408,7 +438,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
 
         $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
         $lives = $this->liveServer->getLiveRoomByIds($liveIds)['data'];
-        $topics = $this->getHeadLineTopics($topicIds)['data'];
+        $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();
         foreach ($opertionData as $v) {
