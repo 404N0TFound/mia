@@ -442,9 +442,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();
         foreach ($opertionData as $v) {
+            $v['ext_info'] = json_decode($v['ext_info'],true);
             $sortedOpertionData[$v['row']] = $v;
         }
-        
         //按序输出头条结果集
         $headLineList = array();
         $num = count($sortIds) + count($opertionData);
@@ -454,6 +454,8 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             if (isset($sortedOpertionData[$row]) && !empty($sortedOpertionData[$row])) {
                 $relation_id = $sortedOpertionData[$row]['relation_id'];
                 $relation_type = $sortedOpertionData[$row]['relation_type'];
+                $relation_title = $sortedOpertionData[$row]['ext_info']['title'];
+                $relation_cover_image = $sortedOpertionData[$row]['ext_info']['cover_image'];
             } else {
                 $id = array_shift($sortIds);
                 list($relation_id, $relation_type) = explode('_', $id);
@@ -477,9 +479,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 case 'live':
                     if (isset($lives[$relation_id]) && !empty($lives[$relation_id])) {
                         $live = $lives[$relation_id];
-                        $tmpData['id'] = $live['id'] . '_live';
+                        $live['live_info']['title'] = $relation_title ? $relation_title : $live['live_info']['title'];
+                        $live['live_info']['cover_image'] = $relation_cover_image ? $relation_cover_image : null;
+                        $tmpData['id'] = $live['id'] ? $live['id'] . '_live' : $live['live_info'] . '_live';
                         $tmpData['type'] = 'live';
                         $tmpData['live'] = $live;
+
                     }
                     break;
                 case 'topic':
