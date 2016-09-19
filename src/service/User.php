@@ -221,6 +221,10 @@ class User extends \mia\miagroup\Lib\Service {
         //校验userName是否已存在
         $userId = $this->userModel->getUidByUserName($username);
         if (intval($userId) > 0) {
+            //更新用户信息
+            $setData[] = array('nickname', $nickname);
+            $setData[] = array('icon', $avatar);
+            $this->userModel->updateUserById($userId, $setData);
             //用户归类
             $this->userModel->setHeadlineUserCategory($userId, $category);
             return $this->succ(array('uid' => $userId, 'is_exist' => 1));

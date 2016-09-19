@@ -49,6 +49,16 @@ class User extends DB_Query {
     }
     
     /**
+     * 根据userId更新用户信息
+     */
+    public function updateUserById($userId, $userInfo) {
+        $where = array();
+        $where[] = array('id', $userId);
+        $data = $this->update($userInfo, $where);
+        return $data;
+    }
+    
+    /**
      * 根据username查询uid
      */
     public function getUidByUserName($userName) {
