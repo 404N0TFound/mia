@@ -490,7 +490,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 case 'topic':
                     if (isset($topics[$relation_id]) && !empty($topics[$relation_id])) {
                         $topic = $topics[$relation_id];
-                        $tmpData['id'] = $topics['id'] . '_headline_topic';
+                        $tmpData['id'] = $relation_id . '_headline_topic';
                         $tmpData['type'] = 'headline_topic';
                         $tmpData['headline_topic'] = $topic;
                     }
