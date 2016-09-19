@@ -420,7 +420,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $opertionIds = !empty($opertionData) ? array_keys($opertionData) : array();
         $datas = array_merge($sortIds, $opertionIds);
         $subjectIds = [];
-        $liveIds    = [];
+        $roomIds    = [];
         $topicIds   = [];
         foreach ($datas as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
@@ -429,7 +429,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $subjectIds[] = $relation_id;
             //直播
             } elseif ($relation_type == 'live') {
-                $liveIds[] = $relation_id;
+                $roomIds[] = $relation_id;
             //专题
             } elseif ($relation_type == 'topic') {
                 $topicIds[] = $relation_id;
@@ -437,14 +437,14 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
 
         $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
-        $lives = $this->liveServer->getLiveRoomByIds($liveIds)['data'];
+        $lives = $this->liveServer->getLiveRoomByIds($roomIds)['data'];
         $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();
         foreach ($opertionData as $v) {
+            $v['ext_info'] = json_decode($v['ext_info'],true);
             $sortedOpertionData[$v['row']] = $v;
         }
-        
         //按序输出头条结果集
         $headLineList = array();
         $num = count($sortIds) + count($opertionData);
@@ -454,6 +454,8 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             if (isset($sortedOpertionData[$row]) && !empty($sortedOpertionData[$row])) {
                 $relation_id = $sortedOpertionData[$row]['relation_id'];
                 $relation_type = $sortedOpertionData[$row]['relation_type'];
+                $relation_title = $sortedOpertionData[$row]['ext_info']['title'];
+                $relation_cover_image = $sortedOpertionData[$row]['ext_info']['cover_image'];
             } else {
                 $id = array_shift($sortIds);
                 list($relation_id, $relation_type) = explode('_', $id);
@@ -465,7 +467,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         if (!empty($subject['album_article'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
                             $tmpData['type'] = 'album';
-                            $subject['album_article']['cover_image'] = !empty($subject['album_article']['cover_image']) ? $subject['album_article']['cover_image'] : null;
                             $tmpData['album'] = $subject;
                         } else if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
@@ -477,15 +478,18 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 case 'live':
                     if (isset($lives[$relation_id]) && !empty($lives[$relation_id])) {
                         $live = $lives[$relation_id];
+                        $live['live_info']['title'] = $relation_title ? $relation_title : $live['live_info']['title'];
+                        $live['live_info']['cover_image'] = $relation_cover_image ? $relation_cover_image : (object)null;
                         $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';
                         $tmpData['live'] = $live;
+
                     }
                     break;
                 case 'topic':
                     if (isset($topics[$relation_id]) && !empty($topics[$relation_id])) {
                         $topic = $topics[$relation_id];
-                        $tmpData['id'] = $topics['id'] . '_headline_topic';
+                        $tmpData['id'] = $relation_id . '_headline_topic';
                         $tmpData['type'] = 'headline_topic';
                         $tmpData['headline_topic'] = $topic;
                     }

@@ -568,10 +568,12 @@ class Live extends \mia\miagroup\Lib\Service {
             //直播信息
             if(in_array('live_info', $field)){
                 if(!empty($liveArr[$roomInfo['live_id']]) && $liveArr[$roomInfo['live_id']]['status'] == 3){
+                    $liveArr[$roomInfo['live_id']]['status'] = 1;
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
                 } else {
                     $roomRes[$roomInfo['id']]['status'] = 0;
+                    $roomRes[$roomInfo['id']]['live_info']['status'] = 0;
                 }
             }
             if (in_array('settings', $field)) {
