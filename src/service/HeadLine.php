@@ -467,7 +467,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         if (!empty($subject['album_article'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
                             $tmpData['type'] = 'album';
-                            $subject['album_article']['cover_image'] = !empty($subject['album_article']['cover_image']) ? $subject['album_article']['cover_image'] : null;
                             $tmpData['album'] = $subject;
                         } else if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
@@ -480,7 +479,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                     if (isset($lives[$relation_id]) && !empty($lives[$relation_id])) {
                         $live = $lives[$relation_id];
                         $live['live_info']['title'] = $relation_title ? $relation_title : $live['live_info']['title'];
-                        $live['live_info']['cover_image'] = $relation_cover_image ? $relation_cover_image : null;
+                        $live['live_info']['cover_image'] = $relation_cover_image ? $relation_cover_image : (object)null;
                         $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';
                         $tmpData['live'] = $live;
