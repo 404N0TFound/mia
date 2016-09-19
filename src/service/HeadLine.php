@@ -420,7 +420,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $opertionIds = !empty($opertionData) ? array_keys($opertionData) : array();
         $datas = array_merge($sortIds, $opertionIds);
         $subjectIds = [];
-        $liveIds    = [];
+        $roomIds    = [];
         $topicIds   = [];
         foreach ($datas as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
@@ -429,7 +429,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $subjectIds[] = $relation_id;
             //直播
             } elseif ($relation_type == 'live') {
-                $liveIds[] = $relation_id;
+                $roomIds[] = $relation_id;
             //专题
             } elseif ($relation_type == 'topic') {
                 $topicIds[] = $relation_id;
@@ -437,7 +437,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
 
         $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
-        $lives = $this->liveServer->getLiveRoomByIds($liveIds)['data'];
+        $lives = $this->liveServer->getLiveRoomByIds($roomIds)['data'];
         $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();
@@ -481,7 +481,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $live = $lives[$relation_id];
                         $live['live_info']['title'] = $relation_title ? $relation_title : $live['live_info']['title'];
                         $live['live_info']['cover_image'] = $relation_cover_image ? $relation_cover_image : null;
-                        $tmpData['id'] = $live['id'] ? $live['id'] . '_live' : $live['live_info'] . '_live';
+                        $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';
                         $tmpData['live'] = $live;
 
