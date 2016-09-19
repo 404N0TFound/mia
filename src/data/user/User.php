@@ -65,7 +65,13 @@ class User extends DB_Query {
         if (empty($userName)) {
             return false;
         }
-        $where[] = array('username', $userName);
+        if (mb_strlen($userName, 'utf8') > 18) {
+            $userName = mb_substr($userName, 0, 18, 'utf8');
+            $where[] = array(':like_begin','username', $userName);
+        } else {
+            $where[] = array(':eq','username', $userName);
+        }
+        
         $data = $this->getRow($where, 'id');
         if (!empty($data)) {
             return $data['id'];

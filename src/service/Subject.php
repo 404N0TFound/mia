@@ -649,22 +649,42 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (!empty($subject['created'])) {
             $subjectInfo['created'] = $subject['created'];
         }
-        if (!empty($subject['view_num'])) {
-            $subjectInfo['created'] = $subject['created'];
-        }
-        $uniqueFlag = md5(json_encode($subject));
+        $uniqueFlag = md5($subject['video_url']);
         $redis = new \mia\miagroup\Lib\Redis();
         $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.headLineKey.syncUniqueFlag.key'), $uniqueFlag);
-        $isExist = $redis->exists($key);
-        if ($isExist) {
+        $subjectId = $redis->get($key);
+        if (!$subjectId) {
+            $subjectData = new \mia\miagroup\Data\Subject\Video();
+            $subjectId = $subjectData->getRow(array('video_origin_url', $subject['video_url']), 'subject_id');
+            $subjectId = $subjectId['subject_id'];
+            if (intval($subjectId) > 0) {
+                $redis->setex($key, $subjectId, 8640000);
+            }
+        }
+        if ($subjectId) {
+            if (!empty($subject['user_id'])) {
+                $setData[] = array('user_id', $subject['user_id']);
+            }
+            if (!empty($subjectInfo['title'])) {
+                $setData[] = array('title', $subjectInfo['title']);
+            }
+            if (!empty($subjectInfo['text'])) {
+                $setData[] = array('text', $subjectInfo['text']);
+            }
+            $this->subjectModel->updateSubject($setData, $subjectId);
+            if (!empty($subject['user_id'])) {
+                $setVideoData[] = array('user_id', $subject['user_id']);
+                $where[] = ['subject_id', $subjectId];
+                $this->subjectModel->updateVideoBySubject($setVideoData, $where);
+            }
             if ($existCheck) {
-                return $this->error('500','exist');
+                return $this->succ($subjectId);
             }
         }
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $result = $this->issue($subjectInfo);
         \DB_Query::switchCluster($preNode);
-        $redis->set($key, 1);
+        $redis->setex($key, $subjectId, 8640000);
         if ($result['code'] > 0) {
             return $this->error($result['code']);
         } else {
