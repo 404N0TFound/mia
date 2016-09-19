@@ -425,10 +425,6 @@ class Live extends \mia\miagroup\Lib\Service {
         $jinshan = new JinShanCloudUtil();
         $redis = new Redis();
         foreach($liveInfos as $k=>$liveInfo){
-            //当前在线人数
-            $audience_online_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_audience_online_num.key'),$k);
-            $audience_online_num = $redis->get($audience_online_num_key);
-            $liveInfo['audience_online_num'] = $audience_online_num ?: '0';
             //如果是直播中的live要给url地址
             $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
             if($liveInfo['status'] == 3){
@@ -436,6 +432,11 @@ class Live extends \mia\miagroup\Lib\Service {
                 $liveInfo['hls_url'] = $addrInfo['hls'];
                 $liveInfo['hdl_url'] = $addrInfo['hdl'];
                 $liveInfo['rtmp_url'] = $addrInfo['rtmp'];
+                
+                //当前在线人数
+                $audience_online_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_audience_online_num.key'),$k);
+                $audience_online_num = $redis->get($audience_online_num_key);
+                $liveInfo['audience_online_num'] = $audience_online_num ?: '0';
                 //商品已售卖数
                 $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'),$k);
                 $sale_num = $redis->get($sale_num_key);
@@ -568,26 +569,11 @@ class Live extends \mia\miagroup\Lib\Service {
             if(in_array('live_info', $field)){
                 if(!empty($liveArr[$roomInfo['live_id']]) && $liveArr[$roomInfo['live_id']]['status'] == 3){
                     $liveArr[$roomInfo['live_id']]['status'] = 1;
-                    $liveArr[$roomInfo['live_id']]['view_num'] = $liveArr[$roomInfo['live_id']]['audience_online_num'];
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
                 } else {
-                    //直播结束时
-                    if(empty($roomInfo['live_id'])){
-                        //存在最近的一次直播
-                        if(!empty($roomInfo['latest_live_id'])){
-                            $liveInfo = $this->getBatchLiveInfoByIds(array($roomInfo['latest_live_id']), array(4))['data'];
-                            if (!empty($liveInfo[$roomInfo['latest_live_id']])) {
-                                $liveInfo = $liveInfo[$roomInfo['latest_live_id']];
-                                //回放地址
-                                $roomInfo['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
-                            }
-                        }
-                    }
-                    $liveInfo['status'] = 0;
-                    $liveInfo['view_num'] = $liveInfo['audience_online_num'];
                     $roomRes[$roomInfo['id']]['status'] = 0;
-                    $roomRes[$roomInfo['id']]['live_info'] = $liveInfo;
+                    $roomRes[$roomInfo['id']]['live_info']['status'] = 0;
                 }
             }
             if (in_array('settings', $field)) {
