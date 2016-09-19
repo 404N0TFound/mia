@@ -713,6 +713,8 @@ class Album extends \mia\miagroup\Lib\Service {
             }
             if (!empty($article['cover_image'])) {
                 $article['image_infos'] = $article['cover_image'];
+                $article['image_infos']['width'] = isset($article['cover_image']['width']) ? $article['cover_image']['width'] : 640;
+                $article['image_infos']['height'] = isset($article['cover_image']['height']) ? $article['cover_image']['height'] : 320;
                 $article['image_infos']['source'] = 'jinshan';
                 unset($article['cover_image']);
             }
