@@ -32,6 +32,7 @@
             "mia\\miagroup\\Data\\Redbag\\":      "src/data/redbag",
             "mia\\miagroup\\Data\\Item\\":    "src/data/item",
             "mia\\miagroup\\Data\\Order\\":    "src/data/order",
+            "mia\\miagroup\\Data\\Audit\\":    "src/data/audit",
             "mia\\miagroup\\Data\\PointTags\\":    "src/data/pointtags"
         }
     },

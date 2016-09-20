@@ -23,6 +23,36 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
+        ini_set('memory_limit', '256m');
+        set_time_limit(0);
+        $data = file('/tmp/koubeidata');
+        $blackWord = \F_Ice::$ins->workApp->config->get('busconf.koubei.blackWord');
+        $blackWord = implode('|', $blackWord);
+        $i = 0;
+        $koubeiIds = array();
+        foreach ($data as $v) {
+            $v = trim($v);
+            list($id, $score, $rankScore, $content) = explode("\t", $v, 4);
+            preg_match_all("/".$blackWord."/i", $content, $match);
+            if (!empty($match[0])) {
+                if ($score >= 3 && $rankScore >= 6) {
+                    $i ++;
+                    $koubeiIds[] = $id;
+                    if ($i % 500 == 0) {
+                        $koubeiIds = implode(',', $koubeiIds);
+                        $koubeiIds = array();
+                    }
+                    
+                }
+                //var_dump($id, $score, $rankScore, $content);exit;
+                //echo $v . "\n";
+                //echo $id, "\n";
+            }
+        }
+        $koubeiIds = implode(',', $koubeiIds);
+        echo $koubeiIds . "\n";
+        exit;
+        
         $this->koubeiSync();
     }
 
@@ -117,13 +147,26 @@ class Koubei extends \FD_Daemon {
     }
 
     /**
-     * 获取已经审核的但为同步为蜜芽贴的口碑信息
+     * 获取已经审核的但未同步为蜜芽贴的口碑信息
      */
     private function getKoubeiList() {
         $where = array();
         $where[] = [':eq', 'subject_id', 0];
         $where[] = [':eq', 'status', 2];
         $where[] = [':ge', 'created_time', '2016-08-29 00:00:00'];
+        
+        $fields = ' id,subject_id,user_id,item_id,title,content,score,created_time,extr_info ';
+        $data = $this->koubeiData->getRows($where, $fields);
+        return $data;
+    }
+    
+    /**
+     * 获取审核通过的口碑
+     */
+    private function getPassKoubeiList() {
+        $where = array();
+        $where[] = [':ne', 'subject_id', 0];
+        $where[] = [':eq', 'status', 2];
         
         $fields = ' id,subject_id,user_id,item_id,title,content,score,created_time,extr_info ';
         $data = $this->koubeiData->getRows($where, $fields);
@@ -140,5 +183,12 @@ class Koubei extends \FD_Daemon {
         $fields = ' id,koubei_id,local_url_origin ';
         $data = $this->koubeiPicData->getRows($where, $fields);
         return $data;
+    }
+    
+    /**
+     * 差评内容降分
+     */
+    private function badCommentReduceScore() {
+        
     }
 }
