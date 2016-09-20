@@ -80,14 +80,22 @@ class Label extends \mia\miagroup\Lib\Service {
      * 关注标签
      */
     public function focusLabel($userId, $labelIds) {
-        
+        if (empty($labelIds) || empty($userId)) {
+            return $this->succ(array());
+        }
+        $data = $this->labelModel->addLableRelation($userId, $labelIds);
+        return $this->succ($data);
     }
     
     /**
      * 取消关注标签
      */
     public function cancelFocusLabel($userId, $labelId) {
-        
+        if (empty($labelIds) || empty($userId)) {
+            return $this->succ(array());
+        }
+        $data = $this->labelModel->removeLableRelation($userId,$lableId);
+        return $this->succ($data);
     }
     
     /**
