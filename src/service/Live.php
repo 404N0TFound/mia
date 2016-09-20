@@ -568,7 +568,6 @@ class Live extends \mia\miagroup\Lib\Service {
             //直播信息
             if(in_array('live_info', $field)){
                 if(!empty($liveArr[$roomInfo['live_id']]) && $liveArr[$roomInfo['live_id']]['status'] == 3){
-                    $liveArr[$roomInfo['live_id']]['status'] = 1;
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
                 } else {
@@ -576,8 +575,7 @@ class Live extends \mia\miagroup\Lib\Service {
                     if(isset($roomInfo['setting']['is_show_playback']) && $roomInfo['setting']['is_show_playback'] === '0'){
                         $status = 0;
                     }
-                    $roomRes[$roomInfo['id']]['status'] = 0;
-                    $roomRes[$roomInfo['id']]['live_info']['status'] = $status;
+                    $roomRes[$roomInfo['id']]['status'] = $status;
                 }
             }
             if (in_array('settings', $field)) {
