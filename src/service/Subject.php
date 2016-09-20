@@ -545,7 +545,70 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($result);
     }
     
-
+    /**
+     * 根据用户ID获取帖子信息
+     */
+    public function getSubjectsByUid($userId,$currentId = 0, $page = 1, $iPageSize = 20){
+        $data = array("total" => 0, "subject_lists" => array(), "status" => 0);
+        //校验是都是屏蔽用户
+        $isShieldStatus = $this->userService->checkIsShieldByUserId($userId)['data'];
+        if($isShieldStatus) {
+            $data['status'] = -1;
+            return $this->succ($data);
+        }
+        //获取帖子ID
+        $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId,$currentId,$page,$iPageSize);
+        if(empty($subject_ids)){
+            $data['status'] = -1;
+            return $this->succ($data);
+        }
+        $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId));
+        $data['status'] = 1;
+        
+        return $this->succ($data);
+    }
+    
+    /**
+     * 删除帖子
+     */
+    public function delete($subjectId,$userId){
+        
+        $subjectInfo = $this->subjectModel->getSubjectByIds([$subjectId])[$subjectId];
+        if($subjectInfo['subject_info']['status'] == 0) {
+            return $this->succ(1);
+        }
+        //删除帖子
+        $result = $this->subjectModel->delete($subjectId, $userId);
+        $extInfo = json_decode($subjectInfo['ext_info'], true);
+        if($result && !empty($extInfo['koubei']['id'])){
+            //删除口碑
+            $koubei = new \mia\miagroup\Service\Koubei();
+            $res = $koubei->delete($extInfo['koubei']['id'], $userId);
+            if($res){
+                return $this->succ(1);
+            }
+        }
+        return $this->error(6104);
+    }
+    
+    /**
+     * 精选帖子
+     */
+    public function recommendsubject($userId, $iPage=1, $iPageSize=21){
+        $data = [];
+        $subjectIds = $this->subjectModel->getRrecommendSubjectIds($iPage,$iPageSize);
+        //获取推荐的标签
+        if ($iPage == 1) {
+            $labels = $this->labelService->recommendLabelListPage("recommend", 0 ,11);
+//             $labels = $this->label_model->recommendLabelListPage("recommend", 0 ,11);
+            $data['label_lists'] = array_values($labels);
+        }
+        if(!empty($subjectIds)) {
+            $subjects = $this->getBatchSubjectInfos($subjectIds,$userId);
+            $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
+        }
+        return $this->succ($data);
+    }
     
     
 }

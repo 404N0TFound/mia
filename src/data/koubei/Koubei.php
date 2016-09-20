@@ -131,5 +131,16 @@ class Koubei extends \DB_Query {
         $data = $this->update($setData, $where);
         return $data;
     }
+    
+    /**
+     * 删除口碑
+     */
+    public function delete($id, $userId){
+        $where[] = ['id', $id];
+        $where[] = ['user_id', $userId];
+        $setData[] = ['status', 0];
+        $affect = $this->update($setData, $where);
+        return $affect;
+    }
 
 }
