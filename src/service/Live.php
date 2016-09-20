@@ -572,8 +572,12 @@ class Live extends \mia\miagroup\Lib\Service {
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
                 } else {
+                    $status = 2;
+                    if(isset($roomInfo['setting']['is_show_playback']) && $roomInfo['setting']['is_show_playback'] === '0'){
+                        $status = 0;
+                    }
                     $roomRes[$roomInfo['id']]['status'] = 0;
-                    $roomRes[$roomInfo['id']]['live_info']['status'] = 0;
+                    $roomRes[$roomInfo['id']]['live_info']['status'] = $status;
                 }
             }
             if (in_array('settings', $field)) {
