@@ -198,13 +198,5 @@ class User extends \mia\miagroup\Lib\Service {
         return $this->succ($userInfo);
     }
     
-    /**
-     * 验证用户是否是屏蔽用户
-     * @param unknown $iUserId
-     */
-    public function checkIsShieldByUserId($iUserId){
-        $result = $this->userModel->checkIsShieldByUserId($iUserId);
-        return $this->succ($result);
-    }
     
 }
