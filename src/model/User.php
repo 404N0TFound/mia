@@ -92,12 +92,5 @@ class User {
             return $data;
         }
     }
-    
-    //判断用户是否是屏蔽用户
-    public function checkIsShieldByUserId($iUserId){
-        $user_shield = new \mia\miagroup\Data\User\UserShield();
-        $result = $user_shield->checkIsShieldByUserId($iUserId);
-        return $result;
-    }
-    
+
 }

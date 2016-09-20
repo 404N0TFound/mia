@@ -513,8 +513,9 @@ class Subject extends \mia\miagroup\Lib\Service {
      */
     public function getSubjectsByUid($userId,$currentId = 0, $page = 1, $iPageSize = 20){
         $data = array("total" => 0, "subject_lists" => array(), "status" => 0);
-        //校验是都是屏蔽用户
-        $isShieldStatus = $this->userService->checkIsShieldByUserId($userId)['data'];
+        //校验是否是屏蔽用户
+        $audit = new \mia\miagroup\Service\Audit();
+        $isShieldStatus = $audit->checkUserIsShield($userId)['data'];
         if($isShieldStatus) {
             $data['status'] = -1;
             return $this->succ($data);
