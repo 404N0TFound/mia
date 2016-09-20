@@ -32,6 +32,9 @@ class Album {
         $subjectArticle = array();
         foreach ($articleIds as $subjectId => $articleId) {
             if (isset($articles[$articleId])) {
+                 if(empty($articles[$articleId]['cover_image'])){
+                    unset($articles[$articleId]['cover_image']);
+                 }
                 $subjectArticle[$subjectId] = $articles[$articleId];
             }
         }

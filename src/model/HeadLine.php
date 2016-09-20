@@ -4,20 +4,17 @@ namespace mia\miagroup\Model;
 use \mia\miagroup\Data\HeadLine\HeadLineChannel;
 use \mia\miagroup\Data\HeadLine\HeadLineChannelContent;
 use \mia\miagroup\Data\HeadLine\HeadLineTopic;
-use \mia\miagroup\Data\HeadLine\HeadLineUserCategory;
 
 class HeadLine {
 
     private $headLineChannelData;
-    //private $headLineChannelContentData;
+    private $headLineChannelContentData;
     private $headLineTopicData;
-    //private $headLineUserCategoryData;
 
     public function __construct() {
         $this->headLineChannelData = new HeadLineChannel();
-        //$this->headLineChannelContentData = new HeadLineChannelContent();
+        $this->headLineChannelContentData = new HeadLineChannelContent();
         $this->headLineTopicData = new HeadLineTopic();
-        //$this->headLineUserCategoryData = new HeadLineUserCategory();
     }
     
     /**
@@ -25,18 +22,32 @@ class HeadLine {
      */
     public function getHeadLinesByChannel($channelId,$page=1) {
         $data = $this->headLineChannelContentData->getHeadLinesByChannel($channelId,$page);
-        //处理位置冲突
-        //输出结果集以位置为KEY
+        if (!empty($data)) {
+            //以row为key重新拼装
+            $sortedRowData = array();
+            foreach ($data as $v) {
+                $sortedRowData[$v['row']][] = $v;
+            }
+            foreach ($sortedRowData as $rowData) {
+                if (count($rowData) > 1) {
+                    //如果位置有重复，随机出一个
+                    $randkey = array_rand($rowData, 1);
+                    unset($rowData[$randkey]);
+                    foreach ($rowData as $v) {
+                        $key = $v['relation_id'] . '_' . $v['relation_type'];
+                        unset($data[$key]);
+                    }
+                }
+            }
+        }
+        
         return $data;
     }
     
     /**
      * 获取头条栏目
      */
-    public function getHeadLineChannels($channelIds, $status = array(1)) {
-        if(empty($channelIds)){
-            return array();
-        }
+    public function getHeadLineChannels($channelIds = array(), $status = array(1)) {
         $data = $this->headLineChannelData->getHeadLineChannelByIds($channelIds, $status);
         return $data;
     }
@@ -78,9 +89,9 @@ class HeadLine {
      */
     public function addOperateHeadLine($headLineInfo)
     {
-        //@donghui
-        //归纳头条所有type，校验头条type
-        //归纳所有ext_info，校验ext_info
+        if (is_array($headLineInfo['ext_info']) && !empty($headLineInfo['ext_info'])) {
+            $headLineInfo['ext_info'] = json_encode($headLineInfo['ext_info']);
+        }
         $data = $this->headLineChannelContentData->addOperateHeadLine($headLineInfo);
         return $data;
     }
@@ -90,9 +101,18 @@ class HeadLine {
      */
     public function editOperateHeadLine($id, $headLineInfo)
     {
-        //@donghui
-        //只能编辑ext_info、page、row、begin_time、end_time
+        if (is_array($headLineInfo['ext_info']) && !empty($headLineInfo['ext_info'])) {
+            $headLineInfo['ext_info'] = json_encode($headLineInfo['ext_info']);
+        }
         $data = $this->headLineChannelContentData->updateHeadlineById($id,$headLineInfo);
+        return $data;
+    }
+    
+    /**
+     * 根据ID查询运营头条
+     */
+    public function getHeadLineById($id) {
+        $data = $this->headLineChannelContentData->getHeadLineById($id);
         return $data;
     }
     
@@ -112,13 +132,22 @@ class HeadLine {
         if(empty($topicIds)){
             return array();
         }
-        $data = $this->headLineTopicData->getHeadLineTopicByIds($channelIds, $status);
+        $data = $this->headLineTopicData->getHeadLineTopicByIds($topicIds, $status);
+        if(!empty($data)){
+            foreach ($data as $key=> $topic){
+                $topicInfo = json_decode($topic['topic_info'], true);
+                $data[$key]['id'] = $topic['id'];
+                $data[$key]['title'] = $topicInfo['title'];
+                $data[$key]['subject_ids'] = json_decode($topic['subject_ids'], true);
+            }
+        }
         return $data;
     }
     /**
      * 新增头条专题
      */
     public function addHeadLineTopic($topicInfo) {
+        $topicInfo['subject_ids'] = json_encode($topicInfo['subject_ids']);
         $data = $this->headLineTopicData->addHeadLineTopic($topicInfo);
         return $data;
     }

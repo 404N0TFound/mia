@@ -35,6 +35,8 @@ class Subject extends \DB_Query {
             }
             $v['title'] = $emojiUtil->emoji_html_to_unified($v['title']);
             $v['text'] = $emojiUtil->emoji_html_to_unified($v['text']);
+            $v['text'] = str_replace('&nbsp;', ' ', $v['text']);
+            $v['text'] = strip_tags($v['text']);
             $v['ext_info'] = json_decode($v['ext_info'], true);
             if (!is_array($v['ext_info'])) {
                 $v['ext_info'] = json_decode($v['ext_info'], true);
@@ -116,13 +118,13 @@ class Subject extends \DB_Query {
     /**
      * 更新帖子计数
      */
-    public function updateSubjectCount($subjectId, $countType, $num) {
+    public function updateSubjectCount($subjectId, $num, $countType='view_num') {
         if (empty($subjectId)) {
             return false;
         }
-        if (!in_array('view_num', $countType)) {
-            return false;
-        }
-        $sql = "update group_subjects set $countType += $num";
+
+        $sql = "update $this->tableName set $countType = $countType+$num where id = $subjectId";
+        $result = $this->query($sql);
+        return $result;
     }
 }

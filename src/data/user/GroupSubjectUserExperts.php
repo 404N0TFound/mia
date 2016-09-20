@@ -32,10 +32,26 @@ class GroupSubjectUserExperts extends DB_Query {
         $where[] = ['user_id', $userIds];
         
         $experts = $this->getRows($where);
-        
+
         if (!empty($experts)) {
             foreach ($experts as $expert) {
                 $result[$expert['user_id']] = $expert;
+            }
+        }
+        return $result;
+    }
+
+    public function getExpertList($userIds) {
+        if(!is_array($userIds)){
+            return [];
+        }
+        $where[] = ['status', 1];
+        $where[] = ['user_id', $userIds];
+        $data = $this->getRows($where, 'user_id');
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[] = $v['user_id'];
             }
         }
         return $result;

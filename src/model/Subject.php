@@ -4,6 +4,7 @@ namespace mia\miagroup\Model;
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\GroupSubjectRecommendPool;
+use mia\miagroup\Lib\Redis;
 
 class Subject {
 
@@ -156,8 +157,13 @@ class Subject {
     /**
      * 帖子阅读写入队列
      */
-    public function viewNumRecord($subject) {
-        
+    public function viewNumRecord($subjectId,$num=1) {
+        $read_num_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_read_num.key');
+        $redis = new Redis();
+        $data = json_encode(['subject_id'=>$subjectId,'num'=>intval($num)]);
+        $redis->lpush($read_num_key, $data);
+        return true;
+
     }
     
     /**
@@ -165,6 +171,18 @@ class Subject {
      * @param int $num 获取队列中的条数
      */
      public function getViewNumRecord($num) {
-         
+         $read_num_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_read_num.key');
+        $redis = new Redis();
+        $len = intval($redis->llen($read_num_key));
+        if($len<$num){
+            $num = $len;
+        }
+        
+        $result = [];
+        for($i=0;$i<$num;$i++){
+            $data = json_decode($redis->rpop($read_num_key),true);
+            $result[$data['subject_id']] += intval($data['num']);
+        }
+        return $result;
      }
 }

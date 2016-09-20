@@ -15,43 +15,51 @@ class RecommendedHeadline
      * @param  string $action  [init,refresh,next,home_banner]
      * @return array
      */
-    public function headlineList($userId,$channelId,$action='init')
+    public function headlineList($channelId,$action='init',$userId=0)
     {
         $params = [
-            'uid'    => $userId,
-            'tab_id' => $channelId,
-            'action' => $action,
+            'user_id' => $userId,
+            'tab_id'  => $channelId,
+            'action'  => $action,
         ];
         $url = $this->config['remote'].'list/'.$action;
         $res = $this->_curlPost($url,$params);
-        return json_decode($res,true);
+        
+        $data = [];
+        if (!empty($res['list'])) {
+            foreach ($res['list'] as $v) {
+                $data[] = $v . '_subject';
+            }
+        }
+        
+        return $data;
     }
 
 
 
-    public function headlineRelate($subjectId, $userId, $channelId)
+    public function headlineRelate($channelId,$subjectId, $userId=0)
     {
         $params = [
-            'uid'=>$userId,
-            'docid'=>$subjectId,
-            'tab_id'=>$channelId,
+            'user_id' => $userId,
+            'doc_id'  => $subjectId,
+            'tab_id'  => $channelId,
         ];
         $url = $this->config['remote'].'doc/relate';
         $res = $this->_curlPost($url,$params);
-        return json_decode($res,true);
+        return $res['list'];
     }
 
 
-    public function headlineRead($userId,$subjectId,$channelId)
+    public function headlineRead($channelId,$subjectId,$userId=0)
     {
         $params = [
-            'uid'=>$userId,
-            'docid'=>$subjectId,
-            'tab_id'=>$channelId,
+            'user_id' => $userId,
+            'doc_id'  => $subjectId,
+            'tab_id'  => $channelId,
         ];
         $url = $this->config['remote'].'doc/read';
-        $res = $this->_curlPost($url,$params);
-        return json_decode($res,true);
+        $this->_curlPost($url,$params);
+        return true;
     }
 
 
@@ -77,7 +85,13 @@ class RecommendedHeadline
         curl_setopt($ch, CURLOPT_SSLVERSION, 1);
 
         $result = curl_exec($ch);
+        $result = json_decode($result, true);
         curl_close($ch);
-        return $result;
+        
+        if ($result['ret'] != 0) {
+            return false;
+        } else {
+            return $result['data'];
+        }
     }
 }

@@ -127,8 +127,8 @@ class Video extends \DB_Query {
     /**
      * 更新视频
      */
-    public function updateVideoBySubject($setData, $where = [], $orderBy = FALSE, $limit = FALSE) {
-        $data = $this->update($setData, $where, $orderBy, $limit);
+    public function updateVideoBySubject($setData, $where = []) {
+        $data = $this->update($setData, $where);
         return $data;
     }
 }

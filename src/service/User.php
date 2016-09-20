@@ -131,7 +131,7 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo[$key] = '';
             }
         }
-        if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"])*$/", $userInfo['icon'])) {
+        if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\//", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
         }
         $userInfo['username'] = preg_replace('/(miya[\d]{3}|mobile_[\d]{3})([\d]{4})([\d]{4})/', "$1****$3", $userInfo['username']);
@@ -149,7 +149,7 @@ class User extends \mia\miagroup\Lib\Service {
         } else {
             unset($userInfo['child_sex']);
         }
-        
+        $userInfo['level'] = intval($userInfo['level']);
         $userInfo['level_id'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_id']; // 用户等级ID
         if(substr($this->ext_params['version'],-5,3) == '4_6'){
             $userInfo['level_number'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level']; // 用户等级
@@ -221,6 +221,10 @@ class User extends \mia\miagroup\Lib\Service {
         //校验userName是否已存在
         $userId = $this->userModel->getUidByUserName($username);
         if (intval($userId) > 0) {
+            //更新用户信息
+            $setData[] = array('nickname', $nickname);
+            $setData[] = array('icon', $avatar);
+            $this->userModel->updateUserById($userId, $setData);
             //用户归类
             $this->userModel->setHeadlineUserCategory($userId, $category);
             return $this->succ(array('uid' => $userId, 'is_exist' => 1));

@@ -81,6 +81,15 @@ class User {
     }
     
     /**
+     * 根据用户ID更新用户信息
+     */
+    public function updateUserById($userId, $userInfo) {
+        $userData = new UserData();
+        $res = $userData->updateUserById($userId, $userInfo);
+        return $res;
+    }
+    
+    /**
      * 设置头条抓取用户分类
      */
     public function setHeadlineUserCategory($userId, $category) {

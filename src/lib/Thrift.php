@@ -18,9 +18,13 @@ class Thrift {
     
     public function agent($name,$param){
         $paramJson = json_encode($param);
-        $data = $this->thriftClient->$name($paramJson);
-        $data = json_decode($data,true);
-        return $data;
+        try {
+            $data = $this->thriftClient->$name($paramJson);
+            $data = json_decode($data,true);
+            return $data;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
   
 }

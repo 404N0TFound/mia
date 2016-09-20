@@ -18,23 +18,31 @@ class HeadLineChannelContent extends \DB_Query {
             return [];
         }
         $where[] = [':eq','channel_id', $channelId];
-        $where[] = [':eq','page', $page];
-        $where[] = [':ge', 'begin_time', date('Y-m-d H:i:s',time())];
-        $where[] = [':le', 'end_time', date('Y-m-d H:i:s',time())];
+        if (intval($page) > 0) {
+            $where[] = [':eq','page', $page];
+        }
+        $where[] = [':le', 'begin_time', date('Y-m-d H:i:s',time())];
+        $where[] = [':ge', 'end_time', date('Y-m-d H:i:s',time())];
         $data = $this->getRows($where);
         $result = [];
         foreach ($data as $v) {
-            $result[$v['relation_id'].'-'.$v['relation_type']] = $v;
+            $result[$v['relation_id'].'_'.$v['relation_type']] = $v;
         }
         return $result;
     }
 
+    /**
+     * 添加头条
+     */
     public function addOperateHeadLine($headlineData)
     {
         $data = $this->insert($headlineData);
         return $data;
     }
 
+    /**
+     * 更新头条
+     */
     public function updateHeadlineById($id, $setData)
     {
         $where[] = ['id', $id];
@@ -42,7 +50,9 @@ class HeadLineChannelContent extends \DB_Query {
         return $data;
     }
 
-
+    /**
+     * 删除头条
+     */
     public function delHeadlineById($id)
     {
         $where[] = ['id',$id];
@@ -50,5 +60,18 @@ class HeadLineChannelContent extends \DB_Query {
         return $data;
     }
 
-
+    /**
+     * 根据ID查询头条
+     */
+    public function getHeadLineById($id) {
+        if (intval($id) <= 0) {
+            return false;
+        }
+        $where[] = [':eq','id', $id];
+        $data = $this->getRow($where);
+        if (!empty($data)) {
+            $data['ext_info'] = json_decode($data['ext_info'], true);
+        }
+        return $data;
+    }
 }

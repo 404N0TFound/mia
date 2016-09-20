@@ -332,19 +332,15 @@ class Album extends \mia\miagroup\Lib\Service {
         }
         $con = $data['con'];
         $set = $data['set'];
-        if(empty($con['id'])){
+        if(empty($con['id']) && empty($con['subject_id'])){
             return $this->error('500','param con id is empty');
         }
         
-        $userPermission = $this->abumModel->getAlbumPermissionByUserId( $con['user_id'] );
-        if(!$userPermission){
-            return $this->error('500','Function:'.__FUNCTION__.' user do not have permission');
-        }
         $params = array();
         $params['user_id'] = $con['user_id'];
         $params['album_id'] = $con['album_id'];
         $params['id'] = $con['id'];
-        
+        $params['subject_id'] = $con['subject_id'];
         $data = array();
         if(isset($set['content']) && !empty($set['content'])){
             $data['content'] = strip_tags($set['content']);     //过滤标签后台的文章内容
@@ -360,7 +356,7 @@ class Album extends \mia\miagroup\Lib\Service {
                 $labelInfos[$key]['id'] = $value['id'];
                 $labelInfos[$key]['title'] = $value['title'];
             }
-            $data['ext_info'] = json_encode(array('label'=>$labelInfos));
+            $data['ext_info']['label'] = $labelInfos;
         }
         if(isset($set['image_infos']) && !empty($set['image_infos'])){
             $data['cover_image'] = json_encode(
@@ -368,13 +364,17 @@ class Album extends \mia\miagroup\Lib\Service {
                     'width'=>$set['image_infos']['width'],
                     'height'=>$set['image_infos']['height'],
                     'url'=>$set['image_infos']['url'],
-                    'content'=>''
+                    'content'=>'',
+                    'source' => isset($set['image_infos']['source']) ? $set['image_infos']['source'] : ''
                 ));
         }
+        if (!empty($set['images'])) { //其他图
+            $params['ext_info']['images'] = $set['images'];
+        }
+        
         if(empty($data) ){
             return $this->succ($res);
         }
-        
         $res = $this->abumModel->updateAlbumArticle($params,$data);
         return $this->succ($res);
     }
@@ -509,7 +509,7 @@ class Album extends \mia\miagroup\Lib\Service {
                 $labelInfos[$key]['id'] = $value['id'];
                 $labelInfos[$key]['title'] = $value['title'];
             }
-            $params['ext_info'] = array('label'=>$labelInfos);
+            $params['ext_info']['label'] = $labelInfos;
         }
         
         if(isset($insert['image_infos'])){ //封面图
@@ -524,7 +524,7 @@ class Album extends \mia\miagroup\Lib\Service {
         }
         
         if (!empty($insert['images'])) { //其他图
-            $params['ext_info'] = array('images'=>$insert['images']);
+            $params['ext_info']['images'] = $insert['images'];
         }
         
         if (strtotime($insert['create_time']) > 0) {
@@ -683,57 +683,71 @@ class Album extends \mia\miagroup\Lib\Service {
      */
     public function syncHeadLineArticle($article) {
         if (empty($article['cover_image']) && empty($article['images'])) {
-            return $this->error('500','no image');
+            //return $this->error('500','no image');
         }
         if (empty($article['user_id'])) {
             return $this->error('500','no user_id');
         }
-        $uniqueFlag = md5(json_encode($article));
+        $uniqueFlag = $article['url_sign'];
         $redis = new \mia\miagroup\Lib\Redis();
         $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.headLineKey.syncUniqueFlag.key'), $uniqueFlag);
-        $isExist = $redis->exists($key);
-        if ($isExist) {
-            return $this->error('500','exist');
+        $subjectId = $redis->get($key);
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
+        
+        if ($subjectId) { //已存在更新
+            if (!empty($article['cover_image'])) {
+                $article['image_infos'] = $article['cover_image'];
+                $article['image_infos']['width'] = isset($article['cover_image']['width']) ? $article['cover_image']['width'] : 640;
+                $article['image_infos']['height'] = isset($article['cover_image']['height']) ? $article['cover_image']['height'] : 320;
+                $article['image_infos']['source'] = 'jinshan';
+                unset($article['cover_image']);
+            }
+            $article['content'] = $article['text'];
+            $data['con'] = array('subject_id' => $subjectId);
+            $data['set'] = $article;
+            $this->updateAlbumArticle($data);
+        } else { //不存在新增
+            //设置专栏发布权限
+            $this->abumModel->addAlbumPermission($article['user_id'], 'system', 'headline_crawl');
+            //获取"未分类"专辑id
+            $albumId = $this->abumModel->addAlbumFile(array('user_id' => $article['user_id'], 'title' => '未分类'));
+            //入article表
+            $article['album_id'] = $albumId;
+            if (empty($article['cover_image'])) {
+                if (!empty($article['images'])) {
+                    $article['cover_image'] = reset($article['images']);
+                }
+            }
+            if (!empty($article['cover_image'])) {
+                $article['image_infos'] = $article['cover_image'];
+                $article['image_infos']['width'] = isset($article['cover_image']['width']) ? $article['cover_image']['width'] : 640;
+                $article['image_infos']['height'] = isset($article['cover_image']['height']) ? $article['cover_image']['height'] : 320;
+                $article['image_infos']['source'] = 'jinshan';
+                unset($article['cover_image']);
+            }
+            if (!empty($article['images'])) {
+                foreach ($article['images'] as $k => $v) {
+                    $article['images'][$k]['source'] = 'jinshan';
+                }
+            }
+            $articleId = $this->addAlbum($article);
+            //入subject表
+            $subjectService = new \mia\miagroup\Service\Subject();
+            $subjectInfo['user_id'] = $article['user_id'];
+            $subjectInfo['created'] = $article['create_time'];
+            $subjectId = $subjectService->syncHeadLineSubject($subjectInfo, 0)['data'];
+            //更新subjectid
+            if ($subjectId) {
+                $paramsArticle = array();
+                $paramsArticle['user_id'] = $article['user_id'];
+                $paramsArticle['album_id'] = $albumId;
+                $paramsArticle['id'] = $articleId;
+                $res = $this->abumModel->updateAlbumArticle($paramsArticle, array('subject_id' => $subjectId, 'status' => 1));
+            }
+            $redis->setex($key, $subjectId, 8640000);
         }
         
-        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
-        //设置专栏发布权限
-        $this->abumModel->addAlbumPermission($article['user_id'], 'system', 'headline_crawl');
-        //获取"未分类"专辑id
-        $albumId = $this->abumModel->addAlbumFile(array('user_id' => $article['user_id'], 'title' => '未分类'));
-        //入article表
-        $article['album_id'] = $albumId;
-        if (empty($article['cover_image'])) {
-            if (!empty($article['images'])) {
-                $article['cover_image'] = reset($article['images']);
-            }
-        }
-        if (!empty($article['cover_image'])) {
-            $article['image_infos'] = $article['cover_image'];
-            $article['image_infos']['source'] = 'jinshan';
-            unset($article['cover_image']);
-        }
-        if (!empty($article['images'])) {
-            foreach ($article['images'] as $k => $v) {
-                $article['images'][$k]['source'] = 'jinshan';
-            }
-        }
-        $addArticle = $this->addAlbum($article);
-        //入subject表
-        $subjectService = new \mia\miagroup\Service\Subject();
-        $subjectInfo = array('user_info' => array('user_id' => $article['user_id']));
-        $subjectInfo['created'] = $article['create_time'];
-        $subjectRes = $subjectService->syncHeadLineSubject($subjectInfo)['data'];
-        //更新subjectid
-        if ($subjectRes['id']) {
-            $paramsArticle = array();
-            $paramsArticle['user_id'] = $article['user_id'];
-            $paramsArticle['album_id'] = $albumId;
-            $paramsArticle['id'] = $addArticle;
-            $res = $this->abumModel->updateAlbumArticle($paramsArticle, array('subject_id' => $subjectRes['id'], 'status' => 1));
-        }
         \DB_Query::switchCluster($preNode);
-        $redis->set($key, 1);
-        return $this->succ($subjectRes['id']);
+        return $this->succ($subjectId);
     }
 }

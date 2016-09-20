@@ -49,13 +49,29 @@ class User extends DB_Query {
     }
     
     /**
+     * 根据userId更新用户信息
+     */
+    public function updateUserById($userId, $userInfo) {
+        $where = array();
+        $where[] = array('id', $userId);
+        $data = $this->update($userInfo, $where);
+        return $data;
+    }
+    
+    /**
      * 根据username查询uid
      */
     public function getUidByUserName($userName) {
         if (empty($userName)) {
             return false;
         }
-        $where[] = array('username', $userName);
+        if (mb_strlen($userName, 'utf8') > 18) {
+            $userName = mb_substr($userName, 0, 18, 'utf8');
+            $where[] = array(':like_begin','username', $userName);
+        } else {
+            $where[] = array(':eq','username', $userName);
+        }
+        
         $data = $this->getRow($where, 'id');
         if (!empty($data)) {
             return $data['id'];

@@ -2,20 +2,24 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\HeadLine as HeadLineModel;
-use Qiniu\Auth;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Subject as SubjectServer;
 use mia\miagroup\Service\Album as AlbumServer;
 use mia\miagroup\Service\Live as LiveServer;
+use mia\miagroup\Service\Feed as FeedServer;
+use mia\miagroup\Service\User as UserServer;
 class HeadLine extends \mia\miagroup\Lib\Service {
     
-    public $headLineModel;
-    public $headlineRemote;
-    public $liveServer;
-    public $albumServer;
-    public $subjectServer;
+    private $headLineModel;
+    private $headlineRemote;
+    private $liveServer;
+    private $albumServer;
+    private $subjectServer;
+    private $feedServer;
+    private $userServer;
+    private $headlineConfig;
 
-    private $headlineType;
+    
     public function __construct() {
         parent::__construct();
         $this->headLineModel  = new HeadLineModel();
@@ -23,134 +27,123 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $this->subjectServer  = new SubjectServer();
         $this->liveServer     = new LiveServer();
         $this->albumServer    = new AlbumServer();
+        $this->feedServer     = new FeedServer();
+        $this->userServer     = new UserServer();
+        $this->headlineConfig = \F_Ice::$ins->workApp->config->get('busconf.headline');
     }
     
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $page=1, $count=10, $action = 'init',$currentUid = 0, $headlineIds = array(),$isRecommend = 1) {
-        //@chaojiang
-        //先调用服务
-        //调用model
-        // merge数据
-        if(empty($channelId) || empty($page) || empty($count) || empty($action)){
-            return $this->error(500);
-        }
-
-        if($isRecommend){
-            $remote = $this->headlineRemote->headlineList($currentUid,$channelId,$action);
+    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array(), $isRecommend = 1) {
+        if(empty($channelId)){
+            return $this->succ(array());
         }
         
-        $content = $this->headLineModel->getHeadLinesByChannel($channelId,$page);
-        $datas = array_merge($headlineIds,$remote['data']['list'], $content);
-        $subjects = [];
-        $lives    = [];
-        $albums   = [];
-        $topics   = [];
-        foreach ($datas as $key => $value) {
-            //专栏
-            if ($value['relation_type'] == 'album') {
-                $albums[] = $value['relation_id'];
-            //直播
-            } elseif ($value['relation_type'] == 'live') {
-                $lives[] = $value['relation_id'];
-            //视频
-            } elseif ($value['relation_type'] == 'video') {
-                $subjects[] = $value['relation_id'];
-            //专题
-            } elseif ($value['relation_type'] == 'topic') {
-                $topics[] = $value['relation_id'];
+        //获取订阅数据
+        if($channelId == $this->headlineConfig['lockedChannel']['attention']['id']) {
+            $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $page, $count, true)['data'];
+            $headLineList = array();
+            foreach ($feedData as $subject) {
+                if (!empty($subject['album_article'])) {
+                    $tmpData['id'] = $subject['id'] . '_album';
+                    $tmpData['type'] = 'album';
+                    $tmpData['album'] = $subject;
+                } else if (!empty($subject['video_info'])) {
+                    $tmpData['id'] = $subject['id'] . '_album';
+                    $tmpData['type'] = 'video';
+                    $tmpData['video'] = $subject;
+                }
+                $headLineList[] = $tmpData;
             }
+            return $this->succ($headLineList);
         }
-
-        $subjectList = $this->subjectServer->getBatchSubjectInfos($subjects)['data'];
-        foreach ($subjectList as $key => $value) {
-            $value['id'] = $key.'-video';
-            $value['type'] = 'video';
-            $sub[$value['id']] = $value;
+        
+        //获取推荐服务数据
+        if ($isRecommend == 1) {
+            $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid);
+            //格式化客户端上传的headlineIds
+            $headlineIds = $this->_formatClientIds($headlineIds);
+            $headLineData = array_merge($headlineIds, $headLineData);
         }
-        $albumsList  = $this->albumServer->getBatchAlbumBySubjectId($albums)['data'];
-        foreach ($albumsList as $key => $value) {
-            $value['id'] = $key.'-album';
-            $value['type'] = 'album';
-            $alb[$value['id']] = $value;
-        }
-
-        $liveList = $this->liveServer->getLiveRoomByIds($lives)['data'];
-        foreach ($liveList as $key => $value) {
-            $value['id'] = $key.'-live';
-            $value['type'] = 'live';
-            $live[$value['id']] = $value;
-        }
-
-        $result = array_merge($sub,$alb,$live);
-
-        // $result = array();
-        // for ($i = 1; $i <= $count;$i++) {
-        //     if (!empty($headline[$i])) {
-        //         $tmp = reset($subjectIds);
-        //     } else {
-        //         $tmp = $headline[$i];
-        //     }
-        //     switch ($tmp['type']) {
-        //         case 'value':
-        //             # code...
-        //             break;
-                
-        //         default:
-        //             # code...
-        //             break;
-        //     }
-            
-        // }
-
+        //获取运营数据
+        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
+        //获取格式化的头条输出数据
+        $headLineList = $this->_getFormatHeadlineData(is_array($headLineData) ? $headLineData : array(), $operationData);
+        return $this->succ($headLineList);
     }
-
 
     /**
-     * 获取首页轮播头条
+     * 获取推荐的订阅用户
      */
-    public function getHomePageHeadLines()
+    public function getHeadLineRecommenduser($currentUid=0)
     {
-        $channelId = 1;
-        $data = $this->getHeadLinesByChannel($channelId);
+        $expertIds = $this->headlineConfig['expert'];
+        $data = $this->userServer->getUserInfoByUids($expertIds,$currentUid)['data'];
+        $data = array_values($data);
         return $this->succ($data);
     }
-    
+
     /**
      * 获取头条栏目
      */
-    public function getHeadLineChannels($channelIds, $status) {
-        if (empty($channelIds) || empty($status) || !is_array($channelIds) || !is_array($status)) {
-            return $this->error(500);
-        }
-        
+    public function getHeadLineChannels($channelIds, $status = array(1)) {
+        //获取所有栏目
         $channelRes = $this->headLineModel->getHeadLineChannels($channelIds, $status);
-        return $this->succ($channelRes);
+        //获取对外屏蔽的栏目
+        $shieldIds = array();
+        foreach ($this->headlineConfig['lockedChannel'] as $config) {
+            if (isset($config['shield']) && $config['shield'] == 1) {
+                $shieldIds[] = $config['id'];
+            }
+        }
+        foreach ($channelRes as $key => $channel) {
+            if (in_array($channel['id'], $shieldIds)) {
+                unset($channelRes[$key]);
+            }
+        }
+        return $this->succ(array('channel_list' => array_values($channelRes)));
     }
     
     /**
      * 头条内容查看告知
      */
-    public function headLineReadNotify($channelId, $subjectId,$type='video',$currentUid=0)
+    public function headLineReadNotify($subjectId, $channelId ,$currentUid = 0, $type ='video')
     {
         if(empty($channelId) || empty($subjectId)){
-            return $this->error(500);
+            return $this->succ(array());
         }
-        $data = $this->headlineRemote->headlineRead($currentUid, $subjectId, $channelId);
+        $data = $this->headlineRemote->headlineRead($channelId, $subjectId, $currentUid);
         return $this->succ($data);
     }
     
+
     /**
-     * 获取头条的相关头条
+     * 获取专题下的头条
      */
-    public function getRelatedHeadLines($channelId,$subjectId, $currentUid= 0)
-    {
-        if(empty($currentUid) || empty($subjectId)){
-            return $this->error(500);
+    public function getTopicHeadLines($topicId) {
+        $topicInfo = $this->getHeadLineTopics(array($topicId));
+        $topicInfo = $topicInfo[$topicId];
+        if (empty($topicInfo)) {
+            return $this->succ(array('headline_list' => array(), 'headline_topic' => (object)array()));
         }
-        $data = $this->headlineRemote->headlineRelate($subjectId, $currentUid,$channelId);
-        return $this->succ($data);
+        $subjectIds = $topicInfo['subject_ids'];
+        $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds);
+        $headLineList = array();
+        foreach ($subjects as $subject) {
+            $tmpData = null;
+            if (!empty($subject['album_article'])) {
+                $tmpData['id'] = $subject['id'] . '_album';
+                $tmpData['type'] = 'album';
+                $tmpData['album'] = $subject;
+            } else if (!empty($subject['video_info'])) {
+                $tmpData['id'] = $subject['id'] . '_album';
+                $tmpData['type'] = 'video';
+                $tmpData['video'] = $subject;
+            }
+            $headLineList[] = $tmpData;
+        }
+        return $this->succ(array('headline_list' => $headLineList, 'headline_topic' => $topicInfo));
     }
     
     /**
@@ -213,6 +206,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if(empty($channelId)){
             return $this->error(500);
         }
+        //获取被锁定的栏目
+        $lockedIds = array_column($this->headlineConfig['lockedChannel'], id);
+        if (in_array($channelId, $lockedIds)) {
+            return $this->error(500);
+        }
         $delRes = $this->headLineModel->deleteHeadLineChannel($channelId);
         if(!$delRes){
             $this->error(20002);
@@ -228,8 +226,26 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if(empty($headLineInfo) || !is_array($headLineInfo)){
             return $this->error(500);
         }
-        if(!in_array($headLineInfo['relation_type'], [1,2,3,4,5,6])){
+        //relation_type校验
+        if(!in_array($headLineInfo['relation_type'], $this->headlineConfig['clientServerMapping'])){
             return $this->error(500);
+        }
+        $setData = array();
+        $setData['channel_id'] = $headLineInfo['channel_id'];
+        $setData['relation_id'] = $headLineInfo['relation_id'];
+        $setData['relation_type'] = $headLineInfo['relation_type'];
+        $setData['page'] = $headLineInfo['page'];
+        $setData['row'] = $headLineInfo['row'];
+        $setData['begin_time'] = $headLineInfo['begin_time'];
+        $setData['end_time'] = $headLineInfo['end_time'];
+        if (!empty($headLineInfo['title'])) {
+            $setData['ext_info']['title'] = $headLineInfo['title'];
+        }
+        if (!empty($headLineInfo['text'])) {
+            $setData['ext_info']['text'] = $headLineInfo['text'];
+        }
+        if (!empty($headLineInfo['cover_image'])) {
+            $setData['ext_info']['cover_image'] = $headLineInfo['cover_image'];
         }
         $data = $this->headLineModel->addOperateHeadLine($headLineInfo);
         return $this->succ($data);
@@ -239,12 +255,33 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 编辑运营头条
      */
     public function editOperateHeadLine($id, $headLineInfo) {
-        //@donghui
-        //只能编辑ext_info、page、row、begin_time、end_time
-        if(empty($id) || empty($headLineInfo) || !is_array($headLineInfo)){
+        $headline = $this->headLineModel->getHeadLineById($id);
+        if (empty($headline)) {
             return $this->error(500);
         }
-        $data = $this->headLineModel->editOperateHeadLine($id,$headLineInfo);
+        $setData['ext_info'] = $headline['ext_info'];
+        if (!empty($headLineInfo['page'])) {
+            $setData['page'] = $headLineInfo['page'];
+        }
+        if (!empty($headLineInfo['row'])) {
+            $setData['row'] = $headLineInfo['row'];
+        }
+        if (!empty($headLineInfo['begin_time'])) {
+            $setData['begin_time'] = $headLineInfo['begin_time'];
+        }
+        if (!empty($headLineInfo['end_time'])) {
+            $setData['end_time'] = $headLineInfo['end_time'];
+        }
+        if (isset($headLineInfo['title'])) {
+            $setData['ext_info']['title'] = $headLineInfo['title'];
+        }
+        if (isset($headLineInfo['text'])) {
+            $setData['ext_info']['text'] = $headLineInfo['text'];
+        }
+        if (isset($headLineInfo['cover_image'])) {
+            $setData['ext_info']['cover_image'] = $headLineInfo['cover_image'];
+        }
+        $data = $this->headLineModel->editOperateHeadLine($id, $headLineInfo);
         return $this->succ($data);
     }
     
@@ -261,18 +298,37 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     
     /**
      * 获取头条专题
+     * @param $field 额外字段 count
      */
-    public function getHeadLineTopics($topicIds, $status) {
-        if (empty($topicIds) || empty($status) || !is_array($topicIds) || !is_array($status)) {
-            return $this->error(500);
-        }
-    
+    public function getHeadLineTopics($topicIds, $field = array(), $status = array(1)) {
         $topicRes = $this->headLineModel->getHeadLineTopics($topicIds, $status);
-        if(!empty($topicRes)){
-            foreach ($topicRes as $key=> $topic){
-                $topicInfo = json_decode($topic['topic_info']);
-                $topicRes[$key]['id'] = $topic['id'];
-                $topicRes[$key]['title'] = $topicInfo['title'];
+        //收集帖子ID
+        $subjectIds = array();
+        foreach ($topicRes as $topic) {
+            $subjectIds = is_array($topic['subject_ids']) ? array_merge($subjectIds, $topic['subject_ids']) : $subjectIds;
+        }
+        //获取专题相关计数
+        if (in_array('count', $field)) {
+            $praiseService = new \mia\miagroup\Service\Praise();
+            $subjectPraiseCounts = $praiseService->getBatchSubjectPraises($subjectIds)['data'];
+            $subjectViewCounts = $this->subjectServer->getBatchSubjectViewCount($subjectIds)['data'];
+        }
+        //拼装专题数据
+        foreach ($topicRes as $topicId => $topic) {
+            if (in_array('count', $field)) {
+                foreach ($topic['subject_ids'] as $subjectId) {
+                    if (intval($topicRes[$topicId]['fancied_count']) > 0) {
+                        $topicRes[$topicId]['fancied_count'] += (isset($subjectPraiseCounts[$subjectId]) ? $subjectPraiseCounts[$subjectId] : 0);
+                    } else {
+                        $topicRes[$topicId]['fancied_count'] = isset($subjectPraiseCounts[$subjectId]) ? $subjectPraiseCounts[$subjectId] : 0;
+                    }
+                    if (intval($topicRes[$topicId]['view_num']) > 0) {
+                        $topicRes[$topicId]['view_num'] += (isset($subjectViewCounts[$subjectId]) ? intval($subjectViewCounts[$subjectId]) : 0);
+                    } else {
+                        $topicRes[$topicId]['view_num'] = isset($subjectViewCounts[$subjectId]) ? intval($subjectViewCounts[$subjectId]) : 0;
+                    }
+                }
+                
             }
         }
         return $this->succ($topicRes);
@@ -336,5 +392,115 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     
         $changeRes = $this->headLineModel->setTopicStatusByIds($topicIds, $status);
         return $this->succ($changeRes);
+    }
+    
+    /**
+     * //格式化客户端传上来的headlineIds
+     */
+    private function _formatClientIds($headlineIds) {
+        $referHeadLineIds = [];
+        foreach ($headlineIds as $value) {
+            list($id, $type) = explode('_', $value, 2);
+            if (array_key_exists($type, $this->headlineConfig['clientServerMapping'])) {
+                $type = $this->headlineConfig['clientServerMapping'][$type];
+                $referHeadLineIds[] = "{$id}_{$type}";
+            }
+        
+        }
+        return $referHeadLineIds;
+    }
+    
+    /**
+     * 根据IDs查找并格式化头条数据
+     * @param $sortIds 有序的头条ID数组
+     * @param $opertionData headLineModel->getHeadLinesByChannel方法输出的数据
+     */
+    private function _getFormatHeadlineData(array $sortIds, array $opertionData) {
+        //收集ID
+        $opertionIds = !empty($opertionData) ? array_keys($opertionData) : array();
+        $datas = array_merge($sortIds, $opertionIds);
+        $subjectIds = [];
+        $roomIds    = [];
+        $topicIds   = [];
+        foreach ($datas as $key => $value) {
+            list($relation_id, $relation_type) = explode('_', $value, 2);
+            //帖子
+            if ($relation_type == 'subject') {
+                $subjectIds[] = $relation_id;
+            //直播
+            } elseif ($relation_type == 'live') {
+                $roomIds[] = $relation_id;
+            //专题
+            } elseif ($relation_type == 'topic') {
+                $topicIds[] = $relation_id;
+            }
+        }
+
+        $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
+        $lives = $this->liveServer->getLiveRoomByIds($roomIds)['data'];
+        $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
+        //以row为key重新拼装opertionData
+        $sortedOpertionData = array();
+        foreach ($opertionData as $v) {
+            $v['ext_info'] = json_decode($v['ext_info'],true);
+            $sortedOpertionData[$v['row']] = $v;
+        }
+        //按序输出头条结果集
+        $headLineList = array();
+        $num = count($sortIds) + count($opertionData);
+        for ($row = 1; $row <= $num; $row ++) {
+            $tmpData = null;
+            //如果当前位置有运营数据，优先选择运营数据
+            if (isset($sortedOpertionData[$row]) && !empty($sortedOpertionData[$row])) {
+                $relation_id = $sortedOpertionData[$row]['relation_id'];
+                $relation_type = $sortedOpertionData[$row]['relation_type'];
+                $relation_title = $sortedOpertionData[$row]['ext_info']['title'];
+                $relation_cover_image = $sortedOpertionData[$row]['ext_info']['cover_image'];
+            } else {
+                $id = array_shift($sortIds);
+                list($relation_id, $relation_type) = explode('_', $id);
+            }
+            switch ($relation_type) {
+                case 'subject':
+                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        $subject = $subjects[$relation_id];
+                        if (!empty($subject['album_article'])) {
+                            $tmpData['id'] = $subject['id'] . '_album';
+                            $tmpData['type'] = 'album';
+                            $tmpData['album'] = $subject;
+                        } else if (!empty($subject['video_info'])) {
+                            $tmpData['id'] = $subject['id'] . '_album';
+                            $tmpData['type'] = 'video';
+                            $tmpData['video'] = $subject;
+                        }
+                    }
+                    break;
+                case 'live':
+                    if (isset($lives[$relation_id]) && !empty($lives[$relation_id])) {
+                        $live = $lives[$relation_id];
+                        $live['live_info']['title'] = $relation_title ? $relation_title : $live['live_info']['title'];
+                        if(!empty($relation_cover_image)){
+                            $live['live_info']['cover_image'] = $relation_cover_image;
+                        }
+                        $tmpData['id'] = $live['id'] . '_live';
+                        $tmpData['type'] = 'live';
+                        $tmpData['live'] = $live;
+
+                    }
+                    break;
+                case 'topic':
+                    if (isset($topics[$relation_id]) && !empty($topics[$relation_id])) {
+                        $topic = $topics[$relation_id];
+                        $tmpData['id'] = $relation_id . '_headline_topic';
+                        $tmpData['type'] = 'headline_topic';
+                        $tmpData['headline_topic'] = $topic;
+                    }
+                    break;
+            }
+            if (!empty($tmpData)) {
+                $headLineList[] = $tmpData;
+            }
+        }
+        return $headLineList;
     }
 }
