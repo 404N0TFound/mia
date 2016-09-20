@@ -122,13 +122,13 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 获取专题下的头条
      */
     public function getTopicHeadLines($topicId) {
-        $topicInfo = $this->getHeadLineTopics(array($topicId));
+        $topicInfo = $this->getHeadLineTopics(array($topicId))['data'];
         $topicInfo = $topicInfo[$topicId];
         if (empty($topicInfo)) {
-            return $this->succ(array('headline_list' => array(), 'headline_topic' => (object)array()));
+            return $this->succ(array('headline_list' => array(), 'headline_topic' => array()));
         }
         $subjectIds = $topicInfo['subject_ids'];
-        $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds);
+        $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
         $headLineList = array();
         foreach ($subjects as $subject) {
             $tmpData = null;
@@ -305,6 +305,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         //收集帖子ID
         $subjectIds = array();
         foreach ($topicRes as $topic) {
+
             $subjectIds = is_array($topic['subject_ids']) ? array_merge($subjectIds, $topic['subject_ids']) : $subjectIds;
         }
         //获取专题相关计数
