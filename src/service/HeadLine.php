@@ -300,7 +300,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 获取头条专题
      * @param $field 额外字段 count
      */
-    public function getHeadLineTopics($topicIds, $field = array(), $status = array(1)) {
+    public function getHeadLineTopics($topicIds, $field = array('count'), $status = array(1)) {
         $topicRes = $this->headLineModel->getHeadLineTopics($topicIds, $status);
         //收集帖子ID
         $subjectIds = array();
