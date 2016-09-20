@@ -138,6 +138,10 @@ class HeadLine {
                 $topicInfo = json_decode($topic['topic_info'], true);
                 $data[$key]['id'] = $topic['id'];
                 $data[$key]['title'] = $topicInfo['title'];
+                $data[$key]['text'] = $topicInfo['text'];
+                if(!empty($topicInfo['cover_image'])){
+                    $data[$key]['cover_image']['url'] = $topicInfo['cover_image'];
+                }
                 $data[$key]['subject_ids'] = json_decode($topic['subject_ids'], true);
             }
         }
