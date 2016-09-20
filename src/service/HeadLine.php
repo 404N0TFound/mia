@@ -479,7 +479,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                     if (isset($lives[$relation_id]) && !empty($lives[$relation_id])) {
                         $live = $lives[$relation_id];
                         $live['live_info']['title'] = $relation_title ? $relation_title : $live['live_info']['title'];
-                        $live['live_info']['cover_image'] = $relation_cover_image ? $relation_cover_image : (object)null;
+                        if(!empty($relation_cover_image)){
+                            $live['live_info']['cover_image'] = $relation_cover_image;
+                        }
                         $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';
                         $tmpData['live'] = $live;
