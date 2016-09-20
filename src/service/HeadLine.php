@@ -42,19 +42,23 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         
         //获取订阅数据
         if($channelId == $this->headlineConfig['lockedChannel']['attention']['id']) {
-            $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $page, $count, true)['data'];
+            $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $page, $count)['data'];
             $headLineList = array();
+            
             foreach ($feedData as $subject) {
+                $tmpData = [];
                 if (!empty($subject['album_article'])) {
                     $tmpData['id'] = $subject['id'] . '_album';
                     $tmpData['type'] = 'album';
                     $tmpData['album'] = $subject;
+                    $headLineList[] = $tmpData;
                 } else if (!empty($subject['video_info'])) {
                     $tmpData['id'] = $subject['id'] . '_album';
                     $tmpData['type'] = 'video';
                     $tmpData['video'] = $subject;
+                    $headLineList[] = $tmpData;
                 }
-                $headLineList[] = $tmpData;
+                
             }
             return $this->succ($headLineList);
         }
