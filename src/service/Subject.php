@@ -15,17 +15,11 @@ use mia\miagroup\Service\PointTags as PointTagsService;
 class Subject extends \mia\miagroup\Lib\Service {
 
     public $subjectModel = null;
-
     public $labelService = null;
-
     public $userService = null;
-
     public $commentService = null;
-
     public $praiseService = null;
-    
     public $albumService = null;
-
 	public $tagsService = null;
 
     public function __construct() {
@@ -318,39 +312,25 @@ class Subject extends \mia\miagroup\Lib\Service {
             }
         }
         
-        #start赠送用户蜜豆
+        // 赠送用户蜜豆
         $mibean = new \mia\miagroup\Remote\MiBean();
         $param['user_id'] = $subjectSetInfo['user_id'];
         $param['relation_type'] = 'publish_pic';
         $param['relation_id'] = $subjectId;
         $param['to_user_id'] = $subjectSetInfo['user_id'];
         $mibean->add($param);
-        #end赠送用户蜜豆
         
         // 添加蜜芽圈标签
         if (!empty($labelInfos)) {
             $labelArr = array();
             foreach ($labelInfos as $key => $labelInfo) {
-                unset($labelInfo['selected']);
-                unset($labelInfo['img_nums']);
-                unset($labelInfo['is_focused']);
-                unset($labelInfo['is_hot']);
-                $labelInfo['title'] = trim($labelInfo['title']);
-                $labelInfo['create_time'] = $subjectSetInfo['created'];
-                $labelInfo['user_id'] = intval($subjectSetInfo['user_id']);
                 $labelRelationSetInfo = array("subject_id" => $subjectId, "label_id" => 0, "create_time" => $subjectSetInfo['created'], "user_id" => $subjectInfo['user_info']['user_id']);
                 if (isset($labelInfo['id']) && $labelInfo['id'] > 0) {
                     $labelRelationSetInfo['label_id'] = $labelInfo['id'];
                 } else {
-                    // 如果没有便签id，则需要验证该标签标题是否已经存在
-                    $labelResult = $this->labelService->checkIsExistByLabelTitle($labelInfo['title'])['data'];
-                    if (empty($labelResult)) {
-                        // 如果没有存在，则保存该自定义标签
-                        $insertId = $this->labelService->addLabel($labelInfo['title'])['data'];
-                        $labelRelationSetInfo['label_id'] = $insertId;
-                    } else {
-                        $labelRelationSetInfo['label_id'] = $labelResult['id'];
-                    }
+                    // 如果没有存在，则保存该自定义标签
+                    $insertId = $this->labelService->addLabel($labelInfo['title'])['data'];
+                    $labelRelationSetInfo['label_id'] = $insertId;
                 }
                 // 保存图片标签关系信息
                 $this->labelService->saveLabelRelation($labelRelationSetInfo)['data'];
@@ -449,23 +429,6 @@ class Subject extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 删除帖子
-     */
-    public function deleteSubject($subjectId, $currentUid) {
-        if (intval($subjectId) < 0 || intval($currentUid) < 0) {
-            return $this->error(500);
-        }
-        $subjectInfo = $this->subjectModel->getSubjectByIds(array($subjectId));
-        $subjectInfo = $subjectInfo[$subjectId];
-        if (empty($subjectInfo) || $subjectInfo['user_id'] != $currentUid) {
-            return $this->error(500);
-        }
-        $s_setData = [['status', 0]];
-        $this->subjectModel->updateSubject($s_setData, $subjectId);
-        return $this->succ();
-    }
-
-    /**
      * 批量查询视频信息
      */
     public function getBatchVideoInfos($videoIds, $videoType = 'm3u8') {
@@ -544,7 +507,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($result);
     }
-    
+
     /**
      * 根据用户ID获取帖子信息
      */
@@ -608,6 +571,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
         }
         return $this->succ($data);
+
     }
     
     

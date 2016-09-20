@@ -568,8 +568,7 @@ class Album extends \mia\miagroup\Lib\Service {
      */
     public function getLabels() {
         $labelService = new \mia\miagroup\Service\Label();
-        $labelIDs = $labelService->getLabelID()['data'];
-        $labelInfos = $labelService->getBatchLabelInfos($labelIDs);
+        $labelInfos = $labelService->getRecommendLabels();
         return $this->succ($labelInfos['data']);
     }
     
