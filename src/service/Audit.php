@@ -83,6 +83,8 @@ class Audit extends \mia\miagroup\Lib\Service {
     
     /**
      * 检查敏感词
+     * @param $textArray 可以是字符串，也可以是数组
+     * @return 当$textArray是字符串返回一维数组，$textArray是数组返回二维数组
      */
     public function checkSensitiveWords($textArray) {
         //获取敏感词
