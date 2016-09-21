@@ -67,7 +67,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $headlineIds = $this->_formatClientIds($headlineIds);
         $headLineData = array_merge($headlineIds, $headLineData);
         //获取运营数据
-        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page, false);
+        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
         //获取格式化的头条输出数据
         $headLineList = $this->_getFormatHeadlineData(is_array($headLineData) ? $headLineData : array(), $operationData);
         return $this->succ($headLineList);
