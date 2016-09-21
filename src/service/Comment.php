@@ -221,4 +221,46 @@ class Comment extends \mia\miagroup\Lib\Service {
         return $this->succ($data);
     }
     
+    //获取专家评论数
+    public function getCommentByExpertId($expertid){
+        $data = $this->commentModel->getCommentByExpertId($expertid);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 专家的评论信息
+     */
+    public function expertsSubjects($userId, $currentId, $page, $pageSize){
+        $arrSubjects = array("total" => 0, "subject_lists" => array(), "status" => 0);
+        //判断登录用户是否是被屏蔽用户
+        $auditService = new \mia\miagroup\Service\Audit();
+        $userStatus = $auditService->checkUserIsShield($userId)['data'];
+        if($userStatus['is_shield']) {
+            $arrSubjects['status'] = -1;
+            return $this->succ($arrSubjects);
+        }
+        $commontArrs = $this->commentModel->getUserSubjectCommentInfo($userId, $page, $pageSize);
+        $subjectIds = array_column($commontArrs, 'subject_id');
+        $commentIds = array_column($commontArrs, 'id');
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $answerSubjects = $subjectService->getBatchSubjectInfos($subjectIds, $currentId, array('user_info', 'count', 'group_labels'));
+        $commentService = new \mia\miagroup\Service\Comment();
+        $commentInfos = $commentService->getBatchComments($commentIds, array('user_info'));
+        foreach ($commontArrs as $val) {
+            if (!empty($answerSubjects[$val['subject_id']]) && !empty($commentInfos[$val['id']])) {
+                $subject = $answerSubjects[$val['subject_id']];
+                $subject['comment_info'] = array($commentInfos[$val['id']]);
+                $arrSubjects['subject_lists'][] = $subject;
+            }
+        }
+        //评论数量
+        $countRes = $this->commentModel->getCommentByExpertId($userId);
+        if (isset($countRes['c']) && $countRes['c'] > 0) {
+            $arrSubjects['total'] = $countRes['c'];
+            $arrSubjects['status'] = 1;
+        }
+        return $this->succ($arrSubjects);
+    }
+    
+    
 }

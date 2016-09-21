@@ -583,6 +583,25 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $data;
     }
     
+    /**
+     * 分享
+     */
+    public function share($sourceId, $userId, $type, $platform,$status){
+        //记录分享
+        $shareId = $this->subjectModel->addShare($sourceId, $userId, $type, $platform,$status);
+//         if ($status == 1) {
+//             #赠送用户蜜豆
+//             $param['relation_type'] = 'share';
+//             $param['user_id'] = $userId;
+//             $param['to_user_id'] = $userId;
+//             $param['relation_id'] = $shareId;
+//             $param['mibean'] = 1;
+//             $mibean = new \mia\miagroup\Remote\MiBean();
+//             $mibean->add($param);
+//         }
+        return $this->succ($shareId);
+    }
+    
     
 }
 

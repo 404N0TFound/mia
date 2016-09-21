@@ -117,4 +117,27 @@ class SubjectComment extends \DB_Query {
         return $affect;
     }
     
+    //获取专家评论帖子数
+    public function getCommentByExpertId($expertid){
+        $sql ="select count(DISTINCT c.subject_id) as num from {$this->tableName} as c, group_subjects as s where c.status=1 and c.user_id={$expertid} and c.subject_id = s.id and s.status = 1";
+        //查出该条评论信息
+        $result = $this->query($sql);
+        return $result[0]['num'];
+    }
+    
+    /**
+     * 获取用户的评论信息
+     */
+    public function getUserSubjectCommentInfo($userId, $page = 1, $pageSize = 10){
+        
+        $offset = $pageSize * ($page - 1);
+        $sql = "select c.subject_id, max(c.id) as id from {$this->tableName} as c, group_subjects as s
+            where c.status = 1 and c.user_id = {$userId} and c.subject_id = s.id and s.status = 1
+            group by c.subject_id order by id desc
+            limit {$offset}, {$pageSize}";
+        $data = $this->query($sql);
+        return $data;
+    }
+    
+    
 }

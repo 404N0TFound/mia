@@ -66,4 +66,17 @@ class Comment {
         return $affect;
     }
     
+    //获取专家评论数
+    public function getCommentByExpertId($expertid){
+        return $this->subjectCommentData->getCommentByExpertId($expertid);
+    }
+    
+    /**
+     * 获取用户的评论信息
+     */
+    public function getUserSubjectCommentInfo($userId, $page = 1, $pageSize = 10){
+        $result = $this->subjectCommentData->getUserSubjectCommentInfo($userId, $page, $pageSize);
+        return $result;
+    }
+    
 }

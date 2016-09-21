@@ -226,4 +226,13 @@ class Subject {
          $data = $this->subjectData->getSubjectDataByUserId($subjectId, $userId, $status);
          return $data;
      }
+     
+     /**
+      * 分享
+      */
+     public function addShare($sourceId, $userId, $type, $platform,$status){
+         $shareData = new \mia\miagroup\Data\Subject\Share();
+         $shareId = $shareData->addShare($sourceId, $userId, $type, $platform,$status);
+         return $shareId;
+     }
 }
