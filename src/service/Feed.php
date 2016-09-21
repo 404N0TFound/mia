@@ -6,7 +6,6 @@ use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\UserRelation as UserRelationService;
 use mia\miagroup\Model\Feed as FeedModel;
-use mia\miagroup\Service\Album as AlbumService;
 class Feed extends \mia\miagroup\Lib\Service {
 
     public $labelService;
@@ -72,7 +71,7 @@ class Feed extends \mia\miagroup\Lib\Service {
     /**
      * 获取我关注标签的帖子
      */
-    public function getLabelFeedSubject($userId, $page = 1, $count = 10) {
+    public function getLabelFeedSubject($userId, $currentUid = 0, $page = 1, $count = 10) {
         if(empty($userId)){
             return $this->succ(array());
         }
@@ -81,7 +80,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取我关注标签的帖子列表
         $subjectIds = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$page,$count)['data'];
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
 
         return $this->succ($subjectsList['data']);
     }
