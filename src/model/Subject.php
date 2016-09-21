@@ -219,4 +219,11 @@ class Subject {
          return $subject_ids;
      }
      
+     /**
+      * 根据用户ID获取帖子信息
+      */
+     public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+         $data = $this->subjectData->getSubjectDataByUserId($subjectId, $userId, $status);
+         return $data;
+     }
 }

@@ -182,4 +182,15 @@ class Subject extends \DB_Query {
         return array_column($subjectsArrs, 'id');
     }
     
+    /**
+     * 根据用户ID获取帖子信息
+     */
+    public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+        $where[] = ['id', $subjectId];
+        $where[] = ['user_id', $userId];
+        $where[] = ['status', $status];
+        $data = $this->getRow($where);
+        return $data;
+    }
+    
 }

@@ -98,8 +98,8 @@ class Comment extends \mia\miagroup\Lib\Service {
     /**
      * 获取帖子的评论列表
      */
-    public function getCommentListBySubjectId($subjectId, $page = 1, $limit = 20) {
-        $commentIds = $this->commentModel->getCommentListBySubjectId($subjectId, $page, $limit);
+    public function getCommentListBySubjectId($subjectId, $user_type = 0, $page = 1, $limit = 20) {
+        $commentIds = $this->commentModel->getCommentListBySubjectId($subjectId, $user_type, $page, $limit);
         if (empty($commentIds)) {
             return $this->succ(array());
         }
@@ -131,7 +131,32 @@ class Comment extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $user_id = $commentInfo['user_id'];
-
+        //判断登录用户是否是被屏蔽用户
+        $audit = new \mia\miagroup\Service\Audit();
+        $is_shield = $audit->checkUserIsShield($user_id)['data'];
+        if($is_shield['is_shield']){
+            return $this->error(1104);
+        }
+        //判断用户手机号，邮箱，合作平台账号是否验证或绑定过
+        $is_valid = $audit->checkIsValidUser($user_id)['data'];
+        if(!$is_valid['is_valid']){
+            return $this->error(1115);
+        }
+        //过滤敏感词
+        $sensitive_res = $audit->checkSensitiveWords($commentInfo['comment'])['data'];
+        if(!empty($sensitive_res['sensitive_words'])){
+            return $this->error(1112);
+        }
+        //判断是否有父评论
+        if (intval($commentInfo['fid']) > 0) {
+            $parentInfo = $this->getBatchComments([$commentInfo['fid']])['data'][$commentInfo['fid']];
+            if(!empty($parentInfo)) {
+                if($parentInfo['status'] != 1) {
+                    //父ID 无效
+                    return $this->error(1108);
+                }
+            }
+        }
         //判断用户是否是专家
         $expert = $this->userService->getBatchExpertInfoByUids(array($user_id));
         $is_expert = 0;
@@ -179,4 +204,21 @@ class Comment extends \mia\miagroup\Lib\Service {
         
         return $this->succ($commentInfo);
     }
+    
+    /**
+     * 删除评论
+     */
+    public function delComment($id, $userId){
+        $data = 0;
+        //查询评论信息
+        $commentInfo = $this->commentModel->getBatchComments([$id])[$id];
+        if($commentInfo['status'] == 0){
+            return $this->succ(1);
+        }
+        if($commentInfo['user_id'] == $userId){
+            $data = $this->commentModel->delComment($id, $userId);
+        }
+        return $this->succ($data);
+    }
+    
 }

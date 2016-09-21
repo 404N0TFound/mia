@@ -516,7 +516,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         //校验是否是屏蔽用户
         $audit = new \mia\miagroup\Service\Audit();
         $isShieldStatus = $audit->checkUserIsShield($userId)['data'];
-        if($isShieldStatus) {
+        if($isShieldStatus['is_shield']) {
             $data['status'] = -1;
             return $this->succ($data);
         }
@@ -573,6 +573,14 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($data);
 
+    }
+    
+    /**
+     * 根据用户ID获取帖子信息
+     */
+    public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+        $data = $this->subjectModel->getSubjectDataByUserId($subjectId, $userId, $status);
+        return $data;
     }
     
     

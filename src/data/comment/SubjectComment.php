@@ -107,5 +107,14 @@ class SubjectComment extends \DB_Query {
         return $data;
     }
     
+    //删除评论
+    public function delComment($id, $userId) {
+        $where[] = ['id', $id];
+        $where[] = ['status', 1];
+        $where[] = ['user_id', $userId];
+        $setInfo[] = ['status', 0];
+        $affect = $this->update($setInfo,$where);
+        return $affect;
+    }
     
 }
