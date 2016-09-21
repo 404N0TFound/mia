@@ -219,4 +219,20 @@ class Subject {
          return $subject_ids;
      }
      
+     /**
+      * 根据用户ID获取帖子信息
+      */
+     public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+         $data = $this->subjectData->getSubjectDataByUserId($subjectId, $userId, $status);
+         return $data;
+     }
+     
+     /**
+      * 分享
+      */
+     public function addShare($sourceId, $userId, $type, $platform,$status){
+         $shareData = new \mia\miagroup\Data\Subject\Share();
+         $shareId = $shareData->addShare($sourceId, $userId, $type, $platform,$status);
+         return $shareId;
+     }
 }

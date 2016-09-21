@@ -98,8 +98,8 @@ class Comment extends \mia\miagroup\Lib\Service {
     /**
      * 获取帖子的评论列表
      */
-    public function getCommentListBySubjectId($subjectId, $page = 1, $limit = 20) {
-        $commentIds = $this->commentModel->getCommentListBySubjectId($subjectId, $page, $limit);
+    public function getCommentListBySubjectId($subjectId, $user_type = 0, $page = 1, $limit = 20) {
+        $commentIds = $this->commentModel->getCommentListBySubjectId($subjectId, $user_type, $page, $limit);
         if (empty($commentIds)) {
             return $this->succ(array());
         }
@@ -131,7 +131,32 @@ class Comment extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $user_id = $commentInfo['user_id'];
-
+        //判断登录用户是否是被屏蔽用户
+        $audit = new \mia\miagroup\Service\Audit();
+        $is_shield = $audit->checkUserIsShield($user_id)['data'];
+        if($is_shield['is_shield']){
+            return $this->error(1104);
+        }
+        //判断用户手机号，邮箱，合作平台账号是否验证或绑定过
+        $is_valid = $audit->checkIsValidUser($user_id)['data'];
+        if(!$is_valid['is_valid']){
+            return $this->error(1115);
+        }
+        //过滤敏感词
+        $sensitive_res = $audit->checkSensitiveWords($commentInfo['comment'])['data'];
+        if(!empty($sensitive_res['sensitive_words'])){
+            return $this->error(1112);
+        }
+        //判断是否有父评论
+        if (intval($commentInfo['fid']) > 0) {
+            $parentInfo = $this->getBatchComments([$commentInfo['fid']])['data'][$commentInfo['fid']];
+            if(!empty($parentInfo)) {
+                if($parentInfo['status'] != 1) {
+                    //父ID 无效
+                    return $this->error(1108);
+                }
+            }
+        }
         //判断用户是否是专家
         $expert = $this->userService->getBatchExpertInfoByUids(array($user_id));
         $is_expert = 0;
@@ -179,4 +204,63 @@ class Comment extends \mia\miagroup\Lib\Service {
         
         return $this->succ($commentInfo);
     }
+    
+    /**
+     * 删除评论
+     */
+    public function delComment($id, $userId){
+        $data = 0;
+        //查询评论信息
+        $commentInfo = $this->commentModel->getBatchComments([$id])[$id];
+        if($commentInfo['status'] == 0){
+            return $this->succ(1);
+        }
+        if($commentInfo['user_id'] == $userId){
+            $data = $this->commentModel->delComment($id, $userId);
+        }
+        return $this->succ($data);
+    }
+    
+    //获取专家评论数
+    public function getCommentByExpertId($expertid){
+        $data = $this->commentModel->getCommentByExpertId($expertid);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 专家的评论信息
+     */
+    public function expertsSubjects($userId, $currentId, $page, $pageSize){
+        $arrSubjects = array("total" => 0, "subject_lists" => array(), "status" => 0);
+        //判断登录用户是否是被屏蔽用户
+        $auditService = new \mia\miagroup\Service\Audit();
+        $userStatus = $auditService->checkUserIsShield($userId)['data'];
+        if($userStatus['is_shield']) {
+            $arrSubjects['status'] = -1;
+            return $this->succ($arrSubjects);
+        }
+        $commontArrs = $this->commentModel->getUserSubjectCommentInfo($userId, $page, $pageSize);
+        $subjectIds = array_column($commontArrs, 'subject_id');
+        $commentIds = array_column($commontArrs, 'id');
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $answerSubjects = $subjectService->getBatchSubjectInfos($subjectIds, $currentId, array('user_info', 'count', 'group_labels'));
+        $commentService = new \mia\miagroup\Service\Comment();
+        $commentInfos = $commentService->getBatchComments($commentIds, array('user_info'));
+        foreach ($commontArrs as $val) {
+            if (!empty($answerSubjects[$val['subject_id']]) && !empty($commentInfos[$val['id']])) {
+                $subject = $answerSubjects[$val['subject_id']];
+                $subject['comment_info'] = array($commentInfos[$val['id']]);
+                $arrSubjects['subject_lists'][] = $subject;
+            }
+        }
+        //评论数量
+        $countRes = $this->commentModel->getCommentByExpertId($userId);
+        if (isset($countRes['c']) && $countRes['c'] > 0) {
+            $arrSubjects['total'] = $countRes['c'];
+            $arrSubjects['status'] = 1;
+        }
+        return $this->succ($arrSubjects);
+    }
+    
+    
 }
