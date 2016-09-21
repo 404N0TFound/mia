@@ -112,6 +112,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $subjectInfo['text'] = $koubeiSetData['content'];
         $subjectInfo['created'] = $koubeiSetData['created_time'];
         $subjectInfo['extr_info'] = $labels;
+        $subjectInfo['source'] = 2; //帖子数据来自口碑标识
         $imageInfos = array();
         $i=0;
          if(!empty($koubeiData['image_infos'])) {

@@ -81,6 +81,15 @@ class User {
     }
     
     /**
+     * 新增专家
+     */
+    public function addExpert($expertInfo) {
+        $expertData = new GroupSubjectUserExperts();
+        $data = $expertData->addExpert($expertInfo);
+        return $data;
+    }
+    
+    /**
      * 根据用户ID更新用户信息
      */
     public function updateUserById($userId, $userInfo) {

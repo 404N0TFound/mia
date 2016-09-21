@@ -238,6 +238,7 @@ class User extends \mia\miagroup\Lib\Service {
         $userInfo['relation'] = 3;
         $userInfo['create_date'] = date('Y-m-d H:i:s');
         $userId = $this->userModel->addUser($userInfo);
+        $this->userModel->addExpert(array('user_id' => $userId, 'last_modify' => date('Y-m-d H:i:s'), 'status' => 1));
         \DB_Query::switchCluster($preNode);
         if (intval($userId) > 0) {
             //用户归类

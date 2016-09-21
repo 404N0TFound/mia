@@ -44,7 +44,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if($channelId == $this->headlineConfig['lockedChannel']['attention']['id']) {
             $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $page, $count)['data'];
             $headLineList = array();
-            
             foreach ($feedData as $subject) {
                 $tmpData = [];
                 if (!empty($subject['album_article'])) {
@@ -53,7 +52,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                     $tmpData['album'] = $subject;
                     $headLineList[] = $tmpData;
                 } else if (!empty($subject['video_info'])) {
-                    $tmpData['id'] = $subject['id'] . '_album';
+                    $tmpData['id'] = $subject['id'] . '_video';
                     $tmpData['type'] = 'video';
                     $tmpData['video'] = $subject;
                     $headLineList[] = $tmpData;
@@ -141,7 +140,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $tmpData['type'] = 'album';
                 $tmpData['album'] = $subject;
             } else if (!empty($subject['video_info'])) {
-                $tmpData['id'] = $subject['id'] . '_album';
+                $tmpData['id'] = $subject['id'] . '_video';
                 $tmpData['type'] = 'video';
                 $tmpData['video'] = $subject;
             }
@@ -474,7 +473,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                             $tmpData['type'] = 'album';
                             $tmpData['album'] = $subject;
                         } else if (!empty($subject['video_info'])) {
-                            $tmpData['id'] = $subject['id'] . '_album';
+                            $tmpData['id'] = $subject['id'] . '_video';
                             $tmpData['type'] = 'video';
                             $tmpData['video'] = $subject;
                         }

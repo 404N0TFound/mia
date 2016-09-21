@@ -143,7 +143,7 @@ class UserRelation {
      */
     public function getAttentionExpertList($userIds)
     {
-        $data = $this->groupSubjectUserExperts->getExpertList($userIds);
+        $data = $this->groupSubjectUserExperts->getBatchExpertInfoByUids($userIds);
         return $data;
     }
 }
