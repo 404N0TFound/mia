@@ -163,23 +163,21 @@ class Subject {
         $data = json_encode(['subject_id'=>$subjectId,'num'=>intval($num)]);
         $redis->lpush($read_num_key, $data);
         return true;
-
     }
-    
+
     /**
      * 读取帖子阅读记录
      * @param int $num 获取队列中的条数
      */
-     public function getViewNumRecord($num) {
-         $read_num_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_read_num.key');
+    public function getViewNumRecord($num) {
+        $read_num_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_read_num.key');
         $redis = new Redis();
         $len = intval($redis->llen($read_num_key));
-        if($len<$num){
+        if ($len < $num) {
             $num = $len;
         }
-        
         $result = [];
-        for($i=0;$i<$num;$i++){
+        for ($i = 0; $i < $num; $i ++) {
             $data = json_decode($redis->rpop($read_num_key),true);
             $result[$data['subject_id']] += intval($data['num']);
         }
