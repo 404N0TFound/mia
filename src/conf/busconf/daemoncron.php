@@ -92,5 +92,5 @@ $cron_list['view_num_sync'] = array(
     'engine' => 'php',
     'cli_args' => "--class=subject --action=Viewnumsync",
     'start_time' => '2016-08-11 00:00:00',
-    'interval' => 60
+    'interval' => 10
 );
