@@ -78,14 +78,20 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      */
     public function getOperateHeadLineChannelContent($channelId) {
         //获取运营数据
-        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, 0, false);
+        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, 0, true);
         if (empty($operationData)) {
             return $this->succ(array());
         }
         //获取格式化的头条输出数据
         $headLineList = $this->_getFormatHeadlineData(array_keys($operationData), array());
         foreach ($headLineList as $k => $v) {
-            $headLineList[$k]['config_data'] = $operationData[$v['id']];
+            list($id, $type) = explode('_', $v[id], 2);
+            if (array_key_exists($type, $this->headlineConfig['clientServerMapping'])) {
+                $type = $this->headlineConfig['clientServerMapping'][$type];
+                $headLineId = "{$id}_{$type}";
+                $headLineList[$k]['config_data'] = $operationData[$headLineId];
+            }
+            
         }
         return $this->succ($headLineList);
     }
