@@ -196,6 +196,10 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $setData[] = ['sort',$channelInfo['sort']];
         }
         
+        if(isset($channelInfo['status'])){
+            $setData[] = ['status',$channelInfo['status']];
+        }
+        
         $editRes = $this->headLineModel->updateHeadLineChannel($channelId, $setData);
         if(!$editRes){
             return $this->error(20001);
@@ -242,6 +246,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $setData['row'] = $headLineInfo['row'];
         $setData['begin_time'] = $headLineInfo['begin_time'];
         $setData['end_time'] = $headLineInfo['end_time'];
+        $setData['create_time'] = $headLineInfo['create_time'];
         if (!empty($headLineInfo['title'])) {
             $setData['ext_info']['title'] = $headLineInfo['title'];
         }
@@ -251,7 +256,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if (!empty($headLineInfo['cover_image'])) {
             $setData['ext_info']['cover_image'] = $headLineInfo['cover_image'];
         }
-        $data = $this->headLineModel->addOperateHeadLine($headLineInfo);
+        $data = $this->headLineModel->addOperateHeadLine($setData);
         return $this->succ($data);
     }
     
@@ -348,11 +353,10 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         $setTopicData = array();
         $setTopicInfo = array('title'=>$topicInfo['title'],'cover_image'=>$topicInfo['cover_image']);
-        $setTopicData[] = ['topic_info',json_encode($setTopicInfo)];
-        $setTopicData[] = ['subject_ids',$setTopicInfo['subject_ids']];
-        $setTopicData['status'] = ['subject_ids',$setTopicInfo['subject_ids']];
+        $setTopicData['topic_info'] = json_encode($setTopicInfo);
+        $setTopicData['subject_ids'] = $topicInfo['subject_ids'];
+        $setTopicData['status'] = 1;
         $setTopicData['create_time'] = date('Y-m-d H:i:s',time());
-        
         $insertRes = $this->headLineModel->addHeadLineTopic($setTopicData);
         return $this->succ($insertRes);
     }
@@ -365,14 +369,20 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $setTopicData = array();
+        
+        if(isset($topicInfo['status'])){
+            $setTopicData[] = ['status',$topicInfo['status']];
+        }
+        
         if(isset($topicInfo['subject_ids'])){
-            $setTopicData['subject_ids'] = $topicInfo['subject_ids'];
+            $topicInfo['subject_ids'] = json_encode($topicInfo['subject_ids']);
+            $setTopicData[] = ['subject_ids',$topicInfo['subject_ids']];
         }
         if(isset($topicInfo['title']) && isset($topicInfo['cover_image'])){
             $setTopicInfo = array('title'=>$topicInfo['title'],'cover_image'=>$topicInfo['cover_image']);
-            $setTopicData['topic_info'] = json_encode($setTopicInfo);
+            $setTopicData[] = ['topic_info',json_encode($setTopicInfo)];
         }
-        $editRes = $this->headLineModel->updateHeadLineTopic($topicId, $setTopicData);
+        $editRes = $this->headLineModel->editHeadLineTopic($topicId, $setTopicData);
         return $this->succ($editRes);
     }
     
@@ -383,7 +393,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if(empty($topicId)){
             return $this->error(500);
         }
-        $delRes = $this->headLineModel->deleteHeadLineTopic($topicId);
+        $delRes = $this->headLineModel->delHeadLineTopic($topicId);
         return $this->succ($delRes);
     }
     
@@ -506,6 +516,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $headLineList[] = $tmpData;
             }
         }
+        
         return $headLineList;
     }
 }
