@@ -26,7 +26,7 @@ class Album extends \mia\miagroup\Lib\Service {
      * @params array() iPageSize int 每页显示多少
      * @return array() 获取专栏集下的专栏文章列表
      */
-    public function getArticleList($con) {
+    public function getArticleList($con, $currentUid = 0) {
         
         $params = array();
         $params['user_id'] = $con['user_id'];
@@ -40,7 +40,7 @@ class Album extends \mia\miagroup\Lib\Service {
         $articleIDList = $this->abumModel->getArticleList($params);
         if ($articleIDList) {
             $articleSubject = new \mia\miagroup\Service\Subject();
-            $articleResult = $articleSubject->getBatchSubjectInfos($articleIDList, $params['user_id']);
+            $articleResult = $articleSubject->getBatchSubjectInfos($articleIDList, $currentUid);
             if( isset($articleResult['data']) && $articleResult['data']){
                 $response['article_list'] = array_values($articleResult['data']);
             }

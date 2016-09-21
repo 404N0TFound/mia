@@ -41,6 +41,7 @@ $groupShare = array(
         'extend_text'   => '{|extend_text|}',
     ),
 );
+
 /**
  * 专栏文章配置
  */
@@ -48,3 +49,12 @@ $album = array(
     //h5内嵌页链接
     'h5_url'=>'http://www.mia.com/groupspe/show/%d/%d',
 );
+
+/**
+ * 帖子来源
+ */
+ $source = array(
+     'default'  => 1, //默认
+     'koubei'   => 2, //口碑
+     'headline' => 3, //头条
+ );

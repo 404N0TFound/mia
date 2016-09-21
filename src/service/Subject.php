@@ -248,7 +248,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             if (!empty($albumServiceData['article_list'])) {
                 foreach ($albumServiceData['article_list'] as $article) {
                     //排除当前的
-                    if ($article['album_article']['subject_id'] != $id) {
+                    if ($article['album_article']['subject_id'] != $subjectId) {
                         $albumArticleList[] = $article;
                     }
                 }

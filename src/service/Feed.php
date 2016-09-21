@@ -6,6 +6,7 @@ use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\UserRelation as UserRelationService;
 use mia\miagroup\Model\Feed as FeedModel;
+use mia\miagroup\Service\Album as AlbumService;
 class Feed extends \mia\miagroup\Lib\Service {
 
     public $labelService;
@@ -23,21 +24,21 @@ class Feed extends \mia\miagroup\Lib\Service {
     /**
      * 获取我发布的帖子
      */
-    public function getPersonalSubject($userId, $page = 1, $count = 10) {
+    public function getPersonalSubject($userId, $currentUid = 0, $page = 1, $count = 10) {
         if(empty($userId)){
             return $this->succ(array());
         }
         //获取我发布的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids([$userId],$page,$count);
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
         return $this->succ($subjectsList['data']);
     }
     
     /**
      * 获取我关注用户的帖子
      */
-    public function getFeedSubject($userId, $page = 1, $count = 10) {
+    public function getFeedSubject($userId, $currentUid = 0, $page = 1, $count = 10) {
         if(empty($userId)){
             return $this->succ(array());
         }
@@ -46,22 +47,22 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取我关注用户的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count);
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
 
         return $this->succ($subjectsList['data']);
     }
     
     /**
-     * 获取我关注专家用户的帖子
+     * 获取我关注专家用户的订阅内容
      */
-    public function getExpertFeedSubject($userId, $page = 1, $count = 10) {
+    public function getExpertFeedSubject($userId, $currentUid = 0, $page = 1, $count = 10) {
         if(empty($userId)){
             return $this->succ(array());
         }
         //获取我关注的专家列表
         $expertUserIds = $this->userRelationService->getAllAttentionExpert($userId)['data'];
         //获取我关注专家的帖子列表
-        $subjectIds = $this->feedModel->getSubjectListByUids($expertUserIds,$page,$count);
+        $subjectIds = $this->feedModel->getSubjectListByUids($expertUserIds,$page,$count,\F_Ice::$ins->workApp->config->get('busconf.subject.source.headline'));
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
 
