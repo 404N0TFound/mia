@@ -263,13 +263,16 @@ class Subject extends \mia\miagroup\Lib\Service {
             //阅读量计数
             $this->subjectModel->viewNumRecord($subjectId);
         }
+        if (!isset($dmSync['refer_subject_id']) || empty($dmSync['refer_subject_id'])) {
+            $dmSync['refer_subject_id'] = $subjectId;
+        }
         if (!empty($dmSync['refer_subject_id']) || !empty($dmSync['refer_channel_id'])) {
             //相关帖子
             $headlineRemote = new HeadlineRemote();
-            $subjectId = array_shift(explode('_',$dmSync['refer_subject_id']));
-            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'],$subjectId,$currentUid);
-            $recommend = $this->getBatchSubjectInfos($subjectIds);
-            $subjectInfo['recommend'] = $recommend['data'];
+            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $currentUid);
+            $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
+            
+            $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
         }
         return $this->succ($subjectInfo);
     }

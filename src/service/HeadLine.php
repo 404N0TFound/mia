@@ -42,19 +42,23 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         
         //获取订阅数据
         if($channelId == $this->headlineConfig['lockedChannel']['attention']['id']) {
-            $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $page, $count, true)['data'];
+            $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $page, $count)['data'];
             $headLineList = array();
+            
             foreach ($feedData as $subject) {
+                $tmpData = [];
                 if (!empty($subject['album_article'])) {
                     $tmpData['id'] = $subject['id'] . '_album';
                     $tmpData['type'] = 'album';
                     $tmpData['album'] = $subject;
+                    $headLineList[] = $tmpData;
                 } else if (!empty($subject['video_info'])) {
                     $tmpData['id'] = $subject['id'] . '_album';
                     $tmpData['type'] = 'video';
                     $tmpData['video'] = $subject;
+                    $headLineList[] = $tmpData;
                 }
-                $headLineList[] = $tmpData;
+                
             }
             return $this->succ($headLineList);
         }
@@ -122,13 +126,13 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 获取专题下的头条
      */
     public function getTopicHeadLines($topicId) {
-        $topicInfo = $this->getHeadLineTopics(array($topicId));
+        $topicInfo = $this->getHeadLineTopics(array($topicId))['data'];
         $topicInfo = $topicInfo[$topicId];
         if (empty($topicInfo)) {
-            return $this->succ(array('headline_list' => array(), 'headline_topic' => (object)array()));
+            return $this->succ(array('headline_list' => array(), 'headline_topic' => array()));
         }
         $subjectIds = $topicInfo['subject_ids'];
-        $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds);
+        $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
         $headLineList = array();
         foreach ($subjects as $subject) {
             $tmpData = null;
@@ -300,11 +304,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 获取头条专题
      * @param $field 额外字段 count
      */
-    public function getHeadLineTopics($topicIds, $field = array(), $status = array(1)) {
+    public function getHeadLineTopics($topicIds, $field = array('count'), $status = array(1)) {
         $topicRes = $this->headLineModel->getHeadLineTopics($topicIds, $status);
         //收集帖子ID
         $subjectIds = array();
         foreach ($topicRes as $topic) {
+
             $subjectIds = is_array($topic['subject_ids']) ? array_merge($subjectIds, $topic['subject_ids']) : $subjectIds;
         }
         //获取专题相关计数
@@ -478,9 +483,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 case 'live':
                     if (isset($lives[$relation_id]) && !empty($lives[$relation_id])) {
                         $live = $lives[$relation_id];
-                        $live['live_info']['title'] = $relation_title ? $relation_title : $live['live_info']['title'];
+                        $live['title'] = $relation_title ? $relation_title : $live['title'];
                         if(!empty($relation_cover_image)){
-                            $live['live_info']['cover_image'] = $relation_cover_image;
+                            $live['cover_image'] = $relation_cover_image;
                         }
                         $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';
