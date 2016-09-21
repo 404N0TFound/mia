@@ -35,7 +35,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array(), $isRecommend = 1) {
+    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array()) {
         if(empty($channelId)){
             return $this->succ(array());
         }
@@ -62,17 +62,31 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             return $this->succ($headLineList);
         }
         
-        //获取推荐服务数据
-        if ($isRecommend == 1) {
-            $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid);
-            //格式化客户端上传的headlineIds
-            $headlineIds = $this->_formatClientIds($headlineIds);
-            $headLineData = array_merge($headlineIds, $headLineData);
-        }
+        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid);
+        //格式化客户端上传的headlineIds
+        $headlineIds = $this->_formatClientIds($headlineIds);
+        $headLineData = array_merge($headlineIds, $headLineData);
         //获取运营数据
         $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
         //获取格式化的头条输出数据
         $headLineList = $this->_getFormatHeadlineData(is_array($headLineData) ? $headLineData : array(), $operationData);
+        return $this->succ($headLineList);
+    }
+    
+    /**
+     * ums获取头条栏目运营数据
+     */
+    public function getOperateHeadLineChannelContent($channelId) {
+        //获取运营数据
+        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, 0, false);
+        if (empty($operationData)) {
+            return $this->succ(array());
+        }
+        //获取格式化的头条输出数据
+        $headLineList = $this->_getFormatHeadlineData(array_keys($operationData), array());
+        foreach ($headLineList as $k => $v) {
+            $headLineList[$k]['config_data'] = $operationData[$v['id']];
+        }
         return $this->succ($headLineList);
     }
 
@@ -474,6 +488,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $id = array_shift($sortIds);
                 list($relation_id, $relation_type) = explode('_', $id);
             }
+            //将运营配置的title、cover_image替换掉原有的
             switch ($relation_type) {
                 case 'subject':
                     if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
@@ -482,10 +497,19 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                             $tmpData['id'] = $subject['id'] . '_album';
                             $tmpData['type'] = 'album';
                             $tmpData['album'] = $subject;
+                            $subject['album_article']['title'] = $relation_title ? $relation_title : $subject['album_article']['title'];
+                            if(!empty($relation_cover_image)){
+                                $subject['album_article']['cover_image'] = $relation_cover_image;
+                            }
                         } else if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_video';
                             $tmpData['type'] = 'video';
                             $tmpData['video'] = $subject;
+                            $subject['title'] = $relation_title ? $relation_title : $subject['title'];
+                            if(!empty($relation_cover_image)){
+                                $subject['image_url'][] = $relation_cover_image;
+                                $subject['small_image_url'][] = $relation_cover_image;
+                            }
                         }
                     }
                     break;
@@ -508,6 +532,10 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $tmpData['id'] = $relation_id . '_headline_topic';
                         $tmpData['type'] = 'headline_topic';
                         $tmpData['headline_topic'] = $topic;
+                        $topic['title'] = $relation_title ? $relation_title : $topic['title'];
+                        if(!empty($relation_cover_image)){
+                            $topic['cover_image'] = $relation_cover_image;
+                        }
                     }
                     break;
             }
