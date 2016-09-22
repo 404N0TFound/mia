@@ -177,7 +177,6 @@ class Subject {
         if ($len < $num) {
             $num = $len;
         }
-        var_dump($len);
         $result = [];
         for ($i = 0; $i < $num; $i ++) {
             $data = json_decode($redis->rpop($read_num_key),true);
