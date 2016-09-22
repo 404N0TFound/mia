@@ -89,11 +89,11 @@ class Subject {
     /**
      * 批量查询视频信息
      */
-    public function getBatchVideoInfos($videoIds, $videoType = 'm3u8') {
+    public function getBatchVideoInfos($videoIds) {
         if (empty($videoIds)) {
             return array();
         }
-        $videoArr = $this->videoData->getBatchVideoInfos($videoIds, $videoType);
+        $videoArr = $this->videoData->getBatchVideoInfos($videoIds);
         $result = array();
         if (!empty($videoArr)) {
             foreach ($videoArr as $v) {
@@ -108,8 +108,9 @@ class Subject {
                         $video['video_type'] = 'swf';
                         break;
                     case 'qiniu':
-                        $video['video_url'] = $this->videoData->getVideoUrl($v['video_origin_url'], $videoType);
-                        $video['video_type'] = $videoType;
+                        $video['video_url'] = $this->videoData->getVideoUrl($v['video_origin_url'], 'm3u8');
+                        $video['video_mp4_url'] = $this->videoData->getVideoUrl($v['video_origin_url'], 'mp4');
+                        $video['video_type'] = 'm3u8';
                         break;
                 }
                 $video['status'] = $v['status'];
@@ -176,6 +177,7 @@ class Subject {
         if ($len < $num) {
             $num = $len;
         }
+        var_dump($len);
         $result = [];
         for ($i = 0; $i < $num; $i ++) {
             $data = json_decode($redis->rpop($read_num_key),true);
