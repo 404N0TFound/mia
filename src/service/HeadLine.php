@@ -292,9 +292,16 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if (empty($headline)) {
             return $this->error(500);
         }
-//         if (!empty($headLineInfo['page'])) {
-//             $setData['page'] = $headLineInfo['page'];
-//         }
+        
+        if (!empty($headLineInfo['relation_id'])) {
+            $setData[] = ['relation_id',$headLineInfo['relation_id']];
+        }
+        if (!empty($headLineInfo['relation_type'])) {
+            $setData[] = ['relation_type',$headLineInfo['relation_type']];
+        }
+        if (!empty($headLineInfo['page'])) {
+            $setData[] = ['page',$headLineInfo['page']];
+        }
         if (!empty($headLineInfo['row'])) {
             $setData[] = ['row',$headLineInfo['row']];
         }
