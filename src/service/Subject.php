@@ -558,13 +558,12 @@ class Subject extends \mia\miagroup\Lib\Service {
     /**
      * 精选帖子
      */
-    public function recommendsubject($userId, $iPage=1, $iPageSize=21){
+    public function getRecommendsubject($userId, $iPage=1, $iPageSize=21){
         $data = [];
         $subjectIds = $this->subjectModel->getRrecommendSubjectIds($iPage,$iPageSize);
         //获取推荐的标签
         if ($iPage == 1) {
-            $labels = $this->labelService->recommendLabelListPage("recommend", 0 ,11);
-//             $labels = $this->label_model->recommendLabelListPage("recommend", 0 ,11);
+            $labels = $this->labelService->getRecommendLabels($iPage, $iPageSize)['data'];
             $data['label_lists'] = array_values($labels);
         }
         if(!empty($subjectIds)) {
