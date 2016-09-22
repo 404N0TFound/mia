@@ -3,6 +3,7 @@ namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Label\SubjectLabel;
 use mia\miagroup\Data\Label\SubjectLabelRelation;
+use mia\miagroup\Data\Label\UserLabelRelation;
 
 class Label {
 
@@ -10,9 +11,12 @@ class Label {
 
     public $labelRelation = null;
 
+    public $userLabelRelation = null;
+
     public function __construct() {
-        $this->labelData = new SubjectLabel();
-        $this->labelRelation = new SubjectLabelRelation();
+        $this->labelData         = new SubjectLabel();
+        $this->labelRelation     = new SubjectLabelRelation();
+        $this->userLabelRelation = new UserLabelRelation();
     }
 
     /**
@@ -127,4 +131,52 @@ class Label {
     }
     
     
+
+    /**
+     * 加关注
+     */
+    public function addLableRelation($userId, $labelIds)
+    {
+        $labelIds = count($labelIds) > 50 ? array_slice($labelIds, 0, 50) : $labelIds;
+        if (is_array($labelIds) && !empty($labelIds)) {
+            foreach ($labelIds as $labelId) {
+                //获取关注状态
+                $relateInfo = $this->userLabelRelation->getLableRelationByUserId($userId, $labelId);
+                if (empty($relateInfo)) {
+                    //新的关注关系
+                    $setInfo = array(
+                        "user_id"  => $userId,
+                        "label_id" => $labelId,
+                        "status"   => 1,
+                        'create_time' => date('Y-m-d H:i:s')
+                    );
+                    $this->userLabelRelation->addUserLabelRelate($setInfo);
+                } else if ($relateInfo['status'] == 0) { //曾经关注过
+                    $this->userLabelRelation->updateUserLabelRelate($relateInfo['id'], $labelId, array('status' => 1, 'create_time' => date('Y-m-d H:i:s')));
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 取消关注
+     */
+    public function removeLableRelation($userId, $labelId)
+    {
+        $relateInfo = $this->userLabelRelation->getLableRelationByUserId($userId, $labelId);
+        if ($meRelation['status'] == 1) {
+            //更新为非关注状态
+            $this->userLabelRelation->updateUserLabelRelate($relateInfo['id'], $labelId, array('status' => 0, 'update_time' => date('Y-m-d H:i:s')));
+        }
+        return true;
+    }
+
+    public function getRecommendLables($page=1,$limit=10,$userType='')
+    {
+        $start = ($page-1)*$limit;
+        $data = $this->labelData->getRecommendLables($start,$limit,$userType='');
+        return $data;
+    }
+
 }

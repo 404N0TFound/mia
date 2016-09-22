@@ -80,14 +80,22 @@ class Label extends \mia\miagroup\Lib\Service {
      * 关注标签
      */
     public function focusLabel($userId, $labelIds) {
-        
+        if (empty($labelIds) || empty($userId)) {
+            return $this->succ(array());
+        }
+        $data = $this->labelModel->addLableRelation($userId, $labelIds);
+        return $this->succ($data);
     }
     
     /**
      * 取消关注标签
      */
     public function cancelFocusLabel($userId, $labelId) {
-        
+        if (empty($labelIds) || empty($userId)) {
+            return $this->succ(array());
+        }
+        $data = $this->labelModel->removeLableRelation($userId,$lableId);
+        return $this->succ($data);
     }
     
     /**
@@ -100,14 +108,18 @@ class Label extends \mia\miagroup\Lib\Service {
     /**
      * 获取新人推荐标签
      */
-    public function getNewUserRecommendLabels() {
-        
+    public function getNewUserRecommendLabels($page=1,$count=10) {
+        $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_new');
+        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        return $this->succ($labelInfos);
     }
     
     /**
      * 获取全部推荐标签
      */
     public function getRecommendLabels() {
-        
+        $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
+        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        return $this->succ($labelInfos);
     }
 }
