@@ -637,6 +637,7 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $this->subjectModel->viewNumRecord($subjectId, $viewNum);
             }
         }
+        return $subjectCountArr;
     }
     
     /**
