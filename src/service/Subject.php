@@ -196,8 +196,8 @@ class Subject extends \mia\miagroup\Lib\Service {
                     $shareDesc = $albumArticles[$subjectInfo['id']]['content'];
                     $shareImage = $shareDefault['img_url'];
                     $h5Url = sprintf($shareDefault['wap_url'], $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
-                } else { //普通帖子
-                    $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                } elseif (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
+                    $shareDefault = $shareConfig['defaultShareInfo']['video'];
                     $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
                     if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
@@ -206,9 +206,17 @@ class Subject extends \mia\miagroup\Lib\Service {
                         $shareImage = $shareDefault['img_url'];
                     }
                     $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
+                
+                } else { //普通帖子
+                    $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                    $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
+                    $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
+                    $shareImage = $shareDefault['img_url'];
+                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
                 }
                 // 替换搜索关联数组
                 $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url, '{|extend_text|}' => $shareDefault['extend_text']);
+
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
                     $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);

@@ -23,7 +23,7 @@ class Video extends \DB_Query {
     /**
      * 批量查询视频信息
      */
-    public function getBatchVideoInfos($videoIds, $videoType = 'm3u8') {
+    public function getBatchVideoInfos($videoIds) {
         if (empty($videoIds)) {
             return array();
         }
