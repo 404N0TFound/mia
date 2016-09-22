@@ -117,7 +117,7 @@ class Label extends \mia\miagroup\Lib\Service {
     /**
      * 获取全部推荐标签
      */
-    public function getRecommendLabels() {
+    public function getRecommendLabels($page=1,$count=10) {
         $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
         $labelInfos = $this->getBatchLabelInfos($labelIds);
         return $this->succ($labelInfos);
