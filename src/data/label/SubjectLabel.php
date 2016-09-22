@@ -83,4 +83,24 @@ class SubjectLabel extends \DB_Query {
         }
         return $LabelID;
     }
+
+    public function getRecommendLables($offset=0,$limit=10,$userType='')
+    {
+        if(!empty($userType)){
+            $where[] = [$userType,1];
+        }
+        $orderBy = '';
+        if(($userType=='is_new')){
+            $orderBy = 'order by new_time desc';
+        }elseif($userType='is_recommend'){
+            $orderBy = 'order by recom_time desc';
+        }
+        $where[] = ['status',1];
+        $data = $this->getRows($where,'*',$limit,$offset,$orderBy);
+        $result = [];
+        foreach ($data as $key => $value) {
+            $result[] = $value['id'];
+        }
+        return $result;
+    }
 }

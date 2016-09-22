@@ -108,14 +108,18 @@ class Label extends \mia\miagroup\Lib\Service {
     /**
      * 获取新人推荐标签
      */
-    public function getNewUserRecommendLabels() {
-        
+    public function getNewUserRecommendLabels($page=1,$count=10) {
+        $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_new');
+        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        return $this->succ($labelInfos);
     }
     
     /**
      * 获取全部推荐标签
      */
     public function getRecommendLabels() {
-        
+        $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
+        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        return $this->succ($labelInfos);
     }
 }

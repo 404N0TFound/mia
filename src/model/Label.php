@@ -162,7 +162,8 @@ class Label {
     /**
      * 取消关注
      */
-    public function removeLableRelation($userId, $labelId) {
+    public function removeLableRelation($userId, $labelId)
+    {
         $relateInfo = $this->userLabelRelation->getLableRelationByUserId($userId, $labelId);
         if ($meRelation['status'] == 1) {
             //更新为非关注状态
@@ -170,4 +171,12 @@ class Label {
         }
         return true;
     }
+
+    public function getRecommendLables($page=1,$limit=10,$userType='')
+    {
+        $start = ($page-1)*$limit;
+        $data = $this->labelData->getRecommendLables($start,$limit,$userType='');
+        return $data;
+    }
+
 }
