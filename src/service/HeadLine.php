@@ -283,33 +283,38 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 编辑运营头条
      */
     public function editOperateHeadLine($id, $headLineInfo) {
+        if (empty($id)) {
+            return $this->error(500);
+        }
         $headline = $this->headLineModel->getHeadLineById($id);
         if (empty($headline)) {
             return $this->error(500);
         }
-        $setData['ext_info'] = $headline['ext_info'];
-        if (!empty($headLineInfo['page'])) {
-            $setData['page'] = $headLineInfo['page'];
-        }
+//         if (!empty($headLineInfo['page'])) {
+//             $setData['page'] = $headLineInfo['page'];
+//         }
         if (!empty($headLineInfo['row'])) {
-            $setData['row'] = $headLineInfo['row'];
+            $setData[] = ['row',$headLineInfo['row']];
         }
         if (!empty($headLineInfo['begin_time'])) {
-            $setData['begin_time'] = $headLineInfo['begin_time'];
+            $setData[] = ['begin_time',$headLineInfo['begin_time']];
         }
         if (!empty($headLineInfo['end_time'])) {
-            $setData['end_time'] = $headLineInfo['end_time'];
+            $setData[] = ['end_time',$headLineInfo['end_time']];
         }
         if (isset($headLineInfo['title'])) {
-            $setData['ext_info']['title'] = $headLineInfo['title'];
+            $headLineInfo['ext_info']['title'] = $headLineInfo['title'];
         }
-        if (isset($headLineInfo['text'])) {
-            $setData['ext_info']['text'] = $headLineInfo['text'];
-        }
+//         if (isset($headLineInfo['text'])) {
+//             $setData['ext_info']['text'] = $headLineInfo['text'];
+//         }
         if (isset($headLineInfo['cover_image'])) {
-            $setData['ext_info']['cover_image'] = $headLineInfo['cover_image'];
+            $headLineInfo['ext_info']['cover_image'] = $headLineInfo['cover_image'];
         }
-        $data = $this->headLineModel->editOperateHeadLine($id, $headLineInfo);
+        if (is_array($headLineInfo['ext_info']) && !empty($headLineInfo['ext_info'])) {
+            $setData[] = ['ext_info',json_encode($headLineInfo['ext_info'])];
+        }
+        $data = $this->headLineModel->editOperateHeadLine($id, $setData);
         return $this->succ($data);
     }
     

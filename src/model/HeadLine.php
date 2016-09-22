@@ -101,9 +101,6 @@ class HeadLine {
      */
     public function editOperateHeadLine($id, $headLineInfo)
     {
-        if (is_array($headLineInfo['ext_info']) && !empty($headLineInfo['ext_info'])) {
-            $headLineInfo['ext_info'] = json_encode($headLineInfo['ext_info']);
-        }
         $data = $this->headLineChannelContentData->updateHeadlineById($id,$headLineInfo);
         return $data;
     }
