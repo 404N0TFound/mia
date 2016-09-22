@@ -26,6 +26,7 @@ class HeadLineChannelContent extends \DB_Query {
         $data = $this->getRows($where);
         $result = [];
         foreach ($data as $v) {
+            $v['ext_info'] = json_decode($v['ext_info'], true);
             $result[$v['relation_id'].'_'.$v['relation_type']] = $v;
         }
         return $result;
