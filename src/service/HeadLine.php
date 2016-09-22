@@ -42,7 +42,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         
         //获取订阅数据
         if($channelId == $this->headlineConfig['lockedChannel']['attention']['id']) {
-            $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $page, $count)['data'];
+            $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $currentUid, $page, $count)['data'];
             $headLineList = array();
             foreach ($feedData as $subject) {
                 $tmpData = [];
