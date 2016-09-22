@@ -299,4 +299,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $immutable_score;
     }
     
+    /**
+     * 删除口碑
+     */
+    public function delete($id, $userId){
+        //删除对应口碑
+        $res = $this->koubeiModel->delete($id, $userId);
+        return $this->succ($res);
+    }
+    
 }

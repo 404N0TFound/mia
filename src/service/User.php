@@ -186,18 +186,36 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo['push_switch'] = $pushSwitch['push_switch'];
             }
         }
-        if (in_array('mibean', $field)) {
-            // $this->load->model('mibean_model', 'mBean');
-            // $miBeanInfo = $this->mBean->currentLevelToNextLevelInfo($userInfo['user_id']);
-            // $userInfo['mibean'] = $miBeanInfo['count'] > 0 ? $miBeanInfo['count'] : 0;
-        }
-        if (in_array('jifen', $field)) {
-            // $userInfo['score'] = $this->getJifenBalance($userInfo['user_id']);
-        }
         
         return $this->succ($userInfo);
     }
-
-
+    
+    /**
+     * 专家详情
+     */
+    public function expertsInfo($userId, $currentId){
+        $result = array();
+        $expertsinfo = $this->expertsInfo($userId)['data'];
+        $userInfo = $this->getUserInfoByUserId($userId,array("relation","count"),$currentId);
+        $result['user_info'] = $userInfo;
+        if(!empty($expertsinfo)){
+            $result['desc'] = !empty(trim($expertsinfo['desc'])) ? explode('#', trim($expertsinfo['desc'],"#")) : array();
+            $result['expert_field'] = array();
+            if(!empty(trim($expertsinfo['label'],"#"))){
+                $expert_field = explode('#', trim($expertsinfo['label'],"#"));
+                $labelService = new \mia\miagroup\Service\Label();
+                $expert_field_info = $labelService->getBatchLabelInfos($expert_field)['data'];
+                foreach ($expert_field_info as $label) {
+                    $result['expert_field'][] = $label;
+                }
+            }else{
+                $result['expert_field'] = array();
+            }
+            $commentService = new \mia\miagroup\Service\Comment();
+            $result['comment_nums'] = $commentService->getCommentByExpertId($userId);
+        }
+        return $this->succ($result);
+    }
+    
     
 }

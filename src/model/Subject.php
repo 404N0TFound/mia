@@ -153,4 +153,86 @@ class Subject {
         return $this->subjectData->setSubjectRecommendStatus($ids,$setStatus);
     }
     
+
+    /**
+     * 帖子阅读写入队列
+     */
+    public function viewNumRecord($subjectId,$num=1) {
+        $read_num_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_read_num.key');
+        $redis = new Redis();
+        $data = json_encode(['subject_id'=>$subjectId,'num'=>intval($num)]);
+        $redis->lpush($read_num_key, $data);
+        return true;
+
+    }
+    
+    /**
+     * 读取帖子阅读记录
+     * @param int $num 获取队列中的条数
+     */
+     public function getViewNumRecord($num) {
+         $read_num_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_read_num.key');
+        $redis = new Redis();
+        $len = intval($redis->llen($read_num_key));
+        if($len<$num){
+            $num = $len;
+        }
+        
+        $result = [];
+        for($i=0;$i<$num;$i++){
+            $data = json_decode($redis->rpop($read_num_key),true);
+            $result[$data['subject_id']] += intval($data['num']);
+        }
+        return $result;
+     }
+     
+     /**
+      * 获取用户的相关帖子ID
+      * @param unknown $userId
+      * @param number $currentId
+      * @param number $iPage
+      * @param number $iPageSize
+      */
+     public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
+         $subject_id = $this->subjectData->getSubjectInfoByUserId($userId, $currentId, $iPage, $iPageSize);
+         return $subject_id;
+     }
+     
+     /**
+      * 删除帖子
+      * @param unknown $subjectId
+      * @param unknown $userId
+      */
+     public function delete($subjectId, $userId){
+         $affect = $this->subjectData->delete($subjectId, $userId);
+         return $affect;
+     }
+     
+     /**
+      * 精选帖子的ids
+      * @param int $iPage 页码
+      * @param int $iPageSize 一页多少个
+      * @return array 帖子ids
+      */
+     public function getRrecommendSubjectIds($iPage=1, $iPageSize=21){
+         $subject_ids = $this->subjectData->getRrecommendSubjectIds($iPage,$iPageSize);
+         return $subject_ids;
+     }
+     
+     /**
+      * 根据用户ID获取帖子信息
+      */
+     public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+         $data = $this->subjectData->getSubjectDataByUserId($subjectId, $userId, $status);
+         return $data;
+     }
+     
+     /**
+      * 分享
+      */
+     public function addShare($sourceId, $userId, $type, $platform,$status){
+         $shareData = new \mia\miagroup\Data\Subject\Share();
+         $shareId = $shareData->addShare($sourceId, $userId, $type, $platform,$status);
+         return $shareId;
+     }
 }

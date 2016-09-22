@@ -115,4 +115,82 @@ class Subject extends \DB_Query {
         }
     }
     
+    /**
+     * 更新帖子计数
+     */
+    public function updateSubjectCount($subjectId, $num, $countType='view_num') {
+        if (empty($subjectId)) {
+            return false;
+        }
+
+        $sql = "update $this->tableName set $countType = $countType+$num where id = $subjectId";
+        $result = $this->query($sql);
+        return $result;
+    }
+    
+    /**
+     * 获取用户的帖子ID
+     */
+    public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
+        
+        $offsetLimit = $iPageSize * ($iPage - 1);
+        $where[] = ['user_id',$userId];
+        if ($userId == $currentId) { 
+            //查看自己空间显示正在转码中的视频
+            $where[] = ['status',array(1,2)];
+            $orderBy = 'id DESC';
+            $result = $this->getRows($where,'id',$iPageSize,$offsetLimit,$orderBy);
+        } else {
+            $where[] = ['status',1];
+            $orderBy = 'id DESC';
+            $result = $this->getRows($where,'id',$iPageSize,$offsetLimit,$orderBy);
+        }
+        
+        $subject_id = array_column($result, 'id');
+        return $subject_id;
+    }
+    
+    /**
+     * 删除帖子
+     */
+    public function delete($subjectId,$userId){
+        //删除帖子
+        $setData[] = ['status',0];
+        $where[] = ['id',$subjectId];
+        $where[] = ['user_id',$userId];
+        $affect = $this->update($where);
+        return $affect;
+    }
+    
+    /**
+     * 精选帖子的ids
+     * @param int $iPage 页码
+     * @param int $iPageSize 一页多少个
+     * @return array 帖子ids
+     */
+    public function getRrecommendSubjectIds($iPage=1, $iPageSize=21){
+        $offsetLimit = $iPageSize * ($iPage - 1);
+        $where = "g.status = 1 and g.is_fine = 1 and (sh.status = 0 or sh.user_id is null) and g.update_time>'" . date("Y-m-d",strtotime("last month")) . "'";
+        $sql = "select g.id
+            from {$this->tableName} as g
+            left join user_shield as sh
+            on g.user_id = sh.user_id
+            where {$where}
+            order by g.top_time desc, g.update_time desc
+            limit {$offsetLimit},{$iPageSize}";
+        $subjectsArrs = $this->query($sql);
+        return array_column($subjectsArrs, 'id');
+    }
+    
+    /**
+     * 根据用户ID获取帖子信息
+     */
+    public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+        $where[] = ['id', $subjectId];
+        $where[] = ['user_id', $userId];
+        $where[] = ['status', $status];
+        $data = $this->getRow($where);
+        return $data;
+    }
+    
 }
