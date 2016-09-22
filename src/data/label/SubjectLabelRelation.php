@@ -46,30 +46,11 @@ class SubjectLabelRelation extends \DB_Query {
     }
 
 
-    /**
-     * 根据userId获取标签
-     */
-    public function getLabelListByUid($userId)
-    {
-        if(empty($userId)){
-            return [];
-        }
-        $where[] = ['user_id',$userId];
-        $where[] = ['status',1];
-
-        $data = $this->getRows($where,'label_id',false,false,'id desc');
-        $result = [];
-        foreach ($data as $key => $value) {
-            $result[] = $value['label_id'];
-        }
-        return $result;
-    }
-
     
     /**
      * 根据标签ID获取帖子列表
      */
-    public function getSubjectListByLableIds($lableIds,$offset,$limit)
+    public function getSubjectListByLableIds($lableIds,$offset,$limit,$is_recommend=0)
     {
         if(!is_array($lableIds)){
             return [];
@@ -77,11 +58,33 @@ class SubjectLabelRelation extends \DB_Query {
 
         $where[] = ['label_id',$lableIds];
         $where[] = ['status',1];
+        if($is_recommend>0){
+            $where[] = ['is_recommend',1];
+        }
 
         $data = $this->getRows($where,'subject_id',$limit,$offset,'id desc');
         $result = [];
         foreach ($data as $key => $value) {
             $result[$value['subject_id']] = $value['subject_id'];
+        }
+        return $result;
+    }
+
+    /**
+     * 批量获取标签下的精华帖子是否置顶
+     */
+    public function getLableSubjectsTopStatus($lableId, $subjectIds)
+    {
+        if (empty($subjectIds) || empty($lableId)) {
+            return array();
+        }
+        $where[] = ['status',1];
+        $where[] = ['label_id',$lableId];
+        $where[] = ['subject_id',$subjectIds];
+        $data = $this->getRows($where);
+        $result = array();
+        foreach ($data as $v) {
+            $result[$v['subject_id']] = $v['is_top'];
         }
         return $result;
     }

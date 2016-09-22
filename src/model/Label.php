@@ -4,7 +4,7 @@ namespace mia\miagroup\Model;
 use \mia\miagroup\Data\Label\SubjectLabel;
 use mia\miagroup\Data\Label\SubjectLabelRelation;
 use mia\miagroup\Data\Label\UserLabelRelation;
-
+use mia\miagroup\Data\Label\SubjectLabelCategoryRelation;
 class Label {
 
     public $labelData = null;
@@ -13,10 +13,13 @@ class Label {
 
     public $userLabelRelation = null;
 
+    public $labelCagegoryRelation = null;
+
     public function __construct() {
         $this->labelData         = new SubjectLabel();
         $this->labelRelation     = new SubjectLabelRelation();
         $this->userLabelRelation = new UserLabelRelation();
+        $this->labelCagegoryRelation = new SubjectLabelCategoryRelation();
     }
 
     /**
@@ -113,9 +116,10 @@ class Label {
     /**
      * 根据userId获取标签
      */
-    public function getLabelListByUid($userId)
+    public function getLabelListByUid($userId,$page=1,$limit=10)
     {
-        $data = $this->labelRelation->getLabelListByUid($userId);
+        $start = ($page-1)*$limit;
+        $data = $this->userLabelRelation->getLabelListByUid($userId,$start,$limit);
         return $data;
     }
 
@@ -123,10 +127,10 @@ class Label {
     /**
      * 根据标签ID获取帖子列表
      */
-    public function getSubjectListByLableIds($lableIds,$page=1,$limit=10)
+    public function getSubjectListByLableIds($lableIds,$page=1,$limit=10,$is_recommend=0)
     {
         $start = ($page-1)*$limit;
-        $data = $this->labelRelation->getSubjectListByLableIds($lableIds,$start,$limit);
+        $data = $this->labelRelation->getSubjectListByLableIds($lableIds,$start,$limit,$is_recommend);
         return $data;
     }
     
@@ -142,6 +146,7 @@ class Label {
             foreach ($labelIds as $labelId) {
                 //获取关注状态
                 $relateInfo = $this->userLabelRelation->getLableRelationByUserId($userId, $labelId);
+                print_r($relateInfo);
                 if (empty($relateInfo)) {
                     //新的关注关系
                     $setInfo = array(
@@ -165,17 +170,84 @@ class Label {
     public function removeLableRelation($userId, $labelId)
     {
         $relateInfo = $this->userLabelRelation->getLableRelationByUserId($userId, $labelId);
-        if ($meRelation['status'] == 1) {
+        if ($relateInfo['status'] == 1) {
             //更新为非关注状态
-            $this->userLabelRelation->updateUserLabelRelate($relateInfo['id'], $labelId, array('status' => 0, 'update_time' => date('Y-m-d H:i:s')));
+            $this->userLabelRelation->updateUserLabelRelate($relateInfo['id'], array('status' => 0, 'update_time' => date('Y-m-d H:i:s')));
         }
         return true;
     }
 
+
+    /**
+     * 获取标签列表
+     */
     public function getRecommendLables($page=1,$limit=10,$userType='')
     {
         $start = ($page-1)*$limit;
-        $data = $this->labelData->getRecommendLables($start,$limit,$userType='');
+        $data = $this->labelData->getRecommendLables($start,$limit,$userType);
+        return $data;
+    }
+
+    /**
+     * 获取某个标签关联的标签
+     */
+    public function getRelateLabels($labelId,$page=1,$limit=10) {
+        $start = ($page-1)*$limit;
+        $categoryIds = $this->labelCagegoryRelation->getLabelCategory($labelId);
+        $categoryLabels = $this->labelCagegoryRelation->getLabelByCategroyIds($categoryIds, $start, $limit);
+        $labelIds = array();
+        foreach ($categoryLabels as $labels) {
+            if ($labels['label_id'] != $labelId) {
+                $labelIds[] = $labels['label_id'];
+            }
+        }
+        $labelIds = array_slice($labelIds, 0, 6);
+        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        return $labelInfos;
+    }
+
+    public function getBatchLabelInfo($labelId)
+    {
+        $data = $this->getBatchLabelInfos(array($labelId))[$labelId];
+        return $data;
+    }
+
+    /**
+     * 查询用户和标签的关注关系
+     */
+    public function getLableRelationByUserId($userId,$lableId)
+    {
+        $data = $this->userLabelRelation->getLableRelationByUserId($userId,$lableId);
+        return $data;
+    }
+
+    public function getLableSubjectsTopStatus($lableId, $subjectIds)
+    {
+        $data = $this->labelRelation->getLableSubjectsTopStatus($lableId,$subjectIds);
+        return $data;
+    }
+
+    public function getCategoryLables($page=1,$limit=50)
+    {
+        $start = ($page-1)*$limit;
+        $data = $this->labelCagegoryRelation->getCategoryLables($start,$limit);
+        return $data;
+    }
+
+    public function getLabelByCategroyIds($categoryIds,$page=1,$limit=10)
+    {
+        if($limit){
+            $start = ($page-1)*$limit;
+        }else{
+            $start = false;
+            $limit = false;
+        }
+        $data = $this->labelCagegoryRelation->getLabelByCategroyIds($categoryIds,$start,$limit);
+        return $data;
+    }
+    public function updateLabelImgInfo($labelId,$setData)
+    {
+        $data = $this->labelData->updateLabelImgInfo($labelId,$setData);
         return $data;
     }
 
