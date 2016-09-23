@@ -37,7 +37,7 @@ class HeadLineUserCategory extends \DB_Query {
     }
     
     /**
-     * 根据uid查询
+     * 根据uid设置分类信息
      */
     public function setDataByUid($userId, $setData) {
         if (empty($userId) || empty($setData)) {

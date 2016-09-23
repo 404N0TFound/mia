@@ -87,6 +87,8 @@ class User {
         $headLineUserCategory = new HeadLineUserCategoryData();
         $data = $headLineUserCategory->getDataByUid($userId);
         if (!empty($data)) {
+            $setData[] = array('category', $category);
+            $headLineUserCategory->setDataByUid($userId, $setData);
             return $data['id'];
         } else {
             $data = $headLineUserCategory->addUserCategory($userId, $category);
