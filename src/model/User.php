@@ -95,33 +95,6 @@ class User {
     }
     
     /**
-     * 根据nickname获取用户id
-     */
-    public function getUidByNickName($nickName) {
-        $userData = new UserData();
-        $userId = $userData->getUidByNickName($nickName);
-        return $userId;
-    }
-    
-    /**
-     * 根据username获取用户id
-     */
-    public function getUidByUserName($userName) {
-        $userData = new UserData();
-        $userId = $userData->getUidByUserName($userName);
-        return $userId;
-    }
-    
-    /**
-     * 新增用户
-     */
-    public function addUser($userInfo) {
-        $userData = new UserData();
-        $data = $userData->addUser($userInfo);
-        return $data;
-    }
-    
-    /**
      * 新增专家
      */
     public function addExpert($expertInfo) {
@@ -137,19 +110,5 @@ class User {
         $userData = new UserData();
         $res = $userData->updateUserById($userId, $userInfo);
         return $res;
-    }
-    
-    /**
-     * 设置头条抓取用户分类
-     */
-    public function setHeadlineUserCategory($userId, $category) {
-        $headLineUserCategory = new HeadLineUserCategoryData();
-        $data = $headLineUserCategory->getDataByUid($userId);
-        if (!empty($data)) {
-            return $data['id'];
-        } else {
-            $data = $headLineUserCategory->addUserCategory($userId, $category);
-            return $data;
-        }
     }
 }
