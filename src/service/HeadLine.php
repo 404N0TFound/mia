@@ -503,6 +503,8 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $num = count($sortIds) + count($opertionData);
         for ($row = 1; $row <= $num; $row ++) {
             $tmpData = null;
+            $relation_title = null;
+            $relation_cover_image = null;
             //如果当前位置有运营数据，优先选择运营数据
             if (isset($sortedOpertionData[$row]) && !empty($sortedOpertionData[$row])) {
                 $relation_id = $sortedOpertionData[$row]['relation_id'];
