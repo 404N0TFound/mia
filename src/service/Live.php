@@ -328,7 +328,6 @@ class Live extends \mia\miagroup\Lib\Service {
                 }
             }
         }
-
         if(isset($roomData['coupon']['batch_code']) && !empty($roomData['coupon']['batch_code'])){
             $batchCode = $roomData['coupon']['batch_code'];
             $couponService = new Coupon($this->version);
@@ -610,13 +609,11 @@ class Live extends \mia\miagroup\Lib\Service {
                 if (!empty($roomInfo['coupon'])) {
                     $batch_code = $roomInfo['coupon']['batch_code'];
                     
-                    //倒计时
-                    $startTime = $couponService->getSendCouponStartTime($roomInfo['live_id'],$batch_code)['data'];
-
-                    if(!$startTime){
+                    if(in_array('send_coupon', $field) && $roomInfo['coupon']['countdown']<=0){
                         $startTime = time();
                         $couponService->addSendCouponSatrtTime($roomInfo['live_id'],$batch_code,$startTime);
                     }
+                    $startTime = $couponService->getSendCouponStartTime($roomInfo['live_id'],$batch_code)['data'];
                     $countdown = $startTime+$roomInfo['coupon']['countdown']-time()>0 ? $startTime+$roomInfo['coupon']['countdown']-time() : 0;
                     $roomRes[$roomInfo['id']]['coupon']['batch_code'] = $batch_code;
                     $roomRes[$roomInfo['id']]['coupon']['countdown'] = $countdown;
@@ -924,7 +921,7 @@ class Live extends \mia\miagroup\Lib\Service {
     public function sendLiveCoupon($userId,$roomId,$batchCode)
     {
         // 获取直播房间信息
-        $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('coupon'))['data'];
+        $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('coupon','send_coupon'))['data'];
         $liveRoomInfo = $liveRoomInfo[$roomId];
         // 判断直播间是否配置了优惠券
         if (empty($liveRoomInfo['coupon'])) {
