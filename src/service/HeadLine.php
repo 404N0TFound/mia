@@ -521,11 +521,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         if (!empty($subject['album_article'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
                             $tmpData['type'] = 'album';
-                            $tmpData['album'] = $subject;
                             $subject['album_article']['title'] = $relation_title ? $relation_title : $subject['album_article']['title'];
                             if(!empty($relation_cover_image)){
                                 $subject['album_article']['cover_image'] = $relation_cover_image;
                             }
+                            $tmpData['album'] = $subject;
                         }
                     }
                     break;
@@ -535,35 +535,34 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_video';
                             $tmpData['type'] = 'video';
-                            $tmpData['video'] = $subject;
                             $subject['title'] = $relation_title ? $relation_title : $subject['title'];
                             if(!empty($relation_cover_image)){
-                                $subject['image_url'][] = $relation_cover_image;
-                                $subject['small_image_url'][] = $relation_cover_image;
+                                $subject['video_info']['cover_image'] = $relation_cover_image['url'];
                             }
+                            $tmpData['video'] = $subject;
                         }
                     }
                     break;
-                case 'subject':
+                case 'subject': //relation_type=subject 兼容推荐服务没有返回数据类型的问题
                     if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
                         $subject = $subjects[$relation_id];
                         if (!empty($subject['album_article'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
                             $tmpData['type'] = 'album';
-                            $tmpData['album'] = $subject;
                             $subject['album_article']['title'] = $relation_title ? $relation_title : $subject['album_article']['title'];
                             if(!empty($relation_cover_image)){
                                 $subject['album_article']['cover_image'] = $relation_cover_image;
                             }
+                            $tmpData['album'] = $subject;
                         } else if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_video';
                             $tmpData['type'] = 'video';
                             $tmpData['video'] = $subject;
-                            $subject['title'] = $relation_title ? $relation_title : $subject['title'];
                             if(!empty($relation_cover_image)){
                                 $subject['image_url'][] = $relation_cover_image;
                                 $subject['small_image_url'][] = $relation_cover_image;
                             }
+                            $subject['title'] = $relation_title ? $relation_title : $subject['title'];
                         }
                     }
                     break;
@@ -584,11 +583,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $topic = $topics[$relation_id];
                         $tmpData['id'] = $relation_id . '_headline_topic';
                         $tmpData['type'] = 'headline_topic';
-                        $tmpData['headline_topic'] = $topic;
                         $topic['title'] = $relation_title ? $relation_title : $topic['title'];
                         if(!empty($relation_cover_image)){
                             $topic['cover_image'] = $relation_cover_image;
                         }
+                        $tmpData['headline_topic'] = $topic;
                     }
                     break;
             }
