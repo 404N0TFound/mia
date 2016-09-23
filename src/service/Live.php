@@ -609,7 +609,7 @@ class Live extends \mia\miagroup\Lib\Service {
                 if (!empty($roomInfo['coupon'])) {
                     $batch_code = $roomInfo['coupon']['batch_code'];
                     
-                    if(in_array('send_coupon', $field) && $roomInfo['coupon']['countdown']<=0){
+                    if(in_array('send_coupon', $field)){
                         $startTime = time();
                         $couponService->addSendCouponSatrtTime($roomInfo['live_id'],$batch_code,$startTime);
                     }
