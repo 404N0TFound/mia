@@ -478,8 +478,8 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $topicIds   = [];
         foreach ($datas as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
-            //帖子
-            if ($relation_type == 'subject') {
+            //帖子（专栏或者视频的帖子）
+            if ($relation_type == 'video' || $relation_type == 'album') {
                 $subjectIds[] = $relation_id;
             //直播
             } elseif ($relation_type == 'live') {
