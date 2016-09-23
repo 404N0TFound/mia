@@ -86,4 +86,11 @@ $cron_list['subject_group_recommend_pool'] = array(
     'interval' => 900
 );
 
-
+//帖子阅读数
+$cron_list['view_num_sync'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=Viewnumsync",
+    'start_time' => '2016-08-11 00:00:00',
+    'interval' => 10
+);

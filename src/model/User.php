@@ -4,6 +4,7 @@ namespace mia\miagroup\Model;
 use mia\miagroup\Data\User\User as UserData;
 use mia\miagroup\Data\User\GroupSubjectUserExperts;
 use mia\miagroup\Data\User\AppDeviceToken as AppDeviceTokenData;
+use mia\miagroup\Data\User\HeadLineUserCategory as HeadLineUserCategoryData;
 
 class User {
 
@@ -86,11 +87,30 @@ class User {
         $headLineUserCategory = new HeadLineUserCategoryData();
         $data = $headLineUserCategory->getDataByUid($userId);
         if (!empty($data)) {
+            $setData[] = array('category', $category);
+            $headLineUserCategory->setDataByUid($userId, $setData);
             return $data['id'];
         } else {
             $data = $headLineUserCategory->addUserCategory($userId, $category);
             return $data;
         }
     }
-
+    
+    /**
+     * 新增专家
+     */
+    public function addExpert($expertInfo) {
+        $expertData = new GroupSubjectUserExperts();
+        $data = $expertData->addExpert($expertInfo);
+        return $data;
+    }
+    
+    /**
+     * 根据用户ID更新用户信息
+     */
+    public function updateUserById($userId, $userInfo) {
+        $userData = new UserData();
+        $res = $userData->updateUserById($userId, $userInfo);
+        return $res;
+    }
 }

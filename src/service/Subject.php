@@ -11,6 +11,7 @@ use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
+use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 
 class Subject extends \mia\miagroup\Lib\Service {
 
@@ -73,6 +74,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $this->commentService = new CommentService();
             $commentCounts = $this->commentService->getBatchCommentNums($subjectIds)['data'];
             $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
+            $viewCounts = $this->getBatchSubjectViewCount($subjectIds)['data'];
         }
         // 获取赞用户
         if (in_array('praise_info', $field)) {
@@ -167,6 +169,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['fancied_count'] = intval($praiseCounts[$subjectInfo['id']]);
+                $subjectRes[$subjectInfo['id']]['view_count'] = intval($viewCounts[$subjectInfo['id']]);
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
@@ -187,8 +190,8 @@ class Subject extends \mia\miagroup\Lib\Service {
                     $shareDesc = $albumArticles[$subjectInfo['id']]['content'];
                     $shareImage = $shareDefault['img_url'];
                     $h5Url = sprintf($shareDefault['wap_url'], $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
-                } else { //普通帖子
-                    $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                } elseif (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
+                    $shareDefault = $shareConfig['defaultShareInfo']['video'];
                     $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
                     if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
@@ -197,9 +200,17 @@ class Subject extends \mia\miagroup\Lib\Service {
                         $shareImage = $shareDefault['img_url'];
                     }
                     $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
+                
+                } else { //普通帖子
+                    $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                    $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
+                    $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
+                    $shareImage = $shareDefault['img_url'];
+                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
                 }
                 // 替换搜索关联数组
                 $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url, '{|extend_text|}' => $shareDefault['extend_text']);
+
                 // 进行替换操作
                 foreach ($share as $keys => $sh) {
                     $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
@@ -215,6 +226,57 @@ class Subject extends \mia\miagroup\Lib\Service {
             }
         }
         return $this->succ($subjectRes);
+    }
+    
+    /**
+     * 获取单条帖子信息
+     */
+    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
+        $subjectInfo = $this->getBatchSubjectInfos(array($subjectId), $currentUid, $field, $status);
+        $subjectInfo = $subjectInfo['data'][$subjectId];
+        if (empty($subjectInfo)) {
+            return $this->succ(array());
+        }
+
+        //如果是专栏，获取作者的其他专栏
+        if (!empty($subjectInfo['album_article'])) { 
+            $con = [
+                'user_id'   => $subjectInfo['user_info']['user_id'],
+                'iPageSize' => 5,
+            ];
+            $albumServiceData = $this->albumService->getArticleList($con);
+            $albumServiceData = $albumServiceData['data'];
+            $albumArticleList = array();
+            if (!empty($albumServiceData['article_list'])) {
+                foreach ($albumServiceData['article_list'] as $article) {
+                    //排除当前的
+                    if ($article['album_article']['subject_id'] != $subjectId) {
+                        $albumArticleList[] = $article;
+                    }
+                }
+            }
+            if (!empty($albumArticleList)) {
+                //最多显示3条，输出4条给客户端显示全部
+                $subjectInfo['recent_article'] = count($albumArticleList) > 4 ? array_slice($albumArticleList, 0, 4) : $albumArticleList;
+            }
+        }
+
+        if (in_array('view_num_record', $field)) {
+            //阅读量计数
+            $this->subjectModel->viewNumRecord($subjectId);
+        }
+        if (!isset($dmSync['refer_subject_id']) || empty($dmSync['refer_subject_id'])) {
+            $dmSync['refer_subject_id'] = $subjectId;
+        }
+        if (!empty($dmSync['refer_subject_id']) || !empty($dmSync['refer_channel_id'])) {
+            //相关帖子
+            $headlineRemote = new HeadlineRemote();
+            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $currentUid);
+            $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
+            
+            $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
+        }
+        return $this->succ($subjectInfo);
     }
     
     
@@ -277,12 +339,18 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
             return $this->error(500);
         }
+        if (strtotime($subjectInfo['created']) > 0) {
+            $subjectSetInfo['created'] = $subjectInfo['created'];
+        } else {
+            $subjectSetInfo['created'] = date("Y-m-d H:i:s", time());
+        }
         // 添加视频
         if ($subjectInfo['video_url']) {
             $videoInfo['user_id'] = $subjectInfo['user_info']['user_id'];
             $videoInfo['video_origin_url'] = $subjectInfo['video_url'];
             $videoInfo['source'] = 'qiniu';
             $videoInfo['status'] = 2;
+            $videoInfo['create_time'] = $subjectSetInfo['created'];
             $videoId = $this->addSubjectVideo($videoInfo, true)['data'];
             if ($videoId > 0) {
                 // 如果有视频，subject状态置为转码中
@@ -299,7 +367,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         } else {
             $subjectSetInfo['text'] = '';
         }
-        $subjectSetInfo['created'] = date("Y-m-d H:i:s", time());
+        if (intval($subjectInfo['source']) > 0) {
+            $subjectSetInfo['source'] = $subjectInfo['source'];
+        }
         // ext_info保存帖子口碑关联信息
         if (intval($koubeiId) > 0) {
             $subjectSetInfo['ext_info']['koubei']['id'] = $koubeiId;
@@ -422,6 +492,11 @@ class Subject extends \mia\miagroup\Lib\Service {
         $insertData['create_time'] = date('Y-m-d H:i:s');
         $insertData['source'] = !empty($videoInfo['source']) ? $videoInfo['source'] : '';
         $insertData['status'] = in_array($videoInfo['status'], array(1, 2)) ? $videoInfo['status'] : 0;
+        if (strtotime($videoInfo['create_time']) > 0) {
+            $insertData['create_time'] = $videoInfo['create_time'];
+        } else {
+            $insertData['create_time'] = date("Y-m-d H:i:s", time());
+        }
         if (!empty($videoInfo['cover_image'])) {
             $insertData['ext_info']['cover_image'] = $videoInfo['cover_image'];
         }
@@ -569,6 +644,26 @@ class Subject extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 批量查询帖子阅读数
+     */
+    public function getBatchSubjectViewCount($subjectIds) {
+        $subjects = $this->subjectModel->getSubjectByIds($subjectIds, array());
+        $subjectCountArr = array();
+        $numRatio = 3; //放大倍数
+        foreach ($subjects as $subjectId => $subject) {
+            if (intval($subject['view_num']) > 0) {
+                $subjectCountArr[$subjectId] = $subject['view_num'] * $numRatio;
+            } else {
+                //如果阅读数为零，设置初始阅读数
+                $viewNum = rand(200, 300);
+                $subjectCountArr[$subjectId] = $viewNum * $numRatio;
+                $this->subjectModel->viewNumRecord($subjectId, $viewNum);
+            }
+        }
+        return $this->succ($subjectCountArr);
+    }
+    
+    /**
      * 删除帖子
      */
     public function delete($subjectId,$userId){
@@ -637,6 +732,68 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($shareId);
     }
     
-    
+    /**
+     * 头条导入帖子数据
+     */
+    public function syncHeadLineSubject($subject, $existCheck = 1) {
+        if (empty($subject['user_id'])) {
+            return $this->error('500');
+        }
+        $subjectInfo = array('user_info' => array('user_id' => $subject['user_id']));
+        $subjectInfo['source'] = 3;
+        if (!empty($subject['title'])) {
+            $subjectInfo['title'] = $subject['title'];
+        }
+        if (!empty($subject['text'])) {
+            $subjectInfo['text'] = $subject['text'];
+        }
+        if (!empty($subject['video_url'])) {
+            $subjectInfo['video_url'] = $subject['video_url'];
+        }
+        if (!empty($subject['created'])) {
+            $subjectInfo['created'] = $subject['created'];
+        }
+        $uniqueFlag = md5($subject['video_url']);
+        $redis = new \mia\miagroup\Lib\Redis();
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.headLineKey.syncUniqueFlag.key'), $uniqueFlag);
+        $subjectId = $redis->get($key);
+        if (!$subjectId) {
+            $subjectData = new \mia\miagroup\Data\Subject\Video();
+            $subjectId = $subjectData->getRow(array('video_origin_url', $subject['video_url']), 'subject_id');
+            $subjectId = $subjectId['subject_id'];
+            if (intval($subjectId) > 0) {
+                $redis->setex($key, $subjectId, 8640000);
+            }
+        }
+        if ($subjectId) {
+            if (!empty($subject['user_id'])) {
+                $setData[] = array('user_id', $subject['user_id']);
+            }
+            if (!empty($subjectInfo['title'])) {
+                $setData[] = array('title', $subjectInfo['title']);
+            }
+            if (!empty($subjectInfo['text'])) {
+                $setData[] = array('text', $subjectInfo['text']);
+            }
+            $this->subjectModel->updateSubject($setData, $subjectId);
+            if (!empty($subject['user_id'])) {
+                $setVideoData[] = array('user_id', $subject['user_id']);
+                $where[] = ['subject_id', $subjectId];
+                $this->subjectModel->updateVideoBySubject($setVideoData, $where);
+            }
+            if ($existCheck) {
+                return $this->succ($subjectId);
+            }
+        }
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
+        $result = $this->issue($subjectInfo);
+        \DB_Query::switchCluster($preNode);
+        $redis->setex($key, $subjectId, 8640000);
+        if ($result['code'] > 0) {
+            return $this->error($result['code']);
+        } else {
+            return $this->succ($result['data']['id']);
+        }
+    }
 }
 

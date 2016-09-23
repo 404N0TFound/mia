@@ -18,6 +18,13 @@ $defaultShareInfo = array(
         'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
         'extend_text'            => '看白富美妈妈分享的好货',
     ),
+    'video' => array(
+        'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
+        'wap_url' => 'http://m.miyabaobei.com/wx/group_detail/%s.html',
+        'title'      => '我在蜜芽圈发现一个超有用的视频，分享给你',
+        'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
+        'extend_text'            => '看白富美妈妈分享的好货',
+    ),
 );
 
 /**
@@ -41,6 +48,7 @@ $groupShare = array(
         'extend_text'   => '{|extend_text|}',
     ),
 );
+
 /**
  * 专栏文章配置
  */
@@ -48,3 +56,12 @@ $album = array(
     //h5内嵌页链接
     'h5_url'=>'http://www.mia.com/groupspe/show/%d/%d',
 );
+
+/**
+ * 帖子来源
+ */
+ $source = array(
+     'default'  => 1, //默认
+     'koubei'   => 2, //口碑
+     'headline' => 3, //头条
+ );

@@ -61,7 +61,7 @@ class Label extends \mia\miagroup\Lib\Service {
     public function getAllAttentLabel($userId)
     {
         $labelIds = $this->labelModel->getLabelListByUid($userId);
-        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
         return $this->succ($labelInfos);
     }
     
@@ -110,7 +110,7 @@ class Label extends \mia\miagroup\Lib\Service {
      */
     public function getNewUserRecommendLabels($page=1,$count=10) {
         $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_new');
-        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
         return $this->succ($labelInfos);
     }
     
@@ -119,7 +119,7 @@ class Label extends \mia\miagroup\Lib\Service {
      */
     public function getRecommendLabels($page=1,$count=10) {
         $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
-        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
         return $this->succ($labelInfos);
     }
 }

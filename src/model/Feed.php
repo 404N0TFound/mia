@@ -16,10 +16,10 @@ class Feed
     /**
      * 获取用户帖子列表
      */
-    public function getSubjectListByUids($userIds,$page=1,$limit=10)
+    public function getSubjectListByUids($userIds,$page=1,$limit=10,$source = array())
     {
         $start = ($page - 1) * $limit;
-        $data = $this->feedSubject->getSubjectList($userIds,$start,$limit);
+        $data = $this->feedSubject->getSubjectList($userIds,$start,$limit,$source);
         return $data;
     }
 

@@ -24,7 +24,17 @@ class GroupSubjectUserExperts extends DB_Query {
         'answer_nums' => 'i'
     );
     
-    // 批量获取专家信息
+    /**
+     * 新增专家
+     */
+    public function addExpert($expertInfo) {
+        $data = $this->insert($expertInfo);
+        return $data;
+    }
+    
+    /**
+     * 批量获取专家信息
+     */ 
     public function getBatchExpertInfoByUids($userIds) {
         $result = array();
         
@@ -36,22 +46,6 @@ class GroupSubjectUserExperts extends DB_Query {
         if (!empty($experts)) {
             foreach ($experts as $expert) {
                 $result[$expert['user_id']] = $expert;
-            }
-        }
-        return $result;
-    }
-
-    public function getExpertList($userIds) {
-        if(!is_array($userIds)){
-            return [];
-        }
-        $where[] = ['status', 1];
-        $where[] = ['user_id', $userIds];
-        $data = $this->getRows($where, 'user_id');
-        $result = array();
-        if (!empty($data)) {
-            foreach ($data as $v) {
-                $result[] = $v['user_id'];
             }
         }
         return $result;

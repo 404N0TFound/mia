@@ -99,6 +99,7 @@ class LiveRoom extends \DB_Query {
                     $result[$v['id']]['source'] = $settings['source'];
                     $result[$v['id']]['title'] = $settings['title'];
                     $result[$v['id']]['user_num'] = $settings['user_num'];
+                    $result[$v['id']]['coupon'] = $settings['coupon'];
                     $result[$v['id']]['settings'] = $settings;
                 }
             }

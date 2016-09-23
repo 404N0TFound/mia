@@ -131,7 +131,7 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo[$key] = '';
             }
         }
-        if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"])*$/", $userInfo['icon'])) {
+        if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\//", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
         }
         $userInfo['username'] = preg_replace('/(miya[\d]{3}|mobile_[\d]{3})([\d]{4})([\d]{4})/', "$1****$3", $userInfo['username']);
@@ -216,6 +216,54 @@ class User extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($result);
     }
-    
-    
+
+    /**
+     * 头条导入用户
+     */
+    public function syncHeadLineUser($userinfo) {
+        $username = mb_strlen($userinfo['username'], 'utf8') > 18 ? mb_substr($userinfo['username'], 0, 18) : $userinfo['username'];
+        $nickname = mb_strlen($userinfo['nickname'], 'utf8') > 16 ? mb_substr($userinfo['nickname'], 0, 16) : $userinfo['nickname'];
+        $avatar = $userinfo['avatar'];
+        $category = $userinfo['category'];
+        $checkExist = $userinfo['checkExist'];
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
+        //如果checkExist==1，nickname重复不再生成新用户
+        if ($checkExist == 1) {
+            $userId = $this->userModel->getUidByNickName($nickname);
+            if (intval($userId) > 0) {
+                //用户归类
+                $this->userModel->setHeadlineUserCategory($userId, $category);
+                return $this->succ(array('uid' => $userId, 'is_exist' => 1));
+            }
+        }
+        //校验userName是否已存在
+        $userId = $this->userModel->getUidByUserName($username);
+        if (intval($userId) > 0) {
+            //更新用户信息
+            $setData[] = array('nickname', $nickname);
+            $setData[] = array('icon', $avatar);
+            $this->userModel->updateUserById($userId, $setData);
+            //用户归类
+            $this->userModel->setHeadlineUserCategory($userId, $category);
+            return $this->succ(array('uid' => $userId, 'is_exist' => 1));
+        }
+        //主表插入
+        $userInfo['username'] = $username;
+        $userInfo['nickname'] = $nickname;
+        $userInfo['icon'] = $avatar;
+        $userInfo['password'] = 'a255220a91378ba2f4aad17300ed8ab7';
+        $userInfo['group_id'] = 10;
+        $userInfo['relation'] = 3;
+        $userInfo['create_date'] = date('Y-m-d H:i:s');
+        $userId = $this->userModel->addUser($userInfo);
+        $this->userModel->addExpert(array('user_id' => $userId, 'last_modify' => date('Y-m-d H:i:s'), 'status' => 1));
+        \DB_Query::switchCluster($preNode);
+        if (intval($userId) > 0) {
+            //用户归类
+            $this->userModel->setHeadlineUserCategory($userId, $category);
+            return $this->succ(array('uid' => $userId, 'is_exist' => 0));
+        } else {
+            return $this->error(500);
+        }
+    }
 }

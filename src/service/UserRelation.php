@@ -182,6 +182,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         }
         $userIds = $this->getAllAttentionUser($userId)['data'];
         $expertUserIds = $this->userRelationModel->getAttentionExpertList($userIds);
+        $expertUserIds = !empty($expertUserIds) ? array_keys($expertUserIds) : array();
         return $this->succ($expertUserIds);
     }
 }
