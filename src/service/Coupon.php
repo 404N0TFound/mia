@@ -100,7 +100,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $couponLists = $this->couponRemote->queryUserCouponByBatchCode($userId, $batchCodes, $page, $limit);
-        if(!$couponLists || empty($couponLists['coupon_info_list'])){
+        if(!$couponLists){
             return $this->error(1632);
         }
         return $this->succ($couponLists);
@@ -116,7 +116,7 @@ class Coupon extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $couponInfo = $this->getPersonalCoupons($userId, $batchCodes);
-        if($couponInfo['code'] == 0){
+        if($couponInfo['code'] == 0  && !empty($couponLists['coupon_info_list'])){
             return $this->error(1631);
         }
         return $this->succ(true);
