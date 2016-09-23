@@ -62,7 +62,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             return $this->succ($headLineList);
         }
         
-        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid);
+        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid,$count);
         if ($action == 'init') {
             //格式化客户端上传的headlineIds
             $headlineIds = $this->_formatClientIds($headlineIds);
