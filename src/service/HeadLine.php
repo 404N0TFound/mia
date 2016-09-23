@@ -384,8 +384,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if (empty($topicInfo) || !is_array($topicInfo)) {
             return $this->error(500);
         }
+        $topicInfo['text'] = isset($topicInfo['text']) ? $topicInfo['text'] : '';
         $setTopicData = array();
-        $setTopicInfo = array('title'=>$topicInfo['title'],'cover_image'=>$topicInfo['cover_image']);
+        $setTopicInfo = array('title'=>$topicInfo['title'],'text'=>$topicInfo['text'],'cover_image'=>$topicInfo['cover_image']);
         $setTopicData['topic_info'] = json_encode($setTopicInfo);
         $setTopicData['subject_ids'] = $topicInfo['subject_ids'];
         $setTopicData['status'] = 1;
@@ -411,8 +412,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $topicInfo['subject_ids'] = json_encode($topicInfo['subject_ids']);
             $setTopicData[] = ['subject_ids',$topicInfo['subject_ids']];
         }
+        
+        $topicInfo['text'] = isset($topicInfo['text']) ? $topicInfo['text'] : '';
+        
         if(isset($topicInfo['title']) && isset($topicInfo['cover_image'])){
-            $setTopicInfo = array('title'=>$topicInfo['title'],'cover_image'=>$topicInfo['cover_image']);
+            $setTopicInfo = array('title'=>$topicInfo['title'],'text'=>$topicInfo['text'],'cover_image'=>$topicInfo['cover_image']);
             $setTopicData[] = ['topic_info',json_encode($setTopicInfo)];
         }
         $editRes = $this->headLineModel->editHeadLineTopic($topicId, $setTopicData);
