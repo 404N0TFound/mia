@@ -479,7 +479,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         foreach ($datas as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
             //帖子
-            if ($relation_type == 'video' || $relation_type == 'album') {
+            if ($relation_type == 'video' || $relation_type == 'album' || $relation_type == 'subject') {
                 $subjectIds[] = $relation_id;
             //直播
             } elseif ($relation_type == 'live') {
@@ -545,6 +545,29 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         }
                     }
                     break;
+                case 'subject':
+                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        $subject = $subjects[$relation_id];
+                        if (!empty($subject['album_article'])) {
+                            $tmpData['id'] = $subject['id'] . '_album';
+                            $tmpData['type'] = 'album';
+                            $tmpData['album'] = $subject;
+                            $subject['album_article']['title'] = $relation_title ? $relation_title : $subject['album_article']['title'];
+                            if(!empty($relation_cover_image)){
+                                $subject['album_article']['cover_image'] = $relation_cover_image;
+                            }
+                        } else if (!empty($subject['video_info'])) {
+                            $tmpData['id'] = $subject['id'] . '_video';
+                            $tmpData['type'] = 'video';
+                            $tmpData['video'] = $subject;
+                            $subject['title'] = $relation_title ? $relation_title : $subject['title'];
+                            if(!empty($relation_cover_image)){
+                                $subject['image_url'][] = $relation_cover_image;
+                                $subject['small_image_url'][] = $relation_cover_image;
+                            }
+                        }
+                    }
+                    break;
                 case 'live':
                     if (isset($lives[$relation_id]) && !empty($lives[$relation_id])) {
                         $live = $lives[$relation_id];
@@ -555,7 +578,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';
                         $tmpData['live'] = $live;
-
                     }
                     break;
                 case 'topic':
