@@ -75,10 +75,10 @@ class SubjectLabel extends \DB_Query {
         $where = array();
         $where[] = array("status", '1');
         $where[] = array("is_recommend", '1');
-        $LabelRes = $this->getRows($where,'id');
+        $LabelRes = $this->getRows($where,'id,title');
         if($LabelRes){
             foreach ($LabelRes as $value){
-                    $LabelID[] = $value['id'];
+                $LabelID[$value['id']] = $value;
             }
         }
         return $LabelID;
@@ -107,19 +107,7 @@ class SubjectLabel extends \DB_Query {
         return $result;
     }
 
-    /**
-     * 获取标签分类信息
-     */
-    public function getRecommendCategroyLabels($start = 1, $limit = 50)
-    {
-        $sql = "select a.category_id,l.id,l.title
-        from group_subject_label_category_relation as a
-        , {$this->table_labels} as l
-        where a.label_id = l.id 
-        order by a.id desc limit {$start}, {$limit}";
-        $result = $this->query($sql);
-        return $result;
-    }
+
 
     /**
      * 更新标签详情页图像宽高

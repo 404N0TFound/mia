@@ -206,6 +206,9 @@ class Label {
         return $labelInfos;
     }
 
+    /**
+     * 获取单条标签信息
+     */
     public function getBatchLabelInfo($labelId)
     {
         $data = $this->getBatchLabelInfos(array($labelId))[$labelId];
@@ -221,19 +224,37 @@ class Label {
         return $data;
     }
 
+    /**
+     * 获取标签帖子置顶状态
+     */
     public function getLableSubjectsTopStatus($lableId, $subjectIds)
     {
         $data = $this->labelRelation->getLableSubjectsTopStatus($lableId,$subjectIds);
         return $data;
     }
 
+    /**
+     * 查找被推荐的分类标签
+     */
     public function getCategoryLables($page=1,$limit=50)
     {
-        $start = ($page-1)*$limit;
-        $data = $this->labelCagegoryRelation->getCategoryLables($start,$limit);
+        $labelInfo = $this->getLabelID();
+        $labelIds = array_keys($labelInfo);
+        $categoryIds = $this->labelCagegoryRelation->getLabelCategory($labelIds);
+        $categoryIds = count($categoryIds)>50 ? array_slice($categoryIds, 0,50) : $categoryIds;
+        $data = [];
+        foreach ($categoryIds as $key => $value) {
+            if(isset($labelInfo[$key])){
+                $labelInfo[$key]['category_id'] = $value;
+                $data[] = $labelInfo[$key];
+            }
+        }
         return $data;
     }
 
+    /**
+     * 根据标签分类查找关联的标签id
+     */
     public function getLabelByCategroyIds($categoryIds,$page=1,$limit=10)
     {
         if($limit){
@@ -245,6 +266,10 @@ class Label {
         $data = $this->labelCagegoryRelation->getLabelByCategroyIds($categoryIds,$start,$limit);
         return $data;
     }
+
+    /**
+     * 更新标签详情页图像宽高
+     */
     public function updateLabelImgInfo($labelId,$setData)
     {
         $data = $this->labelData->updateLabelImgInfo($labelId,$setData);

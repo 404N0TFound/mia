@@ -18,12 +18,12 @@ class SubjectLabelCategoryRelation extends \DB_Query
         $data = $this->getRows($where);
         $result = [];
         foreach ($data as $v) {
-            $result[] = $v['category_id'];
+            $result[$v['label_id']] = $v['category_id'];
         }
         return $result;
     }
 
-        /**
+    /**
      * 根据标签分类查找关联的标签id
      */
     public function getLabelByCategroyIds($categroyIds, $offset = 0, $limit = 10) {
@@ -41,13 +41,4 @@ class SubjectLabelCategoryRelation extends \DB_Query
         return $result;
     }
 
-    /**
-     * 查找被推荐的分类标签
-     */
-    public function getCategoryLables($offset=0,$limit=50)
-    {
-        $sql = "select a.category_id,l.id,l.title from $this->tableName a ,group_subject_label l where a.label_id = l.id order by a.id desc limit $offset, $limit";
-        $result = $this->query($sql);
-        return $result;
-    }
 }
