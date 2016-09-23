@@ -557,12 +557,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         } else if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_video';
                             $tmpData['type'] = 'video';
-                            $tmpData['video'] = $subject;
                             if(!empty($relation_cover_image)){
                                 $subject['image_url'][] = $relation_cover_image;
                                 $subject['small_image_url'][] = $relation_cover_image;
                             }
                             $subject['title'] = $relation_title ? $relation_title : $subject['title'];
+                            $tmpData['video'] = $subject;
                         }
                     }
                     break;
