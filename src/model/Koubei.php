@@ -144,4 +144,12 @@ class Koubei {
         $koubeiInfo = $this->koubeiData->updateKoubeiBySubjectid($koubeiId,$subjectId);
         return $koubeiInfo;
     }
+    
+    /**
+     * 删除口碑
+     */
+    public function delete($id, $userId){
+        $result = $this->koubeiData->delete($id,$userId);
+        return $result;
+    }
 }

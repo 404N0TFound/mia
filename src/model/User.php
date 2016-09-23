@@ -81,6 +81,22 @@ class User {
     }
     
     /**
+     * 设置头条抓取用户分类
+     */
+    public function setHeadlineUserCategory($userId, $category) {
+        $headLineUserCategory = new HeadLineUserCategoryData();
+        $data = $headLineUserCategory->getDataByUid($userId);
+        if (!empty($data)) {
+            $setData[] = array('category', $category);
+            $headLineUserCategory->setDataByUid($userId, $setData);
+            return $data['id'];
+        } else {
+            $data = $headLineUserCategory->addUserCategory($userId, $category);
+            return $data;
+        }
+    }
+    
+    /**
      * 新增专家
      */
     public function addExpert($expertInfo) {
@@ -96,19 +112,5 @@ class User {
         $userData = new UserData();
         $res = $userData->updateUserById($userId, $userInfo);
         return $res;
-    }
-    
-    /**
-     * 设置头条抓取用户分类
-     */
-    public function setHeadlineUserCategory($userId, $category) {
-        $headLineUserCategory = new HeadLineUserCategoryData();
-        $data = $headLineUserCategory->getDataByUid($userId);
-        if (!empty($data)) {
-            return $data['id'];
-        } else {
-            $data = $headLineUserCategory->addUserCategory($userId, $category);
-            return $data;
-        }
     }
 }
