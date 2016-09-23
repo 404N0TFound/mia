@@ -199,7 +199,7 @@ class Subject extends \mia\miagroup\Lib\Service {
                     } else {
                         $shareImage = $shareDefault['img_url'];
                     }
-                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
+                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['video_info']['id']);
                 
                 } else { //普通帖子
                     $shareDefault = $shareConfig['defaultShareInfo']['subject'];
