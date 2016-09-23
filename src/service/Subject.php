@@ -237,6 +237,42 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (empty($subjectInfo)) {
             return $this->error(500);
         }
+        //判断登录用户是否是被屏蔽用户
+        if(!empty($subjectInfo['user_info']['user_id'])){
+            $audit = new \mia\miagroup\Service\Audit();
+            $is_shield = $audit->checkUserIsShield($subjectInfo['user_info']['user_id'])['data'];
+            if($is_shield['is_shield']){
+                return $this->error(1104);
+            }
+        }
+        //过滤敏感词
+        if(!empty($subjectInfo['title'])){
+            //过滤敏感词
+            $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'])['data'];
+            if(!empty($sensitive_res['sensitive_words'])){
+                return $this->error(1112);
+            }
+        }
+        if(!empty($subjectInfo['text'])){
+            //过滤敏感词
+            $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'])['data'];
+            if(!empty($sensitive_res['sensitive_words'])){
+                return $this->error(1112);
+            }
+        }
+        //蜜芽圈标签
+        if (!empty($labelInfos)) {
+            $labelTitleArr = array_column($labelInfos, 'title');
+            $labelStr = implode(',', $labelTitleArr);
+            //过滤敏感词
+            if(!empty($labelStr)){
+                $sensitive_res = $audit->checkSensitiveWords($labelStr)['data'];
+                if(!empty($sensitive_res['sensitive_words'])){
+                    return $this->error(1112);
+                }
+            }
+        }
+        
         $subjectSetInfo = array();
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
             return $this->error(500);
