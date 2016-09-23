@@ -941,13 +941,11 @@ class Live extends \mia\miagroup\Lib\Service {
         if($batchCodeExpiredStatus['code'] != 0){
             return $this->error($batchCodeExpiredStatus['code']);
         }
-        //判断该优惠券是否发送过，避免重复发送
-        $sendStatus = $couponService->checkBatchCodeIsSent($liveRoomInfo['live_id'],$batchCode);
-        if($sendStatus['code'] != 0){
-            return $this->error('1636');
-        }
         //倒计时
         $countdown = $liveRoomInfo['coupon']['countdown'];
+        if($countdown>0){
+            return $this->error('1636');
+        }
         $money = $liveRoomInfo['coupon']['money'];
         $coupon = ['batch_code'=>$batch_code,'countdown'=>$countdown,'money'=>$money];
         //发送领取优惠券消息
