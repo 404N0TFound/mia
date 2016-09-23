@@ -165,7 +165,7 @@ class Subject {
         $redis->lpush($read_num_key, $data);
         return true;
     }
-
+    
     /**
      * 读取帖子阅读记录
      * @param int $num 获取队列中的条数
@@ -183,5 +183,55 @@ class Subject {
             $result[$data['subject_id']] += intval($data['num']);
         }
         return $result;
+     }
+     
+     /**
+      * 获取用户的相关帖子ID
+      * @param unknown $userId
+      * @param number $currentId
+      * @param number $iPage
+      * @param number $iPageSize
+      */
+     public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
+         $subject_id = $this->subjectData->getSubjectInfoByUserId($userId, $currentId, $iPage, $iPageSize);
+         return $subject_id;
+     }
+     
+     /**
+      * 删除帖子
+      * @param unknown $subjectId
+      * @param unknown $userId
+      */
+     public function delete($subjectId, $userId){
+         $affect = $this->subjectData->delete($subjectId, $userId);
+         return $affect;
+     }
+     
+     /**
+      * 精选帖子的ids
+      * @param int $iPage 页码
+      * @param int $iPageSize 一页多少个
+      * @return array 帖子ids
+      */
+     public function getRrecommendSubjectIds($iPage=1, $iPageSize=21){
+         $subject_ids = $this->subjectData->getRrecommendSubjectIds($iPage,$iPageSize);
+         return $subject_ids;
+     }
+     
+     /**
+      * 根据用户ID获取帖子信息
+      */
+     public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+         $data = $this->subjectData->getSubjectDataByUserId($subjectId, $userId, $status);
+         return $data;
+     }
+     
+     /**
+      * 分享
+      */
+     public function addShare($sourceId, $userId, $type, $platform,$status){
+         $shareData = new \mia\miagroup\Data\Subject\Share();
+         $shareId = $shareData->addShare($sourceId, $userId, $type, $platform,$status);
+         return $shareId;
      }
 }

@@ -35,7 +35,6 @@ class Comment {
         return $data;
     }
     
-    
     /**
      * 根据subjectIds批量分组查评论数
      */
@@ -47,7 +46,10 @@ class Comment {
     /**
      * 获取根据帖子ID获取评论列表
      */
-    public function getCommentListBySubjectId($subjectId, $page = 1, $limit = 20) {
+    public function getCommentListBySubjectId($subjectId, $user_type = 0, $page = 1, $limit = 20) {
+        if($user_type == 1){
+            $where['is_expert'] = array('is_expert', 1);
+        }
         $where['subject_id'] = array(':eq', 'subject_id', $subjectId);
         $offset = $page > 1 ? ($page - 1) * $limit : 0;
         $subjectComment = $this->subjectCommentData->getCommentListByCond($where, $offset, $limit, 'id desc');
@@ -57,4 +59,24 @@ class Comment {
         }
         return $result;
     }
+    
+    //删除评论
+    public function delComment($id, $userId) {
+        $affect = $this->subjectCommentData->delComment($id, $userId);
+        return $affect;
+    }
+    
+    //获取专家评论数
+    public function getCommentByExpertId($expertid){
+        return $this->subjectCommentData->getCommentByExpertId($expertid);
+    }
+    
+    /**
+     * 获取用户的评论信息
+     */
+    public function getUserSubjectCommentInfo($userId, $page = 1, $pageSize = 10){
+        $result = $this->subjectCommentData->getUserSubjectCommentInfo($userId, $page, $pageSize);
+        return $result;
+    }
+    
 }

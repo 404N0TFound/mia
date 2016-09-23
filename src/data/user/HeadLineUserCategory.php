@@ -35,4 +35,16 @@ class HeadLineUserCategory extends \DB_Query {
         $data = $this->getRow($where);
         return $data;
     }
+    
+    /**
+     * 根据uid查询
+     */
+    public function setDataByUid($userId, $setData) {
+        if (empty($userId) || empty($setData)) {
+            return false;
+        }
+        $where[] = array('user_id', $userId);
+        $affectRow = $this->update($setData, $where);
+        return $affectRow;
+    }
 }
