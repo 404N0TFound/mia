@@ -496,7 +496,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();
         foreach ($opertionData as $v) {
-            $v['ext_info'] = json_decode($v['ext_info'],true);
             $sortedOpertionData[$v['row']] = $v;
         }
         //按序输出头条结果集
