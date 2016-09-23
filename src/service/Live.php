@@ -995,7 +995,7 @@ class Live extends \mia\miagroup\Lib\Service {
 
         //获取优惠券信息
         $couponInfo = $couponService->getPersonalCoupons($userId,[$batchCode]);
-        if($couponInfo['code']>0 || empty($couponLists['coupon_info_list'])){
+        if($couponInfo['code']>0 || empty($couponInfo['data']['coupon_info_list'])){
             return $this->error('1632');
         }
 
