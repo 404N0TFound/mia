@@ -478,7 +478,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $topicIds   = [];
         foreach ($datas as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
-            //帖子（专栏或者视频的帖子）
+            //帖子
             if ($relation_type == 'video' || $relation_type == 'album') {
                 $subjectIds[] = $relation_id;
             //直播
@@ -516,7 +516,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             }
             //将运营配置的title、cover_image替换掉原有的
             switch ($relation_type) {
-                case 'subject':
+                case 'album':
                     if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
                         $subject = $subjects[$relation_id];
                         if (!empty($subject['album_article'])) {
@@ -527,7 +527,13 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                             if(!empty($relation_cover_image)){
                                 $subject['album_article']['cover_image'] = $relation_cover_image;
                             }
-                        } else if (!empty($subject['video_info'])) {
+                        }
+                    }
+                    break;
+                case 'video':
+                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        $subject = $subjects[$relation_id];
+                        if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_video';
                             $tmpData['type'] = 'video';
                             $tmpData['video'] = $subject;
