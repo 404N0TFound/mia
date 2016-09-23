@@ -63,9 +63,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         
         $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid);
-        //格式化客户端上传的headlineIds
-        $headlineIds = $this->_formatClientIds($headlineIds);
-        $headLineData = array_unique(array_merge($headlineIds, $headLineData));
+        if ($action == 'init') {
+            //格式化客户端上传的headlineIds
+            $headlineIds = $this->_formatClientIds($headlineIds);
+            $headLineData = array_unique(array_merge($headlineIds, $headLineData));
+        }
         //获取运营数据
         $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
         //推荐数据、运营数据去重
