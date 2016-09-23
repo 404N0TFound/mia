@@ -23,8 +23,8 @@ $lockedChannel = array(
  * 客户端头条展示类型与服务端类型的映射 
  */
 $clientServerMapping = array(
-    'album' => 'subject',
-    'video' => 'subject',
+    'album' => 'album',
+    'video' => 'video',
     'live'  => 'live',
     'headline_topic' => 'topic',
 );
