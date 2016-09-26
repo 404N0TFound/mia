@@ -50,4 +50,17 @@ class GroupSubjectUserExperts extends DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 修改专家信息
+     */
+    public function updateExpertInfoByUid($userId, $setData) {
+        if (empty($userId)) {
+            return false;
+        }
+        $where = array();
+        $where[] = array('user_id', $userId);
+        $data = $this->update($setData, $where);
+        return $data;
+    }
 }
