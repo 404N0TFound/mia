@@ -72,7 +72,7 @@ class Label extends \mia\miagroup\Lib\Service {
     {
         $subjectIds = $this->labelModel->getSubjectListByLableIds($labelIds,$page,$limit);
         $subjectService = new SubjectService();
-        $data = $subjectService->getBatchSubjectInfos($subjectIds,$currentUid,array('user_info', 'count', 'comment', 'group_labels', 'praise_info'));
+        $data = $subjectService->getBatchSubjectInfos($subjectIds,$currentUid,array('user_info', 'count', 'comment', 'group_labels', 'praise_info'))['data'];
         return $this->succ($data);
     }
     

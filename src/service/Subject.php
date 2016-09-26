@@ -637,7 +637,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $data['status'] = -1;
             return $this->succ($data);
         }
-        $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId));
+        $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId)['data']);
         $data['status'] = 1;
         
         return $this->succ($data);
@@ -698,7 +698,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $data['label_lists'] = array_values($labels);
         }
         if(!empty($subjectIds)) {
-            $subjects = $this->getBatchSubjectInfos($subjectIds,$userId);
+            $subjects = $this->getBatchSubjectInfos($subjectIds,$userId)['data'];
             $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
         }
         return $this->succ($data);
