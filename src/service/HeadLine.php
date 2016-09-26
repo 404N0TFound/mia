@@ -105,8 +105,15 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      */
     public function getHeadLineRecommenduser($currentUid=0)
     {
+        $userids = [];
+        if($currentUid>0){
+            $userRelationService = new \mia\miagroup\Service\UserRelation();
+            $userids = $userRelationService->getAllAttentionExpert($currentUid)['data'];
+        }
+        
         $expertIds = $this->headlineConfig['expert'];
-        $data = $this->userServer->getUserInfoByUids($expertIds,$currentUid)['data'];
+        $user_ids = array_unique(array_merge($userids,$expertIds));
+        $data = $this->userServer->getUserInfoByUids($user_ids,$currentUid)['data'];
         $data = array_values($data);
         return $this->succ($data);
     }
