@@ -369,7 +369,7 @@ class Album extends \mia\miagroup\Lib\Service {
                 ));
         }
         if (!empty($set['images'])) { //其他图
-            $params['ext_info']['images'] = $set['images'];
+            $data['ext_info']['images'] = $set['images'];
         }
         
         if(empty($data) ){
@@ -692,7 +692,6 @@ class Album extends \mia\miagroup\Lib\Service {
         $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.headLineKey.syncUniqueFlag.key'), $uniqueFlag);
         $subjectId = $redis->get($key);
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
-        
         if ($subjectId) { //已存在更新
             if (!empty($article['cover_image'])) {
                 $article['image_infos'] = $article['cover_image'];
