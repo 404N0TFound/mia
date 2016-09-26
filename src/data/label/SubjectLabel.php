@@ -26,7 +26,7 @@ class SubjectLabel extends \DB_Query {
         $where = array();
         $where[] = array(':in', 'id', $labelIds);
         $where[] = array(':eq', 'status', 1);
-        $labelInfos = $this->getRows($where, '`id`, `title`, `is_hot`,`hot_pic`');
+        $labelInfos = $this->getRows($where, '`id`, `title`, `is_hot`,`hot_pic`,`is_recommend`,`hot_small_pic`');
         $labelsRes = array();
         if (!empty($labelInfos)) {
             foreach ($labelInfos as $labelInfo) {

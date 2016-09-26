@@ -169,7 +169,6 @@ class Label extends \mia\miagroup\Lib\Service {
         }
         //标签的关联标签
         $labelRelate = $this->labelModel->getRelateLabels($labelId);
-
         //关注信息
         if (intval($userId) > 0) {
             $relate = $this->labelModel->getLableRelationByUserId($userId, $labelId);
@@ -256,7 +255,14 @@ class Label extends \mia\miagroup\Lib\Service {
         if(empty($labelId)){
             return $this->succ(array());
         }
-        $activeSujectInfo = $this->getBatchSubjectIdsByLabelIds([$labelId],$userId,$page,$count,$isRecommend)['data'];
+
+        $subjectIds = $this->labelModel->getSubjectListByLableIds([$labelId],$page,$limit,$is_recommend);
+
+        $subjectService = new SubjectService();
+        $activeSujectInfo = $subjectService->getBatchSubjectInfos($subjectIds,$currentUid,$fields=array('user_info', 'count', 'comment', 'group_labels', 'praise_info'))['data'];
+
+
+        // $activeSujectInfo = $this->getBatchSubjectIdsByLabelIds([$labelId],$userId,$page,$count,$isRecommend)['data'];
         $subjectIds = array_keys($activeSujectInfo);
         $auditService = new \mia\miagroup\Service\Audit();
 

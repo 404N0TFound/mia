@@ -194,7 +194,7 @@ class Label {
     public function getRelateLabels($labelId,$page=1,$limit=10) {
         $start = ($page-1)*$limit;
         $categoryIds = $this->labelCagegoryRelation->getLabelCategory($labelId);
-        $categoryLabels = $this->labelCagegoryRelation->getLabelByCategroyIds($categoryIds, $start, $limit);
+        $categoryLabels = $this->labelCagegoryRelation->getLabelsByCategoryIds(array_values($categoryIds), $start, $limit);
         $labelIds = array();
         foreach ($categoryLabels as $labels) {
             if ($labels['label_id'] != $labelId) {
