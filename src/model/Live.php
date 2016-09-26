@@ -330,5 +330,86 @@ class Live {
         return true;
     }
 
+    /**
+     * 批量获取直播计数
+     */
+    public function getLiveCountByIds($liveIds) {
+        if (empty($liveIds) || empty($field)) {
+            return array();
+        }
+        $liveInfos = $this->getBatchLiveInfoByIds($liveIds, array());
+        $redis = new Redis();
+        $liveCounts = array();
+        foreach ($liveIds as $liveId) {
+            //当前在线数
+            $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_audience_online_num.key'), $liveId);
+            $liveCounts[$liveId]['online_num'] = intval($redis->get($key));
+            //累计观看人数
+            if ($liveInfos[$liveId]['status'] == 3) {
+                $liveCounts[$liveId]['audience_num'] = $liveCounts[$liveId]['online_num'];
+            } else {
+                $liveCounts[$liveId]['audience_num'] = $liveInfos[$liveId]['audience_num'] * 3 + $liveInfos[$liveId]['audience_top_num'];
+            }
+            
+        }
+        return $liveCounts;
+    }
+    
+    /**
+     * 设置直播计数
+     * @param $countType online_num 当前在线数, audience_num 累计观看数，audience_top_num 最高在线数，like_num 赞数， comment_num 评论数
+     */
+    public function setLiveCount($liveId, $countType, $count) {
+        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveKey.liveCountType');
+        if (!in_array($countType, $liveCountTypes)) {
+            return false;
+        }
+        $redis = new Redis();
+        switch ($countType) {
+            case 'online_num':
+                $audience_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_audience_online_num.key'), $liveId);
+                $redis->set($audience_num_key, $count);
+                break;
+            default:
+                $setData[] = [$countType, $count];
+                $this->updateLiveById($liveId, $setData);
+                break;
+        }
+        return true;
+    }
+    
+    /**
+     * 增加直播计数
+     * @param $countType online_num 当前在线数, audience_num 累计观看数，audience_top_num 最高在线数，like_num 赞数， comment_num 评论数
+     */
+    public function increaseLiveCount($liveId, $countType, $increaseNum = 1) {
+        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveKey.liveCountType');
+        if (!in_array($countType, $liveCountTypes)) {
+            return false;
+        }
+        $redis = new Redis();
+        $readNumKey = \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_count_record.key');
+        $data = json_encode(['live_id' => $liveId, 'type' => $countType, 'num' => intval($increaseNum)]);
+        $redis->lpush($readNumKey, $data);
+        return true;
+    }
 
+    /**
+     * 读取直播队列计数
+     * @param int $num 获取队列中的条数
+     */
+    public function getLiveCountRecord($num = 2000) {
+        $readNumKey = \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_count_record.key');
+        $redis = new Redis();
+        $len = intval($redis->llen($readNumKey));
+        if ($len < $num) {
+            $num = $len;
+        }
+        $result = [];
+        for ($i = 0; $i < $num; $i ++) {
+            $data = json_decode($redis->rpop($readNumKey),true);
+            $result[$data['live_id']][$data['type']] += intval($data['num']);
+        }
+        return $result;
+    }
 }
