@@ -70,12 +70,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         //获取运营数据
         $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
-        //除了推荐栏目都不显示头条置顶
-        foreach ($operationData as $key => $value) {
-            if($value['row']==1 && $channelId!=$this->headlineConfig['lockedChannel']['recommend']['id']){
-                unset($operationData[$key]);
-            }
-        }
         //推荐数据、运营数据去重
         $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));
         //获取格式化的头条输出数据
@@ -119,6 +113,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         $expertIds = $this->headlineConfig['expert'];
         $user_ids = array_unique(array_merge($userids,$expertIds));
+        $user_ids = array_intersect($user_ids, $expertIds);
         $userInfos = $this->userServer->getUserInfoByUids($user_ids,$currentUid)['data'];
         foreach ($user_ids as $key => $userId) {
             if(isset($userInfos[$userId])){
