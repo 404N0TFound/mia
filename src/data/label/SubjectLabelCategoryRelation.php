@@ -41,4 +41,22 @@ class SubjectLabelCategoryRelation extends \DB_Query
         return $result;
     }
 
+    /**
+     * 通过分类ID获取标签id
+     */
+    public function getLabelsByCategoryIds($categroyIds, $offset = 0, $limit = 10){
+        if (empty($categroyIds)) {
+            return array();
+        }
+        $where[] = array('status', 1);
+        $where[] = array('category_id', $categroyIds);
+        $data =  $this->getRows($where,'*',$limit,$offset,'id desc');
+        $result = [];
+        foreach ($data as $key => $value) {
+            $result[] = $value;
+        }
+        
+        return $result;
+    }
+
 }
