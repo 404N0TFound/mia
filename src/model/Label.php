@@ -280,7 +280,7 @@ class Label {
      * 获取标签下是否有精选帖子
      */
     public function getLabelIsRecommendInfo($labelId){
-        return $this->labelData->getLabelIsRecommendInfo($labelId);
+        return $this->labelRelation->getLabelIsRecommendInfo($labelId);
     }
 
 }
