@@ -113,6 +113,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         $expertIds = $this->headlineConfig['expert'];
         $user_ids = array_unique(array_merge($userids,$expertIds));
+        $user_ids = array_intersect($user_ids, $expertIds);
         $userInfos = $this->userServer->getUserInfoByUids($user_ids,$currentUid)['data'];
         foreach ($user_ids as $key => $userId) {
             if(isset($userInfos[$userId])){

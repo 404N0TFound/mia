@@ -226,6 +226,7 @@ class User extends \mia\miagroup\Lib\Service {
         $avatar = $userinfo['avatar'];
         $category = $userinfo['category'];
         $checkExist = $userinfo['checkExist'];
+        $desc = $userinfo['desc'];
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         //如果checkExist==1，nickname重复不再生成新用户
         if ($checkExist == 1) {
@@ -243,6 +244,8 @@ class User extends \mia\miagroup\Lib\Service {
             $setData[] = array('nickname', $nickname);
             $setData[] = array('icon', $avatar);
             $this->userModel->updateUserById($userId, $setData);
+            //更新专家信息
+            $this->userModel->updateExpertInfoByUid($userId, array('desc' => array($desc)));
             //用户归类
             $this->userModel->setHeadlineUserCategory($userId, $category);
             return $this->succ(array('uid' => $userId, 'is_exist' => 1));
