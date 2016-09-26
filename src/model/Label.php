@@ -275,5 +275,12 @@ class Label {
         $data = $this->labelData->updateLabelImgInfo($labelId,$setData);
         return $data;
     }
+    
+    /**
+     * 获取标签下是否有精选帖子
+     */
+    public function getLabelIsRecommendInfo($labelId){
+        return $this->labelData->getLabelIsRecommendInfo($labelId);
+    }
 
 }

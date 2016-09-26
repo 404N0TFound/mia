@@ -230,10 +230,18 @@ class Label extends \mia\miagroup\Lib\Service {
             
             $labelBaseInfo['share_info'] = $share;
         }
-
+        //检测标签下是否存在精品
+        $is_recommend_label = $this->labelModel->getLabelIsRecommendInfo($labelId);
+        if(empty($is_recommend_label)){
+            $exist_recommend = 0;
+        }else{
+            $exist_recommend = 1;
+        }
+        
         $result = array(
             'label_info'       => $labelBaseInfo,
             'relate_labels'    => array_values($labelRelate),
+            'exist_recommend' => $exist_recommend,
         );
 
         return $this->succ($result);
