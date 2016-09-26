@@ -48,7 +48,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
 
-        return $this->succ($subjectsList['data']);
+        return $this->succ(array_values($subjectsList['data']));
     }
     
     /**
@@ -76,12 +76,14 @@ class Feed extends \mia\miagroup\Lib\Service {
             return $this->succ(array());
         }
         //获取我关注的标签列表
-        $lableIds = $this->labelService->getAllAttentLabel($userId)['data'];
+        $lableIdInfo = $this->labelService->getAllAttentLabel($userId)['data'];
+        $lableIds = array_column($lableIdInfo,'id');
         //获取我关注标签的帖子列表
         $subjectIds = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$page,$count)['data'];
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
+//         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
 
-        return $this->succ($subjectsList['data']);
+//         return $this->succ($subjectsList['data']);
+        return $this->succ(array_values($subjectIds));
     }
 }
