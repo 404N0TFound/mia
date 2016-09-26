@@ -256,13 +256,7 @@ class Label extends \mia\miagroup\Lib\Service {
             return $this->succ(array());
         }
 
-        $subjectIds = $this->labelModel->getSubjectListByLableIds([$labelId],$page,$limit,$is_recommend);
-
-        $subjectService = new SubjectService();
-        $activeSujectInfo = $subjectService->getBatchSubjectInfos($subjectIds,$currentUid,$fields=array('user_info', 'count', 'comment', 'group_labels', 'praise_info'))['data'];
-
-
-        // $activeSujectInfo = $this->getBatchSubjectIdsByLabelIds([$labelId],$userId,$page,$count,$isRecommend)['data'];
+        $activeSujectInfo = $this->getBatchSubjectIdsByLabelIds([$labelId],$userId,$page,$count,$isRecommend)['data'];
         $subjectIds = array_keys($activeSujectInfo);
         $auditService = new \mia\miagroup\Service\Audit();
 
