@@ -410,6 +410,8 @@ class Live extends \mia\miagroup\Lib\Service {
                 $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
             }
         }
+        //直播观看数记录
+        $this->liveModel->increaseLiveCount($liveId, 'audience_num');
         return $this->succ($roomData);
     }
     
@@ -458,7 +460,7 @@ class Live extends \mia\miagroup\Lib\Service {
             if (in_array('count', $field)) {
                 $liveInfo['audience_num'] = $liveCounts[$liveId]['audience_num'];
             }
-            $liveInfos[$$liveId] = $liveInfo;
+            $liveInfos[$liveId] = $liveInfo;
         }
         return $this->succ($liveInfos);
     } 
@@ -537,6 +539,8 @@ class Live extends \mia\miagroup\Lib\Service {
             $userIdArr[] = $roomInfo['user_id'];
             if (intval($roomInfo['live_id']) > 0) {
                 $liveIdArr[] = $roomInfo['live_id'];
+            } else if (intval($roomInfo['latest_live_id']) > 0) {
+                $liveIdArr[] = $roomInfo['latest_live_id'];
             }
         }
         //通过userids批量获取主播信息
@@ -547,7 +551,7 @@ class Live extends \mia\miagroup\Lib\Service {
         }
         //通过liveids批量获取直播列表
         if (in_array('live_info', $field)) {
-            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr)['data'];
+            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr, array(3, 4))['data'];
         }
 
         $couponService = new Coupon();
@@ -570,6 +574,7 @@ class Live extends \mia\miagroup\Lib\Service {
             $roomRes[$roomInfo['id']]['status'] = 0;
             $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips']; //房间提示信息
             $roomRes[$roomInfo['id']]['latest_live_id'] = $roomInfo['latest_live_id']; //房间提示信息
+            $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']] ? $liveArr[$roomInfo['live_id']] : $liveArr[$roomInfo['latest_live_id']];
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){

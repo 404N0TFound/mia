@@ -504,7 +504,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
 
         $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
-        $lives = $this->liveServer->getLiveRoomByIds($roomIds)['data'];
+        $lives = $this->liveServer->getLiveRoomByIds($roomIds, array('user_info', 'live_info'))['data'];
         $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();

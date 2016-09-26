@@ -334,10 +334,10 @@ class Live {
      * 批量获取直播计数
      */
     public function getLiveCountByIds($liveIds) {
-        if (empty($liveIds) || empty($field)) {
+        if (empty($liveIds)) {
             return array();
         }
-        $liveInfos = $this->getBatchLiveInfoByIds($liveIds, array());
+        $liveInfos = $this->liveData->getBatchLiveInfoByIds($liveIds, array(3, 4));
         $redis = new Redis();
         $liveCounts = array();
         foreach ($liveIds as $liveId) {
@@ -360,7 +360,7 @@ class Live {
      * @param $countType online_num 当前在线数, audience_num 累计观看数，audience_top_num 最高在线数，like_num 赞数， comment_num 评论数
      */
     public function setLiveCount($liveId, $countType, $count) {
-        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveKey.liveCountType');
+        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveCountType');
         if (!in_array($countType, $liveCountTypes)) {
             return false;
         }
@@ -383,7 +383,7 @@ class Live {
      * @param $countType online_num 当前在线数, audience_num 累计观看数，audience_top_num 最高在线数，like_num 赞数， comment_num 评论数
      */
     public function increaseLiveCount($liveId, $countType, $increaseNum = 1) {
-        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveKey.liveCountType');
+        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveCountType');
         if (!in_array($countType, $liveCountTypes)) {
             return false;
         }
