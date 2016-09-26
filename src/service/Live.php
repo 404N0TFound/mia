@@ -941,7 +941,7 @@ class Live extends \mia\miagroup\Lib\Service {
         //倒计时
         $countdown = $liveRoomInfo['coupon']['countdown'];
         $money = $liveRoomInfo['coupon']['money'];
-        $coupon = ['batch_code'=>$batch_code,'countdown'=>$countdown,'money'=>$money];
+        $coupon = ['batch_code'=>$batchCode,'countdown'=>$countdown,'money'=>$money];
         //发送领取优惠券消息
         $content = NormalUtil::getMessageBody(13,$liveRoomInfo['chat_room_id'], 0, '', ['coupon'=>$coupon]);
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
