@@ -195,8 +195,8 @@ class User extends \mia\miagroup\Lib\Service {
      */
     public function expertsInfo($userId, $currentId){
         $result = array();
-        $expertsinfo = $this->expertsInfo($userId)['data'];
-        $userInfo = $this->getUserInfoByUserId($userId,array("relation","count"),$currentId);
+        $expertsinfo = $this->userModel->getBatchExpertInfoByUids([$userId])[$userId];
+        $userInfo = $this->getUserInfoByUserId($userId,array("relation","count"),$currentId)['data'];
         $result['user_info'] = $userInfo;
         if(!empty($expertsinfo)){
             $result['desc'] = !empty(trim($expertsinfo['desc'])) ? explode('#', trim($expertsinfo['desc'],"#")) : array();
