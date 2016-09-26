@@ -58,11 +58,12 @@ class SubjectLabelRelation extends \DB_Query {
 
         $where[] = ['label_id',$lableIds];
         $where[] = ['status',1];
+        $orderBy = 'create_time DESC';
         if($is_recommend>0){
             $where[] = ['is_recommend',1];
+            $orderBy = 'top_time DESC, recom_time DESC';
         }
-
-        $data = $this->getRows($where,'subject_id',$limit,$offset,'id desc');
+        $data = $this->getRows($where,'subject_id',$limit,$offset,$orderBy);
         $result = [];
         foreach ($data as $key => $value) {
             $result[$value['subject_id']] = $value['subject_id'];
