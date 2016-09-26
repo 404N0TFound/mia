@@ -49,4 +49,23 @@ class UserLabelRelation extends \DB_Query
     {
         return $this->insert($setData);
     }
+
+    /**
+     * 根据userId获取标签
+     */
+    public function getLabelListByUid($userId,$offset=0,$limit=10)
+    {
+        if(empty($userId)){
+            return [];
+        }
+        $where[] = ['user_id',$userId];
+        $where[] = ['status',1];
+
+        $data = $this->getRows($where,'label_id',$limit,$offset,'id desc');
+        $result = [];
+        foreach ($data as $key => $value) {
+            $result[] = $value['label_id'];
+        }
+        return $result;
+    }
 }

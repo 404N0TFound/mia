@@ -15,12 +15,13 @@ class RecommendedHeadline
      * @param  string $action  [init,refresh,next,home_banner]
      * @return array
      */
-    public function headlineList($channelId,$action='init',$userId=0)
+    public function headlineList($channelId,$action='init',$userId=0,$count=10)
     {
         $params = [
             'user_id' => $userId,
             'tab_id'  => $channelId,
             'action'  => $action,
+            'num'  => $count,
         ];
         $url = $this->config['remote'].'list/'.$action;
         $res = $this->_curlPost($url,$params);
@@ -37,12 +38,13 @@ class RecommendedHeadline
 
 
 
-    public function headlineRelate($channelId,$subjectId, $userId=0)
+    public function headlineRelate($channelId,$subjectId, $userId=0,$count=10)
     {
         $params = [
             'user_id' => $userId,
             'doc_id'  => $subjectId,
             'tab_id'  => $channelId,
+            'num'  => $count,
         ];
         $url = $this->config['remote'].'doc/relate';
         $res = $this->_curlPost($url,$params);

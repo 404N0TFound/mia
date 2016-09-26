@@ -199,7 +199,7 @@ class Subject extends \mia\miagroup\Lib\Service {
                     } else {
                         $shareImage = $shareDefault['img_url'];
                     }
-                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
+                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['video_info']['id']);
                 
                 } else { //普通帖子
                     $shareDefault = $shareConfig['defaultShareInfo']['subject'];
@@ -271,7 +271,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (!empty($dmSync['refer_subject_id']) || !empty($dmSync['refer_channel_id'])) {
             //相关帖子
             $headlineRemote = new HeadlineRemote();
-            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $currentUid);
+            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $currentUid,6);
             $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
             
             $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
