@@ -250,18 +250,22 @@ class Label extends \mia\miagroup\Lib\Service {
         }
         $activeSujectInfo = $this->getBatchSubjectIdsByLabelIds([$labelId],$userId,$page,$count,$isRecommend)['data'];
         $subjectIds = array_keys($activeSujectInfo);
-        if ($isRecommend == 1) {
-            //如果是精华帖需要检测帖子的置顶状态
-            $topStatus = $this->labelModel->getLableSubjectsTopStatus($labelId, $subjectIds);
-            foreach($activeSujectInfo as $key => $subjectInfo){
+        $auditService = new \mia\miagroup\Service\Audit();
+
+        //如果是精华帖需要检测帖子的置顶状态
+        $topStatus = $this->labelModel->getLableSubjectsTopStatus($labelId, $subjectIds);
+        foreach($activeSujectInfo as $key => $subjectInfo){
+            if($isRecommend == 1){
                 $activeSujectInfo[$key]['is_top'] = $topStatus[$subjectInfo['id']];
-            }
-        } else {
-            foreach($activeSujectInfo as $key => $subjectInfo){
+            }else{
                 unset($activeSujectInfo[$key]['is_top']);
             }
+            //验证用户是否已屏蔽
+            if($auditService->checkUserIsShield($activeSujectInfo[$key]['user_id'])['data']['is_shield']){
+                unset($activeSujectInfo[$key]);
+            }
+            
         }
-
         return $this->succ(array_values($activeSujectInfo));
     }
 }
