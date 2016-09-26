@@ -108,12 +108,17 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $userids = [];
         if($currentUid>0){
             $userRelationService = new \mia\miagroup\Service\UserRelation();
-            $userids = $userRelationService->getAllAttentionExpert($currentUid)['data'];
+            $expertUserInfo = $userRelationService->getAllAttentionExpert($currentUid)['data'];
+            $userids = array_keys($expertUserInfo);
         }
-        
         $expertIds = $this->headlineConfig['expert'];
         $user_ids = array_unique(array_merge($userids,$expertIds));
-        $data = $this->userServer->getUserInfoByUids($user_ids,$currentUid)['data'];
+        $userInfos = $this->userServer->getUserInfoByUids($user_ids,$currentUid)['data'];
+        foreach ($user_ids as $key => $userId) {
+            if(isset($userInfos[$userId])){
+                $data[] = $userInfos[$userId];
+            }
+        }
         $data = array_values($data);
         return $this->succ($data);
     }
