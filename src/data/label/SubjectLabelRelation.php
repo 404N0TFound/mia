@@ -89,4 +89,16 @@ class SubjectLabelRelation extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 获取标签下是否有精选帖子
+     */
+    public function getLabelIsRecommendInfo($labelId){
+        $sql = "SELECT a.* FROM {$this->tableName} a 
+                    INNER JOIN group_subjects b ON a.subject_id=b.id
+                    WHERE a.label_id={$labelId} AND a.status=1 AND a.is_recommend=1 AND b.status IN (1,2) LIMIT 1";
+        $result = $this->query($sql);
+        return $result;
+    }
+    
 }
