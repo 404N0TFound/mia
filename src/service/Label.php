@@ -175,7 +175,6 @@ class Label extends \mia\miagroup\Lib\Service {
             $relate = $this->labelModel->getLableRelationByUserId($userId, $labelId);
             $isFocus = isset($relate['status']) && $relate['status'] == 1 ? 1 : 0;
         }
-
         //大图信息
         if (!empty($label['hot_pic']) && $label['is_recommend'] == 1) {
             if (!empty($label['ext_info'])) {
@@ -193,7 +192,7 @@ class Label extends \mia\miagroup\Lib\Service {
                         'pic_width' => $imgWidth,
                         'pic_height' => $imgHeight
                     ];
-                    $this->labelModel->updateLabelImgInfo($id, $imgWidth, $setData);
+                    $this->labelModel->updateLabelImgInfo($labelId, $imgWidth, $setData);
                     $imgUrl = \F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $label['hot_pic'];
                     $rec_pic = array('pic' => array('url' => strval($imgUrl), 'width' => $imgWidth, 'height' => $imgHeight));
                 } else {
@@ -244,25 +243,29 @@ class Label extends \mia\miagroup\Lib\Service {
     /**
      * 标签图片（包括全部和精品图片）
      */
-    public function getLableSubjects($labelId,$page=1,$count=10,$isRecommend=0)
+    public function getLableSubjects($labelId,$userId,$page=1,$count=10,$isRecommend=0)
     {
         if(empty($labelId)){
             return $this->succ(array());
         }
-        $activeSujectInfo = $this->getBatchSubjectIdsByLabelIds([$labelId],0,$page,$count,$isRecommend)['data'];
+        $activeSujectInfo = $this->getBatchSubjectIdsByLabelIds([$labelId],$userId,$page,$count,$isRecommend)['data'];
         $subjectIds = array_keys($activeSujectInfo);
-        if ($isRecommend == 1) {
-            //如果是精华帖需要检测帖子的置顶状态
-            $topStatus = $this->labelModel->getLableSubjectsTopStatus($labelId, $subjectIds);
-            foreach($activeSujectInfo as $key => $subjectInfo){
+        $auditService = new \mia\miagroup\Service\Audit();
+
+        //如果是精华帖需要检测帖子的置顶状态
+        $topStatus = $this->labelModel->getLableSubjectsTopStatus($labelId, $subjectIds);
+        foreach($activeSujectInfo as $key => $subjectInfo){
+            if($isRecommend == 1){
                 $activeSujectInfo[$key]['is_top'] = $topStatus[$subjectInfo['id']];
-            }
-        } else {
-            foreach($activeSujectInfo as $key => $subjectInfo){
+            }else{
                 unset($activeSujectInfo[$key]['is_top']);
             }
+            //验证用户是否已屏蔽
+            if($auditService->checkUserIsShield($activeSujectInfo[$key]['user_id'])['data']['is_shield']){
+                unset($activeSujectInfo[$key]);
+            }
+            
         }
-
         return $this->succ(array_values($activeSujectInfo));
     }
 }
