@@ -158,7 +158,7 @@ class Subject extends \DB_Query {
         $setData[] = ['status',0];
         $where[] = ['id',$subjectId];
         $where[] = ['user_id',$userId];
-        $affect = $this->update($where);
+        $affect = $this->update($setData,$where);
         return $affect;
     }
     
