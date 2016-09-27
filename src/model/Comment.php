@@ -72,6 +72,14 @@ class Comment {
     }
     
     /**
+     * 获取用户的评论信息
+     */
+    public function getUserSubjectCommentInfo($userId, $page = 1, $pageSize = 10){
+        $result = $this->subjectCommentData->getUserSubjectCommentInfo($userId, $page, $pageSize);
+        return $result;
+    }
+    
+    /**
      * 获取用户的评论
      */
     public function getCommentsByUid($userId){
