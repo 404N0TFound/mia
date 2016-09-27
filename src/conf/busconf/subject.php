@@ -61,7 +61,7 @@ $groupShare = array(
  */
 $album = array(
     //h5内嵌页链接
-    'h5_url'=>'http://www.mia.com/groupspe/show/%d/%d',
+    'h5_url'=>'http://m.mia.com/groupspe/show/%d/%d',
 );
 
 /**
