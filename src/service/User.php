@@ -212,7 +212,7 @@ class User extends \mia\miagroup\Lib\Service {
                 $result['expert_field'] = array();
             }
             $commentService = new \mia\miagroup\Service\Comment();
-            $result['comment_nums'] = $commentService->getCommentByExpertId($userId);
+            $result['comment_nums'] = $commentService->getCommentByExpertId($userId)['data'];
         }
         return $this->succ($result);
     }
