@@ -63,7 +63,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         
         $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid,$count);
-        if ($action == 'init') {
+        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id']) {
             //格式化客户端上传的headlineIds
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_unique(array_merge($headlineIds, $headLineData));

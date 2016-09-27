@@ -193,4 +193,54 @@ class Subject extends \DB_Query {
         return $data;
     }
     
+    /**
+     * 获取用户的帖子
+     */
+    public function getSubjectsByUid($userId){
+        if (empty($userId)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['user_id',$userId];
+        $where[] = ['status',1];
+        $result = $this->getRows($where);
+        return $result;
+    }
+    
+    /**
+     * 删除或屏蔽帖子
+     */
+    public function deleteSubjects($subjectIds,$status,$shieldText=''){
+        $setData = array();
+        $where = array();
+        //删除帖子
+        $setData[] = ['status',$status];
+        if(!empty($shieldText)){
+            $setData[] = ['shield_text',$shieldText];
+        }
+        $where[] = ['id',$subjectIds];
+        
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 批量更新帖子的数量
+     */
+    public function updateSubjectComment($commentNumArr){
+        if(empty($commentNumArr)){
+            return $this->error(500);
+        }
+    
+        $ids = implode(',', array_keys($commentNumArr));
+        $sql = "UPDATE $this->tableName set comment_count = CASE id ";
+        foreach ($commentNumArr as $subjectId => $commentNums) {
+            $sql .= sprintf("WHEN %d THEN %d ", $subjectId, $commentNums);
+        }
+        $sql .= "END WHERE id IN ($ids)";
+    
+        $result = $this->query($sql);
+        return $result;
+    }
+    
 }

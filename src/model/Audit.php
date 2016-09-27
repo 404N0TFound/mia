@@ -70,4 +70,33 @@ class Audit {
             return false;
         }
     }
+    
+    /**
+     * 根据用户ID查询屏蔽过的用户（包括status为0和1的）
+     */
+    public function checkIsShieldUserByUid($userId) {
+        $data = $this->userShieldData->getUserShieldByUid($userId);
+        if (!empty($data)) {
+            return $data;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * 屏蔽用户
+     */
+    public function setUserShield($userInfo) {
+        $data = $this->userShieldData->setUserShield($userInfo);
+        return $data;
+    }
+    
+    /**
+     * 更新屏蔽状态
+     * @param array $userInfo
+     */
+    public function updateShieldUserInfo($userInfo,$userId){
+        $data = $this->userShieldData->updateShieldUserInfo($userInfo,$userId);
+        return $data;
+    }
 }
