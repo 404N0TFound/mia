@@ -608,9 +608,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             }
             if (!empty($tmpData)) {
                 $headLineList[] = $tmpData;
+            } else { //如果源关联项已不存在，则删除
+                if (isset($sortedOpertionData[$row])) {
+                    $this->delOperateHeadLine($sortedOpertionData[$row]['id']);
+                }
             }
         }
-        
         return $headLineList;
     }
 }
