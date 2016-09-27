@@ -257,6 +257,11 @@ class Live extends \mia\miagroup\Lib\Service {
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         //结束直播的时候删除与主播有关的缓存
         $this->liveModel->delByUserId($uid);
+        //最高在线数入库
+        $onlineCount = $this->liveModel->getLiveCountByIds(array($liveId));
+        $onlineCount = $onlineCount[$liveId]['online_num'];
+        $this->liveModel->setLiveCount($liveId, 'audience_top_num', $onlineCount);
+        
         return $this->succ($setRoomRes);
     }
     
@@ -405,13 +410,16 @@ class Live extends \mia\miagroup\Lib\Service {
                 $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
             }
         }
+        //直播观看数记录
+        $this->liveModel->increaseLiveCount($liveId, 'audience_num');
         return $this->succ($roomData);
     }
     
     /**
      * 根据直播ID批量获取直播信息
+     * @param $field count:直播相关计数
      */
-    public function getBatchLiveInfoByIds($liveIds,$status=array(3)) {
+    public function getBatchLiveInfoByIds($liveIds,$status=array(3),$field=array('count')) {
         if (empty($liveIds)) {
             return $this->succ(array());
         }
@@ -419,11 +427,14 @@ class Live extends \mia\miagroup\Lib\Service {
         if (empty($liveInfos)) {
             return $this->succ(array());
         }
+        if (in_array('count', $field)) {
+            $liveCounts = $this->liveModel->getLiveCountByIds($liveIds);
+        }
   
         $qiniu = new QiniuUtil();
         $jinshan = new JinShanCloudUtil();
         $redis = new Redis();
-        foreach($liveInfos as $k=>$liveInfo){
+        foreach($liveInfos as $liveId=>$liveInfo){
             //如果是直播中的live要给url地址
             $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
             if($liveInfo['status'] == 3){
@@ -433,11 +444,11 @@ class Live extends \mia\miagroup\Lib\Service {
                 $liveInfo['rtmp_url'] = $addrInfo['rtmp'];
                 
                 //当前在线人数
-                $audience_online_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_audience_online_num.key'),$k);
+                $audience_online_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_audience_online_num.key'),$liveId);
                 $audience_online_num = $redis->get($audience_online_num_key);
                 $liveInfo['audience_online_num'] = $audience_online_num ?: '0';
                 //商品已售卖数
-                $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'),$k);
+                $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'),$liveId);
                 $sale_num = $redis->get($sale_num_key);
                 $liveInfo['sale_num'] = $sale_num ?: '0';
             }
@@ -446,7 +457,10 @@ class Live extends \mia\miagroup\Lib\Service {
                 $addrInfo = $liveCloud->getPalyBackUrls($liveInfo['stream_id']);
                 $liveInfo['play_back_hls_url'] = $addrInfo['hls'];
             }
-            $liveInfos[$k] = $liveInfo;
+            if (in_array('count', $field)) {
+                $liveInfo['audience_num'] = $liveCounts[$liveId]['audience_num'];
+            }
+            $liveInfos[$liveId] = $liveInfo;
         }
         return $this->succ($liveInfos);
     } 
@@ -525,6 +539,8 @@ class Live extends \mia\miagroup\Lib\Service {
             $userIdArr[] = $roomInfo['user_id'];
             if (intval($roomInfo['live_id']) > 0) {
                 $liveIdArr[] = $roomInfo['live_id'];
+            } else if (intval($roomInfo['latest_live_id']) > 0) {
+                $liveIdArr[] = $roomInfo['latest_live_id'];
             }
         }
         //通过userids批量获取主播信息
@@ -535,7 +551,7 @@ class Live extends \mia\miagroup\Lib\Service {
         }
         //通过liveids批量获取直播列表
         if (in_array('live_info', $field)) {
-            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr)['data'];
+            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr, array(3, 4))['data'];
         }
 
         $couponService = new Coupon();
@@ -558,6 +574,7 @@ class Live extends \mia\miagroup\Lib\Service {
             $roomRes[$roomInfo['id']]['status'] = 0;
             $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips']; //房间提示信息
             $roomRes[$roomInfo['id']]['latest_live_id'] = $roomInfo['latest_live_id']; //房间提示信息
+            $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']] ? $liveArr[$roomInfo['live_id']] : $liveArr[$roomInfo['latest_live_id']];
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){

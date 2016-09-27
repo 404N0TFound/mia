@@ -52,6 +52,9 @@ class Label {
             foreach ($labelRelations as $subjectId => $subjectLabelIds) {
                 foreach ($subjectLabelIds as $labelId => $v) {
                     if(!empty($labelInfos[$labelId])){
+                        unset($labelInfos[$labelId]['hot_pic']);
+                        unset($labelInfos[$labelId]['is_recommend']);
+                        unset($labelInfos[$labelId]['hot_small_pic']);
                         $subjectLabelInfo[$subjectId][$labelId] = $labelInfos[$labelId];
                     }
                 }

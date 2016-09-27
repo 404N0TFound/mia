@@ -94,3 +94,12 @@ $cron_list['view_num_sync'] = array(
     'start_time' => '2016-08-11 00:00:00',
     'interval' => 10
 );
+
+//直播计数
+$cron_list['live_num_sync'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=live --action=Livecountsync",
+    'start_time' => '2016-08-11 00:00:00',
+    'interval' => 60
+);
