@@ -234,4 +234,34 @@ class Subject {
          $shareId = $shareData->addShare($sourceId, $userId, $type, $platform,$status);
          return $shareId;
      }
+     
+     /**
+      * 根据用户id查询帖子
+      * @param int $userId
+      */
+     public function getSubjectsByUid($userId){
+         $result = $this->subjectData->getSubjectsByUid($userId);
+         return $result;
+     }
+     
+     /**
+      * 删除或者屏蔽帖子
+      * @param array $subjectIds
+      * @param  $status
+      * @param string $shieldText
+      * @return true/false
+      */
+     public function deleteSubjects($subjectIds,$status,$shieldText){
+         $data = $this->subjectData->deleteSubjects($subjectIds,$status,$shieldText);
+         return $data;
+     }
+     
+     /**
+      * 批量更新帖子的数量
+      */
+     public function updateSubjectComment($commentNumArr){
+         $data = $this->subjectData->updateSubjectComment($commentNumArr);
+         return $data;
+     }
+
 }

@@ -23,4 +23,28 @@ class UserShield extends \DB_Query {
         $data = $this->getRow($where);
         return $data;
     }
+    
+    /**
+     * 屏蔽用户
+     */
+    public function setUserShield($userInfo) {
+        if (empty($userInfo)) {
+            return false;
+        }
+        $data = $this->insert($userInfo);
+        return $data;
+    }
+    
+    /**
+     * 更新屏蔽用户状态
+     */
+    public function updateShieldUserInfo($userInfo,$userId) {
+        if (empty($userInfo) || empty($userId)) {
+            return false;
+        }
+        $where = array();
+        $where[] = ['user_id',$userId];
+        $data = $this->update($userInfo,$where);
+        return $data;
+    }
 }
