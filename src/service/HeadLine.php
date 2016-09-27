@@ -156,7 +156,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if(empty($channelId) || empty($subjectId)){
             return $this->succ(array());
         }
-        $data = $this->headlineRemote->headlineRead($channelId, $subjectId, $currentUid);
+        if (intval($currentUid) > 0) {
+            $uniqueFlag = $currentUid;
+        } else { //不登录情况下用户的唯一标识
+            $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
+        }
+        $data = $this->headlineRemote->headlineRead($channelId, $subjectId, $uniqueFlag);
         return $this->succ($data);
     }
     
