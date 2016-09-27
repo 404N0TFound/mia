@@ -39,7 +39,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if(empty($channelId)){
             return $this->succ(array());
         }
-        
         //获取订阅数据
         if($channelId == $this->headlineConfig['lockedChannel']['attention']['id']) {
             $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $currentUid, $page, $count)['data'];
@@ -61,8 +60,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             }
             return $this->succ($headLineList);
         }
-        
-        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid,$count);
+        if (intval($currentUid) > 0) {
+            $uniqueFlag = $currentUid;
+        } else { //不登录情况下用户的唯一标识
+            $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
+        }
+        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count);
         if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id']) {
             //格式化客户端上传的headlineIds
             $headlineIds = $this->_formatClientIds($headlineIds);
