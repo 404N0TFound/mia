@@ -261,7 +261,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($arrSubjects);
     }
-    
+
     //获取选题评论列表
     public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
         $commentIds = $this->commentModel->getCommentBySubjectId($subjectId, $user_type, $pageSize, $commentId);
@@ -270,5 +270,41 @@ class Comment extends \mia\miagroup\Lib\Service {
         return $this->succ($commentArrs);
     }
     
+    //查出某用户的所有评论
+    public function getComments($userId){
+        if(!is_numeric($userId) || intval($userId) <= 0){
+            return $this->error(500);
+        }
+        $arrComments = $this->commentModel->getCommentsByUid($userId);
+        return $this->succ($arrComments);
+    }
     
+    /**
+     * 批量删除或屏蔽评论
+     * @param array $commentIds
+     * @param int $status
+     * @param string $shieldText
+     */
+    public function delComments($commentIds,$status,$shieldText=''){
+        if(empty($commentIds)){
+            return $this->error(500);
+        }
+        //删除评论
+        $result = $this->commentModel->deleteComments($commentIds,$status,$shieldText);
+        return $this->succ($result);
+    }
+    
+    /**
+     *@todo 根据评论ID获取帖子ID
+     *@param    $ids       array   评论ID
+     *@return   array
+     **/
+    public function getSubjectIdsByComment($ids = array())
+    {
+        if (empty($ids) || !is_array($ids)){
+            return $this->error(500);
+        }
+        $arrSubjects = $this->commentModel->getSubjectIdsByComment($ids);
+        return $this->succ($arrSubjects);
+    }
 }
