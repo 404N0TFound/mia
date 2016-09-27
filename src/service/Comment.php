@@ -209,16 +209,18 @@ class Comment extends \mia\miagroup\Lib\Service {
      * 删除评论
      */
     public function delComment($id, $userId){
-        $data = 0;
         //查询评论信息
         $commentInfo = $this->commentModel->getBatchComments([$id])[$id];
         if($commentInfo['status'] == 0){
-            return $this->succ(1);
+            return $this->succ(true);
         }
         if($commentInfo['user_id'] == $userId){
             $data = $this->commentModel->delComment($id, $userId);
+            if($data){
+                return $this->succ(true);
+            }
         }
-        return $this->succ($data);
+        return $this->error(1103);
     }
     
     //获取专家评论数

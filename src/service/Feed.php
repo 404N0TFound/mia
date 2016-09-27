@@ -72,7 +72,7 @@ class Feed extends \mia\miagroup\Lib\Service {
     /**
      * 获取我关注标签的帖子
      */
-    public function getLabelFeedSubject($userId, $page = 1, $count = 10) {
+    public function getLabelFeedSubject($userId, $currentUid = 0, $page = 1, $count = 10) {
         if(empty($userId)){
             return $this->succ(array());
         }
@@ -80,7 +80,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         $lableIdInfo = $this->labelService->getAllAttentLabel($userId)['data'];
         $lableIds = array_column($lableIdInfo,'id');
         //获取我关注标签的帖子列表
-        $subjectInfos = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$userId,$page,$count)['data'];
+        $subjectInfos = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$currentUid,$page,$count)['data'];
         $auditService = new \mia\miagroup\Service\Audit();
         foreach($subjectInfos as $key => $subjectInfo){
             //验证用户是否已屏蔽
