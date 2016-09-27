@@ -225,10 +225,9 @@ class Label extends \mia\miagroup\Lib\Service {
             $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url, '{|extend_text|}' => $shareDefault['extend_text']);
             // 进行替换操作
             foreach ($share as $keys => $sh) {
-                $share[] = NormalUtil::buildGroupShare($sh, $replace);
-                unset($share[$keys]);
+                $shareInfo[] = NormalUtil::buildGroupShare($sh, $replace);
             }
-            $labelBaseInfo['share_info'] = $share;
+            $labelBaseInfo['share_info'] = $shareInfo;
         }
         //检测标签下是否存在精品
         $is_recommend_label = $this->labelModel->getLabelIsRecommendInfo($labelId);
