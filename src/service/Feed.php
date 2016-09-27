@@ -48,7 +48,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
 
-        return $this->succ($subjectsList['data']);
+        return $this->succ(array_values($subjectsList['data']));
     }
     
     /**
@@ -59,7 +59,8 @@ class Feed extends \mia\miagroup\Lib\Service {
             return $this->succ(array());
         }
         //获取我关注的专家列表
-        $expertUserIds = $this->userRelationService->getAllAttentionExpert($userId)['data'];
+        $expertUserInfo = $this->userRelationService->getAllAttentionExpert($userId)['data'];
+        $expertUserIds = array_keys($expertUserInfo);
         //获取我关注专家的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids($expertUserIds,$page,$count,\F_Ice::$ins->workApp->config->get('busconf.subject.source.headline'));
         //获取帖子详细信息
@@ -71,17 +72,23 @@ class Feed extends \mia\miagroup\Lib\Service {
     /**
      * 获取我关注标签的帖子
      */
-    public function getLabelFeedSubject($userId, $currentUid = 0, $page = 1, $count = 10) {
+    public function getLabelFeedSubject($userId, $page = 1, $count = 10) {
         if(empty($userId)){
             return $this->succ(array());
         }
         //获取我关注的标签列表
-        $lableIds = $this->labelService->getAllAttentLabel($userId)['data'];
+        $lableIdInfo = $this->labelService->getAllAttentLabel($userId)['data'];
+        $lableIds = array_column($lableIdInfo,'id');
         //获取我关注标签的帖子列表
-        $subjectIds = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$page,$count)['data'];
-        //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
-
-        return $this->succ($subjectsList['data']);
+        $subjectInfos = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$userId,$page,$count)['data'];
+        $auditService = new \mia\miagroup\Service\Audit();
+        foreach($subjectInfos as $key => $subjectInfo){
+            //验证用户是否已屏蔽
+            if($auditService->checkUserIsShield($subjectInfos[$key]['user_id'])['data']['is_shield']){
+                unset($subjectInfos[$key]);
+            }
+            
+        }
+        return $this->succ(array_values($subjectInfos));
     }
 }

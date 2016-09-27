@@ -62,10 +62,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             return $this->succ($headLineList);
         }
         
-        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid);
-        //格式化客户端上传的headlineIds
-        $headlineIds = $this->_formatClientIds($headlineIds);
-        $headLineData = array_unique(array_merge($headlineIds, $headLineData));
+        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $currentUid,$count);
+        if ($action == 'init') {
+            //格式化客户端上传的headlineIds
+            $headlineIds = $this->_formatClientIds($headlineIds);
+            $headLineData = array_unique(array_merge($headlineIds, $headLineData));
+        }
         //获取运营数据
         $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
         //推荐数据、运营数据去重
@@ -103,8 +105,21 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      */
     public function getHeadLineRecommenduser($currentUid=0)
     {
+        $userids = [];
+        if($currentUid>0){
+            $userRelationService = new \mia\miagroup\Service\UserRelation();
+            $expertUserInfo = $userRelationService->getAllAttentionExpert($currentUid)['data'];
+            $userids = array_keys($expertUserInfo);
+        }
         $expertIds = $this->headlineConfig['expert'];
-        $data = $this->userServer->getUserInfoByUids($expertIds,$currentUid)['data'];
+        $user_ids = array_unique(array_merge($userids,$expertIds));
+        $user_ids = array_intersect($user_ids, $expertIds);
+        $userInfos = $this->userServer->getUserInfoByUids($user_ids,$currentUid)['data'];
+        foreach ($user_ids as $key => $userId) {
+            if(isset($userInfos[$userId])){
+                $data[] = $userInfos[$userId];
+            }
+        }
         $data = array_values($data);
         return $this->succ($data);
     }
@@ -477,7 +492,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         foreach ($datas as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
             //帖子
-            if ($relation_type == 'subject') {
+            if ($relation_type == 'video' || $relation_type == 'album' || $relation_type == 'subject') {
                 $subjectIds[] = $relation_id;
             //直播
             } elseif ($relation_type == 'live') {
@@ -489,12 +504,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
 
         $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
-        $lives = $this->liveServer->getLiveRoomByIds($roomIds)['data'];
+        $lives = $this->liveServer->getLiveRoomByIds($roomIds, array('user_info', 'live_info'))['data'];
         $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();
         foreach ($opertionData as $v) {
-            $v['ext_info'] = json_decode($v['ext_info'],true);
             $sortedOpertionData[$v['row']] = $v;
         }
         //按序输出头条结果集
@@ -502,6 +516,8 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $num = count($sortIds) + count($opertionData);
         for ($row = 1; $row <= $num; $row ++) {
             $tmpData = null;
+            $relation_title = null;
+            $relation_cover_image = null;
             //如果当前位置有运营数据，优先选择运营数据
             if (isset($sortedOpertionData[$row]) && !empty($sortedOpertionData[$row])) {
                 $relation_id = $sortedOpertionData[$row]['relation_id'];
@@ -514,26 +530,54 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             }
             //将运营配置的title、cover_image替换掉原有的
             switch ($relation_type) {
-                case 'subject':
+                case 'album':
                     if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
                         $subject = $subjects[$relation_id];
                         if (!empty($subject['album_article'])) {
                             $tmpData['id'] = $subject['id'] . '_album';
                             $tmpData['type'] = 'album';
-                            $tmpData['album'] = $subject;
                             $subject['album_article']['title'] = $relation_title ? $relation_title : $subject['album_article']['title'];
                             if(!empty($relation_cover_image)){
                                 $subject['album_article']['cover_image'] = $relation_cover_image;
                             }
+                            $tmpData['album'] = $subject;
+                        }
+                    }
+                    break;
+                case 'video':
+                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        $subject = $subjects[$relation_id];
+                        if (!empty($subject['video_info'])) {
+                            $tmpData['id'] = $subject['id'] . '_video';
+                            $tmpData['type'] = 'video';
+                            $subject['title'] = $relation_title ? $relation_title : $subject['title'];
+                            if(!empty($relation_cover_image)){
+                                $subject['video_info']['cover_image'] = $relation_cover_image['url'];
+                            }
+                            $tmpData['video'] = $subject;
+                        }
+                    }
+                    break;
+                case 'subject': //relation_type=subject 兼容推荐服务没有返回数据类型的问题
+                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        $subject = $subjects[$relation_id];
+                        if (!empty($subject['album_article'])) {
+                            $tmpData['id'] = $subject['id'] . '_album';
+                            $tmpData['type'] = 'album';
+                            $subject['album_article']['title'] = $relation_title ? $relation_title : $subject['album_article']['title'];
+                            if(!empty($relation_cover_image)){
+                                $subject['album_article']['cover_image'] = $relation_cover_image;
+                            }
+                            $tmpData['album'] = $subject;
                         } else if (!empty($subject['video_info'])) {
                             $tmpData['id'] = $subject['id'] . '_video';
                             $tmpData['type'] = 'video';
-                            $tmpData['video'] = $subject;
-                            $subject['title'] = $relation_title ? $relation_title : $subject['title'];
                             if(!empty($relation_cover_image)){
                                 $subject['image_url'][] = $relation_cover_image;
                                 $subject['small_image_url'][] = $relation_cover_image;
                             }
+                            $subject['title'] = $relation_title ? $relation_title : $subject['title'];
+                            $tmpData['video'] = $subject;
                         }
                     }
                     break;
@@ -547,7 +591,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';
                         $tmpData['live'] = $live;
-
                     }
                     break;
                 case 'topic':
@@ -555,19 +598,22 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $topic = $topics[$relation_id];
                         $tmpData['id'] = $relation_id . '_headline_topic';
                         $tmpData['type'] = 'headline_topic';
-                        $tmpData['headline_topic'] = $topic;
                         $topic['title'] = $relation_title ? $relation_title : $topic['title'];
                         if(!empty($relation_cover_image)){
                             $topic['cover_image'] = $relation_cover_image;
                         }
+                        $tmpData['headline_topic'] = $topic;
                     }
                     break;
             }
             if (!empty($tmpData)) {
                 $headLineList[] = $tmpData;
+            } else { //如果源关联项已不存在，则删除
+                if (isset($sortedOpertionData[$row])) {
+                    $this->delOperateHeadLine($sortedOpertionData[$row]['id']);
+                }
             }
         }
-        
         return $headLineList;
     }
 }

@@ -100,4 +100,10 @@ class Comment {
         return $result;
     }
     
+    //获取选题评论列表
+    public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
+        $data = $this->subjectCommentData->getCommentBySubjectId($subjectId, $user_type, $pageSize, $commentId);
+        return $data;
+    }
+    
 }

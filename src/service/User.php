@@ -151,7 +151,7 @@ class User extends \mia\miagroup\Lib\Service {
         }
         $userInfo['level'] = intval($userInfo['level']);
         $userInfo['level_id'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_id']; // 用户等级ID
-        if(substr($this->ext_params['version'],-5,3) == '4_6'){
+        if(intval(substr($this->ext_params['version'],-3,1)) >= 6){
             $userInfo['level_number'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level']; // 用户等级
             $userInfo['level'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_name']; // 用户等级名称
         }else{
@@ -195,8 +195,8 @@ class User extends \mia\miagroup\Lib\Service {
      */
     public function expertsInfo($userId, $currentId){
         $result = array();
-        $expertsinfo = $this->expertsInfo($userId)['data'];
-        $userInfo = $this->getUserInfoByUserId($userId,array("relation","count"),$currentId);
+        $expertsinfo = $this->userModel->getBatchExpertInfoByUids([$userId])[$userId];
+        $userInfo = $this->getUserInfoByUserId($userId,array("relation","count"),$currentId)['data'];
         $result['user_info'] = $userInfo;
         if(!empty($expertsinfo)){
             $result['desc'] = !empty(trim($expertsinfo['desc'])) ? explode('#', trim($expertsinfo['desc'],"#")) : array();
@@ -212,7 +212,7 @@ class User extends \mia\miagroup\Lib\Service {
                 $result['expert_field'] = array();
             }
             $commentService = new \mia\miagroup\Service\Comment();
-            $result['comment_nums'] = $commentService->getCommentByExpertId($userId);
+            $result['comment_nums'] = $commentService->getCommentByExpertId($userId)['data'];
         }
         return $this->succ($result);
     }
@@ -226,6 +226,7 @@ class User extends \mia\miagroup\Lib\Service {
         $avatar = $userinfo['avatar'];
         $category = $userinfo['category'];
         $checkExist = $userinfo['checkExist'];
+        $desc = $userinfo['desc'];
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         //如果checkExist==1，nickname重复不再生成新用户
         if ($checkExist == 1) {
@@ -243,6 +244,8 @@ class User extends \mia\miagroup\Lib\Service {
             $setData[] = array('nickname', $nickname);
             $setData[] = array('icon', $avatar);
             $this->userModel->updateUserById($userId, $setData);
+            //更新专家信息
+            $this->userModel->updateExpertInfoByUid($userId, array('desc' => array($desc)));
             //用户归类
             $this->userModel->setHeadlineUserCategory($userId, $category);
             return $this->succ(array('uid' => $userId, 'is_exist' => 1));

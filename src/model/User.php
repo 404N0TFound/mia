@@ -113,4 +113,32 @@ class User {
         $res = $userData->updateUserById($userId, $userInfo);
         return $res;
     }
+    
+    /**
+     * 更新专家信息
+     */
+    public function updateExpertInfoByUid($userId, $expertInfo) {
+        if (empty($userId)) {
+            return false;
+        }
+        $setData = array();
+        if (!empty($expertInfo['desc'])) {
+            $setData[] = array('desc', implode('#', $expertInfo['desc']));
+        }
+        if (!empty($expertInfo['label'])) {
+            $setData[] = array('label', implode('#', $expertInfo['label']));
+        }
+        if (isset($expertInfo['status'])) {
+            $setData[] = array('status', $expertInfo['status']);
+        }
+        if (isset($expertInfo['modify_author'])) {
+            $setData[] = array('modify_author', $expertInfo['modify_author']);
+        }
+        if (!empty($setData)) {
+            $setData[] = array('last_modify', date('Y-m-d H:i:s'));
+        }
+        $expertData = new GroupSubjectUserExperts();
+        $result = $expertData->updateExpertInfoByUid($userId, $setData);
+        return $result;
+    }
 }

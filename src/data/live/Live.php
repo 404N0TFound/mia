@@ -97,5 +97,43 @@ class Live extends \DB_Query {
         $result = $this->getRows($where);
         return $result;
     }
-  
+    
+    /**
+     * 直播计数增长
+     */
+    public function increaseLiveCount($liveId, $countType, $increaseNum = 1) {
+        if (empty($liveId)) {
+            return false;
+        }
+        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveKey.liveCountType');
+        if (!in_array($countType, $liveCountTypes)) {
+            return false;
+        }
+        $sql = "UPDATE $this->tableName SET `$countType` = `$countType` + $increaseNum WHERE id = $liveId";
+        $result = $this->query($sql);
+        return $result;
+    }
+
+    /**
+     * 批量直播计数增长
+     */
+    public function increaseBatchLiveCount($liveId, array $typeCountArr) {
+        if (empty($liveId)) {
+            return false;
+        }
+        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveCountType');
+        $setField = array();
+        foreach ($typeCountArr as $countType => $increaseNum) {
+            if (in_array($countType, $liveCountTypes)) {
+                $setField[] = "`$countType` = `$countType` + $increaseNum";
+            }
+        }
+        if (empty($setField)) {
+            return false;
+        }
+        $setField = implode(',', $setField);
+        $sql = "UPDATE $this->tableName SET $setField WHERE `id` = $liveId";
+        $result = $this->query($sql);
+        return $result;
+    }
 }

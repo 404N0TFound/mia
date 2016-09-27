@@ -21,6 +21,11 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'audience_online_num_%s',
         'expire_time' => 3600,
     ),
+    //直播计数变化记录
+    'live_count_record' => array(
+        'key' => $liveServicePrefix . 'live_count_record',
+        'expire_time' => 3600,
+    ),
     //已售卖的商品数
     'live_sale_num' => array(
         'key' => $liveServicePrefix . 'sale_num_%s',
