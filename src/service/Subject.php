@@ -269,6 +269,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             if (!isset($dmSync['refer_subject_id']) || empty($dmSync['refer_subject_id'])) {
                 $dmSync['refer_subject_id'] = $subjectId;
             }
+            $headlineRemote = new HeadlineRemote();
             //阅读告知
             if (intval($currentUid) > 0) {
                 $uniqueFlag = $currentUid;
@@ -277,7 +278,6 @@ class Subject extends \mia\miagroup\Lib\Service {
             }
             $headlineRemote->headlineRead($dmSync['refer_channel_id'], $subjectId, $uniqueFlag);
             //相关帖子
-            $headlineRemote = new HeadlineRemote();
             $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
             $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
             
