@@ -149,7 +149,6 @@ class Label {
             foreach ($labelIds as $labelId) {
                 //获取关注状态
                 $relateInfo = $this->userLabelRelation->getLableRelationByUserId($userId, $labelId);
-                print_r($relateInfo);
                 if (empty($relateInfo)) {
                     //新的关注关系
                     $setInfo = array(
@@ -160,7 +159,7 @@ class Label {
                     );
                     $this->userLabelRelation->addUserLabelRelate($setInfo);
                 } else if ($relateInfo['status'] == 0) { //曾经关注过
-                    $this->userLabelRelation->updateUserLabelRelate($relateInfo['id'], $labelId, array('status' => 1, 'create_time' => date('Y-m-d H:i:s')));
+                    $this->userLabelRelation->updateUserLabelRelate($relateInfo['id'], array('status' => 1, 'create_time' => date('Y-m-d H:i:s')));
                 }
             }
         }
