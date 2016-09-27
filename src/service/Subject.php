@@ -704,7 +704,7 @@ class Subject extends \mia\miagroup\Lib\Service {
      * 精选帖子
      */
     public function getRecommendsubject($userId, $iPage=1, $iPageSize=21){
-        $data = [];
+        $data = ['label_lists'=>[],'subject_lists'=>[]];
         $subjectIds = $this->subjectModel->getRrecommendSubjectIds($iPage,$iPageSize);
         //获取推荐的标签
         if ($iPage == 1) {
@@ -716,7 +716,6 @@ class Subject extends \mia\miagroup\Lib\Service {
             $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
         }
         return $this->succ($data);
-
     }
     
     /**
