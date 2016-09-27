@@ -269,9 +269,16 @@ class Subject extends \mia\miagroup\Lib\Service {
             $dmSync['refer_subject_id'] = $subjectId;
         }
         if (!empty($dmSync['refer_subject_id']) || !empty($dmSync['refer_channel_id'])) {
+            //阅读告知
+            if (intval($currentUid) > 0) {
+                $uniqueFlag = $currentUid;
+            } else { //不登录情况下用户的唯一标识
+                $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
+            }
+            $this->headlineRemote->headlineRead($dmSync['refer_channel_id'], $subjectId, $uniqueFlag);
             //相关帖子
             $headlineRemote = new HeadlineRemote();
-            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $currentUid,6);
+            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
             $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
             
             $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
