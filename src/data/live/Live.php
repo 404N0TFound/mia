@@ -121,7 +121,7 @@ class Live extends \DB_Query {
         if (empty($liveId)) {
             return false;
         }
-        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveKey.liveCountType');
+        $liveCountTypes = \F_Ice::$ins->workApp->config->get('busconf.live.liveCountType');
         $setField = array();
         foreach ($typeCountArr as $countType => $increaseNum) {
             if (in_array($countType, $liveCountTypes)) {
