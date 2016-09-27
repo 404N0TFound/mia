@@ -265,17 +265,17 @@ class Subject extends \mia\miagroup\Lib\Service {
             //阅读量计数
             $this->subjectModel->viewNumRecord($subjectId);
         }
-        if (!isset($dmSync['refer_subject_id']) || empty($dmSync['refer_subject_id'])) {
-            $dmSync['refer_subject_id'] = $subjectId;
-        }
-        if (!empty($dmSync['refer_subject_id']) || !empty($dmSync['refer_channel_id'])) {
+        if (!empty($dmSync['refer_channel_id'])) {
+            if (!isset($dmSync['refer_subject_id']) || empty($dmSync['refer_subject_id'])) {
+                $dmSync['refer_subject_id'] = $subjectId;
+            }
             //阅读告知
             if (intval($currentUid) > 0) {
                 $uniqueFlag = $currentUid;
             } else { //不登录情况下用户的唯一标识
                 $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
             }
-            $this->headlineRemote->headlineRead($dmSync['refer_channel_id'], $subjectId, $uniqueFlag);
+            $headlineRemote->headlineRead($dmSync['refer_channel_id'], $subjectId, $uniqueFlag);
             //相关帖子
             $headlineRemote = new HeadlineRemote();
             $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
