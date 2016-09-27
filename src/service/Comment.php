@@ -265,7 +265,7 @@ class Comment extends \mia\miagroup\Lib\Service {
     //获取选题评论列表
     public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
         $commentIds = $this->commentModel->getCommentBySubjectId($subjectId, $user_type, $pageSize, $commentId);
-        $comments = $this->getBatchComments($commentIds, array('user_info', 'parent_comment'));
+        $comments = $this->getBatchComments($commentIds, array('user_info', 'parent_comment'))['data'];
         $commentArrs = array_values($comments);
         return $this->succ($commentArrs);
     }
