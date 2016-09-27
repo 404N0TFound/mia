@@ -280,6 +280,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //相关帖子
             $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
             $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
+            $recommendArticle = array_values($recommendArticle);
             
             $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
         }
