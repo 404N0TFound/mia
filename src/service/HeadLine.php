@@ -123,7 +123,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $data[] = $userInfos[$userId];
             }
         }
-        $data = array_values($data);
         return $this->succ($data);
     }
 
