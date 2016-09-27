@@ -154,6 +154,28 @@ class SubjectComment extends \DB_Query {
         return $affect;
     }
     
+    //获取选题评论列表
+    public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
+        
+        $where = "c.subject_id = $subjectId and c.status = 1 and (sh.status = 0 or sh.user_id is null)";
+        if ($commentId > 0) {
+            $where .= " and c.id > $commentId";
+        }
+        if($user_type == 1){
+            $where .= " and c.is_expert = 1 ";
+        }
+        $sql = "select c.id from {$this->tableName} as c
+        left join user_shield as sh
+        on c.user_id = sh.user_id
+        where {$where}
+        order by c.id asc
+        limit $pageSize";
+        
+        $commentInfo = $this->query($sql);
+        $commentIds = array_column($commentInfo, 'id');
+        return $commentIds;
+    }
+    
     /**
      * 根据评论id查询帖子
      * @param array $commentIds
@@ -171,7 +193,6 @@ class SubjectComment extends \DB_Query {
         }
         return $subjectIds;
     }
-
     
     
 }
