@@ -72,7 +72,7 @@ class Feed extends \mia\miagroup\Lib\Service {
     /**
      * 获取我关注标签的帖子
      */
-    public function getLabelFeedSubject($userId, $currentUid = 0, $page = 1, $count = 10) {
+    public function getLabelFeedSubject($userId, $page = 1, $count = 10) {
         if(empty($userId)){
             return $this->succ(array());
         }
