@@ -72,10 +72,31 @@ class Comment {
     }
     
     /**
-     * 获取用户的评论信息
+     * 获取用户的评论
      */
-    public function getUserSubjectCommentInfo($userId, $page = 1, $pageSize = 10){
-        $result = $this->subjectCommentData->getUserSubjectCommentInfo($userId, $page, $pageSize);
+    public function getCommentsByUid($userId){
+        $result = $this->subjectCommentData->getCommentsByUid($userId);
+        return $result;
+    }
+    
+    /**
+     * 删除或者屏蔽帖子
+     * @param array $subjectIds
+     * @param  $status
+     * @param string $shieldText
+     * @return int $data
+     */
+    public function deleteComments($commentIds,$status,$shieldText){
+        $data = $this->subjectCommentData->deleteComments($commentIds,$status,$shieldText);
+        return $data;
+    }
+    
+    /**
+     * 根据评论id查询帖子
+     * @param array $commentIds
+     */
+    public function getSubjectIdsByComment($commentIds){
+        $result = $this->subjectCommentData->getSubjectIdsByComment($commentIds);
         return $result;
     }
     

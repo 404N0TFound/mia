@@ -760,5 +760,38 @@ class Subject extends \mia\miagroup\Lib\Service {
             return $this->succ($result['data']['id']);
         }
     }
+    
+    //查出某用户的所有帖子
+    public function getSubjects($userId){
+        if(!is_numeric($userId) || intval($userId) <= 0){
+            return $this->error(500);
+        }
+        $arrSubjects = $this->subjectModel->getSubjectsByUid($userId);
+        return $this->succ($arrSubjects);
+    }
+    
+    /**
+     * 删除或屏蔽帖子
+     */
+    public function delSubjects($subjectIds,$status,$shieldText=''){
+        if(empty($subjectIds)){
+            return $this->error(500);
+        }
+        //删除帖子
+        $result = $this->subjectModel->deleteSubjects($subjectIds,$status,$shieldText);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 批量更新帖子的数量
+     */
+    public function updateSubjectComment($commentNumArr){
+        if(empty($commentNumArr)){
+            return $this->error(500);
+        }
+        $result = $this->subjectModel->updateSubjectComment($commentNumArr);
+        return $this->succ($result);
+    }
+
 }
 

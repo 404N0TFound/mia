@@ -126,18 +126,52 @@ class SubjectComment extends \DB_Query {
     }
     
     /**
-     * 获取用户的评论信息
+     * 获取用户的评论
      */
-    public function getUserSubjectCommentInfo($userId, $page = 1, $pageSize = 10){
-        
-        $offset = $pageSize * ($page - 1);
-        $sql = "select c.subject_id, max(c.id) as id from {$this->tableName} as c, group_subjects as s
-            where c.status = 1 and c.user_id = {$userId} and c.subject_id = s.id and s.status = 1
-            group by c.subject_id order by id desc
-            limit {$offset}, {$pageSize}";
-        $data = $this->query($sql);
-        return $data;
+    public function getCommentsByUid($userId){
+        if (empty($userId)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['user_id',$userId];
+        $where[] = ['status',1];
+        $result = $this->getRows($where);
+        return $result;
     }
+    
+    //删除或屏蔽评论
+    public function deleteComments($ids,$status,$shieldText) {
+        $setData = array();
+        $where = array();
+        //删除帖子
+        $setData[] = ['status',$status];
+        if(!empty($shieldText)){
+            $setData[] = ['shield_text',$shieldText];
+        }
+        $where[] = ['id',$ids];
+        
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 根据评论id查询帖子
+     * @param array $commentIds
+     */
+    public function getSubjectIdsByComment($commentIds){
+        if (empty($commentIds)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['id',$commentIds];
+        $result = $this->getRows($where,'distinct subject_id');
+        $subjectIds = array();
+        foreach ($result as $value) {
+            $subjectIds[] = $value['subject_id'];
+        }
+        return $subjectIds;
+    }
+
     
     
 }
