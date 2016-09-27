@@ -115,4 +115,132 @@ class Subject extends \DB_Query {
         }
     }
     
+    /**
+     * 更新帖子计数
+     */
+    public function updateSubjectCount($subjectId, $num, $countType='view_num') {
+        if (empty($subjectId)) {
+            return false;
+        }
+
+        $sql = "update $this->tableName set $countType = $countType+$num where id = $subjectId";
+        $result = $this->query($sql);
+        return $result;
+    }
+    
+    /**
+     * 获取用户的帖子ID
+     */
+    public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
+        
+        $offsetLimit = $iPageSize * ($iPage - 1);
+        $where[] = ['user_id',$userId];
+        if ($userId == $currentId) { 
+            //查看自己空间显示正在转码中的视频
+            $where[] = ['status',array(1,2)];
+            $orderBy = 'id DESC';
+            $result = $this->getRows($where,'id',$iPageSize,$offsetLimit,$orderBy);
+        } else {
+            $where[] = ['status',1];
+            $orderBy = 'id DESC';
+            $result = $this->getRows($where,'id',$iPageSize,$offsetLimit,$orderBy);
+        }
+        
+        $subject_id = array_column($result, 'id');
+        return $subject_id;
+    }
+    
+    /**
+     * 删除帖子
+     */
+    public function delete($subjectId,$userId){
+        //删除帖子
+        $setData[] = ['status',0];
+        $where[] = ['id',$subjectId];
+        $where[] = ['user_id',$userId];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 精选帖子的ids
+     * @param int $iPage 页码
+     * @param int $iPageSize 一页多少个
+     * @return array 帖子ids
+     */
+    public function getRrecommendSubjectIds($iPage=1, $iPageSize=21){
+        $offsetLimit = $iPageSize * ($iPage - 1);
+        $where = "g.status = 1 and g.is_fine = 1 and (sh.status = 0 or sh.user_id is null) and g.update_time>'" . date("Y-m-d",strtotime("last month")) . "'";
+        $sql = "select g.id
+            from {$this->tableName} as g
+            left join user_shield as sh
+            on g.user_id = sh.user_id
+            where {$where}
+            order by g.top_time desc, g.update_time desc
+            limit {$offsetLimit},{$iPageSize}";
+        $subjectsArrs = $this->query($sql);
+        return array_column($subjectsArrs, 'id');
+    }
+    
+    /**
+     * 根据用户ID获取帖子信息
+     */
+    public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+        $where[] = ['id', $subjectId];
+        $where[] = ['user_id', $userId];
+        $where[] = ['status', $status];
+        $data = $this->getRow($where);
+        return $data;
+    }
+    
+    /**
+     * 获取用户的帖子
+     */
+    public function getSubjectsByUid($userId){
+        if (empty($userId)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['user_id',$userId];
+        $where[] = ['status',1];
+        $result = $this->getRows($where);
+        return $result;
+    }
+    
+    /**
+     * 删除或屏蔽帖子
+     */
+    public function deleteSubjects($subjectIds,$status,$shieldText=''){
+        $setData = array();
+        $where = array();
+        //删除帖子
+        $setData[] = ['status',$status];
+        if(!empty($shieldText)){
+            $setData[] = ['shield_text',$shieldText];
+        }
+        $where[] = ['id',$subjectIds];
+        
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 批量更新帖子的数量
+     */
+    public function updateSubjectComment($commentNumArr){
+        if(empty($commentNumArr)){
+            return $this->error(500);
+        }
+    
+        $ids = implode(',', array_keys($commentNumArr));
+        $sql = "UPDATE $this->tableName set comment_count = CASE id ";
+        foreach ($commentNumArr as $subjectId => $commentNums) {
+            $sql .= sprintf("WHEN %d THEN %d ", $subjectId, $commentNums);
+        }
+        $sql .= "END WHERE id IN ($ids)";
+    
+        $result = $this->query($sql);
+        return $result;
+    }
+    
 }

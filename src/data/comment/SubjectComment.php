@@ -107,5 +107,105 @@ class SubjectComment extends \DB_Query {
         return $data;
     }
     
+    //删除评论
+    public function delComment($id, $userId) {
+        $where[] = ['id', $id];
+        $where[] = ['status', 1];
+        $where[] = ['user_id', $userId];
+        $setInfo[] = ['status', 0];
+        $affect = $this->update($setInfo,$where);
+        return $affect;
+    }
+    
+    //获取专家评论帖子数
+    public function getCommentByExpertId($expertid){
+        $sql ="select count(DISTINCT c.subject_id) as num from {$this->tableName} as c, group_subjects as s where c.status=1 and c.user_id={$expertid} and c.subject_id = s.id and s.status = 1";
+        //查出该条评论信息
+        $result = $this->query($sql);
+        return $result[0]['num'];
+    }
+    
+    /**
+     * 获取用户的评论
+     */
+    public function getCommentsByUid($userId){
+        if (empty($userId)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['user_id',$userId];
+        $where[] = ['status',1];
+        $result = $this->getRows($where);
+        return $result;
+    }
+    
+    //删除或屏蔽评论
+    public function deleteComments($ids,$status,$shieldText) {
+        $setData = array();
+        $where = array();
+        //删除帖子
+        $setData[] = ['status',$status];
+        if(!empty($shieldText)){
+            $setData[] = ['shield_text',$shieldText];
+        }
+        $where[] = ['id',$ids];
+        
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 获取用户的评论信息
+     */
+    public function getUserSubjectCommentInfo($userId, $page = 1, $pageSize = 10){
+    
+        $offset = $pageSize * ($page - 1);
+        $sql = "select c.subject_id, max(c.id) as id from {$this->tableName} as c, group_subjects as s
+        where c.status = 1 and c.user_id = {$userId} and c.subject_id = s.id and s.status = 1
+        group by c.subject_id order by id desc
+        limit {$offset}, {$pageSize}";
+        $data = $this->query($sql);
+        return $data;
+    }
+    
+    //获取选题评论列表
+    public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
+        
+        $where = "c.subject_id = $subjectId and c.status = 1 and (sh.status = 0 or sh.user_id is null)";
+        if ($commentId > 0) {
+            $where .= " and c.id > $commentId";
+        }
+        if($user_type == 1){
+            $where .= " and c.is_expert = 1 ";
+        }
+        $sql = "select c.id from {$this->tableName} as c
+        left join user_shield as sh
+        on c.user_id = sh.user_id
+        where {$where}
+        order by c.id asc
+        limit $pageSize";
+        
+        $commentInfo = $this->query($sql);
+        $commentIds = array_column($commentInfo, 'id');
+        return $commentIds;
+    }
+    
+    /**
+     * 根据评论id查询帖子
+     * @param array $commentIds
+     */
+    public function getSubjectIdsByComment($commentIds){
+        if (empty($commentIds)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['id',$commentIds];
+        $result = $this->getRows($where,'distinct subject_id');
+        $subjectIds = array();
+        foreach ($result as $value) {
+            $subjectIds[] = $value['subject_id'];
+        }
+        return $subjectIds;
+    }
     
 }

@@ -134,4 +134,17 @@ class Album extends \DB_Query {
         );
         return $this->insert($data);
     }
+    
+    /**
+     * 根据用户id和专栏辑名称查询专栏辑
+     */
+    public function getAlbumFileByUidAndTitle($userId, $title) {
+        if (empty($userId) || empty($title)) {
+            return false;
+        }
+        $where[] = ['user_id', $userId];
+        $where[] = ['title', $title];
+        $albumInfo = $this->getRow($where);
+        return $albumInfo;
+    }
 }

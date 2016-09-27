@@ -9,18 +9,20 @@ use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Util\JinShanCloudUtil;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Service\Redbag;
+use mia\miagroup\Service\Coupon;
 
 class Live extends \mia\miagroup\Lib\Service {
     
     public $liveModel;
     public $rongCloud;//融云聊天室api接口
     private $deviceToken;
-    
+    private $version;
     public function __construct() {
         parent::__construct();
         $this->liveModel = new LiveModel();
         $this->rongCloud = new RongCloudUtil();
         $this->deviceToken = md5($this->ext_params['device_token']);
+        $this->version = $this->ext_params['version'];
     }
     
     /**
@@ -255,6 +257,11 @@ class Live extends \mia\miagroup\Lib\Service {
         $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $chatRoomId, NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
         //结束直播的时候删除与主播有关的缓存
         $this->liveModel->delByUserId($uid);
+        //最高在线数入库
+        $onlineCount = $this->liveModel->getLiveCountByIds(array($liveId));
+        $onlineCount = $onlineCount[$liveId]['online_num'];
+        $this->liveModel->setLiveCount($liveId, 'audience_top_num', $onlineCount);
+        
         return $this->succ($setRoomRes);
     }
     
@@ -275,7 +282,7 @@ class Live extends \mia\miagroup\Lib\Service {
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0) {
         //获取房间信息
-        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag'))['data'][$roomId];
+        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag','coupon'))['data'][$roomId];
         if(empty($roomData)){
             //没有直播房间信息
             return $this->error(30003);
@@ -326,6 +333,35 @@ class Live extends \mia\miagroup\Lib\Service {
                 }
             }
         }
+        if(isset($roomData['coupon']['batch_code']) && !empty($roomData['coupon']['batch_code'])){
+            $batchCode = $roomData['coupon']['batch_code'];
+            $couponService = new Coupon($this->version);
+
+            //判断是否过期
+            $couponStatus = $couponService->checkBatchCodeIsExpired([$batchCode]);
+            if($couponStatus['code']>0){
+                unset($roomData['coupon']);
+            }else{
+                $batchCodeExpiredStatus = $couponService->checkBatchCodeIsExpired([$batchCode]);
+                if($batchCodeExpiredStatus['code'] > 0 && $roomData['user_id'] == $currentUid){
+                    unset($roomData['coupon']);
+                }
+                //判断优惠是否已发完
+                $couponNum = $couponService->getCouponRemainNums([$batchCode])['data'];
+                if(!$couponNum[$batchCode]['remain']){
+                    unset($roomData['coupon']);
+                }else{
+                    //剩余数量
+                    $roomData['coupon']['nums'] = $couponNum[$batchCode]['remain'];
+                    //判断是否已经领取过
+                    $couponReceived = $couponService->checkIsReceivedCoupon($currentUid,[$batchCode])['code'];
+                    $roomData['coupon']['is_received'] = $couponReceived == 0 ? 0 : 1;
+                    
+                }
+            }
+
+            
+        }
 
         $qiniu = new QiniuUtil();
         $jinshan = new JinShanCloudUtil();
@@ -374,13 +410,16 @@ class Live extends \mia\miagroup\Lib\Service {
                 $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
             }
         }
+        //直播观看数记录
+        $this->liveModel->increaseLiveCount($liveId, 'audience_num');
         return $this->succ($roomData);
     }
     
     /**
      * 根据直播ID批量获取直播信息
+     * @param $field count:直播相关计数
      */
-    public function getBatchLiveInfoByIds($liveIds,$status=array(3)) {
+    public function getBatchLiveInfoByIds($liveIds,$status=array(3),$field=array('count')) {
         if (empty($liveIds)) {
             return $this->succ(array());
         }
@@ -388,11 +427,14 @@ class Live extends \mia\miagroup\Lib\Service {
         if (empty($liveInfos)) {
             return $this->succ(array());
         }
+        if (in_array('count', $field)) {
+            $liveCounts = $this->liveModel->getLiveCountByIds($liveIds);
+        }
   
         $qiniu = new QiniuUtil();
         $jinshan = new JinShanCloudUtil();
         $redis = new Redis();
-        foreach($liveInfos as $k=>$liveInfo){
+        foreach($liveInfos as $liveId=>$liveInfo){
             //如果是直播中的live要给url地址
             $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
             if($liveInfo['status'] == 3){
@@ -402,11 +444,11 @@ class Live extends \mia\miagroup\Lib\Service {
                 $liveInfo['rtmp_url'] = $addrInfo['rtmp'];
                 
                 //当前在线人数
-                $audience_online_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_audience_online_num.key'),$k);
+                $audience_online_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_audience_online_num.key'),$liveId);
                 $audience_online_num = $redis->get($audience_online_num_key);
                 $liveInfo['audience_online_num'] = $audience_online_num ?: '0';
                 //商品已售卖数
-                $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'),$k);
+                $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'),$liveId);
                 $sale_num = $redis->get($sale_num_key);
                 $liveInfo['sale_num'] = $sale_num ?: '0';
             }
@@ -415,7 +457,10 @@ class Live extends \mia\miagroup\Lib\Service {
                 $addrInfo = $liveCloud->getPalyBackUrls($liveInfo['stream_id']);
                 $liveInfo['play_back_hls_url'] = $addrInfo['hls'];
             }
-            $liveInfos[$k] = $liveInfo;
+            if (in_array('count', $field)) {
+                $liveInfo['audience_num'] = $liveCounts[$liveId]['audience_num'];
+            }
+            $liveInfos[$liveId] = $liveInfo;
         }
         return $this->succ($liveInfos);
     } 
@@ -494,6 +539,8 @@ class Live extends \mia\miagroup\Lib\Service {
             $userIdArr[] = $roomInfo['user_id'];
             if (intval($roomInfo['live_id']) > 0) {
                 $liveIdArr[] = $roomInfo['live_id'];
+            } else if (intval($roomInfo['latest_live_id']) > 0) {
+                $liveIdArr[] = $roomInfo['latest_live_id'];
             }
         }
         //通过userids批量获取主播信息
@@ -504,8 +551,11 @@ class Live extends \mia\miagroup\Lib\Service {
         }
         //通过liveids批量获取直播列表
         if (in_array('live_info', $field)) {
-            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr)['data'];
+            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr, array(3, 4))['data'];
         }
+
+        $couponService = new Coupon();
+
         //将主播信息整合到房间信息中
         $roomRes = array();
         foreach($roomIds as $roomId){
@@ -524,6 +574,7 @@ class Live extends \mia\miagroup\Lib\Service {
             $roomRes[$roomInfo['id']]['status'] = 0;
             $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips']; //房间提示信息
             $roomRes[$roomInfo['id']]['latest_live_id'] = $roomInfo['latest_live_id']; //房间提示信息
+            $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']] ? $liveArr[$roomInfo['live_id']] : $liveArr[$roomInfo['latest_live_id']];
             //用户信息
             if (in_array('user_info', $field)) {
                 if(!empty($userArr[$roomInfo['user_id']])){
@@ -536,7 +587,11 @@ class Live extends \mia\miagroup\Lib\Service {
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
                 } else {
-                    $roomRes[$roomInfo['id']]['status'] = 0;
+                    $status = 2;
+                    if(isset($roomInfo['setting']['is_show_playback']) && $roomInfo['setting']['is_show_playback'] === '0'){
+                        $status = 0;
+                    }
+                    $roomRes[$roomInfo['id']]['status'] = $status;
                 }
             }
             if (in_array('settings', $field)) {
@@ -556,11 +611,32 @@ class Live extends \mia\miagroup\Lib\Service {
                 $roomRes[$roomInfo['id']]['is_show_gift'] = isset($roomInfo['is_show_gift']) ? $roomInfo['is_show_gift'] : 0;
                 $roomRes[$roomInfo['id']]['is_show_playback'] = isset($roomInfo['is_show_playback']) ? $roomInfo['is_show_playback'] : '1';//是否显示回放
             }
+
             // 红包信息
             if (in_array('redbag', $field)) {
                 if (!empty($roomInfo['redbag'])) {
                     $redbagId = $roomInfo['redbag'];
                     $roomRes[$roomInfo['id']]['redbag']['id'] = $roomInfo['redbag'];
+                }
+            }
+
+            // 优惠券信息
+            if (in_array('coupon', $field)) {
+
+                if (!empty($roomInfo['coupon'])) {
+                    $batch_code = $roomInfo['coupon']['batch_code'];
+                    
+                    if(in_array('send_coupon', $field)){
+                        $startTime = time();
+                        $couponService->addSendCouponSatrtTime($roomInfo['live_id'],$batch_code,$startTime);
+                    }
+                    $startTime = $couponService->getSendCouponStartTime($roomInfo['live_id'],$batch_code)['data'];
+                    $countdown = $startTime+$roomInfo['coupon']['countdown']-time()>0 ? $startTime+$roomInfo['coupon']['countdown']-time() : 0;
+                    $roomRes[$roomInfo['id']]['coupon']['batch_code'] = $batch_code;
+                    $roomRes[$roomInfo['id']]['coupon']['countdown'] = $countdown;
+                    //代金券面额
+                    $money = $couponService->getBatchCodeList([$batch_code])['data'][$batch_code]['value'];
+                    $roomRes[$roomInfo['id']]['coupon']['money'] = $money;
                 }
             }
             
@@ -854,6 +930,99 @@ class Live extends \mia\miagroup\Lib\Service {
         }
         $data = $this->liveModel->updateLiveById($liveId,$setInfo);
         return $this->succ($data);
+    }
+
+    /**
+     * 发送领取优惠券消息
+     */
+    public function sendLiveCoupon($userId,$roomId,$batchCode)
+    {
+        // 获取直播房间信息
+        $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('coupon','send_coupon'))['data'];
+        $liveRoomInfo = $liveRoomInfo[$roomId];
+        // 判断直播间是否配置了优惠券
+        if (empty($liveRoomInfo['coupon'])) {
+            return $this->error('1636');
+        }
+        // 判断该优惠券是否绑定了直播房间
+        if ($liveRoomInfo['coupon']['batch_code'] != $batchCode) {
+            return $this->error('1636');
+        }
+        
+        $couponService = new Coupon();
+        
+        $batchCodeExpiredStatus = $couponService->checkBatchCodeIsExpired([$batchCode]);
+        if($batchCodeExpiredStatus['code'] != 0){
+            return $this->error($batchCodeExpiredStatus['code']);
+        }
+        //倒计时
+        $countdown = $liveRoomInfo['coupon']['countdown'];
+        $money = $liveRoomInfo['coupon']['money'];
+        $coupon = ['batch_code'=>$batchCode,'countdown'=>$countdown,'money'=>$money];
+        //发送领取优惠券消息
+        $content = NormalUtil::getMessageBody(13,$liveRoomInfo['chat_room_id'], 0, '', ['coupon'=>$coupon]);
+        $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
+        //发送过后记录下来，用于避免重复发送用
+        $couponService->setBatchCodeToRedis($liveRoomInfo['live_id'],$batchCode);
+        
+        return $this->succ();
+    }
+
+    /**
+     * 领取直播优惠券
+     */
+    public function getLiveCoupon($userId,$roomId,$batchCode)
+    {
+        // 获取直播房间信息
+        $liveRoomInfo = $this->getLiveRoomByIds(array($roomId), $userId, array('coupon'))['data'];
+        $liveRoomInfo = $liveRoomInfo[$roomId];
+        // 判断直播间是否配置了优惠券
+        if (empty($liveRoomInfo['coupon'])) {
+            return $this->error('1632');
+        }
+        // 判断该优惠券是否绑定了直播房间
+        if ($liveRoomInfo['coupon']['batch_code'] != $batchCode) {
+            return $this->error('1632');
+        }
+
+        $couponService = new Coupon($this->version);
+        // 是否已领取
+        $couponReceived = $couponService->checkIsReceivedCoupon($userId,[$batchCode]);
+        if ($couponReceived['code'] != 0) {
+            return $this->error('1631');
+        }
+
+        //判断优惠是否已发完
+        $couponNum = $couponService->getCouponRemainNums([$batchCode])['data'];
+        if(!$couponNum[$batchCode]['remain']){
+            $this->error('1635');
+        }
+
+        // 领优惠券
+        $couponBind = $couponService->bindCoupon($userId, $batchCode);
+        if ($couponBind['code'] > 0) {
+            return $this->error('1633');
+        }
+
+        //获取优惠券信息
+        $couponInfo = $couponService->getPersonalCoupons($userId,[$batchCode]);
+        if($couponInfo['code']>0 || empty($couponInfo['data']['coupon_info_list'])){
+            return $this->error('1632');
+        }
+
+        $couponMoney = $couponInfo['data']['coupon_info_list'][0]['value'];
+
+        //发送抢到优惠券的消息
+        $userService = new User();
+        $userInfo = $userService->getUserInfoByUserId($userId)['data'];
+        if (!empty($userInfo)) {
+            $content = NormalUtil::getMessageBody(0,$liveRoomInfo['chat_room_id'], \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), sprintf('恭喜%s抢到%s元优惠券', $userInfo['nickname'], $couponMoney));
+            $this->rongCloud->messageChatroomPublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $liveRoomInfo['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.objectNameHigh'), $content);
+        }
+
+        $success_msg = sprintf('恭喜！抢到%s元优惠券，快去买买买~',$couponMoney);
+        $success = array('success_msg' =>$success_msg);
+        return $this->succ($success);
     }
 
 }

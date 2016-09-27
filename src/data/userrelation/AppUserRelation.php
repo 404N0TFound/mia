@@ -163,7 +163,7 @@ class AppUserRelation extends DB_Query {
         $result = array();
         if (!empty($data)) {
             foreach ($data as $v) {
-                $result[] = $v['replation_user_id'];
+                $result[$v['replation_user_id']] = $v['replation_user_id'];
             }
         }
         return $result;

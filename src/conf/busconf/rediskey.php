@@ -5,6 +5,13 @@ $basePrefix = 'miagroup_';
 $liveServicePrefix = $basePrefix . 'live_';
 //红包服务相关key前缀
 $redBagServicePrefix = $basePrefix . 'redbag_';
+//代金券服务相关key前缀
+$couponServicePrefix = $basePrefix . 'coupon_';
+//头条服务相关key前缀
+$headLineServicePrefix = $basePrefix . 'headline_';
+//帖子相关key前缀
+$subjectServicePrefix = $basePrefix . 'subject_';
+
 /**
  * 直播相关的redisKey
  */
@@ -12,6 +19,11 @@ $liveKey = array(
     //在线人数
     'live_audience_online_num' => array( 
         'key' => $liveServicePrefix . 'audience_online_num_%s',
+        'expire_time' => 3600,
+    ),
+    //直播计数变化记录
+    'live_count_record' => array(
+        'key' => $liveServicePrefix . 'live_count_record',
         'expire_time' => 3600,
     ),
     //已售卖的商品数
@@ -89,3 +101,35 @@ $miBeanKey = array(
     
 );
 
+/**
+ * 代金券相关的redisKey
+ */
+$couponKey = array(
+    'sendCoupon' =>array(
+        'key' => $couponServicePrefix . 'send_coupon_%s',
+        'expire_time' => 86400 * 30,
+    ),
+    //发送代金券开始时间戳
+    'send_coupon_start_time' =>array( //使用String数据结构
+        'key' => $couponServicePrefix . 'start_time_%s',
+        'expire_time' => 86400,
+    )
+);
+
+/**
+ * 头条相关的rediskey
+ */
+$headLineKey = array(
+    'syncUniqueFlag' =>array( //同步数据唯一校验
+        'key' => $headLineServicePrefix . 'sync_unique_flag_%s',
+        'expire_time' => 86400,
+    ),
+);
+
+//帖子相关rediskey
+$subjectKey = [
+    'subject_read_num' => [//使用List数据结构
+        'key' => $subjectServicePrefix . 'read_num',
+        'expire_time' => 86400 * 30,
+    ],
+];

@@ -62,4 +62,9 @@ $liveRoomTips = "蜜芽倡导绿色直播，如有吸烟、低俗、引诱、暴
 /**
  * 直播设置项
  */
-$liveSetting = array('banners','redbag','share','is_show_gift','is_show_playback','title','source','user_num');
+$liveSetting = array('banners','redbag','share','is_show_gift','is_show_playback','title','source','user_num','coupon');
+
+/**
+ * 直播计数类型
+ */
+ $liveCountType = array('online_num', 'audience_num', 'audience_top_num', 'like_num', 'comment_num');

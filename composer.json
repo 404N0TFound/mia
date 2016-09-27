@@ -20,6 +20,7 @@
             "mia\\miagroup\\Remote\\":       "src/remote",
             "mia\\miagroup\\Data\\":        "src/data",
             "mia\\miagroup\\Data\\Subject\\":   "src/data/subject",
+            "mia\\miagroup\\Data\\Feed\\":      "src/data/feed",
             "mia\\miagroup\\Data\\Comment\\":   "src/data/comment",
             "mia\\miagroup\\Data\\Koubei\\":    "src/data/koubei",
             "mia\\miagroup\\Data\\Praise\\":    "src/data/praise",
@@ -32,6 +33,8 @@
             "mia\\miagroup\\Data\\Redbag\\":      "src/data/redbag",
             "mia\\miagroup\\Data\\Item\\":    "src/data/item",
             "mia\\miagroup\\Data\\Order\\":    "src/data/order",
+            "mia\\miagroup\\Data\\HeadLine\\":    "src/data/headline",
+            "mia\\miagroup\\Data\\Audit\\":    "src/data/audit",
             "mia\\miagroup\\Data\\PointTags\\":    "src/data/pointtags"
         }
     },

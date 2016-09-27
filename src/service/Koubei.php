@@ -112,6 +112,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $subjectInfo['text'] = $koubeiSetData['content'];
         $subjectInfo['created'] = $koubeiSetData['created_time'];
         $subjectInfo['extr_info'] = $labels;
+        $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
         $imageInfos = array();
         $i=0;
          if(!empty($koubeiData['image_infos'])) {
@@ -297,6 +298,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
     
         $immutable_score += $data['score'] * 0.5 + 0.3 * 10 * $hasPic + $data['rank'] * 6 ;
         return $immutable_score;
+    }
+    
+    /**
+     * 删除口碑
+     */
+    public function delete($id, $userId){
+        //删除对应口碑
+        $res = $this->koubeiModel->delete($id, $userId);
+        return $this->succ($res);
     }
     
 }

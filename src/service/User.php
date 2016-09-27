@@ -131,7 +131,7 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo[$key] = '';
             }
         }
-        if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"])*$/", $userInfo['icon'])) {
+        if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\//", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
         }
         $userInfo['username'] = preg_replace('/(miya[\d]{3}|mobile_[\d]{3})([\d]{4})([\d]{4})/', "$1****$3", $userInfo['username']);
@@ -151,7 +151,7 @@ class User extends \mia\miagroup\Lib\Service {
         }
         $userInfo['level'] = intval($userInfo['level']);
         $userInfo['level_id'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_id']; // 用户等级ID
-        if(substr($this->ext_params['version'],-5,3) == '4_6'){
+        if(intval(substr($this->ext_params['version'],-3,1)) >= 6){
             $userInfo['level_number'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level']; // 用户等级
             $userInfo['level'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_name']; // 用户等级名称
         }else{
@@ -186,18 +186,87 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo['push_switch'] = $pushSwitch['push_switch'];
             }
         }
-        if (in_array('mibean', $field)) {
-            // $this->load->model('mibean_model', 'mBean');
-            // $miBeanInfo = $this->mBean->currentLevelToNextLevelInfo($userInfo['user_id']);
-            // $userInfo['mibean'] = $miBeanInfo['count'] > 0 ? $miBeanInfo['count'] : 0;
-        }
-        if (in_array('jifen', $field)) {
-            // $userInfo['score'] = $this->getJifenBalance($userInfo['user_id']);
-        }
         
         return $this->succ($userInfo);
     }
-
-
     
+    /**
+     * 专家详情
+     */
+    public function expertsInfo($userId, $currentId){
+        $result = array();
+        $expertsinfo = $this->userModel->getBatchExpertInfoByUids([$userId])[$userId];
+        $userInfo = $this->getUserInfoByUserId($userId,array("relation","count"),$currentId)['data'];
+        $result['user_info'] = $userInfo;
+        if(!empty($expertsinfo)){
+            $result['desc'] = !empty(trim($expertsinfo['desc'])) ? explode('#', trim($expertsinfo['desc'],"#")) : array();
+            $result['expert_field'] = array();
+            if(!empty(trim($expertsinfo['label'],"#"))){
+                $expert_field = explode('#', trim($expertsinfo['label'],"#"));
+                $labelService = new \mia\miagroup\Service\Label();
+                $expert_field_info = $labelService->getBatchLabelInfos($expert_field)['data'];
+                foreach ($expert_field_info as $label) {
+                    $result['expert_field'][] = $label;
+                }
+            }else{
+                $result['expert_field'] = array();
+            }
+            $commentService = new \mia\miagroup\Service\Comment();
+            $result['comment_nums'] = $commentService->getCommentByExpertId($userId)['data'];
+        }
+        return $this->succ($result);
+    }
+
+    /**
+     * 头条导入用户
+     */
+    public function syncHeadLineUser($userinfo) {
+        $username = mb_strlen($userinfo['username'], 'utf8') > 18 ? mb_substr($userinfo['username'], 0, 18) : $userinfo['username'];
+        $nickname = mb_strlen($userinfo['nickname'], 'utf8') > 16 ? mb_substr($userinfo['nickname'], 0, 16) : $userinfo['nickname'];
+        $avatar = $userinfo['avatar'];
+        $category = $userinfo['category'];
+        $checkExist = $userinfo['checkExist'];
+        $desc = $userinfo['desc'];
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
+        //如果checkExist==1，nickname重复不再生成新用户
+        if ($checkExist == 1) {
+            $userId = $this->userModel->getUidByNickName($nickname);
+            if (intval($userId) > 0) {
+                //用户归类
+                $this->userModel->setHeadlineUserCategory($userId, $category);
+                return $this->succ(array('uid' => $userId, 'is_exist' => 1));
+            }
+        }
+        //校验userName是否已存在
+        $userId = $this->userModel->getUidByUserName($username);
+        if (intval($userId) > 0) {
+            //更新用户信息
+            $setData[] = array('nickname', $nickname);
+            $setData[] = array('icon', $avatar);
+            $this->userModel->updateUserById($userId, $setData);
+            //更新专家信息
+            $this->userModel->updateExpertInfoByUid($userId, array('desc' => array($desc)));
+            //用户归类
+            $this->userModel->setHeadlineUserCategory($userId, $category);
+            return $this->succ(array('uid' => $userId, 'is_exist' => 1));
+        }
+        //主表插入
+        $userInfo['username'] = $username;
+        $userInfo['nickname'] = $nickname;
+        $userInfo['icon'] = $avatar;
+        $userInfo['password'] = 'a255220a91378ba2f4aad17300ed8ab7';
+        $userInfo['group_id'] = 10;
+        $userInfo['relation'] = 3;
+        $userInfo['create_date'] = date('Y-m-d H:i:s');
+        $userId = $this->userModel->addUser($userInfo);
+        $this->userModel->addExpert(array('user_id' => $userId, 'last_modify' => date('Y-m-d H:i:s'), 'status' => 1));
+        \DB_Query::switchCluster($preNode);
+        if (intval($userId) > 0) {
+            //用户归类
+            $this->userModel->setHeadlineUserCategory($userId, $category);
+            return $this->succ(array('uid' => $userId, 'is_exist' => 0));
+        } else {
+            return $this->error(500);
+        }
+    }
 }

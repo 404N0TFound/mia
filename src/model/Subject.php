@@ -4,6 +4,7 @@ namespace mia\miagroup\Model;
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\GroupSubjectRecommendPool;
+use mia\miagroup\Lib\Redis;
 
 class Subject {
 
@@ -88,11 +89,11 @@ class Subject {
     /**
      * 批量查询视频信息
      */
-    public function getBatchVideoInfos($videoIds, $videoType = 'm3u8') {
+    public function getBatchVideoInfos($videoIds) {
         if (empty($videoIds)) {
             return array();
         }
-        $videoArr = $this->videoData->getBatchVideoInfos($videoIds, $videoType);
+        $videoArr = $this->videoData->getBatchVideoInfos($videoIds);
         $result = array();
         if (!empty($videoArr)) {
             foreach ($videoArr as $v) {
@@ -107,8 +108,9 @@ class Subject {
                         $video['video_type'] = 'swf';
                         break;
                     case 'qiniu':
-                        $video['video_url'] = $this->videoData->getVideoUrl($v['video_origin_url'], $videoType);
-                        $video['video_type'] = $videoType;
+                        $video['video_url'] = $this->videoData->getVideoUrl($v['video_origin_url'], 'm3u8');
+                        $video['video_mp4_url'] = $this->videoData->getVideoUrl($v['video_origin_url'], 'mp4');
+                        $video['video_type'] = 'm3u8';
                         break;
                 }
                 $video['status'] = $v['status'];
@@ -153,4 +155,113 @@ class Subject {
         return $this->subjectData->setSubjectRecommendStatus($ids,$setStatus);
     }
     
+    /**
+     * 帖子阅读写入队列
+     */
+    public function viewNumRecord($subjectId,$num=1) {
+        $read_num_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_read_num.key');
+        $redis = new Redis();
+        $data = json_encode(['subject_id'=>$subjectId,'num'=>intval($num)]);
+        $redis->lpush($read_num_key, $data);
+        return true;
+    }
+    
+    /**
+     * 读取帖子阅读记录
+     * @param int $num 获取队列中的条数
+     */
+    public function getViewNumRecord($num) {
+        $read_num_key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_read_num.key');
+        $redis = new Redis();
+        $len = intval($redis->llen($read_num_key));
+        if ($len < $num) {
+            $num = $len;
+        }
+        $result = [];
+        for ($i = 0; $i < $num; $i ++) {
+            $data = json_decode($redis->rpop($read_num_key),true);
+            $result[$data['subject_id']] += intval($data['num']);
+        }
+        return $result;
+     }
+     
+     /**
+      * 获取用户的相关帖子ID
+      * @param unknown $userId
+      * @param number $currentId
+      * @param number $iPage
+      * @param number $iPageSize
+      */
+     public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
+         $subject_id = $this->subjectData->getSubjectInfoByUserId($userId, $currentId, $iPage, $iPageSize);
+         return $subject_id;
+     }
+     
+     /**
+      * 删除帖子
+      * @param unknown $subjectId
+      * @param unknown $userId
+      */
+     public function delete($subjectId, $userId){
+         $affect = $this->subjectData->delete($subjectId, $userId);
+         return $affect;
+     }
+     
+     /**
+      * 精选帖子的ids
+      * @param int $iPage 页码
+      * @param int $iPageSize 一页多少个
+      * @return array 帖子ids
+      */
+     public function getRrecommendSubjectIds($iPage=1, $iPageSize=21){
+         $subject_ids = $this->subjectData->getRrecommendSubjectIds($iPage,$iPageSize);
+         return $subject_ids;
+     }
+     
+     /**
+      * 根据用户ID获取帖子信息
+      */
+     public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
+         $data = $this->subjectData->getSubjectDataByUserId($subjectId, $userId, $status);
+         return $data;
+     }
+     
+     /**
+      * 分享
+      */
+     public function addShare($sourceId, $userId, $type, $platform,$status){
+         $shareData = new \mia\miagroup\Data\Subject\Share();
+         $shareId = $shareData->addShare($sourceId, $userId, $type, $platform,$status);
+         return $shareId;
+     }
+     
+     /**
+      * 根据用户id查询帖子
+      * @param int $userId
+      */
+     public function getSubjectsByUid($userId){
+         $result = $this->subjectData->getSubjectsByUid($userId);
+         return $result;
+     }
+     
+     /**
+      * 删除或者屏蔽帖子
+      * @param array $subjectIds
+      * @param  $status
+      * @param string $shieldText
+      * @return true/false
+      */
+     public function deleteSubjects($subjectIds,$status,$shieldText){
+         $data = $this->subjectData->deleteSubjects($subjectIds,$status,$shieldText);
+         return $data;
+     }
+     
+     /**
+      * 批量更新帖子的数量
+      */
+     public function updateSubjectComment($commentNumArr){
+         $data = $this->subjectData->updateSubjectComment($commentNumArr);
+         return $data;
+     }
+
 }

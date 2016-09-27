@@ -2,7 +2,7 @@
 namespace mia\miagroup\Model;
 
 use mia\miagroup\Data\UserRelation\AppUserRelation;
-
+use mia\miagroup\Data\User\GroupSubjectUserExperts;
 /**
  * Description of UserRelation
  *
@@ -11,9 +11,10 @@ use mia\miagroup\Data\UserRelation\AppUserRelation;
 class UserRelation {
 
     public $appUserRelation = null;
-
+    public $groupSubjectUserExperts;
     public function __construct() {
         $this->appUserRelation = new AppUserRelation();
+        $this->groupSubjectUserExperts = new GroupSubjectUserExperts();
     }
 
     /**
@@ -118,7 +119,12 @@ class UserRelation {
      * 获取用户的关注列表
      */
     public function getAttentionListByUid($userId, $page = 0, $limit = 20) {
-        $start = ($page - 1) * $limit;
+        if($limit){
+            $start = ($page - 1) * $limit;
+        }else{
+            $limit = false;
+            $start = false;
+        }
         $data = $this->appUserRelation->getAttentionListByUid($userId, $start, $limit);
         return $data;
     }
@@ -129,6 +135,15 @@ class UserRelation {
     public function getFansListByUid($userId, $page = 0, $limit = 20) {
         $start = ($page - 1) * $limit;
         $data = $this->appUserRelation->getFansListByUid($userId, $start, $limit);
+        return $data;
+    }
+
+    /**
+     * 获取用户的关注专家列表
+     */
+    public function getAttentionExpertList($userIds)
+    {
+        $data = $this->groupSubjectUserExperts->getBatchExpertInfoByUids($userIds);
         return $data;
     }
 }

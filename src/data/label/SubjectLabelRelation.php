@@ -44,4 +44,61 @@ class SubjectLabelRelation extends \DB_Query {
         $insertLabel = $this->insert($labelRelationInfo);
         return $insertLabel;
     }
+
+
+    
+    /**
+     * 根据标签ID获取帖子列表
+     */
+    public function getSubjectListByLableIds($lableIds,$offset,$limit,$is_recommend=0)
+    {
+        if(!is_array($lableIds)){
+            return [];
+        }
+
+        $where[] = ['label_id',$lableIds];
+        $where[] = ['status',1];
+        $orderBy = 'create_time DESC';
+        if($is_recommend>0){
+            $where[] = ['is_recommend',1];
+            $orderBy = 'top_time DESC, recom_time DESC';
+        }
+        $data = $this->getRows($where,'subject_id',$limit,$offset,$orderBy);
+        $result = [];
+        foreach ($data as $key => $value) {
+            $result[$value['subject_id']] = $value['subject_id'];
+        }
+        return $result;
+    }
+
+    /**
+     * 批量获取标签下的精华帖子是否置顶
+     */
+    public function getLableSubjectsTopStatus($lableId, $subjectIds)
+    {
+        if (empty($subjectIds) || empty($lableId)) {
+            return array();
+        }
+        $where[] = ['status',1];
+        $where[] = ['label_id',$lableId];
+        $where[] = ['subject_id',$subjectIds];
+        $data = $this->getRows($where);
+        $result = array();
+        foreach ($data as $v) {
+            $result[$v['subject_id']] = $v['is_top'];
+        }
+        return $result;
+    }
+    
+    /**
+     * 获取标签下是否有精选帖子
+     */
+    public function getLabelIsRecommendInfo($labelId){
+        $sql = "SELECT a.* FROM {$this->tableName} a 
+                    INNER JOIN group_subjects b ON a.subject_id=b.id
+                    WHERE a.label_id={$labelId} AND a.status=1 AND a.is_recommend=1 AND b.status IN (1,2) LIMIT 1";
+        $result = $this->query($sql);
+        return $result;
+    }
+    
 }

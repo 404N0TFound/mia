@@ -162,5 +162,33 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         return $this->succ($arrResult);
     }
     
+    /**
+     * 获取我关注的所有用户
+     */
+    public function getAllAttentionUser($userId) {
+        if(empty($userId)){
+            return $this->error(500);
+        }
+        $userIds = $this->userRelationModel->getAttentionListByUid($userId, 1, false);
+        return $this->succ($userIds);
+    }
+    
+    /**
+     * 获取我关注所有专家列表
+     */
+    public function getAllAttentionExpert($userId) {
+        if(empty($userId)){
+            return $this->error(500);
+        }
+        $userIds = $this->getAllAttentionUser($userId)['data'];
+        $expertUserIds = $this->userRelationModel->getAttentionExpertList($userIds);
+        foreach ($userIds as $key => $value) {
+            if(isset($expertUserIds[$key])){
+                $data[$key] = $expertUserIds[$key];
+            }
+        }
+        $data = !empty($data) ? $data : array();
+        return $this->succ($data);
+    }
 }
 
