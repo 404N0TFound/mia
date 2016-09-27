@@ -669,21 +669,28 @@ class Subject extends \mia\miagroup\Lib\Service {
     public function delete($subjectId,$userId){
         
         $subjectInfo = $this->subjectModel->getSubjectByIds([$subjectId])[$subjectId];
-        if($subjectInfo['subject_info']['status'] == 0) {
-            return $this->succ(1);
+        if($subjectInfo['status'] == 0) {
+            return $this->succ(true);
         }
         //删除帖子
         $result = $this->subjectModel->delete($subjectId, $userId);
         $extInfo = json_decode($subjectInfo['ext_info'], true);
-        if($result && !empty($extInfo['koubei']['id'])){
-            //删除口碑
-            $koubei = new \mia\miagroup\Service\Koubei();
-            $res = $koubei->delete($extInfo['koubei']['id'], $userId);
-            if($res){
-                return $this->succ(1);
+        if($result){
+            if(!empty($extInfo['koubei']['id'])){
+                //删除口碑
+                $koubei = new \mia\miagroup\Service\Koubei();
+                $res = $koubei->delete($extInfo['koubei']['id'], $userId);
+                if($res){
+                    return $this->succ(true);
+                }else{
+                    return $this->error(6104);
+                }
+            }else{
+                return $this->succ(true);
             }
+        }else{
+            return $this->error(6104);
         }
-        return $this->error(6104);
     }
     
     /**
