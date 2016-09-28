@@ -41,14 +41,27 @@ class Feed extends \mia\miagroup\Lib\Service {
         if(empty($userId)){
             return $this->succ(array());
         }
+
+        //获取我关注的标签列表
+        $lableIdInfo = $this->labelService->getAllAttentLabel($userId)['data'];
         //获取我关注的用户列表
         $userIds = $this->userRelationService->getAllAttentionUser($userId)['data'];
+        $auditService = new \mia\miagroup\Service\Audit();
+        foreach ($userIds as $key => $userId) {
+            //验证用户是否已屏蔽
+            if($auditService->checkUserIsShield($userId)['data']['is_shield']){
+                unset($userIds[$key]);
+            }
+        }
+        
         //获取我关注用户的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count);
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
-
-        return $this->succ(array_values($subjectsList['data']));
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid)['data'];
+        $data = [];
+        $data['subject_lists'] = array_values($subjectsList);
+        $data['label_lists'] = $lableIdInfo;
+        return $this->succ($data);
     }
     
     /**
@@ -81,14 +94,10 @@ class Feed extends \mia\miagroup\Lib\Service {
         $lableIds = array_column($lableIdInfo,'id');
         //获取我关注标签的帖子列表
         $subjectInfos = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$currentUid,$page,$count)['data'];
-        $auditService = new \mia\miagroup\Service\Audit();
-        foreach($subjectInfos as $key => $subjectInfo){
-            //验证用户是否已屏蔽
-            if($auditService->checkUserIsShield($subjectInfos[$key]['user_id'])['data']['is_shield']){
-                unset($subjectInfos[$key]);
-            }
-            
-        }
-        return $this->succ(array_values($subjectInfos));
+
+        $data = [];
+        $data['subject_lists'] = array_values($subjectInfos);
+        $data['label_lists'] = $lableIdInfo;
+        return $this->succ($data);
     }
 }
