@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Data\Comment;
 
+use mia\miagroup\Data\Order\Order;
 class SubjectComment extends \DB_Query {
 
     protected $dbResource = 'miagroup';
@@ -158,34 +159,28 @@ class SubjectComment extends \DB_Query {
      * 获取用户的评论信息
      */
     public function getUserSubjectCommentInfo($userId, $page = 1, $pageSize = 10){
-    
         $offset = $pageSize * ($page - 1);
-        $sql = "select c.subject_id, max(c.id) as id from {$this->tableName} as c, group_subjects as s
-        where c.status = 1 and c.user_id = {$userId} and c.subject_id = s.id and s.status = 1
-        group by c.subject_id order by id desc
-        limit {$offset}, {$pageSize}";
-        $data = $this->query($sql);
+        $where[] = ['status',1];
+        $where[] = ['user_id',$userId];
+        $groupBy = 'subject_id';
+        $orderBy = "id desc";
+        $data = $this->getRows($where,'subject_id, max(id) as id',$pageSize,$offset,$orderBy,false,$groupBy);
         return $data;
     }
     
     //获取选题评论列表
     public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
         
-        $where = "c.subject_id = $subjectId and c.status = 1 and (sh.status = 0 or sh.user_id is null)";
         if ($commentId > 0) {
-            $where .= " and c.id > $commentId";
+            $where[] = [':>','id',$commentId];
         }
         if($user_type == 1){
-            $where .= " and c.is_expert = 1 ";
+            $where[] = ['is_expert',1];
         }
-        $sql = "select c.id from {$this->tableName} as c
-        left join user_shield as sh
-        on c.user_id = sh.user_id
-        where {$where}
-        order by c.id asc
-        limit $pageSize";
-        
-        $commentInfo = $this->query($sql);
+        $where[] = ['subject_id',$subjectId];
+        $where[] = ['status',1];
+        $orderBy = 'id asc';
+        $commentInfo = $this->getRows(where,'id',$pageSize,0,$orderBy);
         $commentIds = array_column($commentInfo, 'id');
         return $commentIds;
     }
