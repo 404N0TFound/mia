@@ -23,10 +23,12 @@ class SubjectLabel extends \DB_Query {
         if (empty($labelIds)) {
             return array();
         }
+        $labelIdStr = implode(',', $labelIds);
         $where = array();
         $where[] = array(':in', 'id', $labelIds);
         $where[] = array(':eq', 'status', 1);
-        $labelInfos = $this->getRows($where, '`id`, `title`, `is_hot`,`hot_pic`,`is_recommend`,`hot_small_pic`,`ext_info`');
+        $orderBy = "FIND_IN_SET(id,'{$labelIdStr}')";
+        $labelInfos = $this->getRows($where, '`id`, `title`, `is_hot`,`hot_pic`,`is_recommend`,`hot_small_pic`,`ext_info`',false,0,$orderBy);
         $labelsRes = array();
         if (!empty($labelInfos)) {
             foreach ($labelInfos as $labelInfo) {
@@ -89,6 +91,9 @@ class SubjectLabel extends \DB_Query {
      */
     public function getRecommendLables($offset=0,$limit=10,$userType='')
     {
+        if($limit <= 10){
+            $limit = 11;
+        }
         if(!empty($userType)){
             $where[] = [$userType,1];
         }

@@ -631,7 +631,7 @@ class Subject extends \mia\miagroup\Lib\Service {
      * 根据用户ID获取帖子信息
      */
     public function getSubjectsByUid($userId,$currentId = 0, $page = 1, $iPageSize = 20){
-        $data = array("total" => 0, "subject_lists" => array(), "status" => 0);
+        $data = array("subject_lists" => array(), "status" => 0);
         //校验是否是屏蔽用户
         $audit = new \mia\miagroup\Service\Audit();
         $isShieldStatus = $audit->checkUserIsShield($userId)['data'];
