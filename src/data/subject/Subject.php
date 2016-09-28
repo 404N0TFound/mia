@@ -169,16 +169,12 @@ class Subject extends \DB_Query {
      * @return array 帖子ids
      */
     public function getRrecommendSubjectIds($iPage=1, $iPageSize=21){
-        $offsetLimit = $iPageSize * ($iPage - 1);
-        $where = "g.status = 1 and g.is_fine = 1 and (sh.status = 0 or sh.user_id is null) and g.update_time>'" . date("Y-m-d",strtotime("last month")) . "'";
-        $sql = "select g.id
-            from {$this->tableName} as g
-            left join user_shield as sh
-            on g.user_id = sh.user_id
-            where {$where}
-            order by g.top_time desc, g.update_time desc
-            limit {$offsetLimit},{$iPageSize}";
-        $subjectsArrs = $this->query($sql);
+        $offsetLimit = $iPageSize * ($iPage - 1);     
+        $where[] = ['status',1];
+        $where[] = ['is_fine',1];
+        $where[] = [':>','update_time',date("Y-m-d",strtotime("last month"))];
+        $orderBy = 'top_time desc, update_time desc';
+        $subjectsArrs = $this->getRows($where,'id',$iPageSize,$offsetLimit,$orderBy);
         return array_column($subjectsArrs, 'id');
     }
     
