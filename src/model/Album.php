@@ -354,7 +354,7 @@ class Album {
             'content_original'=>$insert['content_original'],
             'ext_info'=>json_encode($insert['ext_info']),
             'status'=>$insert['status'],
-            'create_time'=>date("Y-m-d H:i:s")
+            'create_time'=>$insert['create_time'] ? $insert['create_time'] : date("Y-m-d H:i:s")
         );
         $res = $this->albumArticleData->addAlbum($data);
         return $res;
