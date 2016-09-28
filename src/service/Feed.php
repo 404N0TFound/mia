@@ -43,7 +43,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         }
 
         //获取我关注的标签列表
-        $lableIdInfo = $this->labelService->getAllAttentLabel($userId)['data'];
+        $lableIdInfo = $this->labelService->getAllAttentLabel($userId,1,11)['data'];
         //获取我关注的用户列表
         $userIds = $this->userRelationService->getAllAttentionUser($userId)['data'];
         $auditService = new \mia\miagroup\Service\Audit();
@@ -90,7 +90,7 @@ class Feed extends \mia\miagroup\Lib\Service {
             return $this->succ(array());
         }
         //获取我关注的标签列表
-        $lableIdInfo = $this->labelService->getAllAttentLabel($userId)['data'];
+        $lableIdInfo = $this->labelService->getAllAttentLabel($userId,1,11)['data'];
         $lableIds = array_column($lableIdInfo,'id');
         //获取我关注标签的帖子列表
         $subjectInfos = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$currentUid,$page,$count)['data'];
