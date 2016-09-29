@@ -245,9 +245,9 @@ class Comment extends \mia\miagroup\Lib\Service {
         $subjectIds = array_column($commontArrs, 'subject_id');
         $commentIds = array_column($commontArrs, 'id');
         $subjectService = new \mia\miagroup\Service\Subject();
-        $answerSubjects = $subjectService->getBatchSubjectInfos($subjectIds, $currentId, array('user_info', 'count', 'group_labels'));
+        $answerSubjects = $subjectService->getBatchSubjectInfos($subjectIds, $currentId, array('user_info', 'count', 'group_labels'))['data'];
         $commentService = new \mia\miagroup\Service\Comment();
-        $commentInfos = $commentService->getBatchComments($commentIds, array('user_info'));
+        $commentInfos = $commentService->getBatchComments($commentIds, array('user_info'))['data'];
         foreach ($commontArrs as $val) {
             if (!empty($answerSubjects[$val['subject_id']]) && !empty($commentInfos[$val['id']])) {
                 $subject = $answerSubjects[$val['subject_id']];
