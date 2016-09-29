@@ -675,7 +675,7 @@ class Subject extends \mia\miagroup\Lib\Service {
      * 删除帖子
      */
     public function delete($subjectId,$userId){
-        $status = array(0,1);
+        $status = array();
         $subjectInfo = $this->subjectModel->getSubjectByIds([$subjectId],$status)[$subjectId];
         if($subjectInfo['status'] == 0) {
             return $this->succ(true);
@@ -828,7 +828,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         //屏蔽帖子
         if($status == -1){
-            $subStatus = array(-1,1);//查看屏蔽和正常状态的帖子，屏蔽过的（-1）直接返回，正常的（1）进行屏蔽
+            $subStatus = array();
             $subjectInfo = $this->subjectModel->getSubjectByIds($subjectIds,$subStatus)[$subjectIds[0]];
             if(!empty($subjectInfo['status'] == -1)) {
                 return $this->succ(true);
