@@ -152,4 +152,21 @@ class Koubei {
         $result = $this->koubeiData->delete($id,$userId);
         return $result;
     }
+    
+    /**
+     * 根据用户id查询口碑帖子
+     * @param int $userId
+     */
+    public function getKoubeisByUid($userId){
+        $result = $this->koubeiData->getKoubeisByUid($userId);
+        return $result;
+    }
+    
+    /**
+     * 批量删除口碑
+     */
+    public function deleteKoubeis($koubeiIds){
+        $result = $this->koubeiData->deleteKoubeis($koubeiIds);
+        return $result;
+    }
 }

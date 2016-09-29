@@ -95,18 +95,30 @@ class Audit extends \mia\miagroup\Lib\Service {
         
         $subjectService = new \mia\miagroup\Service\Subject();
         $commentService = new \mia\miagroup\Service\Comment();
+        $koubeiService = new \mia\miagroup\Service\Koubei();
+        
         foreach($delContent as $content){
-            //(1)删除帖子
+            //(1)删除帖子及口碑
             if($content == 1){
                 //查看用户是否有帖子信息
                 $subjectsArr = $subjectService->getSubjects($userInfo['user_id']);
-                //如果有，则删除
+                //如果有蜜芽帖子，删除
                 if(!empty($subjectsArr['data'])){
                     $subjectIds = array();
                     foreach($subjectsArr['data'] as $subject){
                         $subjectIds[] = $subject['id'];
                     }
                     $subjectService->delSubjects($subjectIds,0);
+                }
+                //查看用户是否有口碑帖子
+                $koubeisArr = $koubeiService->getKoubeis($userInfo['user_id']);
+                //如果有口碑帖子，删除
+                if(!empty($koubeisArr['data'])){
+                    $koubeiIds = array();
+                    foreach($koubeisArr['data'] as $koubei){
+                        $koubeiIds[] = $koubei['id'];
+                    }
+                    $koubeiService->deleteKoubeis($koubeiIds);
                 }
             }
             //(2)删除评论
