@@ -5,7 +5,7 @@ use Ice;
 
 class ItemPic extends \DB_Query {
 
-    protected $dbResource = 'miagroup';
+    protected $dbResource = 'miadefault';
 
     protected $tableName = 'item_pictures';
 

@@ -10,7 +10,7 @@ use \DB_Query;
  */
 class AppDeviceToken extends DB_Query {
 
-    protected $tableName = 'app_device_token';
+    protected $tableName = 'miadefault';
 
     protected $dbResource = 'miagroup';
 

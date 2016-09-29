@@ -5,7 +5,7 @@ use \DB_Query;
 
 class User extends DB_Query {
 
-    protected $dbResource = 'miagroup';
+    protected $dbResource = 'miadefault';
 
     protected $tableName = 'users';
 

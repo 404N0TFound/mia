@@ -5,7 +5,7 @@ use Ice;
 
 class Redbagtadetail extends \DB_Query {
 
-    protected $dbResource = 'miagroup';
+    protected $dbResource = 'miadefault';
 
     protected $tableName = 'redbag_ta_detail';
 
