@@ -309,4 +309,22 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $this->succ($res);
     }
     
+    //查出某用户的所有口碑帖子
+    public function getKoubeis($userId){
+        if(!is_numeric($userId) || intval($userId) <= 0){
+            return $this->error(500);
+        }
+        $arrKoubeis = $this->koubeiModel->getKoubeisByUid($userId);
+        return $this->succ($arrKoubeis);
+    }
+    
+    /**
+     * 批量删除口碑
+     */
+    public function deleteKoubeis($koubeiIds){
+        //删除对应口碑
+        $res = $this->koubeiModel->deleteKoubeis($koubeiIds);
+        return $this->succ($res);
+    }
+    
 }
