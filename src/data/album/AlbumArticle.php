@@ -352,6 +352,9 @@ class AlbumArticle extends \DB_Query {
         if(isset($setData['cover_image']) && $setData['cover_image']){
             $set[] = array('cover_image',$setData['cover_image']);
         }
+        if(isset($setData['create_time']) && $setData['create_time']){
+            $set[] = array('create_time',$setData['create_time']);
+        }
         $set[] = array('update_time',date("Y-m-d H:i:s"));
         $data = $this->update($set, $where);
         return $data;

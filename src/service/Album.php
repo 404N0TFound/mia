@@ -372,6 +372,10 @@ class Album extends \mia\miagroup\Lib\Service {
             $data['ext_info']['images'] = $set['images'];
         }
         
+        if (strtotime($set['create_time']) > 0) {
+            $data['create_time'] = $set['create_time'];
+        }
+        
         if(empty($data) ){
             return $this->succ($res);
         }
