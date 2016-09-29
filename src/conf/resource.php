@@ -34,7 +34,7 @@ $pool = array(
             ),
             'options' => array(
                 'timeout' => 1,
-                'dbname'  => 'mia_test2',
+                'dbname'  => 'mia_group_test',
                 'charset' => 'utf8',
             ),
         ),
