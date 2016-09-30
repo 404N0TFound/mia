@@ -65,6 +65,33 @@ $pool = array(
                 'charset' => 'utf8',
             ),
         ),
+        'miaBI' => array(
+            'master' => array(
+                array(
+                    'host' => '172.16.104.207',
+                    'port' => 3307,
+                    'options' => array(
+                        'user' => 'write_user',
+                        'passwd' => 'write_pwd'
+                    ),
+                )
+            ),
+            'slave' => array(
+                array(
+                    'host' => '172.16.104.207',
+                    'port' => 3307,
+                    'options' => array(
+                        'user' => 'write_user',
+                        'passwd' => 'write_pwd'
+                    ),
+                )
+            ),
+            'options' => array(
+                'timeout' => 1,
+                'dbname'  => 'test',
+                'charset' => 'utf8',
+            ),
+        ),
         'log' => array(
             'master' => array(
                 array(

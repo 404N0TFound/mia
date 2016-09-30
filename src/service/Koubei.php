@@ -272,31 +272,34 @@ class Koubei extends \mia\miagroup\Lib\Service {
     //获取口碑的不变分数
     private function calImmutableScore($data)
     {
+        //初始分
+        $immutable_score = 6;
+        
+        //图片分，有图10分，权重0.3
         $hasPic = 0;
         if(!empty($data['image_infos'])) {
             $hasPic = 1;
         }
+        $immutable_score += 0.3 * 10 * $hasPic;
+        
+        //文本长度分，100字以上10分，50字以上8分，30字以上5分，10字以上3分，10字以下1分，权重0.2
         $content_count = mb_strlen($data['text'],'utf-8');
-        $immutable_score = 1 * 0.2;
-    
-        if($content_count > 100)
-        {
-            $immutable_score = 10 * 0.2;
+        if($content_count > 100) {
+            $immutable_score += 10 * 0.2;
         }
-        else if($content_count > 50)
-        {
-            $immutable_score = 8 * 0.2;
+        else if($content_count > 50) {
+            $immutable_score += 8 * 0.2;
         }
-        else if($content_count > 30)
-        {
-            $immutable_score = 5 * 0.2;
+        else if($content_count > 30) {
+            $immutable_score += 5 * 0.2;
         }
-        else if($content_count > 10)
-        {
-            $immutable_score = 3 * 0.2;
+        else if($content_count > 10) {
+            $immutable_score += 3 * 0.2;
         }
-    
-        $immutable_score += $data['score'] * 0.5 + 0.3 * 10 * $hasPic + $data['rank'] * 6 ;
+        
+        //口碑评分，权重1
+        $immutable_score += $data['score'] * 1.5;
+        
         return $immutable_score;
     }
     
