@@ -50,9 +50,11 @@ class Koubei extends \DB_Query {
         }
         $where = array();
         $where[] = ['id', $koubeiIds];
-        $where[] = ['status', 2];
+        if (!empty($status)) {
+            $where[] = ['status', $status];
+        }
     
-        $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
+        $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,immutable_score,item_size';
         $data = $this->getRows($where,$fields);
         if (!empty($data)) {
             foreach ($data as $v) {
@@ -133,6 +135,18 @@ class Koubei extends \DB_Query {
     }
     
     /**
+     * 更新口碑信息
+     */
+    public function updateKoubeiInfoById($koubeiId, $koubeiInfo) {
+        if (intval($koubeiId) <= 0) {
+            return false;
+        }
+        $where[] = ['id', $koubeiId];
+        $data = $this->update($koubeiInfo, $where);
+        return $data;
+    }
+    
+    /**
 
      * 删除口碑
      */
@@ -144,7 +158,7 @@ class Koubei extends \DB_Query {
         return $affect;
     }
 
-    /*
+    /**
      * 获取一段时间内的口碑
      */
     public function getKoubeiListByTime($startTime = '', $endTime = '', $offset = 0, $limit = 10, $orderBy = '') {
