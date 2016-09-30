@@ -27,14 +27,8 @@ class Calrankscore extends \FD_Daemon {
             $datas = $this->koubeiData->getKoubeiListByTime($startTime, $endTime, 0, false);
             foreach ($datas as $data) {
                 $setData = null;
-                //加精修正
-                if ($data['rank'] == 1) {
-                    $data['immutable_score'] += 6;
-                    $data['rank_score'] += 6;
-                    $setData[] = array('immutable_score', $data['immutable_score']);
-                }
                 //时间分数修正
-                $data['rank_score'] -= $i * 0.5;
+                $data['rank_score'] -= 0.5;
                 $setData[] = array('rank_score', $data['rank_score'] > 0 ? $data['rank_score'] : 0);
                 $this->koubeiData->updateKoubeiInfoById($data['id'], $setData);
             }
