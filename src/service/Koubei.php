@@ -49,7 +49,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['order_id'] = $orderInfo['id'];
         $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
-        $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 1.2;
+        $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
         $labels = array();$labels['label'] = array();$labels['image'] = array();
         if(!empty($koubeiData['labels']))
         {
@@ -273,7 +273,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     private function calImmutableScore($data)
     {
         //初始分，时间月份 * 权重
-        $immutable_score = 12 * 05;
+        $immutable_score = 0;
         
         //图片分，有图10分，权重0.3
         $hasPic = 0;
