@@ -18,8 +18,8 @@ class Correctscore extends \FD_Daemon {
         $this->koubeiScoreData = new KoubeiScoreData();
         //加载定时脚本临时文件存放地址
         $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
-        $tempFilePath = $runFilePath . '/koubei';
-        $this->lastIdFile = $tempFilePath . 'ios_push_last_id';
+        $tempFilePath = $runFilePath . '/koubei/';
+        $this->lastIdFile = $tempFilePath . 'correct_score_last_id';
     }
 
     public function execute() {

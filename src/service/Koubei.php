@@ -272,8 +272,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
     //获取口碑的不变分数
     private function calImmutableScore($data)
     {
-        //初始分
-        $immutable_score = 6;
+        //初始分，时间月份 * 权重
+        $immutable_score = 12 * 05;
         
         //图片分，有图10分，权重0.3
         $hasPic = 0;
