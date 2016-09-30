@@ -675,8 +675,8 @@ class Subject extends \mia\miagroup\Lib\Service {
      * 删除帖子
      */
     public function delete($subjectId,$userId){
-        
-        $subjectInfo = $this->subjectModel->getSubjectByIds([$subjectId])[$subjectId];
+        $status = array();
+        $subjectInfo = $this->subjectModel->getSubjectByIds([$subjectId],$status)[$subjectId];
         if($subjectInfo['status'] == 0) {
             return $this->succ(true);
         }
@@ -826,8 +826,25 @@ class Subject extends \mia\miagroup\Lib\Service {
         if(empty($subjectIds)){
             return $this->error(500);
         }
-        //删除帖子
-        $result = $this->subjectModel->deleteSubjects($subjectIds,$status,$shieldText);
+        //屏蔽帖子
+        if($status == -1){
+            $subStatus = array();
+            $subjectInfo = $this->subjectModel->getSubjectByIds($subjectIds,$subStatus)[$subjectIds[0]];
+            if(!empty($subjectInfo['status'] == -1)) {
+                return $this->succ(true);
+            }
+            //屏蔽帖子
+            $result = $this->subjectModel->deleteSubjects($subjectIds,$status,$shieldText);
+            if(!empty($subjectInfo['ext_info']['koubei']['id'])){
+                //删除口碑
+                $koubei = new \mia\miagroup\Service\Koubei();
+                $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $subjectInfo['user_id']);
+            }
+        }elseif($status == 0){
+            //删除帖子
+            $result = $this->subjectModel->deleteSubjects($subjectIds,$status,$shieldText);
+        }
+        
         return $this->succ($result);
     }
     
