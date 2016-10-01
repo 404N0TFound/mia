@@ -90,7 +90,8 @@ class Album {
                 }
                 $res[$key]['h5_url'] = sprintf(\F_Ice::$ins->workApp->config->get('busconf.subject')['album']['h5_url'],$value['id'],$value['album_id']);;//待续
                 $res[$key]['view_num'] = $this->readNum($value['create_time']);
-                $res[$key]['content'] = strip_tags(mb_substr($value['content'],0,50,'utf-8')).'....';
+                $value['content'] = trim(str_replace(array("\r\n", "\r", "\n"), "", $value['content']));
+                $res[$key]['content'] = mb_strlen($value['content'], 'utf8') > 50 ? mb_substr($value['content'],0,50,'utf8') . '...' : $value['content'];
                 unset($res[$key]['create_time']);
             }
         }

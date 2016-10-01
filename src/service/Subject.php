@@ -188,7 +188,11 @@ class Subject extends \mia\miagroup\Lib\Service {
                     $shareDefault = $shareConfig['defaultShareInfo']['album'];
                     $shareTitle = strlen($albumArticles[$subjectInfo['id']]['title']) > 0 ? $albumArticles[$subjectInfo['id']]['title'] : $shareDefault['title'];
                     $shareDesc = $albumArticles[$subjectInfo['id']]['content'];
-                    $shareImage = $shareDefault['img_url'];
+                    if (isset($albumArticles[$subjectInfo['id']]['cover_image']) && !empty($albumArticles[$subjectInfo['id']]['cover_image'])) {
+                        $shareImage = $albumArticles[$subjectInfo['id']]['cover_image']['url'];
+                    } else {
+                        $shareImage = $shareDefault['img_url'];
+                    }
                     $h5Url = sprintf($shareDefault['wap_url'], $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
                 } elseif (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
                     $shareDefault = $shareConfig['defaultShareInfo']['video'];
@@ -199,7 +203,7 @@ class Subject extends \mia\miagroup\Lib\Service {
                     } else {
                         $shareImage = $shareDefault['img_url'];
                     }
-                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['video_info']['id']);
+                    $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
                 
                 } else { //普通帖子
                     $shareDefault = $shareConfig['defaultShareInfo']['subject'];

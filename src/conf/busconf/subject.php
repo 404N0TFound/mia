@@ -21,8 +21,8 @@ $defaultShareInfo = array(
     'video' => array(
         'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
         'wap_url' => 'http://m.miyabaobei.com/wx/group_detail/%s.html',
-        'title'      => '我在蜜芽圈发现一个超有用的视频，分享给你',
-        'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
+        'title'      => '我在育儿头条发现一个超有用的视频，分享给你',
+        'desc'      => '育儿头条，发现有用的育儿知识',
         'extend_text'            => '看白富美妈妈分享的好货',
     ),
     'label' => array(
