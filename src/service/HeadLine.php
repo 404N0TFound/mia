@@ -179,6 +179,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $headLineList = array();
         foreach ($subjects as $subject) {
             $tmpData = null;
+            if(empty($subject['album_article']) && empty($subject['video_info'])){
+                continue;
+            }
             if (!empty($subject['album_article'])) {
                 $tmpData['id'] = $subject['id'] . '_album';
                 $tmpData['type'] = 'album';
