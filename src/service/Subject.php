@@ -235,9 +235,10 @@ class Subject extends \mia\miagroup\Lib\Service {
     /**
      * 获取单条帖子信息
      */
-    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
+    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
         $subjectInfo = $this->getBatchSubjectInfos(array($subjectId), $currentUid, $field, $status);
         $subjectInfo = $subjectInfo['data'][$subjectId];
+
         if (empty($subjectInfo)) {
             return $this->succ(array());
         }
@@ -285,9 +286,10 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
             $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
             $recommendArticle = array_values($recommendArticle);
-            
             $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
         }
+        $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
+        $subjectInfo['user_info'] = $userInfo;
         return $this->succ($subjectInfo);
     }
     
