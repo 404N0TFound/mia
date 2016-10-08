@@ -23,10 +23,12 @@ class SubjectLabel extends \DB_Query {
         if (empty($labelIds)) {
             return array();
         }
+        $labelIdStr = implode(',', $labelIds);
         $where = array();
         $where[] = array(':in', 'id', $labelIds);
         $where[] = array(':eq', 'status', 1);
-        $labelInfos = $this->getRows($where, '`id`, `title`, `is_hot`');
+        $orderBy = "FIND_IN_SET(id,'{$labelIdStr}')";
+        $labelInfos = $this->getRows($where, '`id`, `title`, `is_hot`,`hot_pic`,`is_recommend`,`hot_small_pic`,`ext_info`',false,0,$orderBy);
         $labelsRes = array();
         if (!empty($labelInfos)) {
             foreach ($labelInfos as $labelInfo) {
@@ -75,12 +77,55 @@ class SubjectLabel extends \DB_Query {
         $where = array();
         $where[] = array("status", '1');
         $where[] = array("is_recommend", '1');
-        $LabelRes = $this->getRows($where,'id');
+        $LabelRes = $this->getRows($where,'id,title');
         if($LabelRes){
             foreach ($LabelRes as $value){
-                    $LabelID[] = $value['id'];
+                $LabelID[$value['id']] = $value;
             }
         }
         return $LabelID;
+    }
+
+    /**
+     * 获取标签列表
+     */
+    public function getRecommendLables($offset=0,$limit=10,$userType='')
+    {
+        if($limit <= 10){
+            $limit = 11;
+        }
+        if(!empty($userType)){
+            $where[] = [$userType,1];
+        }
+        $orderBy = '';
+        if(($userType=='is_new')){
+            $orderBy = 'new_time desc';
+        }elseif($userType=='is_recommend'){
+            $orderBy = 'recom_time desc';
+        }
+        $where[] = ['status',1];
+        $data = $this->getRows($where,'*',$limit,$offset,$orderBy);
+        $result = [];
+        foreach ($data as $key => $value) {
+            $result[] = $value['id'];
+        }
+        return $result;
+    }
+
+
+
+    /**
+     * 更新标签详情页图像宽高
+     */
+    public function updateLabelImgInfo($labelId,$setData) {
+        
+        if (!isset($setData['ext_info']) || empty($setData['ext_info']) || empty($labelId)) {
+            return false;
+        }
+        $setDataNew[] = ['ext_info', json_encode($setData['ext_info'])];
+        $where = array();
+        $where[] = ['id', $labelId];
+        $data = $this->update($setDataNew, $where);
+        return $data;
     }
 }

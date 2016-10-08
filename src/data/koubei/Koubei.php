@@ -133,6 +133,18 @@ class Koubei extends \DB_Query {
     }
     
     /**
+
+     * 删除口碑
+     */
+    public function delete($id, $userId){
+        $where[] = ['id', $id];
+        $where[] = ['user_id', $userId];
+        $setData[] = ['status', 0];
+        $affect = $this->update($setData, $where);
+        return $affect;
+    }
+
+    /*
      * 获取一段时间内的口碑
      */
     public function getKoubeiListByTime($startTime = '', $endTime = '', $offset = 0, $limit = 10, $orderBy = '') {
@@ -147,6 +159,31 @@ class Koubei extends \DB_Query {
         }
         $data = $this->getRows($where, '*', $limit, $offset, $orderBy);
         return $data;
+    }
+    
+    /**
+     * 获取用户的口碑帖子
+     */
+    public function getKoubeisByUid($userId){
+        if (empty($userId)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['user_id',$userId];
+        $where[] = ['status',2];
+        $result = $this->getRows($where);
+        return $result;
+    }
+    
+    /**
+    
+    * 批量删除口碑
+    */
+    public function deleteKoubeis($koubeiIds){
+        $where[] = ['id', $koubeiIds];
+        $setData[] = ['status', 0];
+        $affect = $this->update($setData, $where);
+        return $affect;
     }
 
 }

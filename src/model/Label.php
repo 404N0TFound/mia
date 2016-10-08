@@ -3,16 +3,23 @@ namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Label\SubjectLabel;
 use mia\miagroup\Data\Label\SubjectLabelRelation;
-
+use mia\miagroup\Data\Label\UserLabelRelation;
+use mia\miagroup\Data\Label\SubjectLabelCategoryRelation;
 class Label {
 
     public $labelData = null;
 
     public $labelRelation = null;
 
+    public $userLabelRelation = null;
+
+    public $labelCagegoryRelation = null;
+
     public function __construct() {
-        $this->labelData = new SubjectLabel();
-        $this->labelRelation = new SubjectLabelRelation();
+        $this->labelData         = new SubjectLabel();
+        $this->labelRelation     = new SubjectLabelRelation();
+        $this->userLabelRelation = new UserLabelRelation();
+        $this->labelCagegoryRelation = new SubjectLabelCategoryRelation();
     }
 
     /**
@@ -45,6 +52,9 @@ class Label {
             foreach ($labelRelations as $subjectId => $subjectLabelIds) {
                 foreach ($subjectLabelIds as $labelId => $v) {
                     if(!empty($labelInfos[$labelId])){
+                        unset($labelInfos[$labelId]['hot_pic']);
+                        unset($labelInfos[$labelId]['is_recommend']);
+                        unset($labelInfos[$labelId]['hot_small_pic']);
                         $subjectLabelInfo[$subjectId][$labelId] = $labelInfos[$labelId];
                     }
                 }
@@ -109,9 +119,10 @@ class Label {
     /**
      * 根据userId获取标签
      */
-    public function getLabelListByUid($userId)
+    public function getLabelListByUid($userId,$page=1,$limit=10)
     {
-        $data = $this->labelRelation->getLabelListByUid($userId);
+        $start = ($page-1)*$limit;
+        $data = $this->userLabelRelation->getLabelListByUid($userId,$start,$limit);
         return $data;
     }
 
@@ -119,12 +130,159 @@ class Label {
     /**
      * 根据标签ID获取帖子列表
      */
-    public function getSubjectListByLableIds($lableIds,$page=1,$limit=10)
+    public function getSubjectListByLableIds($lableIds,$page=1,$limit=10,$is_recommend=0)
     {
         $start = ($page-1)*$limit;
-        $data = $this->labelRelation->getSubjectListByLableIds($lableIds,$start,$limit);
+        $data = $this->labelRelation->getSubjectListByLableIds($lableIds,$start,$limit,$is_recommend);
         return $data;
     }
     
     
+
+    /**
+     * 加关注
+     */
+    public function addLableRelation($userId, $labelIds)
+    {
+        $labelIds = count($labelIds) > 50 ? array_slice($labelIds, 0, 50) : $labelIds;
+        if (is_array($labelIds) && !empty($labelIds)) {
+            foreach ($labelIds as $labelId) {
+                //获取关注状态
+                $relateInfo = $this->userLabelRelation->getLableRelationByUserId($userId, $labelId);
+                if (empty($relateInfo)) {
+                    //新的关注关系
+                    $setInfo = array(
+                        "user_id"  => $userId,
+                        "label_id" => $labelId,
+                        "status"   => 1,
+                        'create_time' => date('Y-m-d H:i:s')
+                    );
+                    $this->userLabelRelation->addUserLabelRelate($setInfo);
+                } else if ($relateInfo['status'] == 0) { //曾经关注过
+                    $this->userLabelRelation->updateUserLabelRelate($relateInfo['id'], array('status' => 1, 'create_time' => date('Y-m-d H:i:s')));
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 取消关注
+     */
+    public function removeLableRelation($userId, $labelId)
+    {
+        $relateInfo = $this->userLabelRelation->getLableRelationByUserId($userId, $labelId);
+        if ($relateInfo['status'] == 1) {
+            //更新为非关注状态
+            $this->userLabelRelation->updateUserLabelRelate($relateInfo['id'], array('status' => 0, 'update_time' => date('Y-m-d H:i:s')));
+        }
+        return true;
+    }
+
+
+    /**
+     * 获取标签列表
+     */
+    public function getRecommendLables($page=1,$limit=10,$userType='')
+    {
+        $start = ($page-1)*$limit;
+        $data = $this->labelData->getRecommendLables($start,$limit,$userType);
+        return $data;
+    }
+
+    /**
+     * 获取某个标签关联的标签
+     */
+    public function getRelateLabels($labelId,$page=1,$limit=10) {
+        $start = ($page-1)*$limit;
+        $categoryIds = $this->labelCagegoryRelation->getLabelCategory($labelId);
+        $categoryLabels = $this->labelCagegoryRelation->getLabelsByCategoryIds(array_values($categoryIds), $start, $limit);
+        $labelIds = array();
+        foreach ($categoryLabels as $labels) {
+            if ($labels['label_id'] != $labelId) {
+                $labelIds[] = $labels['label_id'];
+            }
+        }
+        $labelIds = array_slice($labelIds, 0, 6);
+        $labelInfos = $this->getBatchLabelInfos($labelIds);
+        return $labelInfos;
+    }
+
+    /**
+     * 获取单条标签信息
+     */
+    public function getBatchLabelInfo($labelId)
+    {
+        $data = $this->getBatchLabelInfos(array($labelId))[$labelId];
+        return $data;
+    }
+
+    /**
+     * 查询用户和标签的关注关系
+     */
+    public function getLableRelationByUserId($userId,$lableId)
+    {
+        $data = $this->userLabelRelation->getLableRelationByUserId($userId,$lableId);
+        return $data;
+    }
+
+    /**
+     * 获取标签帖子置顶状态
+     */
+    public function getLableSubjectsTopStatus($lableId, $subjectIds)
+    {
+        $data = $this->labelRelation->getLableSubjectsTopStatus($lableId,$subjectIds);
+        return $data;
+    }
+
+    /**
+     * 查找被推荐的分类标签
+     */
+    public function getCategoryLables($page=1,$limit=50)
+    {
+        $labelInfo = $this->getLabelID();
+        $labelIds = array_keys($labelInfo);
+        $categoryIds = $this->labelCagegoryRelation->getLabelCategory($labelIds);
+        $categoryIds = count($categoryIds)>50 ? array_slice($categoryIds, 0,50) : $categoryIds;
+        $data = [];
+        foreach ($categoryIds as $key => $value) {
+            if(isset($labelInfo[$key])){
+                $labelInfo[$key]['category_id'] = $value;
+                $data[] = $labelInfo[$key];
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * 根据标签分类查找关联的标签id
+     */
+    public function getLabelByCategroyIds($categoryIds,$page=1,$limit=10)
+    {
+        if($limit){
+            $start = ($page-1)*$limit;
+        }else{
+            $start = false;
+            $limit = false;
+        }
+        $data = $this->labelCagegoryRelation->getLabelByCategroyIds($categoryIds,$start,$limit);
+        return $data;
+    }
+
+    /**
+     * 更新标签详情页图像宽高
+     */
+    public function updateLabelImgInfo($labelId,$setData)
+    {
+        $data = $this->labelData->updateLabelImgInfo($labelId,$setData);
+        return $data;
+    }
+    
+    /**
+     * 获取标签下是否有精选帖子
+     */
+    public function getLabelIsRecommendInfo($labelId){
+        return $this->labelRelation->getLabelIsRecommendInfo($labelId);
+    }
+
 }

@@ -8,7 +8,7 @@ class Subject extends \DB_Query
     protected $tableName = 'group_subjects';
 
 
-    public function getSubjectList($userIds,$offset=0,$limit=10)
+    public function getSubjectList($userIds,$offset=0,$limit=10,$source=array())
     {
         if(!is_array($userIds)){
             return [];
@@ -16,6 +16,9 @@ class Subject extends \DB_Query
 
         $where[] = ['user_id',$userIds];
         $where[] = ['status',1];
+        if (!empty($source)) {
+            $where[] = ['source',$source];
+        }
         $data = $this->getRows($where, '*', $limit, $offset, 'id desc');
         $result = [];
         foreach ($data as $key => $value) {

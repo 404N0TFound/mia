@@ -3,6 +3,8 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Audit as AuditModel;
 use mia\miagroup\service\User as UserService;
+use mia\miagroup\service\Subject as SubjectService;
+use mia\miagroup\service\Comment as CommentService;
 
 /**
  * 审核服务
@@ -50,35 +52,150 @@ class Audit extends \mia\miagroup\Lib\Service {
      * 查看用户是否为白名单用户
      */
     public function checkIsWhiteUser($userId, $deviceToken) {
-        
+        $isWhite = $this->auditModel->checkIsWhiteList($userId, $deviceToken);
+        return $this->succ(array('is_white' => $isWhite));
     }
     
     /**
      * 屏蔽用户
+     * @param array $userInfo
+     * @param string $deviceToken
+     * @param array $delContent
      */
-    public function shieldUser() {
+    public function shieldUser($userInfo, $deviceToken, $delContent) {
+        //1、如果登录用户不是白名单用户，则没有权限操作
+        $whiteStatus = $this->checkIsWhiteUser($userInfo['operator'],$deviceToken);
+        if($whiteStatus['data']['is_white'] === false){
+            return $this->error(1125);
+        }
+        //2、检查该用户是否被屏蔽过
+        $shieldStatus = $this->auditModel->checkIsShieldUserByUid($userInfo['user_id']);
+        if(!empty($shieldStatus)){
+            if($shieldStatus['status'] == 1){
+                //(1)如果屏蔽过，且当前为屏蔽状态，直接返回true
+                return $this->succ(true);
+            }elseif($shieldStatus['status'] == 0){
+                //(2)如果屏蔽过，且当前为解除屏蔽状态，则更新为屏蔽状态
+                $setData = array();
+                $setData[] = ['status',1];
+                if(isset($userInfo['intro'])){
+                    $setData[] = ['intro',$userInfo['intro']];
+                }
+                $shieldRes = $this->auditModel->updateShieldUserInfo($setData,$userInfo['user_id']);
+            }
+        }else{
+            //(3)如果没有屏蔽过，则插入屏蔽信息
+            $shieldRes = $this->auditModel->setUserShield($userInfo);
+        }
         
+        //3、是否删除该用户下的帖子和评论
+        if(empty($delContent)){
+            return $this->succ($shieldRes);
+        }
+        
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $commentService = new \mia\miagroup\Service\Comment();
+        $koubeiService = new \mia\miagroup\Service\Koubei();
+        
+        foreach($delContent as $content){
+            //(1)删除帖子及口碑
+            if($content == 1){
+                //查看用户是否有帖子信息
+                $subjectsArr = $subjectService->getSubjects($userInfo['user_id']);
+                //如果有蜜芽帖子，删除
+                if(!empty($subjectsArr['data'])){
+                    $subjectIds = array();
+                    foreach($subjectsArr['data'] as $subject){
+                        $subjectIds[] = $subject['id'];
+                    }
+                    $subjectService->delSubjects($subjectIds,0);
+                }
+                //查看用户是否有口碑帖子
+                $koubeisArr = $koubeiService->getKoubeis($userInfo['user_id']);
+                //如果有口碑帖子，删除
+                if(!empty($koubeisArr['data'])){
+                    $koubeiIds = array();
+                    foreach($koubeisArr['data'] as $koubei){
+                        $koubeiIds[] = $koubei['id'];
+                    }
+                    $koubeiService->deleteKoubeis($koubeiIds);
+                }
+            }
+            //(2)删除评论
+            if($content == 2){
+                //查看用户是否有评论信息
+                $commentInfos = $commentService->getComments($userInfo['user_id']);
+                //如果有，则删除，同时批量更新评论的帖子的评论数量
+                if(!empty($commentInfos['data'])){
+                    $commentIds = array();
+                    foreach($commentInfos['data'] as $comment){
+                        $commentIds[] = $comment['id'];
+                    }
+                    //（2.1）批量删除评论
+                    $status = 0;
+                    $commentService->delComments($commentIds,$status);
+                    //（2.2）通过评论ids批量获取帖子id
+                    $subjectIds =  $commentService->getSubjectIdsByComment($commentIds)['data'];
+                    //（2.3）批量更新帖子的评论数
+                    //(2.3.1)根据帖子id批量获取帖子评论数
+                    $subjectCommentNums = $commentService->getBatchCommentNums($subjectIds)['data'];
+                    //（2.3.2）更新帖子的评论数
+                    $subjectService->updateSubjectComment($subjectCommentNums);
+                }
+            }
+        }
+        
+        return $this->succ($shieldRes);
     }
     
     /**
      * 屏蔽帖子
      */
-    public function shieldSubject() {
+    public function shieldSubject($subjectInfo,$deviceToken) {
+        //1、如果登录用户不是白名单用户，则没有权限操作
+        $whiteStatus = $this->checkIsWhiteUser($subjectInfo['user_id'],$deviceToken);
+        if($whiteStatus['data']['is_white'] === false){
+            return $this->error(1125);
+        }
+        //屏蔽帖子
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $shieldRes = $subjectService->delSubjects(array($subjectInfo['id']),-1,$subjectInfo['shield_text'])['data'];
         
+        return $this->succ($shieldRes);
     }
     
     /**
      * 屏蔽评论
      */
-    public function shieldComment() {
+    public function shieldComment($commentInfo,$deviceToken) {
+        //1、如果登录用户不是白名单用户，则没有权限操作
+        $whiteStatus = $this->checkIsWhiteUser($commentInfo['user_id'],$deviceToken);
+        if($whiteStatus['data']['is_white'] === false){
+            return $this->error(1125);
+        }
         
+        $subjectService = new \mia\miagroup\Service\Subject();
+        $commentService = new \mia\miagroup\Service\Comment();
+        //1、屏蔽评论
+        $status = -1;
+        $shieldRes = $commentService->delComments(array($commentInfo['id']),$status,$commentInfo['shield_text'])['data'];
+        //2、通过评论ids批量获取帖子id
+        $subjectIds =  $commentService->getSubjectIdsByComment(array($commentInfo['id']))['data'];
+        //3、批量更新帖子的评论数
+        //(3.1)根据帖子id批量获取帖子评论数
+        $subjectCommentNums = $commentService->getBatchCommentNums($subjectIds)['data'];
+        //（3.2）更新帖子的评论数
+        $subjectService->updateSubjectComment($subjectCommentNums);
+        return $this->succ($shieldRes);
     }
     
     /**
      * 获取屏蔽原因
      */
     public function getShieldReason() {
-        
+        $auditConfig = \F_Ice::$ins->workApp->config->get('busconf.audit');
+        $shieldReason = $auditConfig['shieldReason'];
+        return $this->succ($shieldReason);
     }
     
     /**

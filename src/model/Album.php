@@ -32,6 +32,9 @@ class Album {
         $subjectArticle = array();
         foreach ($articleIds as $subjectId => $articleId) {
             if (isset($articles[$articleId])) {
+                 if(empty($articles[$articleId]['cover_image'])){
+                    unset($articles[$articleId]['cover_image']);
+                 }
                 $subjectArticle[$subjectId] = $articles[$articleId];
             }
         }
@@ -56,13 +59,30 @@ class Album {
                 }
                 if($img_pic){
                     $res[$key]['cover_image'] = array();
-                    $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] .$img_pic['url'];
+                    if (strpos($img_pic['url'], 'http') === 0) {
+                        $res[$key]['cover_image']['url'] = $img_pic['url'];
+                    } else if($img_pic['source'] == 'local') {
+                        $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $img_pic['url'];
+                    } else {
+                        $res[$key]['cover_image']['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $img_pic['url'];
+                    }
                     $res[$key]['cover_image']['width'] = $img_pic['width'];
                     $res[$key]['cover_image']['height'] = $img_pic['height'];
                     $res[$key]['cover_image']['content'] = $img_pic['content'];
                 }
                 $res[$key]['album_info'] = array();
-                
+                if (!empty($value['ext_info']['images'])) {
+                    foreach ($value['ext_info']['images'] as $image) {
+                        if (strpos($image['url'], 'http') === 0) {
+                            $image['url'] = $image['url'];
+                        } else if ($image['source'] == 'local') {
+                            $image['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image['url'];
+                        } else {
+                            $image['url'] = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $image['url'];
+                        }
+                        $res[$key]['images'][] = $image;
+                    }
+                }
                 if($AlbumInfo){
                     $res[$key]['album_info']['id'] = $AlbumInfo[$value['album_id']]['id'];
                     $res[$key]['album_info']['user_id'] = $AlbumInfo[$value['album_id']]['user_id'];
@@ -302,7 +322,12 @@ class Album {
      * @return array() true false
      */
     public function addAlbumFile($insert){
-        return $this->albumData->addAlbumFile($insert);
+        $albumFile = $this->albumData->getAlbumFileByUidAndTitle($insert['user_id'], $insert['title']);
+        if (!empty($albumFile)) {
+            return $albumFile['id'];
+        }
+        $albumFileId = $this->albumData->addAlbumFile($insert);
+        return $albumFileId;
     }
     
     /**
@@ -327,9 +352,9 @@ class Album {
             'cover_image'=>$insert['cover_image'],
             'content'=>$insert['content'],
             'content_original'=>$insert['content_original'],
-            'ext_info'=>$insert['ext_info'],
+            'ext_info'=>json_encode($insert['ext_info']),
             'status'=>$insert['status'],
-            'create_time'=>date("Y-m-d H:i:s")
+            'create_time'=>$insert['create_time'] ? $insert['create_time'] : date("Y-m-d H:i:s")
         );
         $res = $this->albumArticleData->addAlbum($data);
         return $res;
@@ -342,5 +367,17 @@ class Album {
      */
     public function getAlbumPermissionByUserId($user_id){
         return $this->albumPermissionData->getAlbumPermissionByUserId($user_id);
+    }
+    
+    /**
+     * 添加用户专栏权限
+     */
+    public function addAlbumPermission($userId, $source = 'ums', $reason = '', $operator = 0) {
+        $data = $this->getAlbumPermissionByUserId($userId);
+        if (!empty($data)) {
+            return $data['id'];
+        }
+        $data = $this->albumPermissionData->addAlbumPermission($userId, $source, $reason, $operator);
+        return $data;
     }
 }

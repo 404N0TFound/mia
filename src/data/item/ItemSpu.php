@@ -7,7 +7,7 @@
  
      protected $dbResource = 'miagroup';
  
-     protected $tableName = 'spu_sku_relation';
+     protected $tableName = 'miadefault';
  
      protected $mapping = array();
  

@@ -83,8 +83,9 @@ class AlbumArticle extends \DB_Query {
             $where[] = array(':in', 'id', $articleIds);
         }
         $orderBy = array('create_time DESC');
-        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,create_time'), $limit = FALSE, $offset = 0, $orderBy);
+        $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
         foreach ($data as $v) {
+            $v['ext_info'] = json_decode($v['ext_info'], true);
             $result[$v['id']] = $v;
         }
         return $result;
@@ -286,7 +287,7 @@ class AlbumArticle extends \DB_Query {
      * @params array() $userId 用户ID
      * @return array() true false
      */
-    public function updateAlbum($whereCon,$setData,$orderBy = FALSE, $limit = FALSE) {
+    public function updateAlbum($whereCon,$setData) {
         $where = array();
         if(isset($whereCon['id']) && $whereCon['id']){
             $where[] = array('id',$whereCon['id']);
@@ -301,7 +302,7 @@ class AlbumArticle extends \DB_Query {
         if(isset($setData['title']) && $setData['title']){
             $set[] = array('title',$setData['title']);
         }
-        $data = $this->update($set, $where, $orderBy, $limit);
+        $data = $this->update($set, $where);
         return $data;
     }
     
@@ -314,7 +315,7 @@ class AlbumArticle extends \DB_Query {
      * @params array() $userId 用户ID
      * @return array() true false
      */
-    public function updateAlbumArticle($whereCon,$setData,$orderBy = FALSE, $limit = FALSE) {
+    public function updateAlbumArticle($whereCon,$setData) {
         $where = array();
         if(isset($whereCon['id']) && $whereCon['id']){
             $where[] = array('id',$whereCon['id']);
@@ -324,6 +325,9 @@ class AlbumArticle extends \DB_Query {
         }
         if(isset($whereCon['album_id']) && $whereCon['album_id']){
             $where[] = array('album_id',$whereCon['album_id']);
+        }
+        if(isset($whereCon['subject_id']) && $whereCon['subject_id']){
+            $where[] = array('subject_id',$whereCon['subject_id']);
         }
         
         $set = array();
@@ -343,13 +347,16 @@ class AlbumArticle extends \DB_Query {
             $set[] = array('subject_id',$setData['subject_id']);
         }
         if(isset($setData['ext_info']) && $setData['ext_info']){
-            $set[] = array('ext_info',$setData['ext_info']);
+            $set[] = array('ext_info', json_encode($setData['ext_info']));
         }
         if(isset($setData['cover_image']) && $setData['cover_image']){
             $set[] = array('cover_image',$setData['cover_image']);
         }
+        if(isset($setData['create_time']) && $setData['create_time']){
+            $set[] = array('create_time',$setData['create_time']);
+        }
         $set[] = array('update_time',date("Y-m-d H:i:s"));
-        $data = $this->update($set, $where, $orderBy, $limit);
+        $data = $this->update($set, $where);
         return $data;
     }
     
