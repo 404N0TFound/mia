@@ -27,7 +27,9 @@ class HeadLineChannelContent extends \DB_Query {
             $where[] = [':ge', 'end_time', date('Y-m-d H:i:s',time())];
         }
 
-        $data = $this->getRows($where);
+        $orderBy = "begin_time desc ";
+        
+        $data = $this->getRows($where,'*',false,0,$orderBy);
         $result = [];
         foreach ($data as $v) {
             $v['ext_info'] = json_decode($v['ext_info'], true);
