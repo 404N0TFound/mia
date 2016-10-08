@@ -12,7 +12,7 @@ class HeadLineChannelContent extends \DB_Query {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $page=1)
+    public function getHeadLinesByChannel($channelId, $page=1, $timeStatus=0)
     {
         if (empty($channelId)) {
             return [];
@@ -21,8 +21,12 @@ class HeadLineChannelContent extends \DB_Query {
         if (intval($page) > 0) {
             $where[] = [':eq','page', $page];
         }
-        $where[] = [':le', 'begin_time', date('Y-m-d H:i:s',time())];
-        $where[] = [':ge', 'end_time', date('Y-m-d H:i:s',time())];
+        //获取在有效期内的头条
+        if(intval($timeStatus) > 0){
+            $where[] = [':le', 'begin_time', date('Y-m-d H:i:s',time())];
+            $where[] = [':ge', 'end_time', date('Y-m-d H:i:s',time())];
+        }
+
         $data = $this->getRows($where);
         $result = [];
         foreach ($data as $v) {
