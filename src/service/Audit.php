@@ -200,10 +200,15 @@ class Audit extends \mia\miagroup\Lib\Service {
     
     /**
      * 检查敏感词
+     * @param $textArray 可以是字符串，也可以是数组
+     * @return 当$textArray是字符串返回一维数组，$textArray是数组返回二维数组
      */
     public function checkSensitiveWords($textArray) {
         //获取敏感词
         $sensitiveWord = $this->auditModel->getAllSensitiveWord();
+        if (empty($sensitiveWord) || !is_array($sensitiveWord)) {
+            return $this->succ(array('sensitive_words' => array()));
+        }
         $sensitiveWord = implode('|', $sensitiveWord);
         //解除敏感词匹配个数限制
         ini_set('pcre.backtrack_limit', -1);
