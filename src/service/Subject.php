@@ -186,7 +186,7 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $share = $shareConfig['groupShare'];
                 if (!empty($albumArticles[$subjectInfo['id']])) { //专栏
                     $shareDefault = $shareConfig['defaultShareInfo']['album'];
-                    $shareTitle = strlen($albumArticles[$subjectInfo['id']]['title']) > 0 ? $albumArticles[$subjectInfo['id']]['title'] : $shareDefault['title'];
+                    $shareTitle = strlen($albumArticles[$subjectInfo['id']]['title']) > 0 ? $albumArticles[$subjectInfo['id']]['title'] . '_育儿头条_蜜芽 ' : $shareDefault['title'];
                     $shareDesc = $albumArticles[$subjectInfo['id']]['content'];
                     if (isset($albumArticles[$subjectInfo['id']]['cover_image']) && !empty($albumArticles[$subjectInfo['id']]['cover_image'])) {
                         $shareImage = $albumArticles[$subjectInfo['id']]['cover_image']['url'];
@@ -196,7 +196,7 @@ class Subject extends \mia\miagroup\Lib\Service {
                     $h5Url = sprintf($shareDefault['wap_url'], $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
                 } elseif (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
                     $shareDefault = $shareConfig['defaultShareInfo']['video'];
-                    $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
+                    $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】" : $shareDefault['title'];
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
                     if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
                         $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
