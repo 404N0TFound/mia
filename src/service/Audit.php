@@ -206,6 +206,9 @@ class Audit extends \mia\miagroup\Lib\Service {
     public function checkSensitiveWords($textArray) {
         //获取敏感词
         $sensitiveWord = $this->auditModel->getAllSensitiveWord();
+        if (empty($sensitiveWord) || !is_array($sensitiveWord)) {
+            return $this->succ(array('sensitive_words' => array()));
+        }
         $sensitiveWord = implode('|', $sensitiveWord);
         //解除敏感词匹配个数限制
         ini_set('pcre.backtrack_limit', -1);
