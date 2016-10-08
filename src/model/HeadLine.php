@@ -20,8 +20,8 @@ class HeadLine {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId,$page=1,$rowDataRepeat=false) {
-        $data = $this->headLineChannelContentData->getHeadLinesByChannel($channelId,$page);
+    public function getHeadLinesByChannel($channelId,$page=1,$timeStatus=0,$rowDataRepeat=false) {
+        $data = $this->headLineChannelContentData->getHeadLinesByChannel($channelId,$page,$timeStatus);
         if (!empty($data) && !$rowDataRepeat) {
             //以row为key重新拼装
             $sortedRowData = array();

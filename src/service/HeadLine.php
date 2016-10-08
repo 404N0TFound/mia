@@ -85,7 +85,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      */
     public function getOperateHeadLineChannelContent($channelId) {
         //获取运营数据
-        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, 0, true);
+        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, 0, 0, true);
         if (empty($operationData)) {
             return $this->succ(array());
         }
