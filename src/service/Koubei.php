@@ -205,20 +205,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ($koubeiRes);
         }
         
-        //通过商品id获取口碑id
-        $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
-        if(empty($koubeiIds)){
-            return $this->succ($koubeiRes);
-        }
-        
-        //3、获取口碑信息
-        $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId);
-        $koubeiRes['koubei_info'] = $koubeiInfo;
-        
-        //4、获取用户评分
+        //3、获取用户评分
         $itemScore = $this->koubeiModel->getItemUserScore($itemIds);
-        //5、获取蜜粉推荐
+        //4、获取蜜粉推荐
         $itemRecNums = $this->koubeiModel->getItemRecNums($itemIds);
         
         //综合评分和蜜粉推荐展示逻辑########start
@@ -235,6 +224,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiRes['total_score'] = $itemScore;//综合评分
         $koubeiRes['recom_count'] = $itemRecNums;//蜜粉推荐
         #############end
+        
+        //通过商品id获取口碑id
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
+        if(empty($koubeiIds)){
+            return $this->succ($koubeiRes);
+        }
+        
+        //5、获取口碑信息
+        $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId);
+        $koubeiRes['koubei_info'] = $koubeiInfo;
+        
         return $this->succ($koubeiRes);
     }
     
