@@ -61,12 +61,15 @@ class User extends \mia\miagroup\Lib\Service {
         // 批量获取直播权限
         $liveService = new Live();
         $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
+        // 批量获取发视频权限
+        $videoPermissions = $this->userModel->getVideoPermissionByUids($userIds);
         
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
             $userInfo['icon'] = $userInfo['icon'] ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
+            $userInfo['is_have_permission'] = !empty($videoPermissions[$userInfo['id']]) ? 1 : 0; // 用户是否有发视频权限
             if ($expertInfos[$userInfo['id']]) {
                 $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();
                 if (!empty(trim($expertInfos[$userInfo['id']]['label'], "#"))) {
