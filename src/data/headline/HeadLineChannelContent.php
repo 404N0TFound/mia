@@ -12,7 +12,7 @@ class HeadLineChannelContent extends \DB_Query {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $page=1, $timeStatus=0)
+    public function getHeadLinesByChannel($channelId, $page=1, $timeStatus=1)
     {
         if (empty($channelId)) {
             return [];
