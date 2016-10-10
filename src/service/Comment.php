@@ -58,6 +58,7 @@ class Comment extends \mia\miagroup\Lib\Service {
             }
             $commentInfo = null;
             $commentInfo['id'] = $commentInfos[$commentId]['id'];
+            $commentInfo['subject_id'] = $commentInfos[$commentId]['subject_id'];
             $commentInfo['comment'] = $commentInfos[$commentId]['comment'];
             $commentInfo['created'] = $commentInfos[$commentId]['create_time'];
             if (in_array('user_info', $field)) {

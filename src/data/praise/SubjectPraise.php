@@ -134,7 +134,7 @@ class SubjectPraise extends \DB_Query {
         $praiseRes = array();
         if (!empty($praises)) {
             foreach ($praises as $praise) {
-                $praiseRes[$praise['id']] = $praise['status'];
+                $praiseRes[$praise['id']] = $praise;
             }
         }
         return $praiseRes;
