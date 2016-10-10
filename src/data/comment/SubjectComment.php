@@ -1,7 +1,6 @@
 <?php
 namespace mia\miagroup\Data\Comment;
 
-use mia\miagroup\Data\Order\Order;
 class SubjectComment extends \DB_Query {
 
     protected $dbResource = 'miagroup';
