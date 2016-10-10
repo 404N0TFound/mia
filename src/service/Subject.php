@@ -88,7 +88,6 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (intval($currentUid) > 0) {
             $isPraised = $this->praiseService->getBatchSubjectIsPraised($subjectIds, $currentUid)['data'];
         }
-        
         $subjectRes = array();
         // 拼装结果集
         foreach ($subjectIds as $subjectId) {
@@ -283,6 +282,15 @@ class Subject extends \mia\miagroup\Lib\Service {
             $recommendArticle = array_values($recommendArticle);
             
             $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
+        }
+        //帖子商品信息
+        if(in_array('item', $field) || in_array('koubei', $field)){
+            $pointTag = new \mia\miagroup\Service\PointTags();
+            $subjectItemIds = $pointTag->getBatchSubjectItmeIds(array($subjectId))['data'][$subjectId];
+            $subjectItemIds = array_values($subjectItemIds);
+            $itemService = new \mia\miagroup\Service\Item();
+            $subjectItemInfo = $itemService->getBatchItemBrandByIds($subjectItemIds)['data'];
+            $subjectInfo['items'] = array_values($subjectItemInfo);
         }
         return $this->succ($subjectInfo);
     }
