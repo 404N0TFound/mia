@@ -289,9 +289,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $this->subjectModel->viewNumRecord($subjectId);
         }
         if (!empty($dmSync['refer_channel_id'])) {
-            if (!isset($dmSync['refer_subject_id']) || empty($dmSync['refer_subject_id'])) {
                 $dmSync['refer_subject_id'] = $subjectId;
-            }
             $headlineRemote = new HeadlineRemote();
             //阅读告知
             if (intval($currentUid) > 0) {
