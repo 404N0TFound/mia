@@ -66,6 +66,9 @@ class Item extends \DB_Query {
     //批量获取商品信息
     public function getBatchItemBrandByIds($itemsIds)
     {
+        if(empty($itemsIds)){
+            return array();
+        }
         $itemsIds = implode(',', $itemsIds);
     
         $sql = "select i.id as item_id, i.name as item_name, i.sale_price, i.brand_id, b.name as brand_name
