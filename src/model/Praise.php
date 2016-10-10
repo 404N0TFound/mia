@@ -62,4 +62,10 @@ class Praise {
         return $this->subjectPraiseData->insertPraise($setData);
     }
     
+    /**
+     * 根据赞ID获取赞信息
+     */
+    public function getPraisesByIds($praiseIds) {
+        return $this->subjectPraiseData->getPraisesByIds($praiseIds);
+    }
 }

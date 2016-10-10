@@ -2,7 +2,7 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Service\User as UserService;
-use mia\miagroup\Service\Subject;
+use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Model\Comment as CommentModel;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Service\News;
@@ -19,6 +19,7 @@ class Comment extends \mia\miagroup\Lib\Service {
 
     /**
      * 根据评论IDs批量获取评论信息
+     * @param $field user_info parent_comment subject
      */
     public function getBatchComments($commentIds, $field = array('user_info', 'parent_comment'), $status = array(1)) {
         $commentInfos = $this->commentModel->getBatchComments($commentIds, $status);
@@ -28,8 +29,10 @@ class Comment extends \mia\miagroup\Lib\Service {
         // 收集用户ID和父评论ID
         $userIds = array();
         $fids = array();
+        $subjectIds = array();
         foreach ($commentInfos as $key => $commment) {
             $userIds[] = $commment['user_id'];
+            $subjectIds = $commment['subject_id'];
             if (intval($commment['fid']) > 0) {
                 $fids[] = $commment['fid'];
             }
@@ -37,6 +40,11 @@ class Comment extends \mia\miagroup\Lib\Service {
         // 获取用户信息
         if (in_array('user_info', $field)) {
             $users = $this->userService->getUserInfoByUids($userIds)['data'];
+        }
+        // 获取帖子信息
+        if (in_array('subject', $field)) {
+            $subjectService = new SubjectService();
+            $subjects = $subjectService->getBatchSubjectInfos($subjectIds, 0, array(), array())['data'];
         }
         // 获取父评论信息
         if (in_array('parent_comment', $field) && !empty($fids)) {
@@ -54,6 +62,9 @@ class Comment extends \mia\miagroup\Lib\Service {
             $commentInfo['created'] = $commentInfos[$commentId]['create_time'];
             if (in_array('user_info', $field)) {
                 $commentInfo['comment_user'] = $users[$commentInfos[$commentId]['user_id']];
+            }
+            if (in_array('subject', $field)) {
+                $commentInfo['subject'] = $subjects[$commentInfos[$commentId]['subject_id']];
             }
             if (in_array('parent_comment', $field) && intval($commentInfos[$commentId]['fid']) > 0) {
                 $commentInfo['parent_comment'] = $parentComments[$commentInfos[$commentId]['fid']];
