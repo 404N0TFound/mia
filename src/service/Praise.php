@@ -178,7 +178,7 @@ class Praise extends \mia\miagroup\Lib\Service {
      * @param $field user_info、subject
      */
     public function getPraisesByIds($praiseIds, $field = array()) {
-        if (empty($parseIds)) {
+        if (empty($praiseIds)) {
             return $this->succ(array());
         }
         $praiseData = $this->praiseModel->getPraisesByIds($praiseIds);
@@ -194,11 +194,11 @@ class Praise extends \mia\miagroup\Lib\Service {
         }
         if (in_array('user_info', $field)) {
             $userService = new UserService();
-            $userInfos = $userService->getUserInfoByUids($userIds);
+            $userInfos = $userService->getUserInfoByUids($userIds)['data'];
         }
         if (in_array('subject', $field)) {
             $subjectService = new SubjectService();
-            $subjects = $subjectService->getBatchSubjectInfos($subjectIds, 0, array(), array());
+            $subjects = $subjectService->getBatchSubjectInfos($subjectIds, 0, array(), array())['data'];
         }
         foreach ($praiseData as $k => $v) {
             if (in_array('user_info', $field)) {

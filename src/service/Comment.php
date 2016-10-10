@@ -32,7 +32,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         $subjectIds = array();
         foreach ($commentInfos as $key => $commment) {
             $userIds[] = $commment['user_id'];
-            $subjectIds = $commment['subject_id'];
+            $subjectIds[] = $commment['subject_id'];
             if (intval($commment['fid']) > 0) {
                 $fids[] = $commment['fid'];
             }
@@ -58,6 +58,7 @@ class Comment extends \mia\miagroup\Lib\Service {
             }
             $commentInfo = null;
             $commentInfo['id'] = $commentInfos[$commentId]['id'];
+            $commentInfo['subject_id'] = $commentInfos[$commentId]['subject_id'];
             $commentInfo['comment'] = $commentInfos[$commentId]['comment'];
             $commentInfo['created'] = $commentInfos[$commentId]['create_time'];
             if (in_array('user_info', $field)) {
