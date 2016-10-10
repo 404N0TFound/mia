@@ -48,7 +48,8 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (empty($subjectInfos)) {
             return $this->succ(array());
         }
-        
+        //获取有效的subject_ids
+        $subjectIds = array_column($subjectInfos, 'id');
         // 收集id
         $userIdArr = array();
         foreach ($subjectInfos as $subjectInfo) {
@@ -87,6 +88,25 @@ class Subject extends \mia\miagroup\Lib\Service {
         // 获取是否已赞
         if (intval($currentUid) > 0) {
             $isPraised = $this->praiseService->getBatchSubjectIsPraised($subjectIds, $currentUid)['data'];
+        }
+        //帖子关联商品信息
+        if(in_array('item', $field) || in_array('koubei', $field)){
+            $pointTag = new \mia\miagroup\Service\PointTags();
+            $subjectItemIds = $pointTag->getBatchSubjectItmeIds($subjectIds)['data'];
+            $itemIds = array();
+            foreach ($subjectItemIds as $subjectItem) {
+                $itemIds = is_array($subjectItem) ? array_merge($itemIds, $subjectItem) : $itemIds;
+            }
+            $itemService = new \mia\miagroup\Service\Item();
+            $subjectItemInfos = $itemService->getBatchItemBrandByIds($itemIds)['data'];
+            $itemInfoById = array();
+            foreach ($subjectItemIds as $subjectId => $subjectItem) {
+                foreach ($subjectItem as $itemId) {
+                    if (!empty($subjectItemInfos[$itemId])) {
+                        $itemInfoById[$subjectId][$itemId] = $subjectItemInfos[$itemId];
+                    }
+                }
+            }
         }
         $subjectRes = array();
         // 拼装结果集
@@ -178,6 +198,12 @@ class Subject extends \mia\miagroup\Lib\Service {
                 if (!empty($albumArticles[$subjectInfo['id']])) {
                     $subjectRes[$subjectInfo['id']]['album_article'] = $albumArticles[$subjectInfo['id']];
                 }
+            }
+            if (in_array('item', $field)) {
+                $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
+            }
+            if (in_array('koubei', $field) && intval($subjectInfos[$subjectId]['koubei_id']) > 0) {
+                $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
             }
             if (in_array('share_info', $field)) {
                 // 分享内容
@@ -282,15 +308,6 @@ class Subject extends \mia\miagroup\Lib\Service {
             $recommendArticle = array_values($recommendArticle);
             
             $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
-        }
-        //帖子商品信息
-        if(in_array('item', $field) || in_array('koubei', $field)){
-            $pointTag = new \mia\miagroup\Service\PointTags();
-            $subjectItemIds = $pointTag->getBatchSubjectItmeIds(array($subjectId))['data'][$subjectId];
-            $subjectItemIds = array_values($subjectItemIds);
-            $itemService = new \mia\miagroup\Service\Item();
-            $subjectItemInfo = $itemService->getBatchItemBrandByIds($subjectItemIds)['data'];
-            $subjectInfo['items'] = array_values($subjectItemInfo);
         }
         return $this->succ($subjectInfo);
     }
