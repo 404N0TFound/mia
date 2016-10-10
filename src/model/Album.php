@@ -71,7 +71,7 @@ class Album {
                     $res[$key]['cover_image']['content'] = $img_pic['content'];
                 }
                 $res[$key]['album_info'] = array();
-                if (!empty($value['ext_info']['images'])) {
+                if (!empty($value['ext_info']['images']) && is_array($value['ext_info']['images'])) {
                     foreach ($value['ext_info']['images'] as $image) {
                         if (strpos($image['url'], 'http') === 0) {
                             $image['url'] = $image['url'];
