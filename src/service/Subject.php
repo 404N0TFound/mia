@@ -48,8 +48,6 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (empty($subjectInfos)) {
             return $this->succ(array());
         }
-        //获取有效的subject_ids
-        $subjectIds = array_column($subjectInfos, 'id');
         // 收集id
         $userIdArr = array();
         foreach ($subjectInfos as $subjectInfo) {
