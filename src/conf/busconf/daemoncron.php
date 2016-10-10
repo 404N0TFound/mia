@@ -125,6 +125,13 @@ $cron_list['koubei_score_correct'] = array(
     'start_time' => '2016-09-30 18:00:00',
     'interval' => 60
 );
-/*************
- * 口碑相关结束
- *************/
+
+//视频转码
+$cron_list['group_video_transcoding'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=Groupvideo",
+    'start_time' => '2016-08-11 00:00:00',
+    'interval' => 60
+);
+

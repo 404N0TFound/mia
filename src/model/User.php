@@ -5,6 +5,7 @@ use mia\miagroup\Data\User\User as UserData;
 use mia\miagroup\Data\User\GroupSubjectUserExperts;
 use mia\miagroup\Data\User\AppDeviceToken as AppDeviceTokenData;
 use mia\miagroup\Data\User\HeadLineUserCategory as HeadLineUserCategoryData;
+use mia\miagroup\Data\User\GroupSubjectVideoPermission;
 
 class User {
 
@@ -19,13 +20,21 @@ class User {
         return $userData->getUserInfoByIds($user_ids);
     }
     
-    
     /**
      * 批量获取专家信息
      */
     public function getBatchExpertInfoByUids($userIds) {
         $userExperts = new GroupSubjectUserExperts();
         $data = $userExperts->getBatchExpertInfoByUids($userIds);
+        return $data;
+    }
+    
+    /**
+     * 批量获取视频权限
+     */
+    public function getVideoPermissionByUids($userIds) {
+        $userExperts = new GroupSubjectVideoPermission();
+        $data = $userExperts->getVideoPermissionByUids($userIds);
         return $data;
     }
 

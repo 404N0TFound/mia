@@ -4,7 +4,7 @@ use \DB_Query;
 
 class AppMsgLists extends DB_Query
 {
-    protected $dbResource = 'miagroup';
+    protected $dbResource = 'miadefault';
 
     protected $tableName = 'app_msg_lists';
 

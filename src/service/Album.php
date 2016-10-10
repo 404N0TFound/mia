@@ -84,7 +84,9 @@ class Album extends \mia\miagroup\Lib\Service {
         $users = array();
         if( isset($userInfo['data']) && $userInfo['data']){
             foreach($userIdRes as $userId){
-                $users[] = $userInfo['data'][$userId];
+                if (!empty($userInfo['data'][$userId])) {
+                    $users[] = $userInfo['data'][$userId];
+                }
             }
             $response['users'] = array_values($users);
         }

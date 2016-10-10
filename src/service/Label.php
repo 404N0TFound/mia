@@ -116,7 +116,7 @@ class Label extends \mia\miagroup\Lib\Service {
             $categoryIds[] = $labels['category_id'];
         }
         //获取归档信息
-        $categoryInfos = $this->labelModel->getLabelByCategroyIds($categoryIds);
+        $categoryInfos = $this->labelModel->getCategroyByIds($categoryIds);
         if (empty($categoryInfos)) {
             return array();
         }
