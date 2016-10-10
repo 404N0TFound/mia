@@ -103,3 +103,12 @@ $cron_list['live_num_sync'] = array(
     'start_time' => '2016-08-11 00:00:00',
     'interval' => 60
 );
+
+//视频转码
+$cron_list['group_video_transcoding'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=Groupvideo",
+    'start_time' => '2016-08-11 00:00:00',
+    'interval' => 60
+);
