@@ -210,11 +210,22 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //4、获取蜜粉推荐
         $itemRecNums = $this->koubeiModel->getItemRecNums($itemIds);
         
-        //综合评分和蜜粉推荐展示逻辑########start
-        // 如综合评分为0，即蜜粉推荐数也为0 ,都不展示（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
+        //通过商品id获取口碑id
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
+        
+        //如果综合评分和蜜粉推荐都为0，且当页无口碑，则返回空数组，如果当页有口碑，则返回口碑记录
+        //（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
         if($itemScore == 0 && $itemRecNums == 0){
-            return $this->succ($koubeiRes);
+            if(empty($koubeiIds)){
+                return $this->succ($koubeiRes);
+            }
+        }else{
+            //5、获取口碑信息
+            $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId);
+            $koubeiRes['koubei_info'] = $koubeiInfo;
         }
+        
         //如综合评分不为0，蜜粉推荐数为0,蜜粉推荐数不展示，保留综合评分（适用情况，该商品无4&5星评分）
         if($itemScore > 0 && $itemRecNums == 0){
             $koubeiRes['total_score'] = $itemScore;//综合评分
@@ -224,17 +235,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiRes['total_score'] = $itemScore;//综合评分
         $koubeiRes['recom_count'] = $itemRecNums;//蜜粉推荐
         #############end
-        
-        //通过商品id获取口碑id
-        $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
-        if(empty($koubeiIds)){
-            return $this->succ($koubeiRes);
-        }
-        
-        //5、获取口碑信息
-        $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId);
-        $koubeiRes['koubei_info'] = $koubeiInfo;
         
         return $this->succ($koubeiRes);
     }
