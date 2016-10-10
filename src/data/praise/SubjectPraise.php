@@ -76,8 +76,10 @@ class SubjectPraise extends \DB_Query {
         $praises = $this->getRows($where);
         
         $praiseRes = array();
-        foreach ($praises as $praise) {
-            $praiseRes[$praise['subject_id']] = $praise['status'];
+        if (!empty($praises)) {
+            foreach ($praises as $praise) {
+                $praiseRes[$praise['subject_id']] = $praise['status'];
+            }
         }
         return $praiseRes;
     }
@@ -118,5 +120,23 @@ class SubjectPraise extends \DB_Query {
         return $this->insert($setData);
     }
     
+    /**
+     * 根据赞ID获取赞信息
+     */
+    public function getPraisesByIds($praiseIds) {
+        if (empty($praiseIds)) {
+            return array();
+        }
+        $where = array();
+        $where[] = array(':in', 'id', $praiseIds);
+        $praises = $this->getRows($where);
     
+        $praiseRes = array();
+        if (!empty($praises)) {
+            foreach ($praises as $praise) {
+                $praiseRes[$praise['id']] = $praise['status'];
+            }
+        }
+        return $praiseRes;
+    }
 }
