@@ -284,5 +284,14 @@ class Label {
     public function getLabelIsRecommendInfo($labelId){
         return $this->labelRelation->getLabelIsRecommendInfo($labelId);
     }
+    
+    /**
+     * 查询标签分类
+     */
+    public function getCategroyByIds($categoryIds, $status = 1) {
+        $labelCategoryInfo = new \mia\miagroup\Data\Label\LabelCategory();
+        $data = $labelCategoryInfo->getCategroyByIds($categoryIds, $status);
+        return $data;
+    }
 
 }

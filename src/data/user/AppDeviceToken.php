@@ -10,9 +10,8 @@ use \DB_Query;
  */
 class AppDeviceToken extends DB_Query {
 
+    protected $dbResource = 'miadefault';
     protected $tableName = 'app_device_token';
-
-    protected $dbResource = 'miagroup';
 
     protected $mapping = array(
         'id' => 'i', 

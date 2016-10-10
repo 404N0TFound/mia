@@ -5,7 +5,7 @@
  
  class ItemSpu extends \DB_Query {
  
-     protected $dbResource = 'miagroup';
+     protected $dbResource = 'miadefault';
  
      protected $tableName = 'spu_sku_relation';
  

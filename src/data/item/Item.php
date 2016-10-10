@@ -6,7 +6,7 @@ use mia\miagroup\Data\Item\ItemPic;
 
 class Item extends \DB_Query {
 
-    protected $dbResource = 'miagroup';
+    protected $dbResource = 'miadefault';
 
     protected $tableName = 'item';
 
