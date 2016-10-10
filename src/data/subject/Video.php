@@ -87,7 +87,7 @@ class Video extends \DB_Query {
             $offset = ($cond['page'] - 1) > 0 ? (($cond['page'] - 1) * $cond['limit']) : 0;
             $limit = $cond['limit'];
         }
-        $data = $this->getRows($where, '`id`', $limit, $offset, 'ORDER BY `id` DESC');
+        $data = $this->getRows($where, '`id`', $limit, $offset, '`id` DESC');
         $result = array();
         if (!empty($data)) {
             foreach ($data as $v) {
