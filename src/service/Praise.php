@@ -4,16 +4,14 @@ namespace mia\miagroup\Service;
 use \F_Ice;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Model\Praise as PraiseModel;
-use mia\miagroup\Service\Subject;
+use mia\miagroup\Service\Subject as SubjectService;
 
 class Praise extends \mia\miagroup\Lib\Service {
     
-    private $userService;
     private $praiseModel;
 
     public function __construct() {
         parent::__construct();
-        $this->userService = new UserService();
         $this->praiseModel = new PraiseModel();
     }
     
@@ -30,7 +28,8 @@ class Praise extends \mia\miagroup\Lib\Service {
             foreach ($subPraises as $ids) {
                 $userIds = array_merge($userIds, $ids);
             }
-            $userInfos = $this->userService->getUserInfoByUids($userIds)['data'];
+            $userService = new UserService();
+            $userInfos = $userService->getUserInfoByUids($userIds)['data'];
             foreach ($subPraises as $subjectId => $uids) {
                 foreach ($uids as $uid) {
                     if (isset($userInfos[$uid]) && $userInfos[$uid]['icon'] != F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon')) {
@@ -138,7 +137,9 @@ class Praise extends \mia\miagroup\Lib\Service {
         return $this->succ($praiseInfo);
     }
     
-    //取消赞
+    /**
+     * 取消赞
+     */
     public function cancelPraise($iSubjectId, $userId)
     {
         $subject = new Subject();
@@ -172,6 +173,42 @@ class Praise extends \mia\miagroup\Lib\Service {
         return $this->succ($praiseInfo);
     }
     
-    
+    /**
+     * 根据赞ID批量获取赞信息
+     * @param $field user_info、subject
+     */
+    public function getPraisesByIds($praiseIds, $field = array()) {
+        if (empty($parseIds)) {
+            return $this->succ(array());
+        }
+        $praiseData = $this->praiseModel->getPraisesByIds($praiseIds);
+        if (empty($praiseData)) {
+            return $this->succ(array());
+        }
+        //收集uid、subject_id
+        $userIds = array();
+        $subjectIds = array();
+        foreach ($praiseData as $v) {
+            $userIds[] = $v['user_id'];
+            $subjectIds[] = $v['subject_id'];
+        }
+        if (in_array('user_info', $field)) {
+            $userService = new UserService();
+            $userInfos = $userService->getUserInfoByUids($userIds);
+        }
+        if (in_array('subject', $field)) {
+            $subjectService = new SubjectService();
+            $subjects = $subjectService->getBatchSubjectInfos($subjectIds, 0, array(), array());
+        }
+        foreach ($praiseData as $k => $v) {
+            if (in_array('user_info', $field)) {
+                $praiseData[$k]['user_info'] = $userInfos[$v['user_id']];
+            }
+            if (in_array('subject', $field)) {
+                $praiseData[$k]['subject'] = $subjects[$v['subject_id']];
+            }
+        }
+        return $this->succ($praiseData);;
+    }
     
 }
