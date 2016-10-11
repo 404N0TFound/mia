@@ -886,7 +886,7 @@ class Live extends \mia\miagroup\Lib\Service {
         //获取房间直播流SDK类型
         $data     = $this->liveModel->checkLiveRoomByUserId($userId);
         $settings = json_decode($data['settings'],true);
-        $source   = 2;
+        $source   = 1;
         if(isset($settings['source']) && !empty($settings['source'])){
             $source = $settings['source'];
         }
