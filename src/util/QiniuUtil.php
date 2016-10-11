@@ -283,13 +283,13 @@ class QiniuUtil {
     /**
      * 获取视频缩略图
      */
-    public function getVideoThumb($videoUrl) {
+    public function getVideoThumb($videoUrl, $second = 1) {
         // 缩略图存储空间
         $bucket = $this->config['image_bucket'];
         $fileName = $this->_getImageFileName($videoUrl, 'jpg');
         $fileName = Qiniu\entry($bucket, $fileName);
         $url = substr($videoUrl, strlen('http://'));
-        $url = $url . "?vframe/jpg/offset/1|imageMogr2/thumbnail/640x|saveas/$fileName";
+        $url = $url . "?vframe/jpg/offset/".$second."|imageMogr2/thumbnail/640x|saveas/$fileName";
         $image_url = 'http://' . $url . '/sign/' . $this->qiniuAuth->sign($url);
         $ret = file_get_contents($image_url);
         $ret = json_decode($ret, true);
