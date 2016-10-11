@@ -889,21 +889,35 @@ class Subject extends \mia\miagroup\Lib\Service {
     /**
      * 根据subject_id修改视频首帧
      */
-    public function changeVideoFrame($ids)
+    public function changeVideoFrame($id)
     {
-        $ids = [266786, 266785];
-        if (empty($ids)) {
-            return $this->error(500);
+        if (empty($id)) {
+            return;
         }
-        $subject_info = $this->subjectModel->getSubjectByIds($ids);
+        $subject_info = $this->subjectModel->getSubjectByIds([$id]);
+        if (empty($subject_info)) {
+            return;
+        }
         $qiniusdk = new QiniuUtil();
-        foreach ($subject_info as $v) {
-            //一个视频
-            $qiniuConfig = F_Ice::$ins->workApp->config->get('busconf.qiniu');
-            $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $v['video_info']['video_origin_url'], 3);
-            
+        $qiniuConfig = F_Ice::$ins->workApp->config->get('busconf.qiniu');
+        if(!isset($subject_info[$id]['video_info']['video_origin_url'])) {
+            return;
         }
-    }
+        $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $subject_info[$id]['video_info']['video_origin_url'], 3);
+        if(empty($cover_image)) {
+            return;
+        }
+        //修改
+        $video_id = $subject_info[$id]['video_info']['id'];
+        $info = $this->subjectModel->getBatchVideoExtInfos([$video_id]);
+        $ext_arr = $info[$video_id]['ext_info'];
+        $ext_arr['cover_image'] = $cover_image;
 
+        $setInfo[] = ['ext_info', json_encode($ext_arr)];
+        $where[] = ['id', $video_id];
+        $this->subjectModel->updateVideoBySubject($setInfo, $where);
+        unset($where);
+        unset($setInfo);
+    }
 }
 

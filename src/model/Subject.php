@@ -123,7 +123,23 @@ class Subject {
         }
         return $result;
     }
-    
+
+    /**
+     * 批量查询视频ext_info信息
+     */
+    public function getBatchVideoExtInfos($videoIds)
+    {
+        if (empty($videoIds)) {
+            return array();
+        }
+        $videoArr = $this->videoData->getBatchVideoInfos($videoIds);
+        if (!empty($videoArr)) {
+            return $videoArr;
+        } else {
+            return array();
+        }
+    }
+
     /**
      * 获取推荐池列表
      * @return multitype:multitype:unknown

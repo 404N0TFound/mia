@@ -283,7 +283,7 @@ class QiniuUtil {
     /**
      * 获取视频缩略图
      */
-    public function getVideoThumb($videoUrl, $second = 1) {
+    public function getVideoThumb($videoUrl, $second = 3) {
         // 缩略图存储空间
         $bucket = $this->config['image_bucket'];
         $fileName = $this->_getImageFileName($videoUrl, 'jpg');
