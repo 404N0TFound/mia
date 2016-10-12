@@ -14,12 +14,10 @@ class Videochangeframe extends \FD_Daemon
     public function execute()
     {
         $videotData = new Video();
-        $where[] = [':eq', 'status', 1];
-        $field = 'count(*) as nums';
         //视频总数
-        $videoNum = $videotData->getRows($where, $field);
-        $nums = $videoNum[0]['nums'];
+        $videoNum = $videotData->query('SELECT count(*) as num FROM group_subject_video as video LEFT join group_subjects as subject on video.subject_id=subject.id WHERE video.status = 1 and subject.source=3', \DB_Query::RS_ARRAY);
 
+        $nums = $videoNum[0]['num'];
         $limit = 20;
         $end = floor($nums / $limit) + 1;
         for ($i = 1; $i <= $end; $i++) {
