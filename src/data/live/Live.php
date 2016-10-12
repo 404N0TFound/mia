@@ -97,7 +97,17 @@ class Live extends \DB_Query {
         $result = $this->getRows($where);
         return $result;
     }
-    
+
+    /**
+     * 批量获取正在直播的房间user_id
+     */
+    public function getBatchLiveIds($status = array(3)) {
+        $where[] = ['status', $status];
+        $fields = 'user_id';
+        $result = $this->getRows($where,$fields);
+        return $result;
+    }
+
     /**
      * 直播计数增长
      */

@@ -190,5 +190,14 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         $data = !empty($data) ? $data : array();
         return $this->succ($data);
     }
+
+    /**
+     * 获取粉丝列表
+     */
+    public function getFansList($userId, $page, $count)
+    {
+        $userIds = $this->userRelationModel->getFansListByUid($userId, $page, $count);
+        return $this->succ($userIds);
+    }
 }
 
