@@ -291,8 +291,18 @@ class QiniuUtil {
         $url = substr($videoUrl, strlen('http://'));
         $url = $url . "?vframe/jpg/offset/".$second."|imageMogr2/thumbnail/640x|saveas/$fileName";
         $image_url = 'http://' . $url . '/sign/' . $this->qiniuAuth->sign($url);
-        $ret = file_get_contents($image_url);
+        $context = stream_context_create(array(
+            'http' => array(
+                'timeout' => 3000 //超时时间，单位为秒
+            )
+        ));
+        $cnt = 0;
+        while ($cnt < 3 && ($ret = file_get_contents($image_url, 0, $context)) === FALSE) $cnt++;
         $ret = json_decode($ret, true);
+        //视频文件不存在
+        if (!$ret) {
+            return false;
+        }
         if (empty($ret['error'])) {
             return $this->config['image_host'] . $ret['key'];
         } else {

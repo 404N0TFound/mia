@@ -18,11 +18,11 @@ class Videochangeframe extends \FD_Daemon
         $videoNum = $videotData->query('SELECT count(*) as num FROM group_subject_video as video LEFT join group_subjects as subject on video.subject_id=subject.id WHERE video.status = 1 and subject.source=3', \DB_Query::RS_ARRAY);
 
         $nums = $videoNum[0]['num'];
-        $limit = 20;
+        $limit = 100;
         $end = floor($nums / $limit) + 1;
         for ($i = 1; $i <= $end; $i++) {
             $start = ($i - 1) * $limit;
-            $videoList = $videotData->getRows([], 'subject_id', $limit, $start);
+            $videoList = $videotData->query('SELECT video.subject_id FROM group_subject_video as video LEFT join group_subjects as subject on video.subject_id=subject.id WHERE video.status = 1 and subject.source=3 limit '.$start.','.$limit, \DB_Query::RS_ARRAY);
             foreach ($videoList as $v) {
                 if (empty($v['subject_id'])) {
                     continue;
