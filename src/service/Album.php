@@ -752,4 +752,17 @@ class Album extends \mia\miagroup\Lib\Service {
         \DB_Query::switchCluster($preNode);
         return $this->succ($subjectId);
     }
+    
+    /**
+     * 根据文章id批量获取帖子id
+     * @params array() $articleIds 文章ID
+     * @return array() 帖子id列表
+     */
+    public function getSubjectIdByArticleIds($articleIds) {
+        if (empty($articleIds)) {
+            return $this->succ(array());
+        }
+        $res = $this->abumModel->getSubjectIdByArticleIds($articleIds);
+        return $this->succ($res);
+    }
 }
