@@ -886,5 +886,38 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($result);
     }
 
+    /**
+     * 根据subject_id修改视频首帧
+     */
+    public function changeVideoFrame($id)
+    {
+        if (empty($id)) {
+            return;
+        }
+        $subject_info = $this->subjectModel->getSubjectByIds([$id]);
+        if (empty($subject_info)) {
+            return;
+        }
+        $qiniusdk = new QiniuUtil();
+        $qiniuConfig = F_Ice::$ins->workApp->config->get('busconf.qiniu');
+        if(!isset($subject_info[$id]['video_info']['video_origin_url'])) {
+            return;
+        }
+        $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $subject_info[$id]['video_info']['video_origin_url'], 3);
+        if(empty($cover_image)) {
+            return;
+        }
+        //修改
+        $video_id = $subject_info[$id]['video_info']['id'];
+        $info = $this->subjectModel->getBatchVideoExtInfos([$video_id]);
+        $ext_arr = $info[$video_id]['ext_info'];
+        $ext_arr['cover_image'] = $cover_image;
+
+        $setInfo[] = ['ext_info', json_encode($ext_arr)];
+        $where[] = ['id', $video_id];
+        $this->subjectModel->updateVideoBySubject($setInfo, $where);
+        unset($where);
+        unset($setInfo);
+    }
 }
 
