@@ -15,15 +15,16 @@ class Livepushmessage extends \FD_Daemon
     public function execute()
     {
         $liveData = new LiveData();
-        $fans = new Service\UserRelation();
-        $push = new Service\Push();
-        $liveRoomData = new LiveRoom();
-        $user = new Service\User();
 
         //获取正在直播的聊天室的id
         $result = $liveData->getBatchLiveIds();
 
         if (!empty($result)) {
+            $fans = new Service\UserRelation();
+            $push = new Service\Push();
+            $liveRoomData = new LiveRoom();
+            $user = new Service\User();
+
             $ids = array();
             foreach ($result as $val) {
                 $ids[] = $val['user_id'];
