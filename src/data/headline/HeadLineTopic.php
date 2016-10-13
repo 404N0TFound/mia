@@ -59,7 +59,9 @@ class HeadLineTopic extends \DB_Query {
         $where[] = ['id', $topicIds];
         $where[] = ['status', $status];
     
-        $data = $this->getRows($where);
+        $orderBy = "id desc ";
+        
+        $data = $this->getRows($where,'*',false,0,$orderBy);
         if (!empty($data)) {
             foreach ($data as $v) {
                 $result[$v['id']] = $v;

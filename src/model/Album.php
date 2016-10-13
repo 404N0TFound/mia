@@ -381,4 +381,13 @@ class Album {
         $data = $this->albumPermissionData->addAlbumPermission($userId, $source, $reason, $operator);
         return $data;
     }
+    
+    /**
+     * 通过专栏文章id批量获取帖子id
+     * @params array() $articleIds 文章IDs
+     * @return array() 帖子id列表
+     */
+    public function getSubjectIdByArticleIds($articleIds) {
+        return $this->albumArticleData->getSubjectIdByArticleIds($articleIds);
+    }
 }
