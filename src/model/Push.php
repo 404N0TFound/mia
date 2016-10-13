@@ -1,7 +1,7 @@
 <?php
 namespace mia\miagroup\Model;
 
-use mia\miagroup\Data\Push\AppMsgLists as MsgListsData;
+use mia\miagroup\Data\Push\Appmsglists as MsgListsData;
 
 class Push
 {

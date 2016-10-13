@@ -106,7 +106,37 @@ class LiveRoom extends \DB_Query {
             return $result;
         }
     }
-    
+
+    /**
+     * 根据用户ID批量获取房间配置信息
+     */
+    public function getBatchLiveRoomByUserIds($userIds, $status = array(1))
+    {
+        if (empty($userIds)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['user_id', $userIds];
+        if (!empty($status)) {
+            $where[] = ['status', $status];
+        }
+        $fields = "settings,user_id,id";
+        $data = $this->getRows($where, $fields);
+        $result = array();
+        if (!$data) {
+            return array();
+        } else {
+            foreach ($data as $v) {
+                if (isset($v['settings'])) {
+                    $settings = json_decode($v['settings'], true);
+                    $result[$v['user_id']]['push_time'] = $settings['push_time'] ? $settings['push_time'] : 0;
+                    $result[$v['user_id']]['id'] = $v['id'];
+                }
+            }
+            return $result;
+        }
+    }
+
     /**
      * 获取所有正在直播的房间
      * @author jiadonghui@mia.com

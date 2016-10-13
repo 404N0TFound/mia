@@ -79,6 +79,14 @@ $cron_list['live_num_sync'] = array(
     'start_time' => '2016-08-11 00:00:00',
     'interval' => 60
 );
+//直播消息推送
+$cron_list['live_push_message'] = array(
+    'enable' => false,
+    'engine' => 'php',
+    'cli_args' => "--class=live --action=Livepushmessage",
+    'start_time' => '2016-10-12 00:00:00',
+    'interval' => 60
+);
 /*************
  * 直播相关结束
  *************/
