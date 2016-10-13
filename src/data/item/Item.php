@@ -16,7 +16,7 @@ class Item extends \DB_Query {
      * 批量获取商品信息
      * @param int $itemIds
      */
-    public function getBatchItemInfoByIds($itemIds, $status = array(1)){
+    public function getBatchItemInfoByIds($itemIds, $status = array()){
         if (empty($itemIds)) {
             return array();
         }

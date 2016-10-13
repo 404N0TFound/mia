@@ -219,7 +219,7 @@ class Subject extends \mia\miagroup\Lib\Service {
                     $h5Url = sprintf($shareDefault['wap_url'], $albumArticles[$subjectInfo['id']]['id'], $albumArticles[$subjectInfo['id']]['album_id']);
                 } elseif (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
                     $shareDefault = $shareConfig['defaultShareInfo']['video'];
-                    $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】" : $shareDefault['title'];
+                    $shareTitle = !empty($subjectInfo['title']) ? "【视频】{$subjectInfo['title']}_育儿头条_蜜芽" : $shareDefault['title'];
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
                     if (isset($subjectRes[$subjectInfo['id']]['video_info']['cover_image']) && !empty($subjectRes[$subjectInfo['id']]['video_info']['cover_image'])) {
                         $shareImage = $subjectRes[$subjectInfo['id']]['video_info']['cover_image'];
