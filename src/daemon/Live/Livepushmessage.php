@@ -16,7 +16,7 @@ class Livepushmessage extends \FD_Daemon
     {
         $liveData = new LiveData();
         $fans = new Service\UserRelation();
-        $push = new Service\push();
+        $push = new Service\Push();
         $liveRoomData = new LiveRoom();
         $user = new Service\User();
 
