@@ -81,7 +81,7 @@ $cron_list['live_num_sync'] = array(
 );
 //直播消息推送
 $cron_list['live_push_message'] = array(
-    'enable' => true,
+    'enable' => false,
     'engine' => 'php',
     'cli_args' => "--class=live --action=Livepushmessage",
     'start_time' => '2016-10-12 00:00:00',
