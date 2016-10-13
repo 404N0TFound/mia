@@ -2,7 +2,7 @@
 namespace mia\miagroup\Data\Push;
 use \DB_Query;
 
-class AppMsgLists extends DB_Query
+class Appmsglists extends DB_Query
 {
     protected $dbResource = 'miadefault';
 
