@@ -382,4 +382,27 @@ class AlbumArticle extends \DB_Query {
     public function addAlbum($insert) {
         return $this->insert($insert);
     }
+    
+    /**
+     * 通过文章id批量获取帖子id
+     * @params array() $articleIds 文章IDs
+     * @return array() 帖子id列表
+     */
+    public function getSubjectIdByArticleIds($articleIds) {
+        $where = array();
+        if (is_array($articleIds)) {
+            $where[] = array(':in', 'id', $articleIds);
+        } else {
+            $where[] = array(':eq', 'id', $articleIds);
+        }
+        
+        $data = $this->getRows($where, 'subject_id');
+        $result = array();
+        if ($data) {
+            foreach ($data as $val) {
+                $result[] = $val['subject_id'];
+            }
+        }
+        return $result;
+    }
 }
