@@ -137,11 +137,11 @@ class Subject extends \mia\miagroup\Lib\Service {
                         if (strpos($smallImage, "app_group") !== false) {
                             $smallImage = "/d1/p1/" . $smallImage; // 以app_group开头的图片其小图在远端，需要加/d1/p1
                         }
-                        $imageUrl[$k]['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image;
+                        $imageUrl[$k]['url'] = F_Ice::$ins->workApp->config->get('busconf')['subject']['img_watermark_url'] . $image . '@style@watermark640';
                         $imageUrl[$k]['height'] = 640;
                         $imageUrl[$k]['width'] = 640;
                         $smallImageUrl[$k] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $smallImage;
-                        $bigImageUrl[$k] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image;
+                        $bigImageUrl[$k] = F_Ice::$ins->workApp->config->get('busconf')['subject']['img_watermark_url'] . $image . '@style@watermark640';
                     }
                 }
             }
@@ -155,9 +155,9 @@ class Subject extends \mia\miagroup\Lib\Service {
                             $small_image_url = "/d1/p1/" . $small_image_url; // 以app_group开头的图片其小图在远端，需要加/d1/p1
                         }
                         $imageUrl[$key] = $image;
-                        $imageUrl[$key]['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image['url'];
+                        $imageUrl[$key]['url'] = F_Ice::$ins->workApp->config->get('busconf')['subject']['img_watermark_url'] . $image['url'] . '@style@watermark640';
                         $smallImageUrl[$key] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $small_image_url;
-                        $bigImageUrl[$key] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image['url'];
+                        $bigImageUrl[$key] = F_Ice::$ins->workApp->config->get('busconf')['subject']['img_watermark_url'] . $image['url'] . '@style@watermark640';
                     }
                 }
             }

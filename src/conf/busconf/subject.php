@@ -72,3 +72,10 @@ $album = array(
      'koubei'   => 2, //口碑
      'headline' => 3, //头条
  );
+ 
+ /**
+  * 帖子加水印的图片域名
+  */
+ $img_watermark_url = 'http://img05.miyabaobei.com/';
+ 
+ 
