@@ -51,7 +51,7 @@ class Livepushmessage extends \FD_Daemon
                     $fansList = $fans->getFansList($userId, $i, $limit);
                     foreach ($fansList['data'] as $fans) {
                         //给用户推送消息
-                        $push->pushMsg($liveRoomData[$live['user_id']['id']], $content, $fans, 'live');
+                        $push->pushMsg($liveRoomData[$live['user_id']['id']], $content, $fans, 'live_room');
                     }
                 }
             }
