@@ -29,7 +29,7 @@
              $cache_audience_num = $redis->get($audience_num_key);
 
              $roomInfo = $liveModel->checkLiveRoomByUserId($liveInfo['user_id']);
-             $userNum = 10000;
+             $userNum = 30000;
              $settings  = json_decode($roomInfo['settings'],true);
              if(isset($settings['user_num']) && !empty($settings['user_num'])){
                  $userNum = $settings['user_num'];
