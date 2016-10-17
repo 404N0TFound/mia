@@ -139,6 +139,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $shieldIds[] = $config['id'];
             }
         }
+        //配置里的id对应的是数据库id
         foreach ($channelRes as $key => $channel) {
             if (in_array($channel['id'], $shieldIds)) {
                 unset($channelRes[$key]);
