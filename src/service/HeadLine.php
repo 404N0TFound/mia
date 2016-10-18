@@ -519,7 +519,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
 
         if ($baseInfo === true) { //简要信息
-            $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds, 0, array())['data'];
+            $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds, 0, array('album'))['data'];
             $lives = $this->liveServer->getLiveRoomByIds($roomIds, array())['data'];
             $topics = $this->getHeadLineTopics($topicIds, array())['data'];
         } else { //列表信息
