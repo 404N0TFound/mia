@@ -256,7 +256,7 @@ class NormalUtil {
                 $height = $img_format['subject']['small']['height'];
             break;
             case 'watermark' :
-                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['watermark']['suffix'] . $img_format['subject']['small']['file_type'];
+                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['watermark']['suffix'] . $img_format['subject']['watermark']['file_type'];
                 $width = $img_format['subject']['watermark']['width'];
                 $height = ($img_format['subject']['watermark']['width']/$width) * $height;
             break;
