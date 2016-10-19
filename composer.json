@@ -32,6 +32,7 @@
             "mia\\miagroup\\Data\\UserRelation\\":  "src/data/userrelation",
             "mia\\miagroup\\Data\\Redbag\\":      "src/data/redbag",
             "mia\\miagroup\\Data\\Item\\":    "src/data/item",
+            "mia\\miagroup\\Data\\Push\\":    "src/data/push",
             "mia\\miagroup\\Data\\Order\\":    "src/data/order",
             "mia\\miagroup\\Data\\HeadLine\\":    "src/data/headline",
             "mia\\miagroup\\Data\\Audit\\":    "src/data/audit",
