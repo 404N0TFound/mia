@@ -31,7 +31,7 @@
              $roomInfo = $liveModel->checkLiveRoomByUserId($liveInfo['user_id']);
              $userNum = 30000;
              $settings  = json_decode($roomInfo['settings'],true);
-             if(isset($settings['user_num']) && !empty($settings['user_num'])){
+             if (isset($settings['user_num']) && !empty($settings['user_num']) && $settings['user_num'] > $userNum) {
                  $userNum = $settings['user_num'];
              }
              //变化数量
