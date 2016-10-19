@@ -258,7 +258,7 @@ class NormalUtil {
             case 'watermark' :
                 $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['watermark']['suffix'] . $img_format['subject']['watermark']['file_type'];
                 $real_width = $img_format['subject']['watermark']['width'];
-                $real_height = ($img_format['subject']['watermark']['width']/$width) * $height;
+                $real_height = ceil($img_format['subject']['watermark']['width']/$width) * $height;
             break;
             default :
                 $url = $host . $pathurl['dirname'] . '/' . $pathurl['basename'];
