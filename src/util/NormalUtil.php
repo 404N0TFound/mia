@@ -227,5 +227,44 @@ class NormalUtil {
         return $newSavePath;
     }
     
+    /**
+     * 图片地址生成器
+     * @param $url 图片地址
+     * @param $type 图片类型：small 小图   watermark 水印图  normal 正常图
+     */
+    public static function buildImgUrl($url, $type, $width=0, $height=0){
+        $host = \F_Ice::$ins->workApp->config->get('busconf.subject.img_watermark_url');
+        $img_format = \F_Ice::$ins->workApp->config->get('busconf.subject.img_format');
+        if($type == 'small' || $type == 'normal'){
+            $host = \F_Ice::$ins->workApp->config->get('app.url.img_url');
+        }
+        if($url[0] != '/'){
+            $url = '/' . $url;
+        }
+        $pathurl = pathinfo($url);
+        switch ($type){
+            case 'small' :
+                // 以app_group开头的图片其小图在远端，需要加/d1/p1
+                if (strpos($url, "app_group") !== false) {
+                    $pathurl['dirname'] = "/d1/p1/" . $pathurl['dirname']; 
+                }
+                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . '_small' . $img_format['subject']['small']['suffix'];
+                $width = $img_format['subject']['small']['width'];
+                $height = $img_format['subject']['small']['height'];
+            break;
+            case 'watermark' :
+                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['watermark']['suffix'] . '@style@watermark640';
+                $width = $img_format['subject']['watermark']['width'];
+                $height = ($img_format['subject']['watermark']['width']/$width) * $height;
+            break;
+            default :
+                $url = $host . $pathurl['dirname'] . '/' . $pathurl['basename'];
+        }
+        
+        return ['url'=>$url,'width'=>$width,'height'=>$height];
+    }
+    
+    
+    
     
 }

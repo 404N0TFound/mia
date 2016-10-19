@@ -78,4 +78,23 @@ $album = array(
   */
  $img_watermark_url = 'http://img05.miyabaobei.com';
  
+ $img_format = array(
+     'subject' => array(
+         'small' => array(
+             "width" => 238,
+             "height" =>238,
+             'suffix' => '.jpg',
+             'limit_width' => true,
+             'limit_height' => true,
+         ),
+         'watermark' => array(
+             'width' => 640,
+             'height' => 640,
+             'suffix' => '.jpg',
+             'limit_width' => true,
+             'limit_height' => false,
+         )
+     ),
+ );
+ 
  
