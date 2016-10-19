@@ -237,6 +237,9 @@ class NormalUtil {
         $img_format = \F_Ice::$ins->workApp->config->get('busconf.subject.img_format');
         if($type == 'small' || $type == 'normal'){
             $host = \F_Ice::$ins->workApp->config->get('app.url.img_url');
+            if(substr($host, -1) == '/'){
+                $host = substr($host, 0, -1);
+            }
         }
         if($url[0] != '/'){
             $url = '/' . $url;
@@ -248,12 +251,12 @@ class NormalUtil {
                 if (strpos($url, "app_group") !== false) {
                     $pathurl['dirname'] = "/d1/p1/" . $pathurl['dirname']; 
                 }
-                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . '_small' . $img_format['subject']['small']['suffix'];
+                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['small']['file_type'] . $img_format['subject']['small']['suffix'];
                 $width = $img_format['subject']['small']['width'];
                 $height = $img_format['subject']['small']['height'];
             break;
             case 'watermark' :
-                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['watermark']['suffix'] . '@style@watermark640';
+                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['watermark']['suffix'] . $img_format['subject']['small']['file_type'];
                 $width = $img_format['subject']['watermark']['width'];
                 $height = ($img_format['subject']['watermark']['width']/$width) * $height;
             break;
