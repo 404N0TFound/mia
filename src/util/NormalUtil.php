@@ -254,18 +254,28 @@ class NormalUtil {
                 $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['small']['file_type'] . $img_format['subject']['small']['suffix'];
                 $real_width = $img_format['subject']['small']['width'];
                 $real_height = $img_format['subject']['small']['height'];
-            break;
-            case 'watermark' :
-                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject']['watermark']['suffix'] . $img_format['subject']['watermark']['file_type'];
-                $real_width = $img_format['subject']['watermark']['width'];
-                $real_height = intval(ceil(($img_format['subject']['watermark']['width']/$width) * $height));
-            break;
-            default :
+                break;
+            case 'normal':
                 $url = $host . $pathurl['dirname'] . '/' . $pathurl['basename'];
                 $real_width = $width;
                 $real_height = $height;
+                break;
+            default :
+                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . $img_format['subject'][$type]['suffix'] . $img_format['subject'][$type]['file_type'];
+                if($img_format['subject'][$type]['limit_width'] && $img_format['subject'][$type]['limit_height']){
+                    $real_width = $img_format['subject'][$type]['width'];
+                    $real_height = $img_format['subject'][$type]['height'];
+                }elseif($img_format['subject'][$type]['limit_width'] && !$img_format['subject'][$type]['limit_height']){
+                    $real_width = $img_format['subject'][$type]['width'];
+                    $real_height = intval(ceil(($img_format['subject'][$type]['width']/$width) * $height));
+                }elseif(!$img_format['subject'][$type]['limit_width'] && $img_format['subject'][$type]['limit_height']){
+                    $real_width = intval(ceil(($img_format['subject'][$type]['height']/$height) * $width));
+                    $real_height = $img_format['subject'][$type]['height'];
+                }else{
+                    $real_width = $width;
+                    $real_height = $height;
+                }
         }
-        
         return ['url'=>$url,'width'=>$real_width,'height'=>$real_height];
     }
     
