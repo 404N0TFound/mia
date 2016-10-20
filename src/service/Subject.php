@@ -133,15 +133,13 @@ class Subject extends \mia\miagroup\Lib\Service {
                 if (!empty($imageUrlArr[0])) {
                     foreach ($imageUrlArr as $k => $image) {
                         $pathInfo = pathinfo($image);
-                        $smallImage = $pathInfo['dirname'] . "/" . $pathInfo['filename'] . "_small." . $pathInfo['extension'];
-                        if (strpos($smallImage, "app_group") !== false) {
-                            $smallImage = "/d1/p1/" . $smallImage; // 以app_group开头的图片其小图在远端，需要加/d1/p1
-                        }
-                        $imageUrl[$k]['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image;
-                        $imageUrl[$k]['height'] = 640;
-                        $imageUrl[$k]['width'] = 640;
-                        $smallImageUrl[$k] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $smallImage;
-                        $bigImageUrl[$k] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image;
+
+                        $img_info = NormalUtil::buildImgUrl($image,'watermark',640,640);
+                        $imageUrl[$k]['url'] = $img_info['url'];
+                        $imageUrl[$k]['height'] = $img_info['height'];
+                        $imageUrl[$k]['width'] = $img_info['width'];
+                        $smallImageUrl[$k] = NormalUtil::buildImgUrl($image, 'small')['url'];
+                        $bigImageUrl[$k] = $img_info['url'];
                     }
                 }
             }
@@ -150,14 +148,13 @@ class Subject extends \mia\miagroup\Lib\Service {
                 if (is_array($imageInfos) && !empty($imageInfos)) {
                     foreach ($imageInfos as $key => $image) {
                         $pathInfo = pathinfo($image['url']);
-                        $small_image_url = $pathInfo['dirname'] . "/" . $pathInfo['filename'] . "_small." . $pathInfo['extension'];
-                        if (strpos($small_image_url, "app_group") !== false) {
-                            $small_image_url = "/d1/p1/" . $small_image_url; // 以app_group开头的图片其小图在远端，需要加/d1/p1
-                        }
-                        $imageUrl[$key] = $image;
-                        $imageUrl[$key]['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image['url'];
-                        $smallImageUrl[$key] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $small_image_url;
-                        $bigImageUrl[$key] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image['url'];
+                        
+                        $img_info = NormalUtil::buildImgUrl($image['url'],'watermark',$image['width'],$image['height']);
+                        $imageUrl[$key]['width'] = $img_info['width'];
+                        $imageUrl[$key]['height'] = $img_info['height'];
+                        $imageUrl[$key]['url'] = $img_info['url'];
+                        $smallImageUrl[$key] = NormalUtil::buildImgUrl($image['url'],'small')['url'];
+                        $bigImageUrl[$key] = $img_info['url'];
                     }
                 }
             }
