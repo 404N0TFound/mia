@@ -21,21 +21,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 发布口碑
      * @param $koubeiData array() 口碑发布信息
+     * @param $checkOrder 是否验证订单
      */
-    public function createKoubei($koubeiData){
-        //获取订单信息，验证是否可以发布口碑（order service）
-        $orderService = new OrderService();
-        $orderInfo = $orderService->getOrderInfo($koubeiData['order_code'])['data'];
-        $finishTime = strtotime($orderInfo['finish_time']) ;
-        if($orderInfo['status'] != 5  || (time()- $finishTime) > 15 * 86400 )
-        {
-            return $this->error(6102);
+    public function createKoubei($koubeiData,$checkOrder=true){
+        //判断是否需要验证订单，该判断是因为后台发布口碑时不需要订单号
+        if($checkOrder === true){
+            //获取订单信息，验证是否可以发布口碑（order service）
+            $orderService = new OrderService();
+            $orderInfo = $orderService->getOrderInfo($koubeiData['order_code'])['data'];
+            $finishTime = strtotime($orderInfo['finish_time']) ;
+            if($orderInfo['status'] != 5  || (time()- $finishTime) > 15 * 86400 )
+            {
+                return $this->error(6102);
+            }
+            //获取口碑信息，验证是否该口碑已经发布过
+            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'],$koubeiData['item_id']);
+            if(!empty($koubeiInfo)){
+                return $this->error(6103);
+            }
         }
-        //获取口碑信息，验证是否该口碑已经发布过
-        $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'],$koubeiData['item_id']);
-        if(!empty($koubeiInfo)){
-            return $this->error(6103);
-        }
+
         //保存口碑
         //组装插入口碑信息  ####start
         $koubeiSetData = array();
@@ -46,7 +51,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['item_id'] = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
         $koubeiSetData['item_size'] = $koubeiData['item_size'];
         $koubeiSetData['user_id'] = $koubeiData['user_id'];
-        $koubeiSetData['order_id'] = $orderInfo['id'];
+        $koubeiSetData['order_id'] = isset($orderInfo['id']) ? $orderInfo['id'] : 0;
         $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
