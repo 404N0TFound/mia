@@ -72,3 +72,31 @@ $album = array(
      'koubei'   => 2, //口碑
      'headline' => 3, //头条
  );
+ 
+ /**
+  * 帖子加水印的图片域名
+  */
+ $img_watermark_url = 'http://img05.miyabaobei.com';
+ 
+ $img_format = array(
+     'subject' => array(
+         'small' => array(
+             "width" => 238,
+             "height" =>238,
+             'suffix' => '.jpg',
+             'file_type' => '_small',
+             'limit_width' => true,
+             'limit_height' => true,
+         ),
+         'watermark' => array(
+             'width' => 640,
+             'height' => 640,
+             'suffix' => '.jpg',
+             'file_type' => '@style@watermark640',
+             'limit_width' => true,
+             'limit_height' => false,
+         )
+     ),
+ );
+ 
+ 

@@ -356,38 +356,33 @@ class Live extends \mia\miagroup\Lib\Service {
                     //判断是否已经领取过
                     $couponReceived = $couponService->checkIsReceivedCoupon($currentUid,[$batchCode])['code'];
                     $roomData['coupon']['is_received'] = $couponReceived == 0 ? 0 : 1;
-                    
                 }
             }
-
-            
         }
 
         $qiniu = new QiniuUtil();
         $jinshan = new JinShanCloudUtil();
-        if(empty($liveId)){
-            //直播结束时
-            if(empty($roomData['live_id'])){
+        if(empty($liveId)){ //不传liveId，查询直播间当前状态
+            if(empty($roomData['live_id'])){ //查询房间最近一次直播的信息
                 //存在最近的一次直播
                 if(!empty($roomData['latest_live_id'])){
-                    $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['latest_live_id']), array(3, 4))['data'];
-                    if (!empty($liveInfo[$roomData['latest_live_id']])) {
-                        $liveInfo = $liveInfo[$roomData['latest_live_id']];
-                        // 快照
-                        $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
-                        $roomData['snapshot'] = $liveCloud->getSnapShot($liveInfo['stream_id']);
-                        //回放地址
-                        $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
-                        //如果设置了可以观看回放才可以观看回放
-                        if(isset($roomData['is_show_playback']) && $roomData['is_show_playback'] === '0'){
-                            $roomData['status'] = 0;//不能看回放
-                        }else{
-                            //直接播放回放地址
-                            $roomData['status'] = 2;
+                    //如果设置了可以观看回放才可以观看回放
+                    if(isset($roomData['is_show_playback']) && $roomData['is_show_playback'] === '0'){
+                        $roomData['status'] = 0;//不能看回放
+                    }else{
+                        if (!empty($liveInfo[$roomData['latest_live_id']])) {
+                            $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['latest_live_id']), array(3, 4))['data'];
+                            $liveInfo = $liveInfo[$roomData['latest_live_id']];
+                            // 快照
+                            $liveCloud = $liveInfo['source']==1 ? $qiniu : $jinshan;
+                            $roomData['snapshot'] = $liveCloud->getSnapShot($liveInfo['stream_id']);
+                            //回放地址
+                            $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                            $roomData['status'] = 2;//看最近一次回放
                         }
                     }
                 }
-            }else{
+            }else{ //查询房间当前直播的信息
                 $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['live_id']), array(3, 4))['data'];
                 if (!empty($liveInfo[$roomData['live_id']])) {
                     $liveInfo = $liveInfo[$roomData['live_id']];
@@ -587,11 +582,7 @@ class Live extends \mia\miagroup\Lib\Service {
                     $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
                     $roomRes[$roomInfo['id']]['status'] = 1;
                 } else {
-                    $status = 2;
-                    if(isset($roomInfo['setting']['is_show_playback']) && $roomInfo['setting']['is_show_playback'] === '0'){
-                        $status = 0;
-                    }
-                    $roomRes[$roomInfo['id']]['status'] = $status;
+                    $roomRes[$roomInfo['id']]['status'] = 0;
                 }
             }
             if (in_array('settings', $field)) {

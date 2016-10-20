@@ -18,7 +18,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     private $feedServer;
     private $userServer;
     private $headlineConfig;
-
     
     public function __construct() {
         parent::__construct();
@@ -76,7 +75,13 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         //推荐数据、运营数据去重
         $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));
         //获取格式化的头条输出数据
-        $headLineList = $this->_getFormatHeadlineData(is_array($headLineData) ? $headLineData : array(), $operationData);
+        if ($channelId == $this->headlineConfig['lockedChannel']['homepage']['id']) {
+            //首页轮播只显示基本信息
+            $baseInfo = true;
+        } else {
+            $baseInfo = false;
+        }
+        $headLineList = $this->_getFormatHeadlineData(is_array($headLineData) ? $headLineData : array(), $operationData, $baseInfo);
         return $this->succ($headLineList);
     }
     
@@ -493,7 +498,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * @param $sortIds 有序的头条ID数组
      * @param $opertionData headLineModel->getHeadLinesByChannel方法输出的数据
      */
-    private function _getFormatHeadlineData(array $sortIds, array $opertionData) {
+    private function _getFormatHeadlineData(array $sortIds, array $opertionData, $baseInfo = false) {
         //收集ID
         $opertionIds = !empty($opertionData) ? array_keys($opertionData) : array();
         $datas = array_merge($sortIds, $opertionIds);
@@ -514,9 +519,16 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             }
         }
 
-        $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
-        $lives = $this->liveServer->getLiveRoomByIds($roomIds, array('user_info', 'live_info'))['data'];
-        $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
+        if ($baseInfo === true) { //简要信息
+            $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds, 0, array('album'))['data'];
+            $lives = $this->liveServer->getLiveRoomByIds($roomIds, array())['data'];
+            $topics = $this->getHeadLineTopics($topicIds, array())['data'];
+        } else { //列表信息
+            $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
+            $lives = $this->liveServer->getLiveRoomByIds($roomIds, array('user_info', 'live_info'))['data'];
+            $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
+        }
+        
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();
         foreach ($opertionData as $v) {
