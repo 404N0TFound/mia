@@ -916,5 +916,24 @@ class Subject extends \mia\miagroup\Lib\Service {
         unset($where);
         unset($setInfo);
     }
+
+    /**
+     * 修改帖子内容
+     */
+    public function editSubject($subjectId,$editData)
+    {
+        if (empty($subjectId) || empty($editData) || !is_array($editData)) {
+            return $this->error(500);
+        }
+        $setData = array();
+        if(isset($editData['title'])){
+            $setData[] = ['title',$editData['title']];
+        }
+        $editRes = $this->subjectModel->updateSubject($subjectId, $setData);
+        if(!$editRes){
+            return $this->error(20001);
+        }
+        return $this->succ($editRes);
+    }
 }
 
