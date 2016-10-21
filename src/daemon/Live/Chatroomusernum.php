@@ -20,7 +20,7 @@
          $liveModel = new LiveModel();
          $rong_api = new RongCloudUtil();
          $redis = new Redis();
-         
+
          //获取正在直播的聊天室的id
          $result = $liveData->getBatchLiveInfo();
          foreach($result as $liveInfo){
@@ -48,38 +48,43 @@
              }
          }
      }
-     
-    private function increase($cache_audience_num,$usersNum) {
+
+     private function increase($cache_audience_num, $usersNum)
+     {
          $cache_audience_num = intval($cache_audience_num);
          $usersNum = intval($usersNum);
-         $scale = $usersNum/10000 ?: 1; //比例
+
+         $rate = $usersNum / $cache_audience_num;
          //底数为10至50的随机数，每3s一次变化
          if ($cache_audience_num == 0) {
-             $cache_audience_num = rand(50, 100)*$scale;
+             $cache_audience_num = rand(25, 200);
              return intval($cache_audience_num);
          }
-         if ($cache_audience_num <= 3000*$scale) {
-             //当$cache_audience_num <= 500，70%概率变化，叠加5至20的随机数
+         if ($rate >= 6) {
+             //前6分之1，10分钟左右达到，200次
+             $increase = round($usersNum / (6 * 140));
              if (rand(0, 100) < 70) {
-                 $cache_audience_num += rand(20, 60)*$scale;
+                 $cache_audience_num += rand($increase - 15, $increase + 15);
              }
              return intval($cache_audience_num);
-         } else if ($cache_audience_num > 3000*$scale && $cache_audience_num <= 6000*$scale) {
-             //当500 < $cache_audience_num <= 1000，40%概率变化，叠加-5至20的随机数
-             if (rand(0, 100) < 40) {
-                 $cache_audience_num += rand(-10, 60)*$scale;
+         } else if ($rate < 6 && $rate >= 2) {
+             //6分之一到1半,30分钟达到
+             $increase = round($usersNum / (2 * 200));
+             if (rand(0, 100) < 50) {
+                 $cache_audience_num += rand($increase - 20, $increase + 20);
              }
              return intval($cache_audience_num);
-         } else if ($cache_audience_num > 6000*$scale && $cache_audience_num <= 10000*$scale) {
-             //当 1000 < $cache_audience_num < 2000，30%概率变化，叠加-10至20的随机数
-             if (rand(0, 100) < 30) {
-                 $cache_audience_num += rand(-10, 60)*$scale;
+         } else if ($rate >= 1 && $rate < 2) {
+             //一半到最大值
+             $increase = round($usersNum / (2 * 200));
+             if (rand(0, 100) < 50) {
+                 $cache_audience_num += rand($increase - 10, $increase + 10);
              }
              return intval($cache_audience_num);
          } else {
-             //当 $cache_audience_num > 10000，20%概率变化，叠加-20至5的随机数
+             //超过最大值
              if (rand(0, 100) < 20) {
-                 $cache_audience_num += rand(-5, 20)*$scale;
+                 $cache_audience_num += rand(-5, 10);
              }
              return intval($cache_audience_num);
          }
