@@ -180,8 +180,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         $itemIds[] = $rItem['id'];
                     }
                 }
-            }else{
-                $itemIds = array($itemId);
             }
         }elseif($itemInfo['is_spu'] == 1 && $itemInfo['spu_type'] == 1){//是单品套装的情况
             //根据套装id获取套装的商品
@@ -197,12 +195,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         $itemIds[] = $item['id'];
                     }
                 }
-            }else{
-                $itemIds = $itemIdArr;
             }
             //将套装的商品id和所有套装id拼在一起，实现单品和套装互通
             array_push($itemIds, $spuItemId[0]);
         }
+        $itemIds[] = $itemId;
         
         //2、获取口碑数量,如果口碑小于等于0，直接返回空数组
         $koubeiNums = $this->koubeiModel->getItemKoubeiNums($itemIds);
