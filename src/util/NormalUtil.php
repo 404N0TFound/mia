@@ -235,7 +235,7 @@ class NormalUtil {
     public static function buildImgUrl($url, $type, $width=0, $height=0){
         $host = \F_Ice::$ins->workApp->config->get('busconf.subject.img_watermark_url');
         $img_format = \F_Ice::$ins->workApp->config->get('busconf.subject.img_format');
-        if($type == 'small' || $type == 'normal'){
+        if($type == 'normal'){
             $host = \F_Ice::$ins->workApp->config->get('app.url.img_url');
             if(substr($host, -1) == '/'){
                 $host = substr($host, 0, -1);
