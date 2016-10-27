@@ -199,5 +199,34 @@ class Koubei extends \DB_Query {
         $affect = $this->update($setData, $where);
         return $affect;
     }
+    
+    /**
+     * 获取当天口碑帖子的星级信息
+     */
+    public function getTodayKoubeiItemId(){
+        $date = date('Y-m-d');
+        $where[] = ['status', 2];
+        $where[] = [":literal","date(created_time) = '$date'"];
+        $groupBy = 'item_id';
+        $field = "item_id";
+        $data = $this->getRows($where,$field,false,0,false,false,$groupBy);
+        if(!empty($data)){
+            $item_ids = array_column($data, 'item_id');
+        }else{
+            $item_ids = [];
+        }
+        return $item_ids;
+    }
+    
+    //口碑
+    public function getKoubeiScoreByItemIds($itemIds){
+        $date = date('Y-m-d');
+        $where[] = ['status', 2];
+        $where[] = ['item_id',$itemIds];
+        $groupBy = 'item_id';
+        $field = "group_concat(score) as score,item_id";
+        $data = $this->getRows($where,$field,false,0,false,false,$groupBy);
+        return $data;
+    }
 
 }
