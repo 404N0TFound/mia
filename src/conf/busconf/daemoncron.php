@@ -148,8 +148,8 @@ $cron_list['koubei_feedback_rate'] = array(
     'enable' => true,
     'engine' => 'php',
     'cli_args' => "--class=koubei --action=itemfeedbackrate",
-    'start_time' => '2016-08-11 00:00:00',
-    'interval' => 604800
+    'start_time' => '2016-11-03 02:00:00',
+    'interval' => 86400
 );
 
 
