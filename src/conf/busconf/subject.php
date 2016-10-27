@@ -80,14 +80,6 @@ $album = array(
  
  $img_format = array(
      'subject' => array(
-         'small' => array(
-             "width" => 238,
-             "height" =>238,
-             'suffix' => '.jpg',
-             'file_type' => '_small',
-             'limit_width' => true,
-             'limit_height' => true,
-         ),
          'watermark' => array(
              'width' => 640,
              'height' => 640,
@@ -95,6 +87,14 @@ $album = array(
              'file_type' => '@style@watermark640',
              'limit_width' => true,
              'limit_height' => false,
+         ),
+         'small' => array(
+             'width' => 320,
+             'height' => 320,
+             'suffix' => '.jpg',
+             'file_type' => '@style@koubeilist',
+             'limit_width' => true,
+             'limit_height' => true,
          )
      ),
  );

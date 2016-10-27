@@ -132,8 +132,6 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $imageUrlArr = explode("#", $subjectInfo['image_url']);
                 if (!empty($imageUrlArr[0])) {
                     foreach ($imageUrlArr as $k => $image) {
-                        $pathInfo = pathinfo($image);
-
                         $img_info = NormalUtil::buildImgUrl($image,'watermark',640,640);
                         $imageUrl[$k]['url'] = $img_info['url'];
                         $imageUrl[$k]['height'] = $img_info['height'];
@@ -147,8 +145,6 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $imageInfos = $subjectInfo['ext_info']['image'];
                 if (is_array($imageInfos) && !empty($imageInfos)) {
                     foreach ($imageInfos as $key => $image) {
-                        $pathInfo = pathinfo($image['url']);
-                        
                         $img_info = NormalUtil::buildImgUrl($image['url'],'watermark',$image['width'],$image['height']);
                         $imageUrl[$key]['width'] = $img_info['width'];
                         $imageUrl[$key]['height'] = $img_info['height'];
@@ -439,14 +435,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         $subjectSetInfo['small_image_url'] = array();
         if (!empty($subjectInfo['image_infos'])) {
             foreach ($subjectInfo['image_infos'] as $key => $image) {
-                $pathInfo = pathinfo($image['url']);
-                $small_image_url = $pathInfo['dirname'] . "/" . $pathInfo['filename'] . "_small." . $pathInfo['extension'];
-                if (strpos($small_image_url, "app_group") !== false) {
-                    $small_image_url = "/d1/p1/" . $small_image_url; // 以app_group开头的图片其小图在远端，需要加/d1/p1
-                }
                 $subjectSetInfo['image_infos'][$key] = $image;
-                $subjectSetInfo['image_infos'][$key]['url'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $image['url'];
-                $subjectSetInfo['small_image_url'][] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $small_image_url;
+                $subjectSetInfo['image_infos'][$key]['url'] = NormalUtil::buildImgUrl($image['url'], 'watermark' , $image['width'] , $image['height'])['url'];
+                $subjectSetInfo['small_image_url'][] = NormalUtil::buildImgUrl($image['url'], 'small')['url'];
             }
         }
         
