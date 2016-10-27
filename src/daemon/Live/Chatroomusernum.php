@@ -29,7 +29,7 @@ class Chatroomusernum extends \FD_Daemon
             $cache_audience_num = $redis->get($audience_num_key);
 
             $roomInfo = $liveModel->checkLiveRoomByUserId($liveInfo['user_id']);
-            $userNum = 30000;
+            $userNum = 20000;
             $settings = json_decode($roomInfo['settings'], true);
             if (isset($settings['user_num']) && !empty($settings['user_num']) && $settings['user_num'] > $userNum) {
                 $userNum = $settings['user_num'];
