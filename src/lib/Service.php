@@ -13,7 +13,7 @@ class Service extends \FS_Service {
     }
     
     function __destruct() {
-        if (self::$logFlag === null) {
+        if (self::$logFlag === null && !empty($this->params)) {
             self::$logFlag = 1; //设置日志标记，防止一次请求记录重复日志
             $this->endTime = gettimeofday(true);
             $respTime = number_format(($this->endTime - $this->startTime), 4);

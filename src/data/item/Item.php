@@ -43,7 +43,7 @@ class Item extends \DB_Query {
      * 根据商品关联标识获取关联商品
      * @param  $relateFlags 商品关联标识
      */
-    public function getBatchItemByFlags($relateFlags, $status = array(1)){
+    public function getBatchItemByFlags($relateFlags, $status = array()){
         if (empty($relateFlags)) {
             return array();
         }
