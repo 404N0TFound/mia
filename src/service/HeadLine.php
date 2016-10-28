@@ -134,7 +134,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 获取头条栏目
      */
-    public function getHeadLineChannels($channelIds, $status = array(1)) {
+    public function getHeadLineChannels($channelIds = array(), $status = array(1)) {
         //获取所有栏目
         $channelRes = $this->headLineModel->getHeadLineChannels($channelIds, $status);
         //获取对外屏蔽的栏目

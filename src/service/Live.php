@@ -370,7 +370,7 @@ class Live extends \mia\miagroup\Lib\Service {
                     if(isset($roomData['is_show_playback']) && $roomData['is_show_playback'] === '0'){
                         $roomData['status'] = 0;//不能看回放
                     }else{
-                        if (!empty($liveInfo[$roomData['latest_live_id']])) {
+                        if (!empty($roomData['latest_live_id'])) {
                             $liveInfo = $this->getBatchLiveInfoByIds(array($roomData['latest_live_id']), array(3, 4))['data'];
                             $liveInfo = $liveInfo[$roomData['latest_live_id']];
                             // 快照

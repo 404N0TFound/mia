@@ -21,21 +21,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 发布口碑
      * @param $koubeiData array() 口碑发布信息
+     * @param $checkOrder 是否验证订单
      */
-    public function createKoubei($koubeiData){
-        //获取订单信息，验证是否可以发布口碑（order service）
-        $orderService = new OrderService();
-        $orderInfo = $orderService->getOrderInfo($koubeiData['order_code'])['data'];
-        $finishTime = strtotime($orderInfo['finish_time']) ;
-        if($orderInfo['status'] != 5  || (time()- $finishTime) > 15 * 86400 )
-        {
-            return $this->error(6102);
+    public function createKoubei($koubeiData,$checkOrder=true){
+        //判断是否需要验证订单，该判断是因为后台发布口碑时不需要订单号
+        if($checkOrder === true){
+            //获取订单信息，验证是否可以发布口碑（order service）
+            $orderService = new OrderService();
+            $orderInfo = $orderService->getOrderInfo($koubeiData['order_code'])['data'];
+            $finishTime = strtotime($orderInfo['finish_time']) ;
+            if($orderInfo['status'] != 5  || (time()- $finishTime) > 15 * 86400 )
+            {
+                return $this->error(6102);
+            }
+            //获取口碑信息，验证是否该口碑已经发布过
+            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'],$koubeiData['item_id']);
+            if(!empty($koubeiInfo)){
+                return $this->error(6103);
+            }
         }
-        //获取口碑信息，验证是否该口碑已经发布过
-        $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'],$koubeiData['item_id']);
-        if(!empty($koubeiInfo)){
-            return $this->error(6103);
-        }
+
         //保存口碑
         //组装插入口碑信息  ####start
         $koubeiSetData = array();
@@ -46,7 +51,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['item_id'] = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
         $koubeiSetData['item_size'] = $koubeiData['item_size'];
         $koubeiSetData['user_id'] = $koubeiData['user_id'];
-        $koubeiSetData['order_id'] = $orderInfo['id'];
+        $koubeiSetData['order_id'] = isset($orderInfo['id']) ? $orderInfo['id'] : 0;
         $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
@@ -175,8 +180,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         $itemIds[] = $rItem['id'];
                     }
                 }
-            }else{
-                $itemIds = array($itemId);
             }
         }elseif($itemInfo['is_spu'] == 1 && $itemInfo['spu_type'] == 1){//是单品套装的情况
             //根据套装id获取套装的商品
@@ -192,12 +195,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         $itemIds[] = $item['id'];
                     }
                 }
-            }else{
-                $itemIds = $itemIdArr;
             }
             //将套装的商品id和所有套装id拼在一起，实现单品和套装互通
             array_push($itemIds, $spuItemId[0]);
         }
+        $itemIds[] = $itemId;
         
         //2、获取口碑数量,如果口碑小于等于0，直接返回空数组
         $koubeiNums = $this->koubeiModel->getItemKoubeiNums($itemIds);
@@ -213,28 +215,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
         $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
+        //5、获取口碑信息
+        $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId);
+        $koubeiRes['koubei_info'] = $koubeiInfo;
         
         //如果综合评分和蜜粉推荐都为0，且当页无口碑，则返回空数组，如果当页有口碑，则返回口碑记录
         //（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
-        if($itemScore == 0 && $itemRecNums == 0){
-            if(empty($koubeiIds)){
-                return $this->succ($koubeiRes);
-            }
-        }else{
-            //5、获取口碑信息
-            $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId);
-            $koubeiRes['koubei_info'] = $koubeiInfo;
-        }
-        
-        //如综合评分不为0，蜜粉推荐数为0,蜜粉推荐数不展示，保留综合评分（适用情况，该商品无4&5星评分）
         if($itemScore > 0 && $itemRecNums == 0){
             $koubeiRes['total_score'] = $itemScore;//综合评分
-            return $this->succ($koubeiRes);
+        } else if ($itemScore > 0 && $itemRecNums > 0) {
+            $koubeiRes['total_score'] = $itemScore;//综合评分
+            $koubeiRes['recom_count'] = $itemRecNums;//蜜粉推荐
         }
-        //其他情况，都展示
-        $koubeiRes['total_score'] = $itemScore;//综合评分
-        $koubeiRes['recom_count'] = $itemRecNums;//蜜粉推荐
-        #############end
         
         return $this->succ($koubeiRes);
     }
