@@ -6,6 +6,7 @@ class RecommendedHeadline
     public function __construct()
     {
         $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.headline');
+        $this->sconfig = \F_Ice::$ins->workApp->config->get('thrift.address.subject');
     }
 
     /**
@@ -36,7 +37,20 @@ class RecommendedHeadline
         return $data;
     }
 
-
+    public function subjectList($keyword, $type, $start, $rows=10, $fl='id', $df='title')
+    {
+        $params = [
+            'q' => $keyword,
+            'wt' => 'json',
+            'start' => $start,
+            'rows' => $rows,
+            'fl' => $fl,
+            'df' => $df,
+        ];
+        $url = $this->sconfig['remote'];
+        $res = $this->_curlPost2($url, $params);
+        return $res;
+    }
 
     public function headlineRelate($channelId,$subjectId, $userId=0,$count=10)
     {
@@ -89,11 +103,42 @@ class RecommendedHeadline
         $result = curl_exec($ch);
         $result = json_decode($result, true);
         curl_close($ch);
-        
+
         if ($result['ret'] != 0) {
             return false;
         } else {
             return $result['data'];
+        }
+    }
+
+    private function _curlPost2($url,$params,$headers=[])
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+
+        if($headers){
+            curl_setopt($ch, CURLOPT_HEADER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER , $headers);
+        }
+        else {
+            curl_setopt($ch, CURLOPT_HEADER, false);
+        }
+        curl_setopt($ch, CURLOPT_NOBODY, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_SSLVERSION, 1);
+
+        $result = curl_exec($ch);
+        $result = json_decode($result, true);
+        curl_close($ch);
+
+        if ($result['response']['numFound'] == 0) {
+            return false;
+        } else {
+            return $result['response'];
         }
     }
 }
