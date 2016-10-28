@@ -47,8 +47,9 @@ class RecommendedHeadline
             'fl' => $fl,
             'df' => $df,
         ];
-        $url = $this->sconfig['remote'];
-        $res = $this->_curlPost2($url, $params);
+        $ext_paramer = http_build_query($params);
+        $url = $this->sconfig['remote']."?".$ext_paramer;
+        $res = $this->_curlPost2($url);
         return $res;
     }
 
@@ -111,7 +112,7 @@ class RecommendedHeadline
         }
     }
 
-    private function _curlPost2($url,$params,$headers=[])
+    private function _curlPost2($url,$headers=[])
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -125,8 +126,7 @@ class RecommendedHeadline
         }
         curl_setopt($ch, CURLOPT_NOBODY, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
         curl_setopt($ch, CURLOPT_SSLVERSION, 1);
