@@ -150,20 +150,22 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 获取头条栏目
      */
-    public function getHeadLineChannels($channelIds = array(), $status = array(1)) {
+    public function getHeadLineChannels($channelIds = array(), $status = array(1),$is_all = 0) {
         //获取所有栏目
         $channelRes = $this->headLineModel->getHeadLineChannels($channelIds, $status);
         //获取对外屏蔽的栏目
-        $shieldIds = array();
-        foreach ($this->headlineConfig['lockedChannel'] as $config) {
-            if (isset($config['shield']) && $config['shield'] == 1) {
-                $shieldIds[] = $config['id'];
+        if ($is_all == 0) {
+            $shieldIds = array();
+            foreach ($this->headlineConfig['lockedChannel'] as $config) {
+                if (isset($config['shield']) && $config['shield'] == 1) {
+                    $shieldIds[] = $config['id'];
+                }
             }
-        }
-        //配置里的id对应的是数据库id
-        foreach ($channelRes as $key => $channel) {
-            if (in_array($channel['id'], $shieldIds)) {
-                unset($channelRes[$key]);
+            //配置里的id对应的是数据库id
+            foreach ($channelRes as $key => $channel) {
+                if (in_array($channel['id'], $shieldIds)) {
+                    unset($channelRes[$key]);
+                }
             }
         }
         return $this->succ(array('channel_list' => array_values($channelRes)));
