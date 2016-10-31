@@ -12,11 +12,11 @@ $lockedChannel = array(
         'id' => 2,
         'title' => '订阅',
     ),
-    'homepage' => array(
-        'id' => 3,
-        'title' => '首页轮播',
-        'shield' => 1
-    ),
+//    'homepage' => array(
+//        'id' => 3,
+//        'title' => '首页轮播',
+//        'shield' => 1
+//    ),
 );
 
 /**
