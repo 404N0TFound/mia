@@ -23,7 +23,14 @@ class Thrift {
             $data = json_decode($data,true);
             return $data;
         } catch (\Exception $e) {
-            return false;
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+             ),\F_ECode::PHP_ERROR);
         }
     }
   
