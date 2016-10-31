@@ -15,5 +15,9 @@ $address = array(
     'headline' => [
         'remote' => 'http://alpha_stage.recommend.mia.com/api/',
     ],
+
+    'subject' => [
+        'remote' => 'http://172.16.96.75:8983/solr/toutiao/select',
+    ],
 );
     

@@ -22,6 +22,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     public $praiseService = null;
     public $albumService = null;
 	public $tagsService = null;
+    private $headlineRemote;
 
     public function __construct() {
         parent::__construct();
@@ -31,6 +32,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         $this->praiseService = new PraiseService();
         $this->albumService = new AlbumService();
 		$this->tagsService = new PointTagsService();
+        $this->headlineRemote = new HeadlineRemote();
     }
 
     /**
@@ -906,6 +908,42 @@ class Subject extends \mia\miagroup\Lib\Service {
         $this->subjectModel->updateVideoBySubject($setInfo, $where);
         unset($where);
         unset($setInfo);
+    }
+
+    /**
+     * 修改帖子内容
+     */
+    public function editSubject($subjectId, $editData)
+    {
+        if (empty($subjectId) || empty($editData) || !is_array($editData)) {
+            return $this->error(500);
+        }
+        $setData = array();
+        if (isset($editData['title'])) {
+            $setData[] = ['title', $editData['title']];
+        }
+        if (isset($editData['album_title'])) {
+            $setData[] = ['album_title', $editData['album_title']];
+        }
+        $editRes = $this->subjectModel->updateSubject($setData, $subjectId);
+        if (!$editRes) {
+            return $this->error(20001);
+        }
+        return $this->succ($editRes);
+    }
+
+    /**
+     * 帖子搜索
+     */
+    public function getSearchInfos($keyword, $type, $page = 1)
+    {
+        if (empty($keyword) || empty($type)) {
+            return $this->error(500);
+        }
+        $start = ($page -1)*10;
+        $rows = 10;
+        $subjectData = $this->headlineRemote->subjectList($keyword, $type, $start, $rows);
+        return $this->succ($subjectData);
     }
 }
 
