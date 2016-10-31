@@ -922,6 +922,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (isset($editData['title'])) {
             $setData[] = ['title', $editData['title']];
         }
+        if (isset($editData['album_title'])) {
+            $setData[] = ['album_title', $editData['album_title']];
+        }
         $editRes = $this->subjectModel->updateSubject($setData, $subjectId);
         if (!$editRes) {
             return $this->error(20001);
