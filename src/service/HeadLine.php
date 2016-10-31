@@ -150,11 +150,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 获取头条栏目
      */
-    public function getHeadLineChannels($channelIds = array(), $status = array(1),$is_all = 0) {
+    public function getHeadLineChannels($channelIds = array(), $status = array(1), $isAll = 0) {
         //获取所有栏目
         $channelRes = $this->headLineModel->getHeadLineChannels($channelIds, $status);
         //获取对外屏蔽的栏目
-        if ($is_all == 0) {
+        if ($isAll == 0) {
             $shieldIds = array();
             foreach ($this->headlineConfig['lockedChannel'] as $config) {
                 if (isset($config['shield']) && $config['shield'] == 1) {
@@ -165,6 +165,11 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             foreach ($channelRes as $key => $channel) {
                 if (in_array($channel['id'], $shieldIds)) {
                     unset($channelRes[$key]);
+                }
+                if (isset($this->headlineConfig['channelStyle'][$channel['id']])) {
+                    $channelRes[$key]['channel_style'] = $this->headlineConfig['channelStyle'][$channel['id']];
+                } else {
+                    $channelRes[$key]['channel_style'] = $this->headlineConfig['channelStyle']['default'];
                 }
             }
         }
