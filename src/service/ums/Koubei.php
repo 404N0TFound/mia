@@ -72,7 +72,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $subjectIds[] = $v['subject_id'];
         }
         $subjectService = new SubjectService();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item'), array())['data'];
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album'), array())['data'];
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $subjectInfos[$v['subject_id']];
@@ -135,7 +135,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $subjectIds[] = $v['subject_id'];
         }
         $subjectService = new SubjectService();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item'), array())['data'];
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album'), array())['data'];
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $subjectInfos[$v['subject_id']];
