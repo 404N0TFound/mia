@@ -37,8 +37,17 @@ class RecommendedHeadline
         return $data;
     }
 
-    public function subjectList($keyword, $type, $start, $rows=10, $fl='id', $df='title')
+    public function subjectList($keyword, $type, $start, $rows = 10, $fl = 'id')
     {
+        if ($type == 1) {
+            //视频
+            $df = 'video';
+        } elseif ($type == 2) {
+            //专栏
+            $df = 'text';
+        } else {
+            $df = '';
+        }
         $params = [
             'q' => $keyword,
             'wt' => 'json',
@@ -48,7 +57,7 @@ class RecommendedHeadline
             'df' => $df,
         ];
         $ext_paramer = http_build_query($params);
-        $url = $this->sconfig['remote']."?".$ext_paramer;
+        $url = $this->sconfig['remote'] . "?" . $ext_paramer;
         $res = $this->_curlPost2($url);
         return $res;
     }
