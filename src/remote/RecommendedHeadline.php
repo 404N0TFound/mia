@@ -87,6 +87,18 @@ class RecommendedHeadline
         curl_setopt($ch, CURLOPT_SSLVERSION, 1);
 
         $result = curl_exec($ch);
+        $error_no = curl_errno($ch);
+        $error_str = curl_error($ch);
+        $getInfo = curl_getinfo($ch);
+        $total_time = $getInfo['total_time'];
+        if($result === FALSE){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'headline',
+                'message'   => $error_str,
+                'code'      => $error_no,
+            ));
+        }
+        
         $result = json_decode($result, true);
         curl_close($ch);
         

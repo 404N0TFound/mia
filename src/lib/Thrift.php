@@ -46,7 +46,7 @@ class Thrift {
                 'file'      => $e->getFile(),
                 'line'      => $e->getLine(),
                 'trace'     => $e->getTraceAsString(),
-             ),\F_ECode::PHP_ERROR);
+             ));
         }
     }
   
