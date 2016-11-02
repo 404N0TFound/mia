@@ -89,15 +89,16 @@ class RecommendedHeadline
         $result = curl_exec($ch);
         $error_no = curl_errno($ch);
         $error_str = curl_error($ch);
-        $getInfo = curl_getinfo($ch);
-        $total_time = $getInfo['total_time'];
-        if($result === FALSE){
-            \F_Ice::$ins->mainApp->logger_remote->warn(array(
-                'third_server'  =>  'headline',
-                'message'   => $error_str,
-                'code'      => $error_no,
-            ));
-        }
+        $getCurlInfo = curl_getinfo($ch);
+        //记录日志
+        \F_Ice::$ins->mainApp->logger_remote->info(array(
+            'third_server'  =>  'headline',
+            'request_param' =>  $params,
+            'response_code' =>  $error_no,
+            'response_data' =>  $result,
+            'response_msg'  =>  $error_str,
+            'resp_time'     =>  $getCurlInfo['total_time'],
+        ));
         
         $result = json_decode($result, true);
         curl_close($ch);

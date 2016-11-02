@@ -29,21 +29,47 @@ class Coupon
         $param = [
             'batchCodes' => $batchCodes,
         ];
+        
+        try{
+            $request_startTime = gettimeofday(true);
+            $couponParam = new \miasrv\coupon\api\TParamsRemainCoupon($param);
+            $res = $this->apiClient->remainCoupon($couponParam, $this->commonParams);
+            $request_endTime = gettimeofday(true);
 
-        $couponParam = new \miasrv\coupon\api\TParamsRemainCoupon($param);
-        $res = $this->apiClient->remainCoupon($couponParam, $this->commonParams);
-        if (isset($res->code) && $res->code == 0) {
-            $result = array();
-            foreach ($res->remains as $k => $v) {
-                $result[$v->batchCode] = [
-                    'type'   => $v->type,
-                    'total'  => $v->total,
-                    'remain' => $v->remain,
-                ];
+            if (isset($res->code) && $res->code == 0) {
+                $result = array();
+                foreach ($res->remains as $k => $v) {
+                    $result[$v->batchCode] = [
+                        'type'   => $v->type,
+                        'total'  => $v->total,
+                        'remain' => $v->remain,
+                    ];
+                }
+                
+                //记录日志
+                \F_Ice::$ins->mainApp->logger_remote->info(array(
+                    'third_server'  =>  'coupon',
+                    'request_param' =>  $param,
+                    'response_code' =>  $res->code,
+                    'response_data' =>  $result,
+                    'response_msg'  =>  '',
+                    'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
+                ));
+                
+                return $result;
+            } else {
+                return null;
             }
-            return $result;
-        } else {
-            return null;
+        }catch (\Exception $e){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'coupon',
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ));
         }
     }
 
