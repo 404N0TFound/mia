@@ -13,6 +13,7 @@ class Koubei extends \DB_Query {
     protected $tableKoubeiSubjects = 'koubei_subjects';
     protected $tableKoubeiItem = 'koubei_subject_item';
     protected $indexKoubeiSubjects = array('subject_id', 'item_id', 'user_id', 'is_audited', 'create_time');
+    
     /**
      * 查询口碑表数据
      */
