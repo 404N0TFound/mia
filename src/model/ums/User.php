@@ -13,6 +13,7 @@ class User extends \DB_Query {
      * 根据username查询uid
      */
     public function getUidByUserName($userName) {
+        $this->tableName = $this->tableUsers;
         if (empty($userName)) {
             return false;
         }
@@ -35,6 +36,7 @@ class User extends \DB_Query {
      * 根据nickname查询uid
      */
     public function getUidByNickName($nickName) {
+        $this->tableName = $this->tableUsers;
         if (empty($nickName)) {
             return false;
         }
