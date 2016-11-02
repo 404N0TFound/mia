@@ -70,29 +70,24 @@ class Item extends \DB_Query {
     }
     
     /**
-     * 查找所有一级类目
+     * 查找商品类目
      */
-    public function getAllHeadCategory() {
+    public function getItemCategory($parentId = null, $isLeaf = null) {
         $this->tableName = $this->tableItemCategory;
-        $where[] = array('parent_id', 0);
-        $where[] = array('is_leaf', 0);
-        
-        $data = $this->getRows($where);
-        return $data;
-    }
-    
-    /**
-     * 查找一级类目对应的二级类目
-     */
-    public function getLeafCategoryByParentId($parentId) {
-        $this->tableName = $this->tableItemCategory;
-        if (empty($parentId)) {
-            return false;
+        $where[] = array('status', 1);
+        if ($parentId !== null) {
+            $where[] = array('parent_id', $parentId);
         }
-        $where[] = array('parent_id', $parentId);
-        $where[] = array('is_leaf', 1);
-        
+        if ($parentId !== null) {
+            $where[] = array('is_leaf', $isLeaf);
+        }
         $data = $this->getRows($where);
-        return $data;
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[$v['id']] = $v;
+            }
+        }
+        return $result;
     }
 }
