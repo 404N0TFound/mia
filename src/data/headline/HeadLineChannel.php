@@ -58,7 +58,7 @@ class HeadLineChannel extends \DB_Query {
         }
         $where[] = ['status', $status];
         $orderBy = 'sort asc';
-        $data = $this->getRows($where, '*', 0, 0, $orderBy);
+        $data = $this->getRows($where, 'id,channel_name', 0, 0, $orderBy);
         if (!empty($data)) {
             foreach ($data as $v) {
                 $result[$v['id']] = $v;

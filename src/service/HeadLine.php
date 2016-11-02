@@ -165,6 +165,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             foreach ($channelRes as $key => $channel) {
                 if (in_array($channel['id'], $shieldIds)) {
                     unset($channelRes[$key]);
+                    continue;
                 }
                 if (isset($this->headlineConfig['channelStyle'][$channel['id']])) {
                     $channelRes[$key]['channel_style'] = $this->headlineConfig['channelStyle'][$channel['id']];
