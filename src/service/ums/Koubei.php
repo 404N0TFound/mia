@@ -3,16 +3,19 @@ namespace mia\miagroup\Service\Ums;
 
 use mia\miagroup\Model\Ums\Koubei as KoubeiModel;
 use mia\miagroup\Model\Ums\User as UserModel;
+use mia\miagroup\Model\Ums\Item as ItemModel;
 use mia\miagroup\Service\Subject as SubjectService;
 
 class Koubei extends \mia\miagroup\Lib\Service {
     
-    public $koubeiModel;
-    public $userModel;
+    private $koubeiModel;
+    private $userModel;
+    private $itemModel;
     
     public function __construct() {
         $this->koubeiModel = new KoubeiModel();
         $this->userModel = new UserModel();
+        $this->itemModel = new ItemModel();
     }
     
     /**
@@ -50,15 +53,33 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //是否是精品
             $condition['rank'] = $params['rank'];
         }
-        
         if ($params['score'] !== null && $params['score'] !== '' && in_array($params['score'], array(0, 1, 2, 3, 4, 5)) && intval($condition['id']) <= 0) {
             //用户评分
             $condition['score'] = $params['score'];
+        }
+        if ($params['score'] == '机选差评' && intval($condition['id']) <= 0) {
+            //机器评分
+            $condition['machine_score'] = 1;
         }
         if (intval($params['item_id']) > 0 && intval($condition['id']) <= 0) {
             //商品ID
             $condition['item_id'] = $params['item_id'];
             $orderBy = 'rank_score desc'; //按分数排序，与app保持一致
+        }
+        if (!empty($params['brand_name']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+            //品牌ID
+            $brandId = intval($this->itemModel->getBrandIdByName($params['brand_name']));
+            $itemIds = $this->itemModel->getAllItemByBrandId($brandId);
+            if (!empty($itemIds)) {
+                $condition['id'] = $itemIds;
+            }
+        }
+        if (intval($params['category_id']) > 0 && empty($params['brand_name']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+            //类目ID
+            $itemIds = $this->itemModel->getAllItemByCategoryId($params['category_id']);
+            if (!empty($itemIds)) {
+                $condition['id'] = $itemIds;
+            }
         }
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
@@ -149,5 +170,4 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $result['count'] = $data['count'];
         return $this->succ($result);
     }
-    
 }
