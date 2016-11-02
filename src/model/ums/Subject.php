@@ -8,7 +8,7 @@ class Subject extends \DB_Query {
     protected $dbResource = 'miagroupums';
     //帖子
     protected $tableSubject = 'group_subjects';
-    protected $indexSubject = array('id', 'user_id', 'created');
+    protected $indexSubject = array('id', 'user_id', 'created','status');
 
     /**
      * 查询口碑表数据

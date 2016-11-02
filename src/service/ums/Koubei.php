@@ -50,6 +50,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //是否是精品
             $condition['rank'] = $params['rank'];
         }
+        
+        if ($params['score'] !== null && $params['score'] !== '' && in_array($params['score'], array(0, 1, 2, 3, 4, 5)) && intval($condition['id']) <= 0) {
+            //用户评分
+            $condition['score'] = $params['score'];
+        }
         if (intval($params['item_id']) > 0 && intval($condition['id']) <= 0) {
             //商品ID
             $condition['item_id'] = $params['item_id'];

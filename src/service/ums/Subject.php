@@ -43,7 +43,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //用户昵称
             $condition['user_id'] = $koubeiCondtion['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
         }
-        if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, 2)) && intval($condition['id']) <= 0) {
+        if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1)) && intval($condition['id']) <= 0) {
             //帖子状态
             $condition['status'] = $params['status'];
         }
@@ -71,13 +71,11 @@ class Subject extends \mia\miagroup\Lib\Service {
             //结束时间
             $condition['end_time'] = $koubeiCondtion['end_time'] = $params['end_time'];
         }
-        
         if (isset($koubeiCondtion['is_audited']) || isset($koubeiCondtion['item_id'])) {
             $data = $this->koubeiModel->getSubjectData($condition, $offset, $limit, $orderBy);
         } else {
             $data = $this->subjectModel->getSubjectData($condition, $offset, $limit, $orderBy);
         }
-        
         if (empty($data['list'])) {
             return $this->succ($result);
         }
