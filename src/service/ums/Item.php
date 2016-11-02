@@ -12,18 +12,33 @@ class Item extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 获取商品的全部一级类目
+     * 获取商品的一级类目和二级类目
      */
-    public function getAllHeadCategory() {
-        $result = $this->itemModel->getAllHeadCategory();
-        return $this->succ($result);
-    }
-    
-    /**
-     * 获取商品一级类目下的所有二级类目
-    */
-    public function getLeafCategoryByParentId($parentId) {
-        $result = $this->itemModel->getLeafCategoryByParentId($parentId);
-        return $this->succ($result);
+    public function getItemCategory() {
+        //所有一级类目
+        $headCategory = $this->itemModel->getItemCategory(0, 0);
+        //所有二级类目
+        $leafCategory = $this->itemModel->getItemCategory(null, 1);
+        
+        $result = array();
+        foreach ($leafCategory as $category) {
+            if (intval($category['parent_id']) <= 0) {
+                continue;
+            }
+            if (!isset($result[$category['parent_id']]) && !empty($headCategory[$category['parent_id']])) {
+                $result[$category['parent_id']] = array(
+                    'id' => $headCategory[$category['parent_id']]['id'], 
+                    'category_name' => $headCategory[$category['parent_id']]['name'],
+                    'sub_categorys' => array()
+                );
+            }
+            if (!empty($result[$category['parent_id']])) {
+                $result[$category['parent_id']]['sub_categorys'][] = array(
+                    'id' => $category['id'],
+                    'category_name' => $category['name'],
+                );
+            }
+        }
+        return $this->succ(array_values($result));
     }
 }
