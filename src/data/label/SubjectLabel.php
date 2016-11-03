@@ -128,4 +128,17 @@ class SubjectLabel extends \DB_Query {
         $data = $this->update($setDataNew, $where);
         return $data;
     }
+    
+    /**
+     * @todo 删除标签
+     * @param label_id, subject_id
+     * @return 返回影响的行数
+     **/
+    public function removeLabelByLabelId($label_id)
+    {
+        $where[] = ['id',$label_id];
+        $affect = $this->delete($where);
+        return $affect;
+    }
+    
 }
