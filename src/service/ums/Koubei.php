@@ -323,5 +323,5 @@ class Koubei extends \mia\miagroup\Lib\Service {
     
         return $immutable_score;
     }
-    
+
 }
