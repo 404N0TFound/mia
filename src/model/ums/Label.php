@@ -20,4 +20,32 @@ class Label extends \DB_Query{
             'rec' => $recInfo,
         );
     }
+    
+    /**
+     * 保存蜜芽圈标签
+     *
+     * @param array $labelInfo
+     *            标签信息
+     * @return int 标签id
+     */
+    public function addLabel($labelTitle,$userId) {
+        $labelTitleMd5 = md5($labelTitle);
+        $setData = ['title' => $labelTitle, 'title_md5' => $labelTitleMd5,'user_id'=>$userId];
+        $LabelId = $this->insert($setData);
+    
+        return $LabelId;
+    }
+    
+    /**
+     * @todo 删除标签
+     * @param label_id, subject_id
+     * @return 返回影响的行数
+     **/
+    public function removeLabelByLabelId($label_id)
+    {
+        $where[] = ['id',$label_id];
+        $affect = $this->delete($where);
+        return $affect;
+    }
+    
 }
