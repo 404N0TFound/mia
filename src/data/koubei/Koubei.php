@@ -138,7 +138,7 @@ class Koubei extends \DB_Query {
      * 更新口碑信息
      */
     public function updateKoubeiInfoById($koubeiId, $koubeiInfo) {
-        if (intval($koubeiId) <= 0) {
+        if (empty($koubeiId) || empty($koubeiInfo)) {
             return false;
         }
         $where[] = ['id', $koubeiId];
@@ -227,6 +227,19 @@ class Koubei extends \DB_Query {
         $field = "group_concat(score) as score,item_id";
         $data = $this->getRows($where,$field,false,0,false,false,$groupBy);
         return $data;
+    }
+    
+    /**
+     * 更新口碑分数
+     */
+    public function updateKoubeiCount($koubeiIds, $num, $countType) {
+        if (empty($koubeiIds)) {
+            return false;
+        }
+    
+        $sql = "update $this->tableName set $countType = $countType+$num where id in ($koubeiIds)";
+        $result = $this->query($sql);
+        return $result;
     }
 
 }
