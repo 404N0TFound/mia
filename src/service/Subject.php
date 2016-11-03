@@ -980,5 +980,44 @@ class Subject extends \mia\miagroup\Lib\Service {
         $subjectData = $this->headlineRemote->subjectList($keyword, $type, $start, $rows);
         return $this->succ($subjectData);
     }
+    
+
+    /**
+     * UMS
+     * 批量设置帖子置顶
+     * @param unknown $subjectIds
+     */
+    public function setSubjectTopStatus($subjectIds,$status=1){
+        $affect = $this->subjectModel->setSubjectTopStatus($subjectIds,$status);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 批量屏蔽帖子
+     */
+    public function shieldSubject($subjectIds,$shieldText){
+        $affect = $this->subjectModel->deleteSubjects($subjectIds, -1, $shieldText);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 批量解除屏蔽
+     */
+    public function relieveShieldSubject($subjectIds){
+        $affect = $this->subjectModel->deleteSubjects($subjectIds,1,'');
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 加入推荐池
+     */
+    public function addRecommentPool($subjectIds,$dateTime){
+        $inser_id = $this->subjectModel->addRecommentPool($subjectIds, $dateTime);
+        return $this->succ($inser_id);
+    }
+    
 }
 
