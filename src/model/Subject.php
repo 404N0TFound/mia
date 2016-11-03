@@ -301,5 +301,22 @@ class Subject {
         $result = $koubeiItemData->saveKoubeiSubjectItem($subjectItemData);
         return $result;
     }
+    
+    /**
+     * 帖子置顶
+     */
+    public function setSubjectTopStatus($subjectIds,$status=1){
+        $affect = $this->subjectData->setSubjectTopStatus($subjectIds,$status);
+        return $affect;
+    }
+    
+    /**
+     * 加入推荐池
+     */
+    public function addRecommentPool($subjectIds,$dateTime){
+        $recommendData = new GroupSubjectRecommendPool();
+        $insert_id = $recommendData->addRecommentPool($subjectIds, $dateTime);
+        return $insert_id;
+    }
 
 }
