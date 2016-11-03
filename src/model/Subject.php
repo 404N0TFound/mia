@@ -5,6 +5,8 @@ use \mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\GroupSubjectRecommendPool;
 use mia\miagroup\Lib\Redis;
+use \mia\miagroup\Data\Subject\KoubeiSubject as KoubeiSubjectData;
+use \mia\miagroup\Data\Subject\KoubeiSubjectItem as KoubeiSubjectItemData;
 
 class Subject {
 
@@ -279,5 +281,25 @@ class Subject {
          $data = $this->subjectData->updateSubjectComment($commentNumArr);
          return $data;
      }
+     
+     /**
+      * 新增口碑贴信息
+      * @param array $koubeiData
+      */
+     public function addKoubeiSubject($koubeiData){
+         $koubeiSubjectData = new KoubeiSubjectData();
+         $result = $koubeiSubjectData->saveKoubeiSubject($koubeiData);
+         return $result;
+     }
+     
+    /**
+     * 新增口碑贴关联商品信息
+     * @param array $subjectItemData
+     */
+    public function addKoubeiSubjectItem($subjectItemData){
+        $koubeiItemData = new KoubeiSubjectItemData();
+        $result = $koubeiItemData->saveKoubeiSubjectItem($subjectItemData);
+        return $result;
+    }
 
 }

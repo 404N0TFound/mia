@@ -50,6 +50,32 @@ class Subject extends \DB_Query {
     }
     
     /**
+     * 将口碑id回写到帖子表中的扩展数据中
+     */
+    public function addKoubeiIdToSubject($koubeiInfo,$subjectId){
+        $this->tableName = $this->tableSubject;
+        $setData = array();
+        $where = array();
+        $where[] = ['id', $subjectId];
+        $extInfo = array('koubei'=>array(),'image'=>array());
+        if(!empty($koubeiInfo['image'])){
+            foreach($koubeiInfo['image'] as $image){
+                $url = parse_url($image['url']);
+                $extInfo['image']['url'] = ltrim($url['path'],'/');
+                $extInfo['image']['width'] = $image['width'];
+                $extInfo['image']['height'] = $image['height'];
+            }
+        }
+        $extInfo['koubei']['id'] = $koubeiInfo['id'];
+        
+        $extInfo = json_encode($extInfo);
+        $setData[] = ['ext_info',$extInfo];
+        
+        $result = $this->update($setData,$where);
+        return $result;
+    }
+    
+    /*
      * 帖子置顶
      */
     public function setSubjectTopStatus($subjectIds,$status=1){
@@ -80,6 +106,4 @@ class Subject extends \DB_Query {
         $affect = $this->update($setData,$where);
         return $affect;
     }
-    
-    
 }
