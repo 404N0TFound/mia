@@ -26,8 +26,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $condition = array();
         //初始化入参
         $orderBy = 'id desc'; //默认排序
-        $limit = (intval($params['limit'] > 0) && intval($params['limit'] < 100)) ? $params['limit'] : 50;
-        $offset = intval($params['page'] > 1) ? (($params['page'] - 1) * limit) : 0;
+        $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 50;
+        $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
         
         if (intval($params['id']) > 0) {
             //口碑ID
