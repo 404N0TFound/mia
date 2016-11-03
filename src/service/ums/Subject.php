@@ -72,7 +72,8 @@ class Subject extends \mia\miagroup\Lib\Service {
             $condition['end_time'] = $koubeiCondtion['end_time'] = $params['end_time'];
         }
         if (isset($koubeiCondtion['is_audited']) || isset($koubeiCondtion['item_id'])) {
-            $data = $this->koubeiModel->getSubjectData($condition, $offset, $limit, $orderBy);
+            $orderBy = 'koubei_subjects.id desc';
+            $data = $this->koubeiModel->getSubjectData($koubeiCondtion, $offset, $limit, $orderBy);
         } else {
             $data = $this->subjectModel->getSubjectData($condition, $offset, $limit, $orderBy);
         }

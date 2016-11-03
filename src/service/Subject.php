@@ -473,11 +473,21 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectSetInfo['group_labels'] = $labelArr;
         }
 
-		//插入标记
+        //发布帖子同时，保存一份未同步到口碑的相关帖子信息，用于后台同步到口碑贴用
+        $koubeiSubject = array();
+        $koubeiSubject['subject_id'] = $subjectId;
+        $koubeiSubject['user_id'] = $subjectSetInfo['user_id'];
+        $koubeiSubject['is_audited'] = 0;
+        $koubeiSubject['create_time'] = $subjectSetInfo['created'];
+        $this->subjectModel->addKoubeiSubject($koubeiSubject);
+        
+        //插入标记
         if(!empty($pointInfo[0])){
             foreach ($pointInfo as $itemPoint) {
                 //插入帖子标记信息
                 $this->tagsService->saveSubjectTags($subjectId,$itemPoint);
+                $subjectItem = array('subject_id'=>$subjectId,'item_id'=>$itemPoint['item_id']);
+                $this->subjectModel->addKoubeiSubjectItem($subjectItem);
             }
         }
         
