@@ -169,4 +169,24 @@ class Koubei {
         $result = $this->koubeiData->deleteKoubeis($koubeiIds);
         return $result;
     }
+    
+    /**
+     * 加精口碑
+     */
+    public function setKoubeiRank($koubeiIds, $koubeiInfo){
+        $koubeiSetInfo = array();
+        $koubeiSetInfo[] = ['rank',$koubeiInfo['rank']];
+        $result = $this->koubeiData->updateKoubeiInfoById($koubeiIds, $koubeiSetInfo);
+        //修改口碑的相关分数
+        if($koubeiInfo['rank'] == 1){
+            $num = 3;
+        }else{
+            $num = -3;
+        }
+        $koubeiIds = implode(',', $koubeiIds);
+        
+        $this->koubeiData->updateKoubeiCount($koubeiIds, $num, 'rank_score');
+        $this->koubeiData->updateKoubeiCount($koubeiIds, $num, 'immutable_score');
+        return $result;
+    }
 }
