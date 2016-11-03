@@ -70,10 +70,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_unique(array_merge($headlineIds, $headLineData));
         }
-        //获取运营数据
-        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
-        //推荐数据、运营数据去重
-        $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));
+        if ($action != 'refresh') {
+            //获取运营数据
+            $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
+            //推荐数据、运营数据去重
+            $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));
+        }
         //获取格式化的头条输出数据
         if ($channelId == $this->headlineConfig['lockedChannel']['homepage']['id']) {
             //首页轮播只显示基本信息

@@ -90,6 +90,9 @@ class Subject extends \DB_Query {
      * @return int
      */
     public function updateSubject($setData, $subjectId) {
+        if (empty($setData)) {
+            return false;
+        }
         $where[] = ['id', $subjectId];
         $data = $this->update($setData, $where);
         return $data;

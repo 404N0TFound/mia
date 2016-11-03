@@ -3,6 +3,8 @@ namespace mia\miagroup\Model;
 use \F_Ice;
 use mia\miagroup\Data\Koubei\Koubei as KoubeiData;
 use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
+use \mia\miagroup\Data\Koubei\KoubeiSubject as KoubeiSubjectData;
+
 class Koubei {
     
     public $koubeiData;
@@ -187,6 +189,36 @@ class Koubei {
         
         $this->koubeiData->updateKoubeiCount($koubeiIds, $num, 'rank_score');
         $this->koubeiData->updateKoubeiCount($koubeiIds, $num, 'immutable_score');
+        return $result;
+    }
+    
+    /**
+     * 新增口碑贴信息
+     */
+    public function addKoubeiSubject($data){
+        $koubeiSubjectData = new KoubeiSubjectData();
+        $result = $koubeiSubjectData->saveKoubeiSubject($data);
+        return $result;
+    }
+    
+    /**
+     * 口碑蜜芽贴中的通过状态
+     */
+    public function updateKoubeiSubjectStatus($subjectId, $isAudited){
+        if (!in_array($isAudited, array(0, 1))) {
+            return false;
+        }
+        $koubeiSubjectData = new KoubeiSubjectData();
+        $result = $koubeiSubjectData->updateKoubeiSubject(array('is_audited' => $isAudited), $subjectId);
+        return $result;
+    }
+    
+    /**
+     * 根据蜜芽贴id查询口碑
+     */
+    public function getKoubeiBySubjectId($subjectId){
+        $koubeiData = new KoubeiData();
+        $result = $koubeiData->getKoubeiBySubjectId($subjectId);
         return $result;
     }
 }

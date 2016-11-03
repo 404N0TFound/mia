@@ -94,33 +94,6 @@ class Koubei extends \DB_Query {
     }
     
     /**
-     * 根据蜜芽贴id查询口碑
-     * @param int $subjectId
-     * @param int $itemId
-     */
-    public function getKoubeiBySubjectId($subjectId,$itemId){
-        $this->tableName = $this->tableKoubei;
-        $where = array();
-        $where[] = ['subject_id',$subjectId];
-        $where[] = ['item_id',$itemId];
-        $where[] = ['status',2];
-        $result = $this->getRows($where);
-        return $result;
-    }
-    
-    /**
-     * 根据蜜芽贴id查询口碑蜜芽贴
-     * @param int $subjectId
-     */
-    public function getKoubeiSubjectBySubjectId($subjectId){
-        $this->tableName = $this->tableKoubeiSubjects;
-        $where = array();
-        $where[] = ['subject_id',$subjectId];
-        $result = $this->getRows($where);
-        return $result;
-    }
-    
-    /**
      * 口碑蜜芽贴中的通过状态
      */
     public function updateKoubeiSubject($subjectData,$id) {
