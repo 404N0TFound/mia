@@ -12,11 +12,20 @@ $lockedChannel = array(
         'id' => 2,
         'title' => '订阅',
     ),
-//    'homepage' => array(
-//        'id' => 3,
-//        'title' => '首页轮播',
-//        'shield' => 1
-//    ),
+    'homepage' => array(
+        'id' => 3,
+        'title' => '首页轮播',
+        'shield' => 1
+    ),
+);
+
+/**
+ * 特殊栏目样式
+ */
+$channelStyle = array(
+    'default' => 'common', //通用样式
+    '2' => 'follow', //订阅页样式
+    '19' => 'video' //视频页样式
 );
 
 /**

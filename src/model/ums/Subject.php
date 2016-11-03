@@ -74,4 +74,36 @@ class Subject extends \DB_Query {
         $result = $this->update($setData,$where);
         return $result;
     }
+    
+    /*
+     * 帖子置顶
+     */
+    public function setSubjectTopStatus($subjectIds,$status=1){
+        $setData[] = ['is_top',$status];
+        $setData[] = ['top_time','now()'];
+        $where[] = ['id',$subjectIds];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 批量屏蔽帖子
+     */
+    public function shieldSubject($subjectIds,$shieldReason){
+        $setData[] = ['shield_text',$shieldReason];
+        $setData[] = ['status',-1];
+        $where[]   = ['id',$subjectIds];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 批量解除帖子
+     */
+    public function relieveShieldSubject($subjectIds,$status=1){
+        $setData[] = ['status',$status];
+        $where[]   = ['id',$subjectIds];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
 }

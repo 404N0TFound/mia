@@ -94,4 +94,40 @@ class Subject extends \mia\miagroup\Lib\Service {
         $result['count'] = $data['count'];
         return $this->succ($result);
     }
+    
+    /**
+     * 批量设置帖子置顶
+     * @param unknown $subjectIds
+     */
+    public function setSubjectTopStatus($subjectIds,$status=1){
+        $affect = $this->subjectModel->setSubjectTopStatus($subjectIds,$status);
+        return $this->succ($affect);
+    }
+
+    /**
+     * 批量屏蔽帖子
+     */
+    public function shieldSubject($subjectIds,$shieldReason){
+        $affect = $this->subjectModel->shieldSubject($subjectIds, $shieldReason);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * 批量解除屏蔽
+     */
+    public function relieveShieldSubject($subjectIds,$status=1){
+        $affect = $this->subjectModel->relieveShieldSubject($subjectIds,$status);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * 加入推荐池
+     */
+    public function addRecommentPool($subjectIds,$dateTime){
+        $recommendPool = new \mia\miagroup\Model\Ums\RecommendPool();
+        $affect = $recommendPool->addRecommentPool($subjectIds, $dateTime);
+        return $this->succ($affect);
+    }
+    
+        
 }

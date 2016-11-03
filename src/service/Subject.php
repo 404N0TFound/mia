@@ -923,23 +923,48 @@ class Subject extends \mia\miagroup\Lib\Service {
     /**
      * 修改帖子内容
      */
-    public function editSubject($subjectId, $editData)
+    public function editSubject($type, $editData)
     {
-        if (empty($subjectId) || empty($editData) || !is_array($editData)) {
+        if (empty($type) || empty($editData) || !is_array($editData)) {
+
+        }
+        if ($type == 1) {
+            //视频修改
+            $setData = array();
+            if (isset($editData['title'])) {
+                $setData[] = ['title', $editData['title']];
+            }
+            $editRes = $this->subjectModel->updateSubject($setData, $editData['subject_id']);
+            if (!$editRes) {
+                return $this->error(20001);
+            }
+            return $this->succ($editRes);
+        } elseif ($type == 2) {
+            //专栏修改
+            $setData = array();
+            if (isset($editData['user_id'])) {
+                $data['con']['user_id'] = $editData['user_id'];
+            }
+            if (isset($editData['album_id'])) {
+                $data['con']['album_id'] = $editData['album_id'];
+            }
+            if (isset($editData['id'])) {
+                $data['con']['id'] = $editData['id'];
+            }
+            if (isset($editData['subject_id'])) {
+                $data['con']['subject_id'] = $editData['subject_id'];
+            }
+            if (isset($editData['title'])) {
+                $data['set']['title'] = $editData['title'];
+            }
+            $editRes = $this->albumService->updateAlbumArticle($data);
+            if (!$editRes) {
+                return $this->error(20001);
+            }
+            return $this->succ($editRes);
+        } else {
             return $this->error(500);
         }
-        $setData = array();
-        if (isset($editData['title'])) {
-            $setData[] = ['title', $editData['title']];
-        }
-        if (isset($editData['album_title'])) {
-            $setData[] = ['album_title', $editData['album_title']];
-        }
-        $editRes = $this->subjectModel->updateSubject($setData, $subjectId);
-        if (!$editRes) {
-            return $this->error(20001);
-        }
-        return $this->succ($editRes);
     }
 
     /**
