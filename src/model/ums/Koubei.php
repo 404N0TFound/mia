@@ -11,7 +11,7 @@ class Koubei extends \DB_Query {
     protected $indexKoubei = array('id', 'item_id', 'user_id', 'rank_score', 'order_id', 'subject_id', 'create_time');
     //口碑相关蜜芽贴
     protected $tableKoubeiSubjects = 'koubei_subjects';
-    protected $tableKoubeiItem = 'koubei_subject_item';
+    protected $tableKoubeiItem = 'group_subject_point_tags';
     protected $indexKoubeiSubjects = array('subject_id', 'item_id', 'user_id', 'is_audited', 'create_time');
     
     /**
@@ -90,33 +90,6 @@ class Koubei extends \DB_Query {
         }
 
         $result['list'] = $this->getRows($where, $fileds, $limit, $offset, $orderBy, $join);
-        return $result;
-    }
-    
-    /**
-     * 根据蜜芽贴id查询口碑
-     * @param int $subjectId
-     * @param int $itemId
-     */
-    public function getKoubeiBySubjectId($subjectId,$itemId){
-        $this->tableName = $this->tableKoubei;
-        $where = array();
-        $where[] = ['subject_id',$subjectId];
-        $where[] = ['item_id',$itemId];
-        $where[] = ['status',2];
-        $result = $this->getRows($where);
-        return $result;
-    }
-    
-    /**
-     * 根据蜜芽贴id查询口碑蜜芽贴
-     * @param int $subjectId
-     */
-    public function getKoubeiSubjectBySubjectId($subjectId){
-        $this->tableName = $this->tableKoubeiSubjects;
-        $where = array();
-        $where[] = ['subject_id',$subjectId];
-        $result = $this->getRows($where);
         return $result;
     }
     

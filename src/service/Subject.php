@@ -9,6 +9,7 @@ use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
+use mia\miagroup\Service\Koubei as KoubeiService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
@@ -479,7 +480,8 @@ class Subject extends \mia\miagroup\Lib\Service {
         $koubeiSubject['user_id'] = $subjectSetInfo['user_id'];
         $koubeiSubject['is_audited'] = 0;
         $koubeiSubject['create_time'] = $subjectSetInfo['created'];
-        $this->subjectModel->addKoubeiSubject($koubeiSubject);
+        $koubeiService = new KoubeiService();
+        $koubeiService->addKoubeiSubject($koubeiSubject);
         
         //插入标记
         if(!empty($pointInfo[0])){
@@ -546,6 +548,37 @@ class Subject extends \mia\miagroup\Lib\Service {
         $videoId = $this->subjectModel->addVideoBySubject($insertData);
         
         return $this->succ($videoId);
+    }
+    
+    /**
+     * 更新帖子信息
+     */
+    public function updateSubject($subjectId, $subjectInfo) {
+        $subject = $this->subjectModel->getSubjectByIds(array($subjectId), array());
+        $subject = $subject[$subjectId];
+        if (empty($subject)) {
+            return $this->error('1107');
+        }
+        if (!empty($subjectInfo['ext_info'])) { //处理ext_info
+            $extinfoField = \F_Ice::$ins->workApp->config->get('busconf.subject.extinfo_field');
+            if (is_array($subjectInfo['ext_info'])) {
+                $extinfo = $subject['ext_info'];
+                foreach ($subjectInfo['ext_info'] as $k => $v) {
+                    if (in_array($k, $extinfoField)) {
+                        $extinfo[$k] = $v;
+                    }
+                }
+                $subjectInfo['ext_info'] = json_encode($extinfo);
+            }
+        }
+        $setData = array();
+        if (is_array($subjectInfo)) {
+            foreach ($subjectInfo as $k => $v) {
+                $setData[] = [$k, $v];
+            }
+        }
+        $this->subjectModel->updateSubject($setData, $subjectId);
+        return $this->succ(true);
     }
 
     /**
@@ -980,5 +1013,44 @@ class Subject extends \mia\miagroup\Lib\Service {
         $subjectData = $this->headlineRemote->subjectList($keyword, $type, $start, $rows);
         return $this->succ($subjectData);
     }
+    
+
+    /**
+     * UMS
+     * 批量设置帖子置顶
+     * @param unknown $subjectIds
+     */
+    public function setSubjectTopStatus($subjectIds,$status=1){
+        $affect = $this->subjectModel->setSubjectTopStatus($subjectIds,$status);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 批量屏蔽帖子
+     */
+    public function shieldSubject($subjectIds,$shieldText){
+        $affect = $this->subjectModel->deleteSubjects($subjectIds, -1, $shieldText);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 批量解除屏蔽
+     */
+    public function relieveShieldSubject($subjectIds){
+        $affect = $this->subjectModel->deleteSubjects($subjectIds,1,'');
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 加入推荐池
+     */
+    public function addRecommentPool($subjectIds,$dateTime){
+        $inser_id = $this->subjectModel->addRecommentPool($subjectIds, $dateTime);
+        return $this->succ($inser_id);
+    }
+    
 }
 

@@ -90,6 +90,9 @@ class Subject extends \DB_Query {
      * @return int
      */
     public function updateSubject($setData, $subjectId) {
+        if (empty($setData)) {
+            return false;
+        }
         $where[] = ['id', $subjectId];
         $data = $this->update($setData, $where);
         return $data;
@@ -238,5 +241,17 @@ class Subject extends \DB_Query {
         $result = $this->query($sql);
         return $result;
     }
+    
+    /**
+     * 帖子置顶
+     */
+    public function setSubjectTopStatus($subjectIds,$status=1){
+        $setData[] = ['is_top',$status];
+        $setData[] = ['top_time','now()'];
+        $where[] = ['id',$subjectIds];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
     
 }

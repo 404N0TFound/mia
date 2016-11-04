@@ -19,4 +19,6 @@ class Label extends Service{
         $data = $this->labelModel->getLabelInfoByPic($num);
         return $this->succ($data);
     }
+
+    
 }

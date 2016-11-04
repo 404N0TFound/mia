@@ -148,7 +148,6 @@ class Koubei extends \DB_Query {
     }
     
     /**
-
      * 删除口碑
      */
     public function delete($id, $userId){
@@ -191,14 +190,25 @@ class Koubei extends \DB_Query {
     }
     
     /**
-    
-    * 批量删除口碑
-    */
+     * 批量删除口碑
+     */
     public function deleteKoubeis($koubeiIds){
         $where[] = ['id', $koubeiIds];
         $setData[] = ['status', 0];
         $affect = $this->update($setData, $where);
         return $affect;
+    }
+    
+    /**
+     * 根据蜜芽贴id查询口碑
+     * @param int $subjectId
+     * @param int $itemId
+     */
+    public function getKoubeiBySubjectId($subjectId){
+        $where = array();
+        $where[] = ['subject_id', $subjectId];
+        $result = $this->getRows($where);
+        return $result;
     }
     
     /**

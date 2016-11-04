@@ -20,4 +20,5 @@ class Label extends \DB_Query{
             'rec' => $recInfo,
         );
     }
+    
 }
