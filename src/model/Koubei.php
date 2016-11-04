@@ -193,6 +193,15 @@ class Koubei {
     }
     
     /**
+     * 修改口碑通过状态
+     */
+    public function setKoubeiStatus($koubeiId, $koubeiInfo){
+        $koubeiSetInfo = array();
+        $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
+        $result = $this->koubeiData->updateKoubeiInfoById($koubeiId, $koubeiSetInfo);
+    }
+    
+    /**
      * 新增口碑贴信息
      */
     public function addKoubeiSubject($data){
