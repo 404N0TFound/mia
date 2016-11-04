@@ -316,4 +316,21 @@ class Subject {
         $insert_id = $recommendData->addRecommentPool($subjectIds, $dateTime);
         return $insert_id;
     }
+    
+    /**
+     * 获取帖子置顶数量
+     */
+    public function getSubjectTopNum(){
+        return $this->subjectData->getSubjectTopNum();
+    }
+    
+    /**
+     * UMS
+     * 取消推荐
+     */
+    public function cacelSubjectIsFine($subjectId){
+        $affect = $this->subjectData->cacelSubjectIsFine($subjectId);
+        return $affect;
+    }
+
 }
