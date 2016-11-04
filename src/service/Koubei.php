@@ -332,4 +332,58 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $this->succ($res);
     }
     
+    /**
+     * 修改口碑审核通过状态
+     */
+    public function setKoubeiStatus($koubeiId, $status)
+    {
+        if(!is_numeric($koubeiId) || intval($koubeiId) <= 0){
+            return $this->error(500);
+        }
+         //更新口碑状态
+        $koubeUpData = array('status'=>$status);
+        $res = $this->koubeiModel->setKoubeiStatus($koubeiId, $koubeUpData);
+        //如果是修改为不通过，不需要同步蜜芽圈
+        if($status== -1){
+            return $this->succ($res);
+        }
+        //查出口碑信息，用户提供同步数据
+        $koubeInfo = $this->koubeiModel->getBatchKoubeiByIds(array($koubeiId), array(2))[$koubeiId];
+        if($koubeInfo['subject_id'] > 0){
+            //如果同步过，直接返回通过状态
+            return $this->succ($res);
+        }
+        if(!empty($koubeInfo['extr_info'])){
+            $extInfo = json_decode($koubeInfo['extr_info'],true);
+            $imageInfos = $extInfo['image'];
+            $labels = $extInfo['label'];
+        }
+        //同步蜜芽圈帖子
+        //#############start
+        $subjectInfo = array();
+        $subjectInfo['user_info']['user_id'] = $koubeInfo['user_id'];
+        $subjectInfo['title'] = $koubeInfo['title'];
+        $subjectInfo['text'] = $koubeInfo['content'];
+        $subjectInfo['created'] = $koubeInfo['created_time'];
+        $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
+        $subjectInfo['image_infos'] = isset($imageInfos) ? $imageInfos : array();
+        $labelInfos = array();
+        
+        if(isset($labels) && !empty($labels))
+        {
+            foreach($labels as $label)
+            {
+                $labelInfos[] = array('title' => $label);
+            }
+        }
+        $pointInfo[0] = array( 'item_id' => $koubeInfo['item_id']);
+        $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiId)['data'];
+        //#############end
+        //将帖子id回写到口碑表中
+        if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
+            $this->koubeiModel->addSubjectIdToKoubei($koubeiId,$subjectIssue['id']);
+        }
+        return $this->succ($res);
+    }
+    
 }

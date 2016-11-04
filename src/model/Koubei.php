@@ -189,4 +189,14 @@ class Koubei {
         $this->koubeiData->updateKoubeiCount($koubeiIds, $num, 'immutable_score');
         return $result;
     }
+    
+    /**
+     * 修改口碑通过状态
+     */
+    public function setKoubeiStatus($koubeiId, $koubeiInfo){
+        $koubeiSetInfo = array();
+        $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
+        $result = $this->koubeiData->updateKoubeiInfoById($koubeiId, $koubeiSetInfo);
+        return $result;
+    }
 }
