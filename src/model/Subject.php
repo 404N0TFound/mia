@@ -5,8 +5,6 @@ use \mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\GroupSubjectRecommendPool;
 use mia\miagroup\Lib\Redis;
-use \mia\miagroup\Data\Subject\KoubeiSubject as KoubeiSubjectData;
-use \mia\miagroup\Data\Subject\KoubeiSubjectItem as KoubeiSubjectItemData;
 
 class Subject {
 
