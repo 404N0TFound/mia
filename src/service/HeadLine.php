@@ -75,6 +75,8 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
             //推荐数据、运营数据去重
             $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));
+        } else {
+            $operationData = array();
         }
         //获取格式化的头条输出数据
         if ($channelId == $this->headlineConfig['lockedChannel']['homepage']['id']) {
