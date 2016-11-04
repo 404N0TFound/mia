@@ -243,12 +243,45 @@ class Subject extends \DB_Query {
     }
     
     /**
-     * 帖子置顶
+     * 帖子置顶/取消置顶
      */
     public function setSubjectTopStatus($subjectIds,$status=1){
+        //如果是取消置顶的，则需要把置顶时间更新为0
+        if($is_top == 0){
+            $top_time = '0000-00-00 00:00:00';
+        }else{
+            $top_time = date('Y-m-d H:i:s',time());
+        }
         $setData[] = ['is_top',$status];
-        $setData[] = ['top_time','now()'];
+        $setData[] = ['top_time',$top_time];
         $where[] = ['id',$subjectIds];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 获取帖子置顶数量
+     */
+    public function getSubjectTopNum(){
+        $where[] = ['status',1];
+        $where[] = ['is_fine',1];
+        $where[] = ['is_top',1];
+        $where[] = [':!=','top_time','0000-00-00 00:00:00'];
+        $count = $this->count($where);
+        return $count;
+    }
+    
+    /**
+     * UMS
+     * 取消推荐
+     */
+    public function cacelSubjectIsFine($subjectId){
+        $where[] = ['id',$subjectId];
+        $setData[] = ['is_fine',0];
+        $setData[] = ['update_time','0000-00-00 00:00:00'];
+        $setData[] = ['is_top',0];
+        $setData[] = ['top_time','0000-00-00 00:00:00'];
+        
         $affect = $this->update($setData,$where);
         return $affect;
     }

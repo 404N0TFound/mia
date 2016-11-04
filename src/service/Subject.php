@@ -900,8 +900,8 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $koubei = new \mia\miagroup\Service\Koubei();
                 $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $subjectInfo['user_id']);
             }
-        }elseif($status == 0){
-            //删除帖子
+        }else{
+            //删除帖子或恢复帖子
             $result = $this->subjectModel->deleteSubjects($subjectIds,$status,$shieldText);
         }
         
@@ -1017,29 +1017,18 @@ class Subject extends \mia\miagroup\Lib\Service {
 
     /**
      * UMS
-     * 批量设置帖子置顶
+     * 批量设置帖子置顶/取消置顶
      * @param unknown $subjectIds
      */
     public function setSubjectTopStatus($subjectIds,$status=1){
+        if($status == 1){
+            //帖子加精并置顶数不能超过5个
+            $num = $this->subjectModel->getSubjectTopNum();
+            if($num >= 5){
+                return $this->error(90006,'帖子置顶的数量超过限制！');
+            }
+        }
         $affect = $this->subjectModel->setSubjectTopStatus($subjectIds,$status);
-        return $this->succ($affect);
-    }
-    
-    /**
-     * UMS
-     * 批量屏蔽帖子
-     */
-    public function shieldSubject($subjectIds,$shieldText){
-        $affect = $this->subjectModel->deleteSubjects($subjectIds, -1, $shieldText);
-        return $this->succ($affect);
-    }
-    
-    /**
-     * UMS
-     * 批量解除屏蔽
-     */
-    public function relieveShieldSubject($subjectIds){
-        $affect = $this->subjectModel->deleteSubjects($subjectIds,1,'');
         return $this->succ($affect);
     }
     
@@ -1050,6 +1039,21 @@ class Subject extends \mia\miagroup\Lib\Service {
     public function addRecommentPool($subjectIds,$dateTime){
         $inser_id = $this->subjectModel->addRecommentPool($subjectIds, $dateTime);
         return $this->succ($inser_id);
+    }
+    
+    /**
+     * UMS
+     * 取消推荐
+     */
+    public function cacelSubjectIsFine($subjectId){
+        //取消推荐专栏合集
+        $albumService = new \mia\miagroup\Service\Album();
+        $affect = $albumService->cacelRecommentBySubjectId($subjectId)['code'];
+        if(!$affect){
+            return $this->error(90008,'取消推荐专栏失败');
+        }
+        $affect = $this->subjectModel->cacelSubjectIsFine($subjectId);
+        return $this->succ($affect);
     }
     
 }
