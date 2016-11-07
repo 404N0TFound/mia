@@ -936,13 +936,17 @@ class Subject extends \mia\miagroup\Lib\Service {
         if(!isset($subject_info[$id]['video_info']['video_origin_url'])) {
             return;
         }
-        $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $subject_info[$id]['video_info']['video_origin_url'], 3);
+
+        $video_id = $subject_info[$id]['video_info']['id'];
+        //视频信息
+        $info = $this->subjectModel->getBatchVideoExtInfos([$video_id]);
+
+        $second = floor($info[$video_id]['ext_info']['video_time']/2);
+        $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $subject_info[$id]['video_info']['video_origin_url'], $second);
         if(empty($cover_image)) {
             return;
         }
         //修改
-        $video_id = $subject_info[$id]['video_info']['id'];
-        $info = $this->subjectModel->getBatchVideoExtInfos([$video_id]);
         $ext_arr = $info[$video_id]['ext_info'];
         $ext_arr['cover_image'] = $cover_image;
 
