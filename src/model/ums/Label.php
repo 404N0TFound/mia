@@ -21,4 +21,13 @@ class Label extends \DB_Query{
         );
     }
     
+    /**
+     * 获取label信息
+     */
+    public function getLabelInfo($labelIds){
+        $where[] = ['id',$labelIds];
+        $data = $this->getRows($where);
+        return $data;
+    }
+    
 }
