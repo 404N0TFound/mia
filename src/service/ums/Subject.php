@@ -85,7 +85,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectIds[] = $v['subject_id'];
         }
         $subjectService = new SubjectService();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels'), array())['data'];
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count'), array())['data'];
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $subjectInfos[$v['subject_id']];
