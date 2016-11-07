@@ -1052,10 +1052,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     public function cacelSubjectIsFine($subjectId){
         //取消推荐专栏合集
         $albumService = new \mia\miagroup\Service\Album();
-        $affect = $albumService->cacelRecommentBySubjectId($subjectId)['code'];
-        if(!$affect){
-            return $this->error(90008,'取消推荐专栏失败');
-        }
+        $albumService->cacelRecommentBySubjectId($subjectId)['code'];
         $affect = $this->subjectModel->cacelSubjectIsFine($subjectId);
         return $this->succ($affect);
     }

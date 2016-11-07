@@ -298,6 +298,7 @@ class Label extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * UMS
      * 输入标签添加关联关系
      */
     public function addSubjectLabelRelationInput($subject_id,$label_title,$user_id){
@@ -319,6 +320,7 @@ class Label extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * UMS
      * 给标签下的帖子加精
      */
     public function changeLabelRelationRecommend($id,$recommend,$user_id){
@@ -327,6 +329,7 @@ class Label extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * UMS
      * 取消标签帖子关联关系
      */
     public function cancleSelectedTag($subject_id,$label_id,$from_input=0){

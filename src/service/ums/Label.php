@@ -19,6 +19,18 @@ class Label extends Service{
         $data = $this->labelModel->getLabelInfoByPic($num);
         return $this->succ($data);
     }
+    
+    /**
+     * 获取关联信息
+     * @param unknown $label_id
+     * @param unknown $subject_id
+     * @return unknown
+     */
+    public function getLabelRelation($subject_id,$label_ids){
+        $labelRelation = new \mia\miagroup\Model\Ums\LabelRelation();
+        $data = $labelRelation->getLabelRelation($subject_id, $label_ids);
+        return $data;
+    }
 
     
 }
