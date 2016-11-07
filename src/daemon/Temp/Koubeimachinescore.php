@@ -1,5 +1,5 @@
 <?php
-namespace mia\miagroup\Daemon\Koubei;
+namespace mia\miagroup\Daemon\Temp;
 
 use mia\miagroup\Data\Koubei\Koubei as KoubeiData;
 use mia\miagroup\Data\Koubei\KoubeiScore as KoubeiScoreData;
@@ -54,9 +54,6 @@ class Koubeimachinescore extends \FD_Daemon {
             } else {
                 $maxId = $value['id'];
             }
-            if (!isset($koubeiInfos[$value['id']])) {
-                continue;
-            }
             $koubeiIds1 = array();
             $koubeiIds2 = array();
             $koubeiIds3 = array();
@@ -72,12 +69,18 @@ class Koubeimachinescore extends \FD_Daemon {
                     $koubeiIds3[] = $value['id'];
                     break;
             }
+        }
+        if (!empty($koubeiIds1)) {
             $score = array(array('machine_score', 1));
             $this->koubeiData->updateKoubeiInfoById($koubeiIds1, $score);
             sleep(1);
+        }
+        if (!empty($koubeiIds2)) {
             $score = array(array('machine_score', 2));
             $this->koubeiData->updateKoubeiInfoById($koubeiIds2, $score);
             sleep(1);
+        }
+        if (!empty($koubeiIds3)) {
             $score = array(array('machine_score', 3));
             $this->koubeiData->updateKoubeiInfoById($koubeiIds3, $score);
             sleep(1);
