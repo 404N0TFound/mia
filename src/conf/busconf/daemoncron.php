@@ -152,4 +152,13 @@ $cron_list['koubei_feedback_rate'] = array(
     'interval' => 86400
 );
 
+//导历史机器评分，临时脚本
+$cron_list['koubei_machine_score'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=temp --action=koubeimachinescore",
+    'start_time' => '2016-10-08 02:00:00',
+    'interval' => 2
+);
+
 
