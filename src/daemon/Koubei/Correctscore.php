@@ -84,13 +84,14 @@ class Correctscore extends \FD_Daemon {
                     $reduce = ($tmpKoubei['score']-3)<0 ? ($tmpKoubei['score'] - 3) * 2 : 0;
                     break;
             }
+            $score[] = array('machine_score', $value['flag']); //机器评分
             if ($reduce != 0) {
                 $rankScore = (($tmpKoubei['rank_score'] - $reduce) > 0) ? $tmpKoubei['rank_score'] - $reduce : 0;
                 $immutableScore = (($tmpKoubei['immutable_score'] - $reduce) > 0) ? $tmpKoubei['immutable_score'] - $reduce : 0;
                 $score[] = array('rank_score', $rankScore);
                 $score[] = array('immutable_score', $immutableScore);
-                $this->koubeiData->updateKoubeiInfoById($value['id'], $score);
             }
+            $this->koubeiData->updateKoubeiInfoById($value['id'], $score);
         }
         
         //写入本次处理的最大event_id
