@@ -84,7 +84,7 @@ $album = array(
              'width' => 640,
              'height' => 640,
              'suffix' => '.jpg',
-             'file_type' => '@style@watermark640',
+             'file_type' => '@style@watermark640new',
              'limit_width' => true,
              'limit_height' => false,
          ),
