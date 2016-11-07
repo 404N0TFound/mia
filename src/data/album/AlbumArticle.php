@@ -405,4 +405,17 @@ class AlbumArticle extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 取消推荐
+     */
+    public function cacelRecommentBySubjectId($subjectId,$status=0){
+        $where[] = ['subject_id',$subjectId];    
+        $setData[] = ['is_recommend',$status];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    
+    
 }

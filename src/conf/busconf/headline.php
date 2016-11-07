@@ -20,6 +20,15 @@ $lockedChannel = array(
 );
 
 /**
+ * 特殊栏目样式
+ */
+$channelStyle = array(
+    'default' => 'common', //通用样式
+    '2' => 'follow', //订阅页样式
+    '4' => 'video' //视频页样式
+);
+
+/**
  * 客户端头条展示类型与服务端类型的映射 
  */
 $clientServerMapping = array(

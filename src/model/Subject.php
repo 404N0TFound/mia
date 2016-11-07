@@ -279,5 +279,58 @@ class Subject {
          $data = $this->subjectData->updateSubjectComment($commentNumArr);
          return $data;
      }
+     
+     /**
+      * 新增口碑贴信息
+      * @param array $koubeiData
+      */
+     public function addKoubeiSubject($koubeiData){
+         $koubeiSubjectData = new KoubeiSubjectData();
+         $result = $koubeiSubjectData->saveKoubeiSubject($koubeiData);
+         return $result;
+     }
+     
+    /**
+     * 新增口碑贴关联商品信息
+     * @param array $subjectItemData
+     */
+    public function addKoubeiSubjectItem($subjectItemData){
+        $koubeiItemData = new KoubeiSubjectItemData();
+        $result = $koubeiItemData->saveKoubeiSubjectItem($subjectItemData);
+        return $result;
+    }
+    
+    /**
+     * 帖子置顶
+     */
+    public function setSubjectTopStatus($subjectIds,$status=1){
+        $affect = $this->subjectData->setSubjectTopStatus($subjectIds,$status);
+        return $affect;
+    }
+    
+    /**
+     * 加入推荐池
+     */
+    public function addRecommentPool($subjectIds,$dateTime){
+        $recommendData = new GroupSubjectRecommendPool();
+        $insert_id = $recommendData->addRecommentPool($subjectIds, $dateTime);
+        return $insert_id;
+    }
+    
+    /**
+     * 获取帖子置顶数量
+     */
+    public function getSubjectTopNum(){
+        return $this->subjectData->getSubjectTopNum();
+    }
+    
+    /**
+     * UMS
+     * 取消推荐
+     */
+    public function cacelSubjectIsFine($subjectId){
+        $affect = $this->subjectData->cacelSubjectIsFine($subjectId);
+        return $affect;
+    }
 
 }

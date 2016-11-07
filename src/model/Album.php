@@ -390,4 +390,13 @@ class Album {
     public function getSubjectIdByArticleIds($articleIds) {
         return $this->albumArticleData->getSubjectIdByArticleIds($articleIds);
     }
+    
+    /**
+     * 取消推荐
+     */
+    public function cacelRecommentBySubjectId($subjectId,$status=0){
+        $affect = $this->albumArticleData->cacelRecommentBySubjectId($subjectId,$status);
+        return $affect;
+    }
+    
 }

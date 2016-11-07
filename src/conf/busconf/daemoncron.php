@@ -143,3 +143,13 @@ $cron_list['group_video_transcoding'] = array(
     'interval' => 60
 );
 
+//计算口碑好评率
+$cron_list['koubei_feedback_rate'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=koubei --action=itemfeedbackrate",
+    'start_time' => '2016-11-08 02:00:00',
+    'interval' => 86400
+);
+
+
