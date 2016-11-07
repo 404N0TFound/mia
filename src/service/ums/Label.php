@@ -28,8 +28,15 @@ class Label extends Service{
      */
     public function getLabelRelation($subject_id,$label_ids){
         $labelRelation = new \mia\miagroup\Model\Ums\LabelRelation();
+        $label_info = $this->labelModel->getLabelInfo($label_ids);
+        foreach($label_info as $k=>$v){
+            $label_data[$v['id']] = $v['title'];
+        }
         $data = $labelRelation->getLabelRelation($subject_id, $label_ids);
-        return $data;
+        foreach($data as $k=>$v){
+            $data[$k]['title'] = $label_data[$v['label_id']];
+        }
+        return $this->succ($data);
     }
 
     
