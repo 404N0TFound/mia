@@ -48,16 +48,15 @@ class Koubeimachinescore extends \FD_Daemon {
         if (empty($data)) {
             return ;
         }
+        $koubeiIds1 = array();
+        $koubeiIds2 = array();
+        $koubeiIds3 = array();
         foreach ($data as $value) {
             if (isset($maxId)) { //获取最大event_id
                 $maxId = $value['id'] > $maxId ? $value['id'] : $maxId;
             } else {
                 $maxId = $value['id'];
             }
-            $koubeiIds1 = array();
-            $koubeiIds2 = array();
-            $koubeiIds3 = array();
-            
             switch ($value['flag']) {
                 case 1:
                     $koubeiIds1[] = $value['id'];
