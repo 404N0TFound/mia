@@ -25,7 +25,7 @@ $lockedChannel = array(
 $channelStyle = array(
     'default' => 'common', //通用样式
     '2' => 'follow', //订阅页样式
-    '19' => 'video' //视频页样式
+    '4' => 'video' //视频页样式
 );
 
 /**

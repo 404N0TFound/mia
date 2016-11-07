@@ -86,22 +86,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $baseInfo = false;
         }
         $headLineList = $this->_getFormatHeadlineData(is_array($headLineData) ? $headLineData : array(), $operationData, $baseInfo);
-        if ($channelId == 4 && $action == 'init') {
-            $tmp['id'] = '123_banner';
-            $tmp['type'] = 'banner';
-            $tmp['banner'] = array(
-                'pic' => array(
-                    'url' => 'http://img.miyabaobei.com/d1/p4/2016/08/31/b5/28/b5284f9290ed714459e2e3aecbc7d8db338789237.jpg',
-                    'width' => 358,
-                    'height' => 220
-                ),
-                'url' => 'miyabaobei://productDetail?id=1000324',
-                'content' => 'banner类型测试数据',
-                'source' => '蒲老湿',
-                'view_num' => 1293840,
-            );
-            array_unshift($headLineList, $tmp);
-        }
         return $this->succ($headLineList);
     }
     
