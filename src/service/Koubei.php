@@ -250,13 +250,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , array('user_info', 'count', 'comment', 'group_labels', 'praise_info'));
-        foreach( $itemKoubei as $key => $value)
-        {
-            if(!empty($subjectRes['data'][$key]))
+        if(!empty($subjectRes) && !empty($itemKoubei)){
+            foreach( $itemKoubei as $key => $value)
             {
-                $subjectRes['data'][$key]['item_koubei'] = $value;
-                //口碑信息拼装到帖子
-                $koubeiInfo[] = $subjectRes['data'][$key];
+                if(!empty($subjectRes['data'][$key]))
+                {
+                    $subjectRes['data'][$key]['item_koubei'] = $value;
+                    //口碑信息拼装到帖子
+                    $koubeiInfo[] = $subjectRes['data'][$key];
+                }
             }
         }
         return $koubeiInfo;

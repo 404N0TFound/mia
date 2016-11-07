@@ -82,6 +82,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         $subjectIds = array();
         foreach ($data['list'] as $v) {
+            if(empty($v['subject_id'])){
+                continue;
+            }
             $subjectIds[] = $v['subject_id'];
         }
         $subjectService = new SubjectService();
