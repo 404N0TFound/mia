@@ -158,7 +158,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取口碑列表
      */
-    public function getItemKoubeiList($itemId, $page=1, $count=20, $userId)
+    public function getItemKoubeiList($itemId, $page=1, $count=20, $userId = 0)
     {
         $koubeiRes = array("koubei_info" => array());
         if(!$itemId){
