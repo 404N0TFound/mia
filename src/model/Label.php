@@ -340,8 +340,8 @@ class Label {
      * 给标签下的帖子  加精
      * @param int $user_id 操作人id
      */
-    public function setLabelRelationRecommend($id,$is_recommend,$user_id){
-        $affect = $this->labelRelation->setLabelRelationRecommend($id, $is_recommend, $user_id);
+    public function setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+        $affect = $this->labelRelation->setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id);
         return $affect;
     }
     
@@ -351,7 +351,7 @@ class Label {
      * @return 返回影响的行数
      **/
     public function removeRelation($subject_id,$label_id){
-        $affect = $this->labelRelation->removeRelation($userId, $labelId);
+        $affect = $this->labelRelation->removeRelation($subject_id, $label_id);
         return $affect;
     }
     

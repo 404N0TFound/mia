@@ -415,9 +415,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 口碑加精
      */
-    public function setKoubeiRank($koubeiIds, $koubeiInfo)
+    public function setKoubeiRank($koubeiIds, $rank)
     {
-        $res = $this->koubeiModel->setKoubeiRank($koubeiIds, $koubeiInfo);
+        $res = $this->koubeiModel->setKoubeiRank($koubeiIds, $rank);
         return $this->succ($res);
     }
     

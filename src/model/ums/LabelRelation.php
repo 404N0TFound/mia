@@ -12,10 +12,9 @@ class LabelRelation extends \DB_Query{
      * @param unknown $subject_id
      * @return unknown
      */
-    public function getLabelRelation($subject_id,$label_id){
-        $where[] = ['label_id',$label_id];
+    public function getLabelRelation($subject_id){
         $where[] = ['subject_id',$subject_id];
-        $data = $this->getRow($where);
+        $data = $this->getRows($where);
         return $data;
     }
     
