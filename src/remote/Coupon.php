@@ -39,9 +39,10 @@ class Coupon
             //记录日志
             \F_Ice::$ins->mainApp->logger_remote->info(array(
                 'third_server'  =>  'coupon',
+                'type'          =>  'INFO',
                 'request_param' =>  $param,
                 'response_code' =>  $res->code,
-                'response_data' =>  json_encode($res),
+                'response_data' =>  $res,
                 'response_msg'  =>  '',
                 'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
             ));
@@ -62,6 +63,7 @@ class Coupon
         }catch (\Exception $e){
             \F_Ice::$ins->mainApp->logger_remote->warn(array(
                 'third_server'  =>  'coupon',
+                'type'          =>  'ERROR',
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),
                 'code'      => $e->getCode(),
@@ -91,9 +93,10 @@ class Coupon
             //记录日志
             \F_Ice::$ins->mainApp->logger_remote->info(array(
                 'third_server'  =>  'coupon',
+                'type'          =>  'INFO',
                 'request_param' =>  $param,
                 'response_code' =>  $res->code,
-                'response_data' =>  json_encode($res),
+                'response_data' =>  $res,
                 'response_msg'  =>  '',
                 'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
             ));
@@ -110,6 +113,7 @@ class Coupon
         }catch (\Exception $e){
             \F_Ice::$ins->mainApp->logger_remote->warn(array(
                 'third_server'  =>  'coupon',
+                'type'          =>  'ERROR',
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),
                 'code'      => $e->getCode(),
@@ -145,9 +149,10 @@ class Coupon
             //记录日志
             \F_Ice::$ins->mainApp->logger_remote->info(array(
                 'third_server'  =>  'coupon',
+                'type'          =>  'INFO',
                 'request_param' =>  $param,
                 'response_code' =>  $res->code,
-                'response_data' =>  json_encode($res),
+                'response_data' =>  $res,
                 'response_msg'  =>  '',
                 'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
             ));
@@ -192,6 +197,7 @@ class Coupon
         }catch (\Exception $e){
             \F_Ice::$ins->mainApp->logger_remote->warn(array(
                 'third_server'  =>  'coupon',
+                'type'          =>  'ERROR',
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),
                 'code'      => $e->getCode(),
@@ -231,9 +237,10 @@ class Coupon
             //记录日志
             \F_Ice::$ins->mainApp->logger_remote->info(array(
                 'third_server'  =>  'coupon',
+                'type'          =>  'INFO',
                 'request_param' =>  $param,
                 'response_code' =>  $res->code,
-                'response_data' =>  json_encode($res),
+                'response_data' =>  $res,
                 'response_msg'  =>  '',
                 'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
             ));
@@ -249,6 +256,7 @@ class Coupon
         }catch (\Exception $e){
             \F_Ice::$ins->mainApp->logger_remote->warn(array(
                 'third_server'  =>  'coupon',
+                'type'          =>  'ERROR',
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),
                 'code'      => $e->getCode(),

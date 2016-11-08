@@ -28,6 +28,7 @@ class Thrift {
             //记录日志
             \F_Ice::$ins->mainApp->logger_remote->info(array(
                 'third_server'  =>  'mibean',
+                'type'          =>  'INFO',
                 'request_param' =>  ['func_name'=>$name,'args'=>$param],
                 'response_code' =>  $data['code'],
                 'response_data' =>  $data['data'],
@@ -40,6 +41,7 @@ class Thrift {
         } catch (\Exception $e) {
             \F_Ice::$ins->mainApp->logger_remote->warn(array(
                 'third_server'  =>  'mibean',
+                'type'      =>  'ERROR',
                 'exception' => get_class($e),
                 'message'   => $e->getMessage(),
                 'code'      => $e->getCode(),
