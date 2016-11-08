@@ -767,4 +767,13 @@ class Album extends \mia\miagroup\Lib\Service {
         $res = $this->abumModel->getSubjectIdByArticleIds($articleIds);
         return $this->succ($res);
     }
+    
+    /**
+     * 取消推荐
+     */
+    public function cacelRecommentBySubjectId($subjectId,$status=0){
+        $affect = $this->abumModel->cacelRecommentBySubjectId($subjectId,$status);
+        return $this->succ($affect);
+    }
+    
 }

@@ -54,4 +54,13 @@ class GroupSubjectRecommendPool extends \DB_Query{
         }
     }
     
+    /**
+     * 加入推荐池
+     */
+    public function addRecommentPool($subjectIds,$dateTime){
+        $setData = ['subject_id'=>$subjectIds,'create_time'=>date('Y-m-d H:i:s'),'recom_time'=>$dateTime,'status'=>0];
+        $affect = $this->insert($setData);
+        return $affect;
+    }
+    
 }

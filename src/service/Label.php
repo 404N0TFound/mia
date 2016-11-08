@@ -276,4 +276,71 @@ class Label extends \mia\miagroup\Lib\Service {
         }
         return $this->succ(array_values($activeSujectInfo));
     }
+    
+    /**
+     * UMS
+     * 选择标签，添加关联关系
+     * 从后台给帖子添加关联标签
+     */
+    public function addSubjectLabelRelation($subject_id,$label_id,$user_id){
+        //判断数量是否已经达到 6 个
+        $relation_info = $this->labelModel->getBatchSubjectLabelIds([$subject_id])[$subject_id];
+        if(count($relation_info) >= 6){
+            return $this->error(90000,'关联标签数已达上限');
+        }
+        //判断是否已经存在关联关系
+        $relation_res = $this->labelModel->getLabelRelation($subject_id,$label_id);
+        if(!empty($relation_res)){
+            return $this->error(90001,'对应关系已经存在');
+        }
+        $res = $this->labelModel->addLabelRelation($subject_id, $label_id, 0, $user_id);
+        return $this->succ($res);
+    }
+    
+    /**
+     * UMS
+     * 输入标签添加关联关系
+     */
+    public function addSubjectLabelRelationInput($subject_id,$label_title,$user_id){
+        if (mb_strlen($label_title,'utf-8') > 20 || strlen($label_title) <= 0) {
+            return $this->error(90002,'标签名字长度不符合要求');
+        }
+        $label_info = $this->labelModel->checkIsExistByLabelTitle($label_title);
+        if(empty($label_info)){
+            $label_id = $this->labelModel->addLabel($label_title);
+        }else{
+            $label_id = $label_info['id'];
+        }
+        $resutl = $this->addSubjectLabelRelation($subject_id, $label_id, $user_id);
+        if($resutl['code'] == 0){
+            return $this->succ($label_id);            
+        }else{
+            return $this->error($resutl['code'],$resutl['msg']);
+        }
+    }
+    
+    /**
+     * UMS
+     * 给标签下的帖子加精
+     */
+    public function changeLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+        $affect = $this->labelModel->setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 取消标签帖子关联关系
+     */
+    public function cancleSelectedTag($subject_id,$label_id,$from_input=0){
+    
+        //如果是 input 新添加的标签，该标签要被删除。
+        if ($from_input == 1) {
+            $this->labelModel->removeLabelByLabelId($label_id);
+        }
+        //删除关联
+        $affect = $this->labelModel->removeRelation($subject_id,$label_id);
+        return $this->succ($affect);
+    }
+    
 }

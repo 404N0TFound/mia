@@ -92,7 +92,7 @@ $pool = array(
                 'charset' => 'utf8',
             ),
         ),
-	'log' => array(
+        'miaBI' => array(
             'master' => array(
                 array(
                     'host' => '172.16.104.207',
@@ -115,11 +115,91 @@ $pool = array(
             ),
             'options' => array(
                 'timeout' => 1,
+                'dbname'  => 'test',
+                'charset' => 'utf8',
+            ),
+        ),
+        'miagroupums' => array(
+            'master' => array(
+                array(
+                    'host' => '172.16.104.207',
+                    'port' => 3307,
+                    'options' => array(
+                        'user' => 'write_user',
+                        'passwd' => 'write_pwd'
+                    ),
+                )
+            ),
+            'slave' => array(
+                array(
+                    'host' => '172.16.104.207',
+                    'port' => 3307,
+                    'options' => array(
+                        'user' => 'write_user',
+                        'passwd' => 'write_pwd'
+                    ),
+                )
+            ),
+            'options' => array(
+                'timeout' => 30,
+                'dbname'  => 'mia_group_test',
+                'charset' => 'utf8',
+            ),
+        ),
+        'miadefaultums' => array(
+            'master' => array(
+                array(
+                    'host' => '172.16.104.207',
+                    'port' => 3307,
+                    'options' => array(
+                        'user' => 'write_user',
+                        'passwd' => 'write_pwd'
+                    ),
+                )
+            ),
+            'slave' => array(
+                array(
+                    'host' => '172.16.104.207',
+                    'port' => 3307,
+                    'options' => array(
+                        'user' => 'write_user',
+                        'passwd' => 'write_pwd'
+                    ),
+                )
+            ),
+            'options' => array(
+                'timeout' => 30,
                 'dbname'  => 'mia_test2',
                 'charset' => 'utf8',
             ),
         ),
-
+        'log' => array(
+            'master' => array(
+                array(
+                    'host' => '10.1.3.201',
+                    'port' => 3306,
+                    'options' => array(
+                        'user' => 'apilog_write',
+                        'passwd' => 'apilog_write'
+                    ),
+                )
+            ),
+            'slave' => array(
+                array(
+                    'host' => '10.1.3.203',
+                    'port' => 3306,
+                    'options' => array(
+                        'user' => 'apilog_read',
+                        'passwd' => 'apilog_read'
+                    ),
+                )
+            ),
+            'options' => array(
+                'timeout' => 1,
+                'dbname'  => 'log',
+                'charset' => 'utf8',
+            ),
+        ),
     ),
     'curl' => array(
         'service' => array(
@@ -133,7 +213,34 @@ $pool = array(
             'default'=>array(
                 array(
                     'host'=>'172.16.104.236',
-                    'port'=>'6379',
+                    'port'=>6379,
+                ),
+            ),
+        ),
+        'redbag'=>array(
+            'default'=>array(
+                array(
+                    'host'=>'10.1.50.187',
+                    'port'=>6379,
+                ),
+            ),
+            'options' => array(
+                'timeout' => 2,
+                'persistent'  => false,
+        	),
+        ),
+    ),
+    'rabbitmq'=>array(
+        'miagroup'=>array(
+            'default'=>array(
+                array(
+                    'host'    => '172.16.104.236',
+                    'port'    => 5672,
+                    'vhost'   => '/',
+                    'options' => array(
+                        'user'   => 'yue',
+                        'passwd' => '123qwe',
+                    ),
                 ),
             ),
         ),

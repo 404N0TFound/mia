@@ -70,10 +70,14 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_unique(array_merge($headlineIds, $headLineData));
         }
-        //获取运营数据
-        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
-        //推荐数据、运营数据去重
-        $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));
+        if ($action != 'refresh') {
+            //获取运营数据
+            $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
+            //推荐数据、运营数据去重
+            $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));
+        } else {
+            $operationData = array();
+        }
         //获取格式化的头条输出数据
         if ($channelId == $this->headlineConfig['lockedChannel']['homepage']['id']) {
             //首页轮播只显示基本信息
@@ -134,19 +138,28 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 获取头条栏目
      */
-    public function getHeadLineChannels($channelIds = array(), $status = array(1)) {
+    public function getHeadLineChannels($channelIds = array(), $status = array(1), $isAll = 0) {
         //获取所有栏目
         $channelRes = $this->headLineModel->getHeadLineChannels($channelIds, $status);
         //获取对外屏蔽的栏目
-        $shieldIds = array();
-        foreach ($this->headlineConfig['lockedChannel'] as $config) {
-            if (isset($config['shield']) && $config['shield'] == 1) {
-                $shieldIds[] = $config['id'];
+        if ($isAll == 0) {
+            $shieldIds = array();
+            foreach ($this->headlineConfig['lockedChannel'] as $config) {
+                if (isset($config['shield']) && $config['shield'] == 1) {
+                    $shieldIds[] = $config['id'];
+                }
             }
-        }
-        foreach ($channelRes as $key => $channel) {
-            if (in_array($channel['id'], $shieldIds)) {
-                unset($channelRes[$key]);
+            //配置里的id对应的是数据库id
+            foreach ($channelRes as $key => $channel) {
+                if (in_array($channel['id'], $shieldIds)) {
+                    unset($channelRes[$key]);
+                    continue;
+                }
+                if (isset($this->headlineConfig['channelStyle'][$channel['id']])) {
+                    $channelRes[$key]['channel_style'] = $this->headlineConfig['channelStyle'][$channel['id']];
+                } else {
+                    $channelRes[$key]['channel_style'] = $this->headlineConfig['channelStyle']['default'];
+                }
             }
         }
         return $this->succ(array('channel_list' => array_values($channelRes)));

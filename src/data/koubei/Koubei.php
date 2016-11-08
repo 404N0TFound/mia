@@ -54,8 +54,9 @@ class Koubei extends \DB_Query {
             $where[] = ['status', $status];
         }
     
-        $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,immutable_score,item_size';
+        $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,immutable_score,item_size,extr_info,item_id,user_id';
         $data = $this->getRows($where,$fields);
+        
         if (!empty($data)) {
             foreach ($data as $v) {
                 $result[$v['id']] = $v;
@@ -138,7 +139,7 @@ class Koubei extends \DB_Query {
      * 更新口碑信息
      */
     public function updateKoubeiInfoById($koubeiId, $koubeiInfo) {
-        if (intval($koubeiId) <= 0) {
+        if (empty($koubeiId) || empty($koubeiInfo)) {
             return false;
         }
         $where[] = ['id', $koubeiId];
@@ -147,7 +148,6 @@ class Koubei extends \DB_Query {
     }
     
     /**
-
      * 删除口碑
      */
     public function delete($id, $userId){
@@ -190,14 +190,67 @@ class Koubei extends \DB_Query {
     }
     
     /**
-    
-    * 批量删除口碑
-    */
+     * 批量删除口碑
+     */
     public function deleteKoubeis($koubeiIds){
         $where[] = ['id', $koubeiIds];
         $setData[] = ['status', 0];
         $affect = $this->update($setData, $where);
         return $affect;
+    }
+    
+    /**
+     * 根据蜜芽贴id查询口碑
+     * @param int $subjectId
+     * @param int $itemId
+     */
+    public function getKoubeiBySubjectId($subjectId){
+        $where = array();
+        $where[] = ['subject_id', $subjectId];
+        $result = $this->getRows($where);
+        return $result;
+    }
+    
+    /**
+     * 获取当天口碑帖子的星级信息
+     */
+    public function getTodayKoubeiItemId(){
+        $date = date('Y-m-d');
+        $where[] = ['status', 2];
+        $where[] = [":literal","date(created_time) = '$date'"];
+        $groupBy = 'item_id';
+        $field = "item_id";
+        $data = $this->getRows($where,$field,false,0,false,false,$groupBy);
+        if(!empty($data)){
+            $item_ids = array_column($data, 'item_id');
+        }else{
+            $item_ids = [];
+        }
+        return $item_ids;
+    }
+    
+    //口碑
+    public function getKoubeiScoreByItemIds($itemIds){
+        $date = date('Y-m-d');
+        $where[] = ['status', 2];
+        $where[] = ['item_id',$itemIds];
+        $groupBy = 'item_id';
+        $field = "group_concat(score) as score,item_id";
+        $data = $this->getRows($where,$field,false,0,false,false,$groupBy);
+        return $data;
+    }
+    
+    /**
+     * 更新口碑分数
+     */
+    public function updateKoubeiCount($koubeiIds, $num, $countType) {
+        if (empty($koubeiIds)) {
+            return false;
+        }
+    
+        $sql = "update $this->tableName set $countType = $countType+$num where id in ($koubeiIds)";
+        $result = $this->query($sql);
+        return $result;
     }
 
 }

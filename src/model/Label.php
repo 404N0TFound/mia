@@ -293,5 +293,67 @@ class Label {
         $data = $labelCategoryInfo->getCategroyByIds($categoryIds, $status);
         return $data;
     }
+    
+    /**
+     * @todo 删除标签
+     * @param label_id, subject_id
+     * @return 返回影响的行数
+     **/
+    public function removeLabelByLabelId($label_id)
+    {
+        $affect = $this->labelData->removeLabelByLabelId($label_id);
+        return $affect;
+    }
+    
+    /**
+     * 批量获取帖子下面的标签ID
+     */
+    public function getBatchSubjectLabelIds($subjectIds){
+        $data = $this->labelRelation->getBatchSubjectLabelIds($subjectIds);
+        return $data;
+    }
+    
+    /**
+     * 获取关联信息
+     * @param unknown $label_id
+     * @param unknown $subject_id
+     * @return unknown
+     */
+    public function getLabelRelation($subject_id,$label_id){
+        $data = $this->labelRelation->getLabelRelation($subject_id, $label_id);
+        return $data;
+    }
+    
+    /**
+     * 添加标签帖子关系表
+     * @param unknown $label_id
+     * @param unknown $subject_id
+     * @param unknown $is_recommend
+     * @param unknown $user_id
+     */
+    public function addLabelRelation($subject_id,$label_id,$is_recommend,$user_id){
+        $data = $this->labelRelation->addLabelRelation($subject_id, $label_id, $is_recommend, $user_id);
+        return $data;
+    }
+    
+    /**
+     * 给标签下的帖子  加精
+     * @param int $user_id 操作人id
+     */
+    public function setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+        $affect = $this->labelRelation->setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id);
+        return $affect;
+    }
+    
+    /**
+     * @todo 删除图片和标签的对应关系
+     * @param label_id, subject_id
+     * @return 返回影响的行数
+     **/
+    public function removeRelation($subject_id,$label_id){
+        $affect = $this->labelRelation->removeRelation($subject_id, $label_id);
+        return $affect;
+    }
+    
 
 }

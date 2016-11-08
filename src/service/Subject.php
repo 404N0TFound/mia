@@ -9,6 +9,7 @@ use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
+use mia\miagroup\Service\Koubei as KoubeiService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
@@ -22,6 +23,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     public $praiseService = null;
     public $albumService = null;
 	public $tagsService = null;
+    private $headlineRemote;
 
     public function __construct() {
         parent::__construct();
@@ -31,13 +33,14 @@ class Subject extends \mia\miagroup\Lib\Service {
         $this->praiseService = new PraiseService();
         $this->albumService = new AlbumService();
 		$this->tagsService = new PointTagsService();
+        $this->headlineRemote = new HeadlineRemote();
     }
 
     /**
      * 批量获取帖子信息
      * $currentUid 当前用户ID
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
-     * 'praise_info', 'share_info'
+     * 'praise_info', 'share_info', 'item', 'koubei'
      */
     public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
@@ -471,11 +474,22 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectSetInfo['group_labels'] = $labelArr;
         }
 
-		//插入标记
+        //发布帖子同时，保存一份未同步到口碑的相关帖子信息，用于后台同步到口碑贴用
+        $koubeiSubject = array();
+        $koubeiSubject['subject_id'] = $subjectId;
+        $koubeiSubject['user_id'] = $subjectSetInfo['user_id'];
+        $koubeiSubject['is_audited'] = 0;
+        $koubeiSubject['create_time'] = $subjectSetInfo['created'];
+        $koubeiService = new KoubeiService();
+        $koubeiService->addKoubeiSubject($koubeiSubject);
+        
+        //插入标记
         if(!empty($pointInfo[0])){
             foreach ($pointInfo as $itemPoint) {
                 //插入帖子标记信息
                 $this->tagsService->saveSubjectTags($subjectId,$itemPoint);
+                $subjectItem = array('subject_id'=>$subjectId,'item_id'=>$itemPoint['item_id']);
+                $this->subjectModel->addKoubeiSubjectItem($subjectItem);
             }
         }
         
@@ -534,6 +548,37 @@ class Subject extends \mia\miagroup\Lib\Service {
         $videoId = $this->subjectModel->addVideoBySubject($insertData);
         
         return $this->succ($videoId);
+    }
+    
+    /**
+     * 更新帖子信息
+     */
+    public function updateSubject($subjectId, $subjectInfo) {
+        $subject = $this->subjectModel->getSubjectByIds(array($subjectId), array());
+        $subject = $subject[$subjectId];
+        if (empty($subject)) {
+            return $this->error('1107');
+        }
+        if (!empty($subjectInfo['ext_info'])) { //处理ext_info
+            $extinfoField = \F_Ice::$ins->workApp->config->get('busconf.subject.extinfo_field');
+            if (is_array($subjectInfo['ext_info'])) {
+                $extinfo = $subject['ext_info'];
+                foreach ($subjectInfo['ext_info'] as $k => $v) {
+                    if (in_array($k, $extinfoField)) {
+                        $extinfo[$k] = $v;
+                    }
+                }
+                $subjectInfo['ext_info'] = json_encode($extinfo);
+            }
+        }
+        $setData = array();
+        if (is_array($subjectInfo)) {
+            foreach ($subjectInfo as $k => $v) {
+                $setData[] = [$k, $v];
+            }
+        }
+        $this->subjectModel->updateSubject($setData, $subjectId);
+        return $this->succ(true);
     }
 
     /**
@@ -855,8 +900,8 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $koubei = new \mia\miagroup\Service\Koubei();
                 $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $subjectInfo['user_id']);
             }
-        }elseif($status == 0){
-            //删除帖子
+        }else{
+            //删除帖子或恢复帖子
             $result = $this->subjectModel->deleteSubjects($subjectIds,$status,$shieldText);
         }
         
@@ -891,13 +936,17 @@ class Subject extends \mia\miagroup\Lib\Service {
         if(!isset($subject_info[$id]['video_info']['video_origin_url'])) {
             return;
         }
-        $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $subject_info[$id]['video_info']['video_origin_url'], 3);
+
+        $video_id = $subject_info[$id]['video_info']['id'];
+        //视频信息
+        $info = $this->subjectModel->getBatchVideoExtInfos([$video_id]);
+
+        $second = floor($info[$video_id]['ext_info']['video_time']/2);
+        $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $subject_info[$id]['video_info']['video_origin_url'], $second);
         if(empty($cover_image)) {
             return;
         }
         //修改
-        $video_id = $subject_info[$id]['video_info']['id'];
-        $info = $this->subjectModel->getBatchVideoExtInfos([$video_id]);
         $ext_arr = $info[$video_id]['ext_info'];
         $ext_arr['cover_image'] = $cover_image;
 
@@ -907,5 +956,106 @@ class Subject extends \mia\miagroup\Lib\Service {
         unset($where);
         unset($setInfo);
     }
+
+    /**
+     * 修改帖子内容
+     */
+    public function editSubject($type, $editData)
+    {
+        if (empty($type) || empty($editData) || !is_array($editData)) {
+
+        }
+        if ($type == 1) {
+            //视频修改
+            $setData = array();
+            if (isset($editData['title'])) {
+                $setData[] = ['title', $editData['title']];
+            }
+            $editRes = $this->subjectModel->updateSubject($setData, $editData['subject_id']);
+            if (!$editRes) {
+                return $this->error(20001);
+            }
+            return $this->succ($editRes);
+        } elseif ($type == 2) {
+            //专栏修改
+            $setData = array();
+            if (isset($editData['user_id'])) {
+                $data['con']['user_id'] = $editData['user_id'];
+            }
+            if (isset($editData['album_id'])) {
+                $data['con']['album_id'] = $editData['album_id'];
+            }
+            if (isset($editData['id'])) {
+                $data['con']['id'] = $editData['id'];
+            }
+            if (isset($editData['subject_id'])) {
+                $data['con']['subject_id'] = $editData['subject_id'];
+            }
+            if (isset($editData['title'])) {
+                $data['set']['title'] = $editData['title'];
+            }
+            $editRes = $this->albumService->updateAlbumArticle($data);
+            if (!$editRes) {
+                return $this->error(20001);
+            }
+            return $this->succ($editRes);
+        } else {
+            return $this->error(500);
+        }
+    }
+
+    /**
+     * 帖子搜索
+     */
+    public function getSearchInfos($keyword, $type, $page = 1)
+    {
+        if (empty($keyword) || empty($type)) {
+            return $this->error(500);
+        }
+        $start = ($page -1)*10;
+        $rows = 10;
+        $subjectData = $this->headlineRemote->subjectList($keyword, $type, $start, $rows);
+        return $this->succ($subjectData);
+    }
+    
+
+    /**
+     * UMS
+     * 批量设置帖子置顶/取消置顶
+     * @param unknown $subjectIds
+     */
+    public function setSubjectTopStatus($subjectIds,$status=1){
+        if($status == 1){
+            //帖子加精并置顶数不能超过5个
+            $num = $this->subjectModel->getSubjectTopNum();
+            if($num >= 5){
+                return $this->error(90006,'帖子置顶的数量超过限制！');
+            }
+        }
+        $affect = $this->subjectModel->setSubjectTopStatus($subjectIds,$status);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 加入推荐池
+     */
+    public function addRecommentPool($subjectIds,$dateTime){
+        $inser_id = $this->subjectModel->addRecommentPool($subjectIds, $dateTime);
+        return $this->succ($inser_id);
+    }
+    
+    /**
+     * UMS
+     * 取消推荐
+     */
+    public function cacelSubjectIsFine($subjectId){
+        //取消推荐专栏合集
+        $albumService = new \mia\miagroup\Service\Album();
+        $albumService->cacelRecommentBySubjectId($subjectId)['code'];
+        $affect = $this->subjectModel->cacelSubjectIsFine($subjectId);
+        return $this->succ($affect);
+    }
+    
 }
 

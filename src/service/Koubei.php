@@ -262,6 +262,93 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $koubeiInfo;
     }
 
+    /**
+     * 蜜芽贴同步到口碑
+     * @param $subjectData array() 蜜芽贴信息
+     */
+    public function setSubjectToKoubei($subjectId, $itemId) {
+        //判断该蜜芽贴是否同步到口碑贴
+        $koubeiInfo = $this->koubeiModel->getKoubeiBySubjectId($subjectId);
+        if (!empty($koubeiInfo)) {
+            //如果同步过，则直接返回同步过的口碑id
+            return $this->succ($koubeiInfo['id']);
+        }
+        $subjectService = new SubjectService();
+        $subjectData = $subjectService->getSingleSubjectById($subjectId, 0 , array('group_labels'))['data'];
+        //如果没有同步过，则同步为口碑贴
+        $koubeiSetData = array();
+        $koubeiSetData['status'] = 2;
+        $koubeiSetData['title'] = (isset($subjectData['title'])) ? trim($subjectData['title']) : "";
+        $koubeiSetData['content'] = trim($this->emojiUtil->emoji_unified_to_html($subjectData['text']));
+        $koubeiSetData['item_id'] = $itemId;
+        $koubeiSetData['user_id'] = $subjectData['user_id'];
+        $koubeiSetData['subject_id'] = (isset($subjectData['id'])) ? trim($subjectData['id']) : '';
+        $koubeiSetData['created_time'] = date('Y-m-d H:i:s', time());
+        $koubeiSetData['immutable_score'] = $this->calImmutableScore($subjectData);
+        $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
+        
+        $extInfo = array();
+        $extInfo['label'] = array();
+        $extInfo['image'] = array();
+        if (!empty($subjectData['group_labels'])) {
+            foreach ($subjectData['group_labels'] as $label) {
+                $extInfo['label'][] = $label['title'];
+            }
+        }
+        if (!empty($subjectData['image_infos'])) {
+            foreach ($subjectData['image_infos'] as $image) {
+                $imageInfo = array();
+                $url = parse_url($image['url']);
+                $imageInfo['url'] = ltrim($url['path'], '/');
+                $imageInfo['width'] = $image['width'];
+                $imageInfo['height'] = $image['height'];
+                
+                $extInfo['image'][] = $imageInfo;
+            }
+        }
+        $koubeiSetData['extr_info'] = json_encode($extInfo);
+        $mKoubei = new KoubeiModel();
+        $koubeiInsertId = $mKoubei->saveKoubei($koubeiSetData);
+        
+        if (!$koubeiInsertId) {
+            return $this->error(6101);
+        }
+        
+        // 3、如果蜜芽贴图片不为空，则同步到口碑图片中
+        if (!empty($subjectData['image_infos'])) {
+            foreach ($subjectData['image_infos'] as $path) {
+                $koubeiPicData = array();
+                if (!empty($path)) {
+                    $url = parse_url($path['url']);
+                    $url = ltrim($url['path'], '/');
+                    $ss = explode(".", $url);
+                    $koubeiPicData = array("koubei_id" => $koubeiInsertId, "local_url" => $url, "local_url_origin" => $url, "local_url_big" => $ss[0] . "_big." . $ss[1]);
+                    $mKoubei->saveKoubeiPic($koubeiPicData);
+                }
+            }
+        }
+        
+        //口碑ID回写到蜜芽帖
+        if ($koubeiInsertId > 0 && $subjectData['id'] > 0) {
+            $subjectService = new SubjectService();
+            $subjectInfo['ext_info']['koubei']['id'] = $koubeiInsertId;
+            $subjectService->updateSubject($subjectData['id'], $subjectInfo);
+        }
+        
+        //更新口碑蜜芽贴中的通过状态为通过
+        $this->koubeiModel->updateKoubeiSubjectStatus($subjectId, 1);
+    
+        return $this->succ($koubeiInsertId);
+    }
+    
+    /**
+     * 新增口碑待审核记录
+     */
+    public function addKoubeiSubject($data) {
+        $result = $this->koubeiModel->addKoubeiSubject($data);
+        return $this->succ($result);
+    }
+
     //获取口碑的不变分数
     private function calImmutableScore($data)
     {
@@ -291,7 +378,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         
         //口碑评分，权重1
-        $immutable_score += ($data['score'] * 1.5);
+        $immutable_score += (intval($data['score']) * 1.5);
         
         return $immutable_score;
     }
@@ -320,6 +407,69 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public function deleteKoubeis($koubeiIds){
         //删除对应口碑
         $res = $this->koubeiModel->deleteKoubeis($koubeiIds);
+        return $this->succ($res);
+    }
+    
+    /**
+     * 口碑加精
+     */
+    public function setKoubeiRank($koubeiIds, $rank)
+    {
+        $res = $this->koubeiModel->setKoubeiRank($koubeiIds, $rank);
+        return $this->succ($res);
+    }
+    
+    /**
+     * 修改口碑审核通过状态
+     */
+    public function setKoubeiStatus($koubeiId, $status)
+    {
+        if(!is_numeric($koubeiId) || intval($koubeiId) <= 0){
+            return $this->error(500);
+        }
+         //更新口碑状态
+        $koubeUpData = array('status'=>$status);
+        $res = $this->koubeiModel->setKoubeiStatus($koubeiId, $koubeUpData);
+        //如果是修改为不通过，不需要同步蜜芽圈
+        if($status== -1){
+            return $this->succ($res);
+        }
+        //查出口碑信息，用户提供同步数据
+        $koubeInfo = $this->koubeiModel->getBatchKoubeiByIds(array($koubeiId), array(2))[$koubeiId];
+        if($koubeInfo['subject_id'] > 0){
+            //如果同步过，直接返回通过状态
+            return $this->succ($res);
+        }
+        if(!empty($koubeInfo['extr_info'])){
+            $extInfo = json_decode($koubeInfo['extr_info'],true);
+            $imageInfos = $extInfo['image'];
+            $labels = $extInfo['label'];
+        }
+        //同步蜜芽圈帖子
+        //#############start
+        $subjectInfo = array();
+        $subjectInfo['user_info']['user_id'] = $koubeInfo['user_id'];
+        $subjectInfo['title'] = $koubeInfo['title'];
+        $subjectInfo['text'] = $koubeInfo['content'];
+        $subjectInfo['created'] = $koubeInfo['created_time'];
+        $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
+        $subjectInfo['image_infos'] = isset($imageInfos) ? $imageInfos : array();
+        $labelInfos = array();
+        
+        if(isset($labels) && !empty($labels))
+        {
+            foreach($labels as $label)
+            {
+                $labelInfos[] = array('title' => $label);
+            }
+        }
+        $pointInfo[0] = array( 'item_id' => $koubeInfo['item_id']);
+        $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiId)['data'];
+        //#############end
+        //将帖子id回写到口碑表中
+        if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
+            $this->koubeiModel->addSubjectIdToKoubei($koubeiId,$subjectIssue['id']);
+        }
         return $this->succ($res);
     }
     
