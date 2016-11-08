@@ -58,7 +58,7 @@ class Koubei extends \DB_Query {
         if (!empty($cond)) {
             //检查是否使用索引，没有索引强制加
             if (empty(array_intersect(array_keys($cond), $this->indexKoubeiSubjects))) {
-                $where[] = [':ge','created_time', date('Y-m-d H:i:s', time() - 86400 * 90)];
+                $where[] = [':ge','create_time', date('Y-m-d H:i:s', time() - 86400 * 90)];
             }
             
             //因为连表查询，两个表中都存在帖子id，所以要选择一个作为查询条件
@@ -70,10 +70,10 @@ class Koubei extends \DB_Query {
             foreach ($cond as $k => $v) {
                 switch ($k) {
                     case 'start_time':
-                        $where[] = [':ge','created_time', $v];
+                        $where[] = [':ge','create_time', $v];
                         break;
                     case 'end_time':
-                        $where[] = [':le','created_time', $v];
+                        $where[] = [':le','create_time', $v];
                         break;
                     default:
                         $where[] = [$k, $v];
