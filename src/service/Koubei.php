@@ -246,19 +246,22 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $itemKoubei[$koubei['subject_id']] = array(
                 'rank' => $koubei['rank'],
                 'score' => $koubei['score'],
+                'item_id' => $koubei['item_id'],
                 'item_size' => $koubei['item_size']) ;
         }
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
-        $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , array('user_info', 'count', 'comment', 'group_labels', 'praise_info'));
-        if(!empty($subjectRes) && !empty($itemKoubei)){
-            foreach( $itemKoubei as $key => $value)
-            {
-                if(!empty($subjectRes['data'][$key]))
-                {
-                    $subjectRes['data'][$key]['item_koubei'] = $value;
-                    //口碑信息拼装到帖子
-                    $koubeiInfo[] = $subjectRes['data'][$key];
+        $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item'));
+        foreach ($itemKoubei as $key => $value) {
+            if (!empty($subjectRes['data'][$key])) {
+                foreach ($subjectRes['data'][$key]['items'] as $item) {
+                    if ($item['item_id'] == $value['item_id']) {
+                        $value['item_info'] = $item;
+                        break;
+                    }
                 }
+                $subjectRes['data'][$key]['item_koubei'] = $value;
+                // 口碑信息拼装到帖子
+                $koubeiInfo[] = $subjectRes['data'][$key];
             }
         }
         return $koubeiInfo;
