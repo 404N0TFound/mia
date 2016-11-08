@@ -489,7 +489,6 @@ class Subject extends \mia\miagroup\Lib\Service {
                 //插入帖子标记信息
                 $this->tagsService->saveSubjectTags($subjectId,$itemPoint);
                 $subjectItem = array('subject_id'=>$subjectId,'item_id'=>$itemPoint['item_id']);
-                $this->subjectModel->addKoubeiSubjectItem($subjectItem);
             }
         }
         

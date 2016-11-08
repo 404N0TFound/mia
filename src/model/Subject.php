@@ -291,16 +291,6 @@ class Subject {
      }
      
     /**
-     * 新增口碑贴关联商品信息
-     * @param array $subjectItemData
-     */
-    public function addKoubeiSubjectItem($subjectItemData){
-        $koubeiItemData = new KoubeiSubjectItemData();
-        $result = $koubeiItemData->saveKoubeiSubjectItem($subjectItemData);
-        return $result;
-    }
-    
-    /**
      * 帖子置顶
      */
     public function setSubjectTopStatus($subjectIds,$status=1){
