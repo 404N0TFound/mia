@@ -194,12 +194,8 @@ class Label extends \mia\miagroup\Lib\Service {
                     $this->labelModel->updateLabelImgInfo($labelId, $imgWidth, $setData);
                     $imgUrl = \F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $label['hot_pic'];
                     $rec_pic = array('pic' => array('url' => strval($imgUrl), 'width' => $imgWidth, 'height' => $imgHeight));
-                } else {
-                    $rec_pic = (object)array();
                 }
             }
-        } else {
-            $rec_pic = (object)array();
         }
         
         $labelBaseInfo = array(
