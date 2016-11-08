@@ -140,9 +140,10 @@ class SubjectLabelRelation extends \DB_Query {
      * 给标签下的帖子  加精
      * @param int $user_id 操作人id
      */
-    public function setLabelRelationRecommend($id,$is_recommend,$user_id){
-        $where[] = ['id',$id];
-        $setData[] = ['is_recommend',$is_recommend];
+    public function setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+        $where[] = ['subject_id',$subject_id];
+        $where[] = ['label_id',$label_id];
+        $setData[] = ['is_recommend',$recommend];
         $setData[] = ['operator',$user_id];
         $setData[] = ['recom_time','now()'];
         $affect = $this->update($setData,$where);
