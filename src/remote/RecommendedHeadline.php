@@ -117,6 +117,7 @@ class RecommendedHeadline
         //记录日志
         \F_Ice::$ins->mainApp->logger_remote->info(array(
             'third_server'  =>  'headline',
+            'type'          =>  'INFO',
             'request_param' =>  $params,
             'response_code' =>  $error_no,
             'response_data' =>  $result,
