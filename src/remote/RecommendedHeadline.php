@@ -114,6 +114,10 @@ class RecommendedHeadline
         $error_no = curl_errno($ch);
         $error_str = curl_error($ch);
         $getCurlInfo = curl_getinfo($ch);
+        
+        $result = json_decode($result, true);
+        curl_close($ch);
+        
         //记录日志
         \F_Ice::$ins->mainApp->logger_remote->info(array(
             'third_server'  =>  'headline',
@@ -125,9 +129,6 @@ class RecommendedHeadline
             'resp_time'     =>  $getCurlInfo['total_time'],
         ));
         
-        $result = json_decode($result, true);
-        curl_close($ch);
-
         if ($result['ret'] != 0) {
             return false;
         } else {
