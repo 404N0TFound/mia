@@ -37,7 +37,7 @@ class Audit {
      */
     public function getDeviceShieldByDeviceInfo($deviceInfo) {
         $data = $this->deviceShieldData->getDeviceShieldByDeviceInfo($deviceInfo);
-        if (!empty($data) && $data['status'] == 0) {
+        if (!empty($data) && $data['status'] == 1) {
             return true;
         } else {
             return false;
