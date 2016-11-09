@@ -90,4 +90,24 @@ class Item extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 查询某供应商下的所有商品
+     */
+    public function getAllItemBySupplyId($supplyId) {
+        $this->tableName = $this->tableItem;
+        if (empty($supplyId)) {
+            return false;
+        }
+        $where[] = array('supplier_id', $supplyId);
+        $where[] = array('status', array(0, 1));
+        $data = $this->getRows($where, 'id');
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[] = $v['id'];
+            }
+        }
+        return $result;
+    }
 }

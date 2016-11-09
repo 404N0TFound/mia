@@ -26,7 +26,7 @@ $defaultShareInfo = array(
         'extend_text'            => '看白富美妈妈分享的好货',
     ),
     'label' => array(
-        'img_url'   =>'http://o6ov54mbs.bkt.clouddn.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
+        'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
         'wap_url' => 'http://m.mia.com/wx/group/grouplable/%s.html',
         'title'      => '蜜芽圈',
         'desc'      => '妈妈们正在热聊#%s~#，你也来看看吧~',
@@ -92,7 +92,7 @@ $album = array(
              'width' => 640,
              'height' => 640,
              'suffix' => '.jpg',
-             'file_type' => '@style@watermark640',
+             'file_type' => '@style@watermark640new',
              'limit_width' => true,
              'limit_height' => false,
          ),

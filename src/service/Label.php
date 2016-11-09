@@ -194,12 +194,8 @@ class Label extends \mia\miagroup\Lib\Service {
                     $this->labelModel->updateLabelImgInfo($labelId, $imgWidth, $setData);
                     $imgUrl = \F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $label['hot_pic'];
                     $rec_pic = array('pic' => array('url' => strval($imgUrl), 'width' => $imgWidth, 'height' => $imgHeight));
-                } else {
-                    $rec_pic = (object)array();
                 }
             }
-        } else {
-            $rec_pic = (object)array();
         }
         
         $labelBaseInfo = array(
@@ -210,6 +206,14 @@ class Label extends \mia\miagroup\Lib\Service {
             'is_hot'        => intval($label['is_hot']),
             'is_focused'    => intval($isFocus),
         );
+        
+        //检测标签下是否存在精品
+        $is_recommend_label = $this->labelModel->getLabelIsRecommendInfo($labelId);
+        if(empty($is_recommend_label)){
+            $exist_recommend = 0;
+        }else{
+            $exist_recommend = 1;
+        }
 
         if (in_array('share_info', $fields)) {
             // 分享内容
@@ -218,8 +222,27 @@ class Label extends \mia\miagroup\Lib\Service {
             $share = $shareConfig['groupShare'];
             $shareTitle = $shareDefault['title'];
             $shareDesc = sprintf($shareDefault['desc'],$label['title']);
-            $shareImage = $shareDefault['img_url'];
             $h5Url = sprintf($shareDefault['wap_url'], $label['id']);
+            //分享图：优先运营配图，其次标签精选/普通下图片的第一张，都没有取默认
+            if (!empty($rec_pic)) {
+                $shareImage = $rec_pic['pic']['url'];
+            } else {
+                if ($exist_recommend == 1) {
+                    $data = $this->getLableSubjects($labelId, 0, 1, 10, 1)['data'];
+                } else {
+                    $data = $this->getLableSubjects($labelId)['data'];
+                }
+                foreach ($data as $v) {
+                    if (!empty($v['image_infos'])) {
+                        $shareImage = reset($v['image_infos']);
+                        $shareImage = $shareImage['url'];
+                        break;
+                    }
+                }
+            }
+            if (empty($shareImage)) {
+                $shareImage = $shareDefault['img_url'];
+            }
 
             // 替换搜索关联数组
             $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url, '{|extend_text|}' => $shareDefault['extend_text']);
@@ -228,13 +251,6 @@ class Label extends \mia\miagroup\Lib\Service {
                 $shareInfo[] = NormalUtil::buildGroupShare($sh, $replace);
             }
             $labelBaseInfo['share_info'] = $shareInfo;
-        }
-        //检测标签下是否存在精品
-        $is_recommend_label = $this->labelModel->getLabelIsRecommendInfo($labelId);
-        if(empty($is_recommend_label)){
-            $exist_recommend = 0;
-        }else{
-            $exist_recommend = 1;
         }
         
         $result = array(
@@ -268,11 +284,6 @@ class Label extends \mia\miagroup\Lib\Service {
             }else{
                 unset($activeSujectInfo[$key]['is_top']);
             }
-            //验证用户是否已屏蔽
-            if($auditService->checkUserIsShield($activeSujectInfo[$key]['user_id'])['data']['is_shield']){
-                unset($activeSujectInfo[$key]);
-            }
-            
         }
         return $this->succ(array_values($activeSujectInfo));
     }
