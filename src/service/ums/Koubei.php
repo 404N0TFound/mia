@@ -5,9 +5,8 @@ use mia\miagroup\Model\Ums\Koubei as KoubeiModel;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Model\Ums\Item as ItemModel;
 use mia\miagroup\Service\Subject as SubjectService;
+use mia\miagroup\Service\Koubei as KoubeiService;
 use mia\miagroup\Util\EmojiUtil;
-use mia\miagroup\Model\Koubei as KoubeiApiModel;
-use mia\miagroup\Model\Ums\Subject as SubjectUmsModel;
 
 class Koubei extends \mia\miagroup\Lib\Service {
     
@@ -106,15 +105,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($data['list'])) {
             return $this->succ($result);
         }
-        $subjectIds = array();
+        $koubeiIds = array();
         foreach ($data['list'] as $v) {
-            $subjectIds[] = $v['subject_id'];
+            $koubeiIds[] = $v['id'];
         }
-        $subjectService = new SubjectService();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item'), array())['data'];
+        $koubeiService = new KoubeiService();
+        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds)['data'];
         foreach ($data['list'] as $v) {
             $tmp = $v;
-            $tmp['subject'] = $subjectInfos[$v['subject_id']];
+            $tmp['subject'] = $koubeiInfos[$v['id']];
             $result['list'][] = $tmp;
         }
         $result['count'] = $data['count'];

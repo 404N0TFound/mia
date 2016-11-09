@@ -216,8 +216,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $offset = $page > 1 ? ($page - 1) * $count : 0;
         $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
         //5、获取口碑信息
-        $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId);
-        $koubeiRes['koubei_info'] = $koubeiInfo;
+        $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId)['data'];
+        $koubeiRes['koubei_info'] = !empty($koubeiInfo) ? array_values($koubeiInfo) : array();
         
         //如果综合评分和蜜粉推荐都为0，且当页无口碑，则返回空数组，如果当页有口碑，则返回口碑记录
         //（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
@@ -234,7 +234,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 根据口碑ID获取口碑信息
      */
-    public function getBatchKoubeiByIds($koubeiIds,$userId) {
+    public function getBatchKoubeiByIds($koubeiIds, $userId = 0) {
         $koubeiInfo = array();
         //批量获取口碑信息
         $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status = array(2));
@@ -244,6 +244,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $subjectId[] = $koubei['subject_id'];
         
             $itemKoubei[$koubei['subject_id']] = array(
+                'id' => $koubei['id'],
                 'rank' => $koubei['rank'],
                 'score' => $koubei['score'],
                 'item_id' => $koubei['item_id'],
@@ -261,10 +262,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }
                 $subjectRes['data'][$key]['item_koubei'] = $value;
                 // 口碑信息拼装到帖子
-                $koubeiInfo[] = $subjectRes['data'][$key];
+                $koubeiInfo[$value['id']] = $subjectRes['data'][$key];
             }
         }
-        return $koubeiInfo;
+        return $this->succ($koubeiInfo);
     }
 
     /**
