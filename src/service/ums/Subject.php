@@ -26,10 +26,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         $orderBy = 'id desc'; //默认排序
         $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 50;
         $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
-    
         if (intval($params['id']) > 0) {
             //帖子ID
-            $condition['id'] = $params['id'];
+            $condition['id'] = $koubeiCondtion['subject_id'] = $params['id'];
         }
         if (intval($params['user_id']) > 0 && intval($condition['id']) <= 0) {
             //用户id
@@ -55,10 +54,11 @@ class Subject extends \mia\miagroup\Lib\Service {
             //是否是置顶
             $condition['is_top'] = $params['is_top'];
         }
-        if ($params['is_audited'] !== null && $params['is_audited'] !== '' && in_array($params['is_audited'], array(0, 1)) && intval($condition['id']) <= 0) {
+        if ($params['is_audited'] !== null && $params['is_audited'] !== '' && in_array($params['is_audited'], array(0, 1))) {
             //是否已同步口碑
             $koubeiCondtion['is_audited'] = $params['is_audited'];
         }
+        
         if (intval($params['item_id']) > 0 && intval($condition['id']) <= 0) {
             //商品ID
             $koubeiCondtion['item_id'] = $params['item_id'];

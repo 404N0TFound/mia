@@ -78,6 +78,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $condition['id'] = $itemIds;
             }
         }
+        
+        if (intval($params['supplier_id']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+            //供应商ID
+            $itemIds = intval($this->itemModel->getAllItemBySupplyId($params['supplier_id']));
+            if (!empty($itemIds)) {
+                $condition['id'] = $itemIds;
+            }
+        }
+        
         if (intval($params['category_id']) > 0 && empty($params['brand_name']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //类目ID
             $itemIds = $this->itemModel->getAllItemByCategoryId($params['category_id']);
