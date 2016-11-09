@@ -29,21 +29,48 @@ class Coupon
         $param = [
             'batchCodes' => $batchCodes,
         ];
+        
+        try{
+            $request_startTime = gettimeofday(true);
+            $couponParam = new \miasrv\coupon\api\TParamsRemainCoupon($param);
+            $res = $this->apiClient->remainCoupon($couponParam, $this->commonParams);
+            $request_endTime = gettimeofday(true);
 
-        $couponParam = new \miasrv\coupon\api\TParamsRemainCoupon($param);
-        $res = $this->apiClient->remainCoupon($couponParam, $this->commonParams);
-        if (isset($res->code) && $res->code == 0) {
-            $result = array();
-            foreach ($res->remains as $k => $v) {
-                $result[$v->batchCode] = [
-                    'type'   => $v->type,
-                    'total'  => $v->total,
-                    'remain' => $v->remain,
-                ];
+            //记录日志
+            \F_Ice::$ins->mainApp->logger_remote->info(array(
+                'third_server'  =>  'coupon',
+                'type'          =>  'INFO',
+                'request_param' =>  $param,
+                'response_code' =>  $res->code,
+                'response_data' =>  $res,
+                'response_msg'  =>  '',
+                'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
+            ));
+            
+            if (isset($res->code) && $res->code == 0) {
+                $result = array();
+                foreach ($res->remains as $k => $v) {
+                    $result[$v->batchCode] = [
+                        'type'   => $v->type,
+                        'total'  => $v->total,
+                        'remain' => $v->remain,
+                    ];
+                }
+                return $result;
+            } else {
+                return null;
             }
-            return $result;
-        } else {
-            return null;
+        }catch (\Exception $e){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'coupon',
+                'type'          =>  'ERROR',
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ));
         }
     }
 
@@ -57,17 +84,43 @@ class Coupon
         $param = [
             'batchCodes' => $batchCodes,
         ];
-    
-        $couponParam = new \miasrv\coupon\api\TParamsQueryCouponInfoList($param);
-        $res = $this->apiClient->queryCouponInfoList($couponParam, $this->commonParams);
-        if (isset($res->code) && $res->code == 0) {
-            $result = array();
-            foreach ($res->pageList as $k => $v) {
-                $result[$v->batchCode] = (array)$v;
+        try{
+            $request_startTime = gettimeofday(true);
+            $couponParam = new \miasrv\coupon\api\TParamsQueryCouponInfoList($param);
+            $res = $this->apiClient->queryCouponInfoList($couponParam, $this->commonParams);
+            $request_endTime = gettimeofday(true);
+            
+            //记录日志
+            \F_Ice::$ins->mainApp->logger_remote->info(array(
+                'third_server'  =>  'coupon',
+                'type'          =>  'INFO',
+                'request_param' =>  $param,
+                'response_code' =>  $res->code,
+                'response_data' =>  $res,
+                'response_msg'  =>  '',
+                'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
+            ));
+            
+            if (isset($res->code) && $res->code == 0) {
+                $result = array();
+                foreach ($res->pageList as $k => $v) {
+                    $result[$v->batchCode] = (array)$v;
+                }
+                return $result;
+            } else {
+                return null;
             }
-            return $result;
-        } else {
-            return null;
+        }catch (\Exception $e){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'coupon',
+                'type'          =>  'ERROR',
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ));
         }
     }
 
@@ -88,45 +141,71 @@ class Coupon
             'pageSize'   => $page_size,
         ];
 
-        $coupon_param = new \miasrv\coupon\api\TParamsQueryUserCouponByBatchCode($param);
-        $res = $this->apiClient->queryUserCouponByBatchCode($coupon_param, $this->commonParams);
-        if (isset($res->code) && $res->code == 0) {
-            $item_list = array();
-            foreach ($res->couponList as $item) {
-                $item_list[] = [
-                    'couponCode'    => $item->couponCode,
-                    'value'         => $item->value,
-                    'minPrice'      => $item->minPrice,
-                    'useRang'       => $item->useRang,
-                    'startTime'     => $item->startTime,
-                    'expireTime'    => $item->expireTime,
-                    'bindTime'      => $item->bindTime,
-                    'bindUserId'    => $item->bindUserId,
-                    'timeValidType' => $item->timeValidType,
-                    'validDay'      => $item->validDay,
-                    'businessType'  => $item->businessType,
-                    'businessId'    => $item->businessId,
-                    'isPassword'    => $item->isPassword,
-                    'password_code' => $item->password_code,
-                    'isUsable'      => $item->isUsable,
-                    'unuseableMsg'  => $item->unuseableMsg,
-                    'leftUseNum'    => $item->leftUseNum,
-                    'type'          => $item->type,
-                    'useStartTime'  => $item->useStartTime,
-                    'useEndTime'    => $item->useEndTime,
-                    'batchCode'     => $item->batchCode,
+        try{
+            $request_startTime = gettimeofday(true);
+            $coupon_param = new \miasrv\coupon\api\TParamsQueryUserCouponByBatchCode($param);
+            $res = $this->apiClient->queryUserCouponByBatchCode($coupon_param, $this->commonParams);
+            $request_endTime = gettimeofday(true);
+            //记录日志
+            \F_Ice::$ins->mainApp->logger_remote->info(array(
+                'third_server'  =>  'coupon',
+                'type'          =>  'INFO',
+                'request_param' =>  $param,
+                'response_code' =>  $res->code,
+                'response_data' =>  $res,
+                'response_msg'  =>  '',
+                'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
+            ));
+            
+            if (isset($res->code) && $res->code == 0) {
+                $item_list = array();
+                foreach ($res->couponList as $item) {
+                    $item_list[] = [
+                        'couponCode'    => $item->couponCode,
+                        'value'         => $item->value,
+                        'minPrice'      => $item->minPrice,
+                        'useRang'       => $item->useRang,
+                        'startTime'     => $item->startTime,
+                        'expireTime'    => $item->expireTime,
+                        'bindTime'      => $item->bindTime,
+                        'bindUserId'    => $item->bindUserId,
+                        'timeValidType' => $item->timeValidType,
+                        'validDay'      => $item->validDay,
+                        'businessType'  => $item->businessType,
+                        'businessId'    => $item->businessId,
+                        'isPassword'    => $item->isPassword,
+                        'password_code' => $item->password_code,
+                        'isUsable'      => $item->isUsable,
+                        'unuseableMsg'  => $item->unuseableMsg,
+                        'leftUseNum'    => $item->leftUseNum,
+                        'type'          => $item->type,
+                        'useStartTime'  => $item->useStartTime,
+                        'useEndTime'    => $item->useEndTime,
+                        'batchCode'     => $item->batchCode,
+                    ];
+                }
+    
+                $result = [
+                    'page_no'          => $res->pageNo,
+                    'page_size'        => $res->pageSize,
+                    'total_count'      => $res->totalCount,
+                    'coupon_info_list' => $item_list,
                 ];
+                return $result;
             }
-
-            $result = [
-                'page_no'          => $res->pageNo,
-                'page_size'        => $res->pageSize,
-                'total_count'      => $res->totalCount,
-                'coupon_info_list' => $item_list,
-            ];
-            return $result;
+            return null;
+        }catch (\Exception $e){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'coupon',
+                'type'          =>  'ERROR',
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ));
         }
-        return null;
     }
 
     /**
@@ -139,25 +218,53 @@ class Coupon
     public function bindCouponByBatchCode($user_id, $batch_code='')
     {
 
-        $couponBinds = array();
-        $tmp = array('batchCode'=>$batch_code, 'count'=>1);
-        $couponBinds[] = new \miasrv\coupon\api\TCouponBind($tmp);
-
-        $param = array(
-            'tCouponBinds' => $couponBinds,
-            'uid'          => $user_id,
-            'opUser'       => $user_id
-        );
-        $coupon_param = new \miasrv\coupon\api\TParamsBindCouponByBatchCode($param);
-        $res = $this->apiClient->bindCouponByBatchCode($coupon_param, $this->commonParams);
-        if(!empty($res->errorMap)){
-            $error_map = array();
-            foreach ($res->errorMap as $k=>$v){
-                 $error_map[$k]= $v->alert;
+        try{
+            $couponBinds = array();
+            $tmp = array('batchCode'=>$batch_code, 'count'=>1);
+            $couponBinds[] = new \miasrv\coupon\api\TCouponBind($tmp);
+    
+            $param = array(
+                'tCouponBinds' => $couponBinds,
+                'uid'          => $user_id,
+                'opUser'       => $user_id
+            );
+            
+            $request_startTime = gettimeofday(true);
+            $coupon_param = new \miasrv\coupon\api\TParamsBindCouponByBatchCode($param);
+            $res = $this->apiClient->bindCouponByBatchCode($coupon_param, $this->commonParams);
+            $request_endTime = gettimeofday(true);
+            
+            //记录日志
+            \F_Ice::$ins->mainApp->logger_remote->info(array(
+                'third_server'  =>  'coupon',
+                'type'          =>  'INFO',
+                'request_param' =>  $param,
+                'response_code' =>  $res->code,
+                'response_data' =>  $res,
+                'response_msg'  =>  '',
+                'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
+            ));
+            
+            if(!empty($res->errorMap)){
+                $error_map = array();
+                foreach ($res->errorMap as $k=>$v){
+                     $error_map[$k]= $v->alert;
+                }
+                return $error_map;     
             }
-            return $error_map;     
+            return true;
+        }catch (\Exception $e){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'coupon',
+                'type'          =>  'ERROR',
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ));
         }
-        return true;
     }
 
     private function _getCommonStr($version)

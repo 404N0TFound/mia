@@ -81,8 +81,8 @@ class Koubei extends \DB_Query {
             }
         }
         
-        $join = 'left join '.$this->tableKoubeiItem. ' as i on ' .$this->tableName . '.subject_id=i.subject_id ';
-        $fileds = 'distinct i.subject_id,is_audited ';
+        $join = 'left join '.$this->tableKoubeiItem. ' as i on ' .$this->tableName . '.subject_id=i.subject_id or i.subject_id is null ';
+        $fileds = 'distinct '. $this->tableName. '.subject_id,is_audited ';
         $result['count'] = $this->count($where, $join, $fileds);
         
         if (intval($result['count']) <= 0) {
