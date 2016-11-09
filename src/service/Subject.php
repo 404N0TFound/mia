@@ -934,13 +934,17 @@ class Subject extends \mia\miagroup\Lib\Service {
         if(!isset($subject_info[$id]['video_info']['video_origin_url'])) {
             return;
         }
-        $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $subject_info[$id]['video_info']['video_origin_url'], 3);
+
+        $video_id = $subject_info[$id]['video_info']['id'];
+        //视频信息
+        $info = $this->subjectModel->getBatchVideoExtInfos([$video_id]);
+
+        $second = floor($info[$video_id]['ext_info']['video_time']/2);
+        $cover_image = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $subject_info[$id]['video_info']['video_origin_url'], $second);
         if(empty($cover_image)) {
             return;
         }
         //修改
-        $video_id = $subject_info[$id]['video_info']['id'];
-        $info = $this->subjectModel->getBatchVideoExtInfos([$video_id]);
         $ext_arr = $info[$video_id]['ext_info'];
         $ext_arr['cover_image'] = $cover_image;
 
@@ -1046,10 +1050,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     public function cacelSubjectIsFine($subjectId){
         //取消推荐专栏合集
         $albumService = new \mia\miagroup\Service\Album();
-        $affect = $albumService->cacelRecommentBySubjectId($subjectId)['code'];
-        if(!$affect){
-            return $this->error(90008,'取消推荐专栏失败');
-        }
+        $albumService->cacelRecommentBySubjectId($subjectId)['code'];
         $affect = $this->subjectModel->cacelSubjectIsFine($subjectId);
         return $this->succ($affect);
     }

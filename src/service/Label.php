@@ -309,6 +309,7 @@ class Label extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * UMS
      * 输入标签添加关联关系
      */
     public function addSubjectLabelRelationInput($subject_id,$label_title,$user_id){
@@ -323,21 +324,23 @@ class Label extends \mia\miagroup\Lib\Service {
         }
         $resutl = $this->addSubjectLabelRelation($subject_id, $label_id, $user_id);
         if($resutl['code'] == 0){
-            return $this->succ($resutl['data']);            
+            return $this->succ($label_id);            
         }else{
             return $this->error($resutl['code'],$resutl['msg']);
         }
     }
     
     /**
+     * UMS
      * 给标签下的帖子加精
      */
-    public function changeLabelRelationRecommend($id,$recommend,$user_id){
-        $affect = $this->labelModel->setLabelRelationRecommend($id, $recommend, $user_id);
+    public function changeLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+        $affect = $this->labelModel->setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id);
         return $this->succ($affect);
     }
     
     /**
+     * UMS
      * 取消标签帖子关联关系
      */
     public function cancleSelectedTag($subject_id,$label_id,$from_input=0){

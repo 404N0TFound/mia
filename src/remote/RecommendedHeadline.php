@@ -111,9 +111,24 @@ class RecommendedHeadline
         curl_setopt($ch, CURLOPT_SSLVERSION, 1);
 
         $result = curl_exec($ch);
+        $error_no = curl_errno($ch);
+        $error_str = curl_error($ch);
+        $getCurlInfo = curl_getinfo($ch);
+        
         $result = json_decode($result, true);
         curl_close($ch);
-
+        
+        //记录日志
+        \F_Ice::$ins->mainApp->logger_remote->info(array(
+            'third_server'  =>  'headline',
+            'type'          =>  'INFO',
+            'request_param' =>  $params,
+            'response_code' =>  $error_no,
+            'response_data' =>  $result,
+            'response_msg'  =>  $error_str,
+            'resp_time'     =>  $getCurlInfo['total_time'],
+        ));
+        
         if ($result['ret'] != 0) {
             return false;
         } else {

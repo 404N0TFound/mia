@@ -175,12 +175,12 @@ class Koubei {
     /**
      * 加精口碑
      */
-    public function setKoubeiRank($koubeiIds, $koubeiInfo){
+    public function setKoubeiRank($koubeiIds, $rank){
         $koubeiSetInfo = array();
-        $koubeiSetInfo[] = ['rank',$koubeiInfo['rank']];
+        $koubeiSetInfo[] = ['rank',$rank];
         $result = $this->koubeiData->updateKoubeiInfoById($koubeiIds, $koubeiSetInfo);
         //修改口碑的相关分数
-        if($koubeiInfo['rank'] == 1){
+        if($rank == 1){
             $num = 3;
         }else{
             $num = -3;

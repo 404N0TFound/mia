@@ -63,7 +63,7 @@ class Koubei extends \DB_Query {
             
             //因为连表查询，两个表中都存在帖子id，所以要选择一个作为查询条件
             if(isset($cond['subject_id'])){
-                $cond['i.subject_id'] = $cond['subject_id'];
+                $cond['koubei_subjects.subject_id'] = $cond['subject_id'];
                 unset($cond['subject_id']);
             }
             //组装where条件
@@ -81,8 +81,8 @@ class Koubei extends \DB_Query {
             }
         }
         
-        $join = 'left join '.$this->tableKoubeiItem. ' as i on ' .$this->tableName . '.subject_id=i.subject_id ';
-        $fileds = 'distinct i.subject_id,is_audited ';
+        $join = 'left join '.$this->tableKoubeiItem. ' as i on ' .$this->tableName . '.subject_id=i.subject_id or i.subject_id is null ';
+        $fileds = 'distinct '. $this->tableName. '.subject_id,is_audited ';
         $result['count'] = $this->count($where, $join, $fileds);
         
         if (intval($result['count']) <= 0) {
