@@ -657,7 +657,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
      * 头条取关状态
      * return (int)flag
      */
-    private function getHeadLineSwitchFlag() {
+    public function getHeadLineSwitchFlag() {
         //头条降级处理
         $default_switch = (int)$this->headlineConfig['headLineSwitch']['default_switch'];
         return $this->succ($default_switch);
