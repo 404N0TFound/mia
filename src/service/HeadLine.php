@@ -34,7 +34,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array()) {
+    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array(), $opera_id = 0) {
         if(empty($channelId)){
             return $this->succ(array());
         }
@@ -70,8 +70,13 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_unique(array_merge($headlineIds, $headLineData));
         }
-        //获取运营数据
-        $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
+        // 头条区分版本
+        if(empty($opera_id)) {
+            //获取运营数据
+            $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
+        } else {
+            $operationData = array();
+        }
         //推荐数据、运营数据去重
         $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));
         //获取格式化的头条输出数据
@@ -647,4 +652,15 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         return $headLineList;
     }
+
+    /**
+     * 头条取关状态
+     * return (int)flag
+     */
+    public function getHeadLineSwitchFlag() {
+        //头条降级处理
+        $default_switch = (int)$this->headlineConfig['headLineSwitch']['default_switch'];
+        return $this->succ($default_switch);
+    }
+
 }

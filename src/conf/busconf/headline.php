@@ -51,3 +51,10 @@ $expert = [
     13864598,
     13864599,
 ];
+
+/**
+ * 头条banner降级开关
+ */
+$headLineSwitch = array(
+    'default_switch' => 1, //默认开启
+);
