@@ -55,7 +55,7 @@ class Live extends \DB_Query {
      * index：user_id subject_id start_time create_time
      */
     public function getLiveList($cond, $offset = 0, $limit = 100, $orderBy='') {
-        if (empty($cond['user_id']) && empty($cond['subject_id']) && empty($cond['start_time']) && empty($cond['create_time'])) {
+        if (empty($cond['id']) && empty($cond['user_id']) && empty($cond['subject_id']) && empty($cond['start_time']) && empty($cond['create_time'])) {
             // 不用索引返回false
             return false;
         }
@@ -145,5 +145,13 @@ class Live extends \DB_Query {
         $sql = "UPDATE $this->tableName SET $setField WHERE `id` = $liveId";
         $result = $this->query($sql);
         return $result;
+    }
+
+    /**
+     * 根据live表信息
+     */
+    public function updateLive($where, $setData) {
+        $data = $this->update($setData, $where);
+        return $data;
     }
 }

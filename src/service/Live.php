@@ -282,7 +282,12 @@ class Live extends \mia\miagroup\Lib\Service {
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0) {
         //获取房间信息
-        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag','coupon'))['data'][$roomId];
+        if ($liveId == 0) {
+            $liveIds = array();
+        } else {
+            $liveIds = [$liveId];
+        }
+        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag', 'coupon'), $liveIds)['data'][$roomId];
         if(empty($roomData)){
             //没有直播房间信息
             return $this->error(30003);
@@ -516,9 +521,11 @@ class Live extends \mia\miagroup\Lib\Service {
 
     /**
      * 获取直播房间列表
+     * $lastIds 对应的room的曾经直播场次id，不指定为latest_live_id
      * @author jiadonghui@mia.com
      */
-    public function getLiveRoomByIds($roomIds, $currentUid = 0, $field = array('user_info', 'live_info', 'share_info', 'settings')) {
+    public function getLiveRoomByIds($roomIds, $currentUid = 0, $field = array('user_info', 'live_info', 'share_info', 'settings'), $lastIds = array())
+    {
     	if (empty($roomIds) || !array($roomIds)) {
              return $this->succ(array());
         }
@@ -530,6 +537,7 @@ class Live extends \mia\miagroup\Lib\Service {
         //获取批量userid，用于取出直播房间的主播信息
         $userIdArr = array();
         $liveIdArr = array();
+
         foreach ($roomInfos as $roomInfo) {
             $userIdArr[] = $roomInfo['user_id'];
             if (intval($roomInfo['live_id']) > 0) {
@@ -537,6 +545,9 @@ class Live extends \mia\miagroup\Lib\Service {
             } else if (intval($roomInfo['latest_live_id']) > 0) {
                 $liveIdArr[] = $roomInfo['latest_live_id'];
             }
+        }
+        if(!empty($lastIds)){
+            $liveIdArr = $lastIds;
         }
         //通过userids批量获取主播信息
         if (in_array('user_info', $field)) {
@@ -548,9 +559,7 @@ class Live extends \mia\miagroup\Lib\Service {
         if (in_array('live_info', $field)) {
             $liveArr = $this->getBatchLiveInfoByIds($liveIdArr, array(3, 4))['data'];
         }
-
         $couponService = new Coupon();
-
         //将主播信息整合到房间信息中
         $roomRes = array();
         foreach($roomIds as $roomId){
@@ -583,6 +592,22 @@ class Live extends \mia\miagroup\Lib\Service {
                     $roomRes[$roomInfo['id']]['status'] = 1;
                 } else {
                     $roomRes[$roomInfo['id']]['status'] = 0;
+                }
+            }
+            if(!empty($liveArr[$roomInfo['latest_live_id']]['settings'])) {
+                $last_settings = json_decode($liveArr[$roomInfo['latest_live_id']]['settings'],true);
+                //让room表的数据覆盖上次直播的，以免对正在直播的数据有影响
+                if(empty($roomInfo['banners']) && !empty($last_settings['banners'])){
+                    $roomInfo['banners'] = $last_settings['banners'];
+                }
+                if(empty($roomInfo['redbag']) && !empty($last_settings['redbag'])){
+                    $roomInfo['redbag'] = $last_settings['redbag'];
+                }
+                if(empty($roomInfo['coupon']) && !empty($last_settings['coupon'])){
+                    $roomInfo['coupon'] = $last_settings['coupon'];
+                }
+                if(empty($roomInfo['share']) && !empty($last_settings['share'])){
+                    $roomInfo['share'] = $last_settings['share'];
                 }
             }
             if (in_array('settings', $field)) {
@@ -653,6 +678,7 @@ class Live extends \mia\miagroup\Lib\Service {
                 }
                 $roomRes[$roomInfo['id']]['share_info'] = array_values($share);
             }
+
         }
         return $this->succ($roomRes);
     }
