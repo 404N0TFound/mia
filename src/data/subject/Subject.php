@@ -245,9 +245,9 @@ class Subject extends \DB_Query {
     /**
      * 帖子置顶/取消置顶
      */
-    public function setSubjectTopStatus($subjectIds,$status=1){
+    public function setSubjectTopStatus($subjectIds,$status){
         //如果是取消置顶的，则需要把置顶时间更新为0
-        if($is_top == 0){
+        if($status == 0){
             $top_time = '0000-00-00 00:00:00';
         }else{
             $top_time = date('Y-m-d H:i:s',time());
