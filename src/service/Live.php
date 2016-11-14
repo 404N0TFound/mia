@@ -1042,4 +1042,19 @@ class Live extends \mia\miagroup\Lib\Service {
         return $this->succ($success);
     }
 
+    /**
+     * 查询当前房间是否有直播，有直播的话返回当前流信息
+     */
+    public function getRoomStream()
+    {
+
+    }
+
+    /**
+     * 查询当前房间历史直播信息
+     */
+    public function getRoomHistory()
+    {
+
+    }
 }
