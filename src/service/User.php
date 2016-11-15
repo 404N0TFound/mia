@@ -272,4 +272,34 @@ class User extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
     }
+    
+    /**
+     * 生成商家在蜜芽圈的用户
+     */
+    public function addSupplierUser($supplier_id, $user_info) {
+        //新增蜜芽圈用户
+        $new_user['username'] = 'supplier_' . $supplier_id;
+        $new_user['password'] = 'a255220a91378ba2f4aad17300ed8ab7';
+        $new_user['group_id'] = 0;
+        $new_user['relation'] = 3;
+        $new_user['create_date'] = date('Y-m-d H:i:s');
+        if (!empty($user_info['icon'])) {
+            $new_user['icon'] = $user_info['icon'];
+        }
+        if (!empty($user_info['nickname'])) {
+            $new_user['nickname'] = $user_info['nickname'];
+        }
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
+        $user_id = $this->userModel->addUser($new_user);
+        $user_info['id'] = $user_id;
+        
+        //升级为专家用户
+        $this->userModel->addExpert(array('user_id' => $user_id, 'last_modify' => date('Y-m-d H:i:s'), 'status' => 1));
+        
+        //商家用户与蜜芽圈用户绑定
+        $itemService = new \mia\miagroup\Service\Item();
+        $itemService->addUserSupplierMapping($supplier_id, $user_id);
+        \DB_Query::switchCluster($preNode);
+        return $this->succ($user_info);
+    }
 }

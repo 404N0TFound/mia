@@ -3,6 +3,7 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Subject as SubjectService;
+use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Model\Comment as CommentModel;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Service\News;
@@ -21,7 +22,7 @@ class Comment extends \mia\miagroup\Lib\Service {
      * 根据评论IDs批量获取评论信息
      * @param $field user_info parent_comment subject
      */
-    public function getBatchComments($commentIds, $field = array('user_info', 'parent_comment'), $status = array(1)) {
+    public function getBatchComments($commentIds, $field = array('user_info', 'parent_comment'), $status = array(1), $supplierHide = true) {
         $commentInfos = $this->commentModel->getBatchComments($commentIds, $status);
         if (empty($commentInfos)) {
             return $this->succ();
@@ -40,6 +41,16 @@ class Comment extends \mia\miagroup\Lib\Service {
         // 获取用户信息
         if (in_array('user_info', $field)) {
             $users = $this->userService->getUserInfoByUids($userIds)['data'];
+            if ($supplierHide == true) {
+                //是否有商家用户，如果是商家用户，不返回uid
+                $itemService = new ItemService();
+                $userMerchantRelations = $itemService->getBatchUserSupplierMapping($userIds);
+                foreach ($users as $uid => $user) {
+                    if ($userMerchantRelations[$uid]['status'] == 1) {
+                        $users[$uid]['id'] = '';
+                    }
+                }
+            }
         }
         // 获取帖子信息
         if (in_array('subject', $field)) {
@@ -323,5 +334,24 @@ class Comment extends \mia\miagroup\Lib\Service {
         }
         $arrSubjects = $this->commentModel->getSubjectIdsByComment($ids);
         return $this->succ($arrSubjects);
+    }
+    
+    /**
+     * 评论原子服务
+     */
+    public function addComment($params) {
+        // 评论信息入库
+        if (intval($params['subject_id']) <=0 || intval($params['user_id']) <=0 || empty($params['comment'])) {
+            return $this->error(500);
+        }
+        $commentInfo['subject_id'] = $params['subject_id'];
+        $commentInfo['user_id'] = $params['user_id'];
+        $commentInfo['comment'] = $params['comment'];
+        $commentInfo['fid'] = intval($params['fid']);
+        $commentInfo['is_expert'] = $params['is_expert'];
+        $commentInfo['create_time'] = date("Y-m-d H:i:s", time());
+        // 记录评论信息
+        $commentInfo['id'] = $this->commentModel->addComment($commentInfo);
+        return $commentInfo;
     }
 }

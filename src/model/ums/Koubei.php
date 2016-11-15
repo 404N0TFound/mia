@@ -35,6 +35,12 @@ class Koubei extends \DB_Query {
                     case 'end_time':
                         $where[] = [':le','created_time', $v];
                         break;
+                    case 'comment_start_time':
+                        $where[] = [':ge','comment_time', $v];
+                        break;
+                    case 'comment_end_time':
+                        $where[] = [':le','comment_time', $v];
+                        break;
                     default:
                         $where[] = [$k, $v];
                 }

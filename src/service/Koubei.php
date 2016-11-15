@@ -479,4 +479,80 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $this->succ($res);
     }
     
+    /**
+     * 商家评论
+     */
+    public function koubeiComment($supplierId, $subjectId, $comment, $fid = 0) {
+        if (empty($comment) || intval($subjectId) <= 0) {
+            return $this->error(500);
+        }
+        $comment = trim($this->emojiUtil->emoji_unified_to_html($comment));
+        if ($comment == "") {
+            return $this->error(500);
+        }
+        //过滤敏感词
+        $audit = new \mia\miagroup\Service\Audit();
+        $sensitive_res = $audit->checkSensitiveWords($comment)['data'];
+        if(!empty($sensitive_res['sensitive_words'])){
+            return $this->error(1112);
+        }
+        //判断用户是否是商家
+        if ($supplierId > 0) {
+            $itemService = new ItemService();
+            $supplierUserRelation = $itemService->getMappingBySupplierId($supplierId)['data'];
+            if (empty($supplierUserRelation) || $supplierUserRelation['status'] != 1) {
+                return $this->error(6107);
+            }
+            $userId = $supplierUserRelation['user_id'];
+        } else {
+            //如果没有指定商家，默认蜜芽兔
+            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+        }
+        //判断是否是口碑
+        $subjectService = new SubjectService();
+        $subjectInfoData = $subjectService->getBatchSubjectInfos(array($subjectId), 0, array())['data'];
+        $subjectInfo = $subjectInfoData[$subjectId];
+        if (intval($subjectInfo['koubei_id']) <=0) {
+            return $this->error(6106);
+        }
+        $koubeiId = $subjectInfo['koubei_id'];
+        //判断是否有父评论
+        $commentService = new \mia\miagroup\Service\Comment();
+        if (intval($fid) > 0) {
+            $parentInfo = $commentService->getBatchComments([$fid])['data'][$fid];
+            if(!empty($parentInfo)) {
+                if($parentInfo['status'] != 1) {
+                    //父ID 无效
+                    return $this->error(1108);
+                }
+            }
+        }
+    
+        // 评论信息入库
+        $commentInfo['subject_id'] = $subjectId;
+        $commentInfo['comment'] = $comment;
+        $commentInfo['user_id'] = $userId;
+        $commentInfo['fid'] = $fid;
+        $commentInfo['is_expert'] = 1;
+        $commentInfo['id'] = $commentService->addComment($commentInfo);
+    
+        //更新口碑表口碑回复状态
+        $koubeiInfo['reply'] = $comment;
+        $koubeiInfo['comment_status'] = 1;
+        $koubeiInfo['comment_supplier_id'] = $supplierId;
+        $koubeiInfo['comment_time'] = date('Y-m-d H:i:s');
+        $this->koubeiModel->updateKoubeiReplyStatus($koubeiId, $koubeiInfo);
+    
+        // 给被评论的口碑发消息
+        $newService = new \mia\miagroup\Service\News();
+        if ($userId != $subjectInfo['user_id']) {
+            $newService->addNews('single', 'group', 'img_comment', $userId, $subjectInfo['user_id'], $commentInfo['id']);
+        }
+        // 给口碑的评论回复发消息
+        if ($parentInfo['comment_user'] && $parentInfo['comment_user']['user_id'] != $userId) {
+            $newService->addNews('single', 'group', 'img_comment', $userId, $parentInfo['comment_user']['user_id'], $commentInfo['id'])['data'];
+        }
+    
+        return $this->succ($commentInfo);
+    }    
 }
