@@ -58,6 +58,9 @@ class User extends \mia\miagroup\Lib\Service {
         }
         // 批量获取专家信息
         $expertInfos = $this->getBatchExpertInfoByUids($userIds)['data'];
+        // 批量获取是否是供应商
+        $itemService = new \mia\miagroup\Service\Item();
+        $supplierInfos = $itemService->getBatchUserSupplierMapping($userIds)['data'];
         // 批量获取直播权限
         $liveService = new Live();
         $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
@@ -66,9 +69,9 @@ class User extends \mia\miagroup\Lib\Service {
         
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
-            $userInfo['icon'] = $userInfo['icon'] ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
+            $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; // 用户是否是供应商
             $userInfo['is_have_permission'] = !empty($videoPermissions[$userInfo['id']]) ? 1 : 0; // 用户是否有发视频权限
             if ($expertInfos[$userInfo['id']]) {
                 $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();
@@ -134,8 +137,14 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo[$key] = '';
             }
         }
+        if ($userInfo['is_supplier'] == 1) {
+            $userInfo['icon'] = !empty($userInfo['icon']) ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
+            $userInfo['nickname'] = !empty($userInfo['nickname']) ? $userInfo['nickname'] : '商家';
+        }
         if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\//", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
+        } else {
+            $userInfo['icon'] = F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
         }
         $userInfo['username'] = preg_replace('/(miya[\d]{3}|mobile_[\d]{3})([\d]{4})([\d]{4})/', "$1****$3", $userInfo['username']);
         if (!$userInfo['nickname']) {
