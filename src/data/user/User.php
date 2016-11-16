@@ -25,7 +25,8 @@ class User extends DB_Query {
         $user_data = $this->getRows($where, $field);
         if (!empty($user_data)) {
             foreach ($user_data as $k => $v) {
-                $user_data[$k]['icon'] = \mia\miagroup\Util\NormalUtil::urlHttpToHttps($v['icon']);
+                //http转https
+                $user_data[$k]['icon'] = str_replace('http://', 'https://', strval($v['icon']));
             }
         }
         return $user_data;

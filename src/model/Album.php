@@ -53,10 +53,7 @@ class Album {
             $albumIdArr = array_column($res,'album_id');
             $AlbumInfo = $this->albumData->getAlbumInfo($albumIdArr);
             foreach ($res as $key => $value) {
-                $img_pic = array();
-                if(isset($value['cover_image']) && $value['cover_image']){
-                    $img_pic = json_decode($value['cover_image'],true);
-                }
+                $img_pic = $value['cover_image'];
                 if($img_pic){
                     $res[$key]['cover_image'] = array();
                     if (strpos($img_pic['url'], 'http') === 0) {

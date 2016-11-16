@@ -33,6 +33,8 @@ class Video extends \DB_Query {
         $result = array();
         if (!empty($videoArr)) {
             foreach ($videoArr as $k => $v) {
+                //http转https
+                $v['ext_info'] = str_replace('http:\/\/', 'https:\/\/', strval($v['ext_info']));
                 $extInfo = $v['ext_info'] ? json_decode($v['ext_info'], true) : array();
                 $v['ext_info'] = $extInfo;
                 $result[$v['id']] = $v;
