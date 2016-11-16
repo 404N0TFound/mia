@@ -79,15 +79,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $brandId = intval($this->itemModel->getBrandIdByName($params['brand_name']));
             $itemIds = $this->itemModel->getAllItemByBrandId($brandId);
             if (!empty($itemIds)) {
-                $condition['id'] = $itemIds;
+                $condition['item_id'] = $itemIds;
+            } else {
+                return $this->succ($result);
             }
         }
         
         if (intval($params['supplier_id']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //供应商ID
-            $itemIds = intval($this->itemModel->getAllItemBySupplyId($params['supplier_id']));
+            $itemIds = $this->itemModel->getAllItemBySupplyId($params['supplier_id']);
             if (!empty($itemIds)) {
-                $condition['id'] = $itemIds;
+                $condition['item_id'] = $itemIds;
+            } else {
+                return $this->succ($result);
             }
         }
         
@@ -95,7 +99,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //类目ID
             $itemIds = $this->itemModel->getAllItemByCategoryId($params['category_id']);
             if (!empty($itemIds)) {
-                $condition['id'] = $itemIds;
+                $condition['item_id'] = $itemIds;
+            } else {
+                return $this->succ($result);
             }
         }
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
