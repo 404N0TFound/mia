@@ -270,7 +270,17 @@ class NormalUtil {
         return ['url'=>$url,'width'=>$real_width,'height'=>$real_height];
     }
     
-    
-    
+    /**
+     * url http to https
+     */
+    public static function urlHttpToHttps($http_url) {
+        $pattern = "/^http:\/\//";
+        if (preg_match($pattern, $http_url)) {
+            $https_url = preg_replace($pattern, 'https://', $http_url);
+            return $https_url;
+        } else {
+            return $http_url;
+        }
+    }
     
 }
