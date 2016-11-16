@@ -137,7 +137,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $tmp['subject'] = $koubeiInfos[$v['id']];
             $result['list'][] = $tmp;
         }
-        $result['count'] = $data['count'] + $params['limit'];
+        $result['count'] = $data['count'];
         return $this->succ($result);
     }
     
