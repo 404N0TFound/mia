@@ -29,11 +29,23 @@ class Koubei extends \DB_Query {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
+                    case 'status':
+                        $where[] = [$k, $v];
+                        if ($v == 2) {
+                            $where[] = [':ne','subject_id', 0];
+                        }
+                        break;
                     case 'start_time':
                         $where[] = [':ge','created_time', $v];
                         break;
                     case 'end_time':
                         $where[] = [':le','created_time', $v];
+                        break;
+                    case 'comment_start_time':
+                        $where[] = [':ge','comment_time', $v];
+                        break;
+                    case 'comment_end_time':
+                        $where[] = [':le','comment_time', $v];
                         break;
                     default:
                         $where[] = [$k, $v];

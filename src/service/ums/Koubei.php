@@ -52,6 +52,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //口碑状态
             $condition['status'] = $params['status'];
         }
+        if ($params['comment_status'] !== null && $params['comment_status'] !== '' && in_array($params['comment_status'], array(0, 1)) && intval($condition['id']) <= 0) {
+            //口碑回复状态
+            $condition['comment_status'] = $params['comment_status'];
+            $orderBy = 'comment_time desc';
+        }
         if ($params['rank'] !== null && $params['rank'] !== '' && in_array($params['rank'], array(0, 1)) && intval($condition['id']) <= 0) {
             //是否是精品
             $condition['rank'] = $params['rank'];
@@ -75,14 +80,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $itemIds = $this->itemModel->getAllItemByBrandId($brandId);
             if (!empty($itemIds)) {
                 $condition['item_id'] = $itemIds;
+            } else {
+                return $this->succ($result);
             }
         }
 
         if (intval($params['supplier_id']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //供应商ID
-            $itemIds = intval($this->itemModel->getAllItemBySupplyId($params['supplier_id']));
+            $itemIds = $this->itemModel->getAllItemBySupplyId($params['supplier_id']);
             if (!empty($itemIds)) {
                 $condition['item_id'] = $itemIds;
+            } else {
+                return $this->succ($result);
             }
         }
         
@@ -91,6 +100,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $itemIds = $this->itemModel->getAllItemByCategoryId($params['category_id']);
             if (!empty($itemIds)) {
                 $condition['item_id'] = $itemIds;
+            } else {
+                return $this->succ($result);
             }
         }
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
@@ -100,6 +111,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (strtotime($params['end_time']) > 0 && intval($condition['id']) <= 0) {
             //结束时间
             $condition['end_time'] = $params['end_time'];
+        }
+        if (strtotime($params['comment_start_time']) > 0 && intval($condition['id']) <= 0) {
+            //回复起始时间
+            $condition['comment_start_time'] = $params['comment_start_time'];
+            $orderBy = 'comment_time desc';
+        }
+        if (strtotime($params['comment_end_time']) > 0 && intval($condition['id']) <= 0) {
+            //回复结束时间
+            $condition['comment_end_time'] = $params['comment_end_time'];
+            $orderBy = 'comment_time desc';
         }
         $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
         if (empty($data['list'])) {
