@@ -40,9 +40,17 @@ class Comment extends \mia\miagroup\Lib\Service {
             //用户昵称
             $condition['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
         }
+        if (intval($params['subject_id']) > 0 && intval($condition['id']) <= 0) {
+            //帖子id
+            $condition['subject_id'] = $params['subject_id'];
+        }
         if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1)) && intval($condition['id']) <= 0) {
             //评论状态
             $condition['status'] = $params['status'];
+        }
+        if ($params['is_expert'] !== null && $params['is_expert'] !== '' && in_array($params['is_expert'], array(0, 1)) && intval($condition['id']) <= 0) {
+            //评论状态
+            $condition['is_expert'] = $params['is_expert'];
         }
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
