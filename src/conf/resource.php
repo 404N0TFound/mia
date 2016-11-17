@@ -245,4 +245,14 @@ $pool = array(
             ),
         ),
     ),
+    'solr'=>array(
+        'miagroup'=>array(
+            'default'=>array(
+                array(
+                    'host'=>'172.16.96.75',
+                    'port'=>9001,
+                ),
+            ),
+        ),
+    ),
 );

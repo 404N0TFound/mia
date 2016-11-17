@@ -1,11 +1,13 @@
 <?php
 namespace mia\miagroup\Service;
 
+use mia\miagroup\Lib\Solr;
 use mia\miagroup\Model\Koubei as KoubeiModel;
 use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Util\EmojiUtil;
+use mia\miagroup\Lib\Redis;
 
 class Koubei extends \mia\miagroup\Lib\Service {
     
@@ -477,6 +479,22 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $this->koubeiModel->addSubjectIdToKoubei($koubeiId,$subjectIssue['id']);
         }
         return $this->succ($res);
+    }
+
+    /**
+     * solr批量检索口碑数据
+     * @param $brand_id       品牌id
+     * @param $category_id    分类id
+     * @param $supplier_id    供应商id
+     * @ return ids           返回 array
+     */
+    public function getKoubeiIdsBySolr($brand_id = 0, $category_id = 0, $supplier_id = 0){
+        // 获取远程solr地址
+        $solr = new Solr();
+        // 获取URL
+        // solr获取数据ids
+        // 批量获取口碑信息
+        // return
     }
     
 }
