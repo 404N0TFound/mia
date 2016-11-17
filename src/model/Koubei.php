@@ -230,4 +230,18 @@ class Koubei {
         $result = $koubeiData->getKoubeiBySubjectId($subjectId);
         return $result;
     }
+    
+    /**
+     * 口碑回复状态更新
+     */
+    public function updateKoubeiReplyStatus($koubeiId, $replyInfo) {
+        $koubeiData = new KoubeiData();
+        $setData = array();
+        $setData[] = array('reply', $replyInfo['reply']);
+        $setData[] = array('comment_status', 1);
+        $setData[] = array('comment_time', $replyInfo['comment_time']);
+        $setData[] = array('comment_supplier_id', $replyInfo['comment_supplier_id']);
+        $result = $koubeiData->updateKoubeiInfoById($koubeiId, $setData);
+        return $result;
+    }
 }

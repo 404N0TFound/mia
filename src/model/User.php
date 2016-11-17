@@ -84,8 +84,16 @@ class User {
      * 新增用户
      */
     public function addUser($userInfo) {
+        if (empty($userInfo['username'])) {
+            return false;
+        }
         $userData = new UserData();
-        $data = $userData->addUser($userInfo);
+        $isExist = $userData->getUidByUserName($userInfo['username']);
+        if ($isExist) {
+            $data = $isExist;
+        } else {
+            $data = $userData->addUser($userInfo);
+        }
         return $data;
     }
     
