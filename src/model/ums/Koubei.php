@@ -13,6 +13,9 @@ class Koubei extends \DB_Query {
     protected $tableKoubeiSubjects = 'koubei_subjects';
     protected $tableKoubeiItem = 'group_subject_point_tags';
     protected $indexKoubeiSubjects = array('subject_id', 'item_id', 'user_id', 'is_audited', 'create_time');
+    //口碑申诉
+    protected $tableKoubeiAppeal = 'koubei_appeal';
+    protected $indexKoubeiAppeal = array('koubei_id', 'supplier_id', 'appeal_time');
     
     /**
      * 查询口碑表数据
@@ -46,6 +49,40 @@ class Koubei extends \DB_Query {
                         break;
                     case 'comment_end_time':
                         $where[] = [':le','comment_time', $v];
+                        break;
+                    default:
+                        $where[] = [$k, $v];
+                }
+            }
+        }
+        $result['count'] = $this->count($where);
+        if (intval($result['count']) <= 0) {
+            return $result;
+        }
+        $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        return $result;
+    }
+    
+    /**
+     * 查询口碑表数据
+     */
+    public function getKoubeiAppealData($cond, $offset = 0, $limit = 50, $orderBy = 'id desc') {
+        $this->tableName = $this->tableKoubeiAppeal;
+        $result = array('count' => 0, 'list' => array());
+        $where = array();
+        if (!empty($cond)) {
+            //检查是否使用索引，没有索引强制加
+            if (empty(array_intersect(array_keys($cond), $this->indexKoubeiAppeal))) {
+                $where[] = [':ge','appeal_time', date('Y-m-d H:i:s', time() - 86400 * 90)];
+            }
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'start_time':
+                        $where[] = [':ge','appeal_time', $v];
+                        break;
+                    case 'end_time':
+                        $where[] = [':le','appeal_time', $v];
                         break;
                     default:
                         $where[] = [$k, $v];
@@ -104,35 +141,4 @@ class Koubei extends \DB_Query {
         $result['list'] = $this->getRows($where, $fileds, $limit, $offset, $orderBy, $join);
         return $result;
     }
-    
-    /**
-     * 口碑蜜芽贴中的通过状态
-     */
-    public function updateKoubeiSubject($subjectData,$id) {
-        $this->tableName = $this->tableKoubeiSubjects;
-        $setData = array();
-        $where = array();
-        $where[] = ['id', $id];
-        $setData[] = ['is_audited', $subjectData['status']];
-        $result = $this->update($setData, $where);
-        return $result;
-    }
-    
-    /**
-     * 同步口碑蜜芽贴
-     * @param array $subjectInfo
-     */
-    public function saveKoubeiSubject($subjectInfo)
-    {
-        $this->tableName = $this->tableKoubeiSubjects;
-        $result = $this->insert($subjectInfo);
-        return $result;
-    }
-    
-    public function saveKoubeiSubjectItem($koubeiItem){
-        $this->tableName = $this->tableKoubeiItem;
-        $result = $this->insert($koubeiItem);
-        return $result;
-    }
-    
 }
