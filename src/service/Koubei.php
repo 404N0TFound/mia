@@ -1,13 +1,14 @@
 <?php
 namespace mia\miagroup\Service;
 
-use mia\miagroup\Lib\Solr;
 use mia\miagroup\Model\Koubei as KoubeiModel;
 use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Lib\Redis;
+use mia\miagroup\Lib\Solr;
+use mia\miagroup\Remote\Solr as SolrRemote;
 
 class Koubei extends \mia\miagroup\Lib\Service {
     
@@ -482,19 +483,52 @@ class Koubei extends \mia\miagroup\Lib\Service {
     }
 
     /**
-     * solr批量检索口碑数据
-     * @param $brand_id       品牌id
-     * @param $category_id    分类id
-     * @param $supplier_id    供应商id
-     * @ return ids           返回 array
+     * solr 分类检索口碑列表
+     * @param $brand_id       品牌id          非必填
+     * @param $category_id    分类id          非必填
+     * @param $count          每页数量        必填
+     * @param $page           当前页          必填
+     * @ return array()
      */
-    public function getKoubeiIdsBySolr($brand_id = 0, $category_id = 0, $supplier_id = 0){
-        // 获取远程solr地址
-        $solr = new Solr();
-        // 获取URL
-        // solr获取数据ids
-        // 批量获取口碑信息
-        // return
+    public function categorySearch($q = '*:*', $brand_id = 0, $category_id = 0, $count = 10, $page = 1){
+
+        $solr = new SolrRemote();
+        $brandIds             = array();
+        $koubei_ids           = array();
+        $koubei_list          = array();
+        $brand_list           = array();
+        $solrInfo['fq']       = array();
+        $solrInfo['q']        = trim($q);
+        $solrInfo['page']     = $page;
+        $solrInfo['pageSize'] = $count;
+
+        if(!empty($category_id)){
+            $solrInfo['fq'][] = 'category_id:'.$category_id;
+        }
+        if(!empty($brand_id)){
+            $solrInfo['fq'][] = 'brand_id:'.$brand_id;
+        }
+        // solr 获取数据
+        $data = $solr->select($solrInfo);
+        if(!empty($data['data']['response']['docs'])){
+            $tmp = $data['data']['response']['docs'];
+            foreach($tmp as $k => $v){
+                $koubei_ids[] = $v['id'];
+                if(!empty($category_id)) {
+                    $brandIds[$k]['id'] = $v['brand_id'];
+                    $brandIds[$k]['name'] = $v['name'];
+                    $brandIds[$k]['english_name'] = $v['english_name'];
+                    $brandIds[$k]['chinese_name'] = $v['chinese_name'];
+                }
+            }
+        }
+        // brand_id 排重
+        if(!empty($brandIds)){
+            $brand_list = $this->koubeiModel->array_unique_fb($brandIds);
+        }
+        $koubei_list = $this->getBatchKoubeiByIds($koubei_ids);
+        $res = array('koubei_list' => $koubei_list , 'brand_list' => $brand_list);
+        return $this->succ($res);
     }
     
 }
