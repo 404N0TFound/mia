@@ -7,7 +7,6 @@ use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Lib\Redis;
-use mia\miagroup\Lib\Solr;
 use mia\miagroup\Remote\Solr as SolrRemote;
 
 class Koubei extends \mia\miagroup\Lib\Service {
