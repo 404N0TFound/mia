@@ -107,7 +107,7 @@ class Label extends \mia\miagroup\Lib\Service {
     public function getArchiveLalbels() {
         $categoryLabels = $this->labelModel->getCategoryLables();
         if (empty($categoryLabels)) {
-            return array();
+            return $this->succ(array());
         }
         $labelIds = array();
         $categoryIds = array();
@@ -118,7 +118,7 @@ class Label extends \mia\miagroup\Lib\Service {
         //获取归档信息
         $categoryInfos = $this->labelModel->getCategroyByIds($categoryIds);
         if (empty($categoryInfos)) {
-            return array();
+            return $this->succ(array());
         }
 
         //获取标签信息

@@ -138,8 +138,8 @@ class User extends \mia\miagroup\Lib\Service {
             }
         }
         if ($userInfo['is_supplier'] == 1) {
-            $userInfo['icon'] = !empty($userInfo['icon']) ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
-            $userInfo['nickname'] = !empty($userInfo['nickname']) ? $userInfo['nickname'] : '商家';
+            $userInfo['icon'] = !empty($userInfo['icon']) ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultSupplierIcon');
+            $userInfo['nickname'] = !empty($userInfo['nickname']) ? $userInfo['nickname'] : '蜜芽商家';
         }
         if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\//", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
