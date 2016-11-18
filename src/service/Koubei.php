@@ -488,43 +488,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $page           当前页          必填
      * @ return array()
      */
-    public function categorySearch($q = '*:*', $brand_id = 0, $category_id = 0, $count = 10, $page = 1){
+    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1){
 
-        $solr = new SolrRemote();
-        $brandIds             = array();
-        $koubei_ids           = array();
-        $koubei_list          = array();
-        $brand_list           = array();
-        $solrInfo['fq']       = array();
-        $solrInfo['q']        = trim($q);
-        $solrInfo['page']     = $page;
-        $solrInfo['pageSize'] = $count;
-
-        if(!empty($category_id)){
-            $solrInfo['fq'][] = 'category_id:'.$category_id;
+        $solr        = new SolrRemote();
+        $koubei_ids  = $solr->koubeiList($brand_id, $category_id, $count, $page);
+        if(!empty($koubei_ids)){
+            $koubei_list = $this->getBatchKoubeiByIds($koubei_ids);
         }
-        if(!empty($brand_id)){
-            $solrInfo['fq'][] = 'brand_id:'.$brand_id;
-        }
-        // solr 获取数据
-        $data = $solr->select($solrInfo);
-        if(!empty($data['data']['response']['docs'])){
-            $tmp = $data['data']['response']['docs'];
-            foreach($tmp as $k => $v){
-                $koubei_ids[] = $v['id'];
-                if(!empty($category_id)) {
-                    $brandIds[$k]['id'] = $v['brand_id'];
-                    $brandIds[$k]['name'] = $v['name'];
-                    $brandIds[$k]['english_name'] = $v['english_name'];
-                    $brandIds[$k]['chinese_name'] = $v['chinese_name'];
-                }
-            }
-        }
-        // brand_id 排重
-        if(!empty($brandIds)){
-            $brand_list = $this->koubeiModel->array_unique_fb($brandIds);
-        }
-        $koubei_list = $this->getBatchKoubeiByIds($koubei_ids);
+        $brand_list  = $solr->brandList($category_id);
         $res = array('koubei_list' => $koubei_list , 'brand_list' => $brand_list);
         return $this->succ($res);
     }

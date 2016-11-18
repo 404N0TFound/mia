@@ -90,8 +90,18 @@ class Solr
                         $fieldStr .= '&facet.field='.$field;
                     }
                 }
-                $params['facet'] = 'true';
+                $params['facet'] = 'on';
                 $params['facet.field'] = $fieldStr;
+            }
+            // Field Collapsing
+            if(empty($data['group']) == false){
+                $params['group'] = $data['group'];
+            }
+            if(empty($data['group.main']) == false){
+                $params['group.main'] = $data['group.main'];
+            }
+            if(empty($data['group.field']) == false){
+                $params['group.field'] = $data['group.field'];
             }
             $method = 'select';
             $solrData = $this->httpGet($method, $params);
@@ -166,6 +176,62 @@ class Solr
             $result = array('success'=>0,'info'=>'网络错误,服务器繁忙');
         }
         return $result;
+    }
+
+    /**
+     * 口碑列表
+     * @return array
+     */
+    public function koubeiList($brand_id, $category_id, $count, $page)
+    {
+        $solrInfo = [
+            'q'         => '*:*',
+            'fq'        => array(),
+            'page'      => $page,
+            'pageSize'  => $count,
+            'fl'        => 'id'
+        ];
+        if(!empty($category_id)){
+            $solrInfo['fq'][]   = 'category_id:'.$category_id;
+        }
+        if(!empty($brand_id)){
+            $solrInfo['fq'][]   = 'brand_id:'.$brand_id;
+        }
+        // solr select
+        $res = $this->select($solrInfo);
+        if($res['success'] == 1){
+            $res = array_column($res['data']['response']['docs'],'id');
+            return $res;
+        }
+        return array();
+    }
+
+    /**
+     * 品牌列表
+     * @return array 默认返回所有
+     */
+    public function brandList($category_id)
+    {
+        //$category_id = 2;
+        $solrInfo = [
+            'q'           => '*:*',
+            'sort'        => 'brand_id desc',
+            'group'       => 'true',
+            'group.main'  => 'true',
+            'group.field' => 'brand_id',
+            'fl'          => 'brand_id,name,chinese_name,english_name',
+            'pageSize'    => '20',
+            'group.cache.percent' => '20'
+        ];
+        if(!empty($category_id)){
+            $solrInfo['fq'][]    = 'category_id:'.$category_id;
+        }
+        // solr select
+        $res = $this->select($solrInfo);
+        if($res['success'] == 1){
+            return $res['data']['response']['docs'];
+        }
+        return array();
     }
 
 }

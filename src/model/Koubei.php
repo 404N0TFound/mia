@@ -231,24 +231,4 @@ class Koubei {
         return $result;
     }
 
-
-    /**
-     * 二维数组去掉重复值,并保留键值
-     */
-    function array_unique_fb($array2D){
-        foreach ($array2D as $k=>$v){
-            $v=join(',',$v); //降维,也可以用implode,将一维数组转换为用逗号连接的字符串
-            $temp[$k]=$v;
-        }
-        $temp=array_unique($temp); //去掉重复的字符串,也就是重复的一维数组
-        foreach ($temp as $k => $v){
-            $array=explode(',',$v); //再将拆开的数组重新组装
-            //下面的索引根据自己的情况进行修改即可
-            $temp2[$k]['id'] =$array[0];
-            $temp2[$k]['name'] =$array[1];
-            $temp2[$k]['english_name'] =$array[2];
-            $temp2[$k]['chinese_name'] =$array[3];
-        }
-        return $temp2;
-    }
 }
