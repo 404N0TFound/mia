@@ -33,7 +33,7 @@ class KoubeiAppeal extends \DB_Query {
             $set_data[] = array($k, $v);
         }
         $where[] = array('id', $appeal_id);
-        $data = $this->update($where, $set_data);
+        $data = $this->update($set_data, $where);
         return $data;
     }
     
