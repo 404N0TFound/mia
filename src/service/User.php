@@ -143,7 +143,7 @@ class User extends \mia\miagroup\Lib\Service {
         }
         if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\//", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
-        } else {
+        } else if($userInfo['icon'] == '') {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
         }
         $userInfo['username'] = preg_replace('/(miya[\d]{3}|mobile_[\d]{3})([\d]{4})([\d]{4})/', "$1****$3", $userInfo['username']);
