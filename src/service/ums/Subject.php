@@ -46,6 +46,12 @@ class Subject extends \mia\miagroup\Lib\Service {
             //帖子状态
             $condition['status'] = $params['status'];
         }
+        
+        if ($params['source'] !== null && $params['source'] !== '' && in_array($params['source'], array(1, 2, 3)) && intval($condition['id']) <= 0) {
+            //帖子来源
+            $condition['source'] = $params['source'];
+        }
+        
         if ($params['is_fine'] !== null && $params['is_fine'] !== '' && in_array($params['is_fine'], array(0, 1)) && intval($condition['id']) <= 0) {
             //是否是推荐
             $condition['is_fine'] = $params['is_fine'];
@@ -88,7 +94,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectIds[] = $v['subject_id'];
         }
         $subjectService = new SubjectService();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count'), array())['data'];
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','share_info'), array())['data'];
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $subjectInfos[$v['subject_id']];

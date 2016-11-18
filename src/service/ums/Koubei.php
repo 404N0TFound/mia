@@ -74,9 +74,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $condition['item_id'] = $params['item_id'];
             $orderBy = 'rank_score desc'; //按分数排序，与app保持一致
         }
-        if (!empty($params['brand_name']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //品牌ID
-            $brandId = intval($this->itemModel->getBrandIdByName($params['brand_name']));
+            $brandId = intval($this->itemModel->getBrandIdByName($params['brand']));
             $itemIds = $this->itemModel->getAllItemByBrandId($brandId);
             if (!empty($itemIds)) {
                 $condition['item_id'] = $itemIds;
@@ -84,7 +84,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 return $this->succ($result);
             }
         }
-        
+
         if (intval($params['supplier_id']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //供应商ID
             $itemIds = $this->itemModel->getAllItemBySupplyId($params['supplier_id']);
@@ -95,7 +95,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         
-        if (intval($params['category_id']) > 0 && empty($params['brand_name']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (intval($params['cate_1']) > 0 && intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //类目ID
             $itemIds = $this->itemModel->getAllItemByCategoryId($params['category_id']);
             if (!empty($itemIds)) {

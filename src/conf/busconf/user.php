@@ -8,4 +8,4 @@ $miaTuUid = '3782852';
 /**
  * 用户默认头像
  */
-$defaultIcon = 'http://image1.miyabaobei.com/image/2016/06/23/8c3c7b9a365b28aa6a7bb330b1d91034.png'; 
+$defaultIcon = 'http://image1.miyabaobei.com/image/2016/11/14/c6d0a5bf6b32af8dd5e77b3af0297bb5.png';
