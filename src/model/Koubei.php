@@ -230,4 +230,5 @@ class Koubei {
         $result = $koubeiData->getKoubeiBySubjectId($subjectId);
         return $result;
     }
+
 }

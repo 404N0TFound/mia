@@ -6,6 +6,7 @@ use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Util\EmojiUtil;
+use mia\miagroup\Remote\Solr as SolrRemote;
 
 class Koubei extends \mia\miagroup\Lib\Service {
     
@@ -476,6 +477,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
             $this->koubeiModel->addSubjectIdToKoubei($koubeiId,$subjectIssue['id']);
         }
+        return $this->succ($res);
+    }
+
+    /**
+     * solr 分类检索口碑列表
+     * @param $brand_id       品牌id          非必填
+     * @param $category_id    分类id          非必填
+     * @param $count          每页数量        必填
+     * @param $page           当前页          必填
+     * @ return array()
+     */
+    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1){
+
+        $solr        = new SolrRemote();
+        $koubei_ids  = $solr->koubeiList($brand_id, $category_id, $count, $page);
+        if(!empty($koubei_ids)){
+            $koubei_list = $this->getBatchKoubeiByIds($koubei_ids);
+        }
+        $brand_list  = $solr->brandList($category_id);
+        $res = array('koubei_list' => $koubei_list , 'brand_list' => $brand_list);
         return $this->succ($res);
     }
     
