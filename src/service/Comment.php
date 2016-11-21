@@ -47,7 +47,7 @@ class Comment extends \mia\miagroup\Lib\Service {
                 $userMerchantRelations = $itemService->getBatchUserSupplierMapping($userIds);
                 foreach ($users as $uid => $user) {
                     if ($userMerchantRelations[$uid]['status'] == 1) {
-                        $users[$uid]['id'] = '';
+                        $users[$uid]['id'] = -1;
                     }
                 }
             }

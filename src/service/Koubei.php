@@ -234,7 +234,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 根据口碑ID获取口碑信息
      */
-    public function getBatchKoubeiByIds($koubeiIds, $userId = 0) {
+    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $shortInfo = false) {
+        if (empty($koubeiIds)) {
+            return array();
+        }
         $koubeiInfo = array();
         //批量获取口碑信息
         $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status = array(2));
