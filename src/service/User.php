@@ -294,13 +294,20 @@ class User extends \mia\miagroup\Lib\Service {
         $new_user['create_date'] = date('Y-m-d H:i:s');
         if (!empty($user_info['icon'])) {
             $new_user['icon'] = $user_info['icon'];
+            $set_data[] = array('icon', $user_info['icon']);
         }
         if (!empty($user_info['nickname'])) {
             $new_user['nickname'] = $user_info['nickname'];
+            $set_data[] = array('nickname', $user_info['nickname']);
         }
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $user_id = $this->userModel->addUser($new_user);
         $user_info['id'] = $user_id;
+        
+        //更新用户信息
+        if (!empty($set_data)) {
+            $this->userModel->updateUserById($user_id, $set_data);
+        }
         
         //升级为专家用户
         $this->userModel->addExpert(array('user_id' => $user_id, 'last_modify' => date('Y-m-d H:i:s'), 'status' => 1));
