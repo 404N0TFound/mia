@@ -57,7 +57,7 @@ class Live extends \DB_Query {
     public function getLiveList($cond, $offset = 0, $limit = 100, $orderBy='') {
         if (empty($cond['user_id']) && empty($cond['subject_id']) && empty($cond['start_time']) && empty($cond['create_time'])) {
             // 不用索引返回false
-            return false;
+            $cond[] = [':ge','created_time', date('Y-m-d H:i:s', time() - 86400 * 90)];
         }
         $where = [];
         foreach ($cond as $k => $v) {
