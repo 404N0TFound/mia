@@ -7,16 +7,21 @@ use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
+use mia\miagroup\Remote\Coupon as CouponRemote;
+use mia\miagroup\Lib\Solr;
 
 class Koubei extends \mia\miagroup\Lib\Service {
     
     public $koubeiModel;
     public $subjectService;
+    public $koubeiConfig;
     
     public function __construct() {
         $this->koubeiModel = new KoubeiModel();
         $this->subjectService = new SubjectService();
         $this->emojiUtil = new EmojiUtil();
+        $this->solr = new Solr();
+        $this->koubeiConfig = \F_Ice::$ins->workApp->config->get('batchdiff.koubeibatch');
     }
     
     /**
@@ -499,5 +504,29 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = array('koubei_list' => $koubei_list , 'brand_list' => $brand_list);
         return $this->succ($res);
     }
-    
+
+
+    /**
+     * solr 分类检索口碑列表
+     * @param $order_code     订单编号
+     * @param $item_id        商品SKU
+     * @ return issue_reward  口碑发布奖励
+     * @ return issue_tip_url 口碑发布图片提升
+     */
+    public function issueinit($user_id = 0, $order_code = 0, $item_id = 0){
+        //$order_code = 1;
+        //$item_id = 1005598;
+        // 验证是否为首评
+        $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id);
+        if(!empty($check_res)){
+            $batch_info = $this->koubeiConfig['shouping'];
+            $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
+            // 绑定代金券
+            $couponRemote = new CouponRemote();
+            $batch_code = $this->koubeiConfig['batch_code']['test'];
+            $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
+            return $this->succ($shouping_Info);
+        }
+        return $this->error(500);
+    }
 }

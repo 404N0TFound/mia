@@ -253,4 +253,20 @@ class Koubei extends \DB_Query {
         return $result;
     }
 
+
+    /*
+     * 查看口碑首评
+     * */
+    public function checkFirstComment($order_id, $item_id){
+        if (empty($item_id) || empty($order_id)) {
+            return false;
+        }
+        $where = array();
+        $where[] = ['status', 2];
+        $where[] = ['item_id', $item_id];
+        $where[] = ['order_id', $order_id];
+        $result = $this->getRows($where);
+        return count($result);
+    }
+
 }

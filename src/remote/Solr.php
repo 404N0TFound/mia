@@ -189,7 +189,8 @@ class Solr
             'fq'        => array(),
             'page'      => $page,
             'pageSize'  => $count,
-            'fl'        => 'id'
+            'fl'        => 'id',
+            'local_url' => '*'
         ];
         if(!empty($category_id)){
             $solrInfo['fq'][]   = 'category_id:'.$category_id;
