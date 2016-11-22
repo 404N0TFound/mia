@@ -66,31 +66,4 @@ class Item {
         return $this->itemData->getBatchItemBrandByIds($itemsIds);
     }
 
-    public function insertKoubei($koubeiData){
-        //组装插入口碑信息
-        $koubeiSetData = array();
-        $koubeiSetData['status']  = isset($koubeiData['status']) ? intval($koubeiData['status']) : 2;
-        $koubeiSetData['title']   = isset($koubeiData['title']) ? intval($koubeiData['title']) : "";
-        $koubeiSetData['content'] = trim($koubeiData['text']);
-        $koubeiSetData['score']   = intval($koubeiData['score']);
-        $koubeiSetData['item_id'] = isset($koubeiData['item_id']) ? intval($koubeiData['item_id']) : 0;
-        $koubeiSetData['item_size'] = $koubeiData['item_size'];
-        $koubeiSetData['user_id']   = $koubeiData['user_id'];
-        $koubeiSetData['order_id']  = isset($orderInfo['id']) ? $orderInfo['id'] : 0;
-        $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
-        $labels = array();$labels['label'] = array();$labels['image'] = array();
-        if(!empty($koubeiData['labels'])) {
-            foreach($koubeiData['labels'] as $label) {
-                $labels['label'][] = $label['title'];
-            }
-        }
-        if(!empty($koubeiData['image_infos'])) {
-            foreach($koubeiData['image_infos'] as $image) {
-                $labels['image'][] = $image;
-            }
-        }
-        $koubeiSetData['extr_info'] = json_encode($labels);
-        return $koubeiSetData;
-    }
-
 }
