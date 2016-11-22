@@ -231,4 +231,25 @@ class Koubei {
         return $result;
     }
 
+    /**
+     * 首评口碑奖励及图片提示
+     */
+    public function getBatchKoubeiByDefaultInfo($batch_info = array()){
+        $res = array();
+        if(!empty($batch_info)){
+            $res['issue_img']    = $batch_info['issue_img'];
+            $res['issue_reward'] = $batch_info['issue_reward'];
+        }
+        return $res;
+    }
+
+    /*
+     * 首评验证
+     * */
+    public function getCheckFirstComment($order_id, $item_id){
+        $koubeiData = new KoubeiData();
+        $result = $koubeiData->checkFirstComment($order_id, $item_id);
+        return $result;
+    }
+
 }

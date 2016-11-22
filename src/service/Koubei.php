@@ -7,16 +7,21 @@ use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
+use mia\miagroup\Remote\Coupon as CouponRemote;
+use mia\miagroup\Lib\Solr;
 
 class Koubei extends \mia\miagroup\Lib\Service {
     
     public $koubeiModel;
     public $subjectService;
+    public $koubeiConfig;
     
     public function __construct() {
         $this->koubeiModel = new KoubeiModel();
         $this->subjectService = new SubjectService();
         $this->emojiUtil = new EmojiUtil();
+        $this->solr = new Solr();
+        $this->koubeiConfig = \F_Ice::$ins->workApp->config->get('batchdiff.koubeibatch');
     }
     
     /**
@@ -86,6 +91,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $param['to_user_id'] = $koubeiData['user_id'];
         $param['relation_type'] = "send_koubei";
         $param['relation_id'] = $koubeiInsertId;
+
+        //首评奖励(绑定代金券)
+        if(!empty($koubeiData['issue_reward'])){
+            $couponRemote = new CouponRemote();
+            $batch_code = $this->koubeiConfig['batch_code']['test'];
+            if(!empty($batch_code)){
+                $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+                if(is_array($bindCouponRes)){
+                    $this->error(500);
+                }
+            }
+        }
         
         //保存口碑相关图片信息
         if(!empty($koubeiData['image_infos'])){
@@ -499,5 +516,25 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = array('koubei_list' => $koubei_list , 'brand_list' => $brand_list);
         return $this->succ($res);
     }
-    
+
+
+    /**
+     * solr 分类检索口碑列表
+     * @param $order_code     订单编号
+     * @param $item_id        商品SKU
+     * @ return issue_reward  口碑发布奖励
+     * @ return issue_tip_url 口碑发布图片提升
+     */
+    public function issueinit($order_code = 0, $item_id = 0){
+        //$order_code = 1;
+        //$item_id = 1005598;
+        // 验证是否为首评
+        $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id);
+        if(!empty($check_res)){
+            $batch_info = $this->koubeiConfig['shouping'];
+            $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
+            return $this->succ($shouping_Info);
+        }
+        return $this->error(500);
+    }
 }
