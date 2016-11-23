@@ -189,8 +189,7 @@ class Solr
             'fq'        => array(),
             'page'      => $page,
             'pageSize'  => $count,
-            'fl'        => 'id',
-            'local_url' => '*'
+            'fl'        => 'id'
         ];
         if(!empty($category_id)){
             $solrInfo['fq'][]   = 'category_id:'.$category_id;
@@ -198,6 +197,7 @@ class Solr
         if(!empty($brand_id)){
             $solrInfo['fq'][]   = 'brand_id:'.$brand_id;
         }
+        $solrInfo['fq'][] = 'local_url:*';
         // solr select
         $res = $this->select($solrInfo);
         if($res['success'] == 1){
