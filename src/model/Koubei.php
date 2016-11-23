@@ -312,9 +312,15 @@ class Koubei {
     public function getBatchKoubeiByDefaultInfo($batch_info = array()){
         $res = array();
         if(!empty($batch_info)){
-            $res['issue_img']    = $batch_info['issue_img'];
+            $issue_img      = $batch_info['issue_img'];
+            $issue_skip_url = $batch_info['issue_skip_url'];
             $res['issue_reward'] = $batch_info['issue_reward'];
         }
+        // banner 结构体
+        $res['issue_tip_url']['pic']['url']   = $issue_img;
+        $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
+        $res['issue_tip_url']['pic']['hight'] = $batch_info['issue_img_height'];
+        $res['issue_tip_url']['url']          = $issue_skip_url;
         return $res;
     }
 
@@ -325,6 +331,11 @@ class Koubei {
         $koubeiData = new KoubeiData();
         $result = $koubeiData->checkFirstComment($order_id, $item_id);
         return $result;
+    }
+
+    public function getBatchKoubeiIds($itemIds){
+        $ids = $this->koubeiData->getBatchBestKoubeiIds($itemIds);
+        return $ids;
     }
 
 }
