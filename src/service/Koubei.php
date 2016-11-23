@@ -222,6 +222,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if($koubeiNums <=0){
             return $this->succ($koubeiRes);
         }
+        $koubeiRes['total_count'] = $koubeiNums;//口碑数量
         
         //3、获取用户评分
         $itemScore = $this->koubeiModel->getItemUserScore($itemIds);
