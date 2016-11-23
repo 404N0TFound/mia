@@ -38,6 +38,29 @@ class Koubei extends \DB_Query {
     }
     
     /**
+     * 根据商品id批量获取商品带图口碑id
+     */
+    public function getKoubeiWithPicByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false) {
+        $result = array();
+        if (empty($itemIds)) {
+            return $result;
+        }
+        $where = array();
+        $where[] = ['koubei.item_id', $itemIds];
+        $where[] = ['koubei.status', 2];
+        $where[] = [':gt','koubei.subject_id',0];
+        $where[] = [':notnull', 'koubei_pic.koubei_id'];
+         
+        $data = $this->getRows($where,'koubei.id as id',$limit,$offset,$orderBy, 'LEFT JOIN koubei_pic ON koubei.id = koubei_pic.koubei_id');
+        if (!empty($data)) {
+            foreach($data as $v){
+                $result[] = $v['id'];
+            }
+        }
+        return $result;
+    }
+    
+    /**
      * 根据口碑id批量获取口碑信息
      * @param array() $koubeiIds 口碑id
      * @return array()
