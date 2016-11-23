@@ -45,10 +45,42 @@ class Item extends \mia\miagroup\Lib\Service {
         return $this->succ($itemInList);
     }
     
-    //批量获取商品信息
+    /**
+     * 批量获取商品信息
+     */
     public function getBatchItemBrandByIds($itemsIds)
     {
         $data = $this->itemModel->getBatchItemBrandByIds($itemsIds);
         return $this->succ($data);
+    }
+    
+    /**
+     * 批量查询用户是否为商家
+     */
+    public function getBatchUserSupplierMapping($user_ids)
+    {
+        if (empty($user_ids)) {
+            return $this->succ(array());
+        }
+        $result = $this->itemModel->getBatchUserSupplierMapping($user_ids);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 通过商家ID查找用户id
+     */
+    public function getMappingBySupplierId($supplier_id)
+    {
+        $result = $this->itemModel->getMappingBySupplierId($supplier_id);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 添加商家和蜜芽圈用户的关联关系
+     */
+    public function addUserSupplierMapping($supplier_id, $user_id)
+    {
+        $result = $this->itemModel->addUserSupplierMapping($supplier_id, $user_id);
+        return $this->succ($result);
     }
 }

@@ -4,17 +4,20 @@ namespace mia\miagroup\Model;
 use mia\miagroup\Data\Item\Item as ItemData;
 use mia\miagroup\Data\Item\ItemPic as ItemPicData;
 use mia\miagroup\Data\Item\ItemSpu as ItemSpuData;
+use mia\miagroup\Data\Item\UserSupplierMapping as UserSupplierMappingData;
 
 class Item {
     
-    public $itemData;
-    public $itemPicData;
-    public $itemSpuData;
+    private $itemData;
+    private $itemPicData;
+    private $itemSpuData;
+    private $userSupplierData;
     
     public function __construct() {
         $this->itemData = new ItemData();
         $this->itemPicData = new ItemPicData();
         $this->itemSpuData = new ItemSpuData();
+        $this->userSupplierData = new UserSupplierMappingData();
     }
     
     /**
@@ -60,10 +63,47 @@ class Item {
         return $data;
     }
     
-    //批量获取商品信息
+    /**
+     * 批量获取商品信息
+     */
     public function getBatchItemBrandByIds($itemsIds)
     {
         return $this->itemData->getBatchItemBrandByIds($itemsIds);
     }
 
+    /**
+     * 批量查询用户是否为商家
+     */
+    public function getBatchUserSupplierMapping($user_ids) 
+    {
+        $result = $this->userSupplierData->getBatchUserSupplierMapping($user_ids);
+        return $result;
+    }
+    
+    /**
+     * 通过商家ID查找用户id
+     */
+    public function getMappingBySupplierId($supplier_id) {
+        $result = $this->userSupplierData->getMappingBySupplierId($supplier_id);
+        return $result;
+    }
+    
+    /**
+     * 添加商家和蜜芽圈用户的关联关系
+     */
+    public function addUserSupplierMapping($supplier_id, $user_id) {
+        $data = $this->userSupplierData->getMappingBySupplierId($supplier_id);
+        if (empty($data)) {
+            $mapping_info = array('supplier_id' => $supplier_id, 'user_id' => $user_id, 'create_time' => date('Y-m-d H:i:s'));
+            $result = $this->userSupplierData->addUserSupplierMapping($mapping_info);
+            return $result;
+        } else {
+            if ($data['status'] == 0) {
+                $this->userSupplierData->updateMappingById($data['id'], array('status' => 1));
+                return $data['id'];
+            } else {
+                return $data['id'];
+            }
+        }
+    }
 }

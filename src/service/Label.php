@@ -105,33 +105,39 @@ class Label extends \mia\miagroup\Lib\Service {
      * 获取全部归档标签
      */
     public function getArchiveLalbels() {
+        //获取已归档标签
         $categoryLabels = $this->labelModel->getCategoryLables();
         if (empty($categoryLabels)) {
-            return array();
+            return $this->succ(array());
         }
         $labelIds = array();
         $categoryIds = array();
-        foreach ($categoryLabels as $labels) {
-            $labelIds[] = $labels['id'];
-            $categoryIds[] = $labels['category_id'];
+        foreach ($categoryLabels as $categoryId => $ids) {
+            $labelIds = array_merge($labelIds, $ids);
+            $categoryIds[] = $categoryId;
         }
         //获取归档信息
         $categoryInfos = $this->labelModel->getCategroyByIds($categoryIds);
         if (empty($categoryInfos)) {
-            return array();
+            return $this->succ(array());
         }
-
         //获取标签信息
         $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
-
+        
         //拼装结果集
         $result = array();
-        foreach ($categoryLabels as $labels) {
-            if (!isset($result[$labels['category_id']]) && isset($categoryInfos[$labels['category_id']])) {
-                $result[$labels['category_id']] = $categoryInfos[$labels['category_id']];
+        foreach ($categoryLabels as $categoryId => $labels) {
+            if (!isset($categoryInfos[$categoryId])) {
+                continue;
             }
-            if (isset($categoryInfos[$labels['category_id']]) && isset($labelInfos[$labels['id']])) {
-                $result[$labels['category_id']]['labels'][] = $labelInfos[$labels['id']];
+            $result[$categoryId] = $categoryInfos[$categoryId];
+            foreach ($labels as $labelId) {
+                if (isset($labelInfos[$labelId])) {
+                    $result[$categoryId]['labels'][] = $labelInfos[$labelId];
+                }
+            }
+            if (empty($result[$categoryId]['labels'])) {
+                unset($result[$categoryId]);
             }
         }
         return $this->succ(array_values($result));

@@ -58,6 +58,9 @@ class User extends \mia\miagroup\Lib\Service {
         }
         // 批量获取专家信息
         $expertInfos = $this->getBatchExpertInfoByUids($userIds)['data'];
+        // 批量获取是否是供应商
+        $itemService = new \mia\miagroup\Service\Item();
+        $supplierInfos = $itemService->getBatchUserSupplierMapping($userIds)['data'];
         // 批量获取直播权限
         $liveService = new Live();
         $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
@@ -66,9 +69,9 @@ class User extends \mia\miagroup\Lib\Service {
         
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
-            $userInfo['icon'] = $userInfo['icon'] ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
+            $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; // 用户是否是供应商
             $userInfo['is_have_permission'] = !empty($videoPermissions[$userInfo['id']]) ? 1 : 0; // 用户是否有发视频权限
             if ($expertInfos[$userInfo['id']]) {
                 $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();
@@ -134,8 +137,14 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo[$key] = '';
             }
         }
+        if ($userInfo['is_supplier'] == 1) {
+            $userInfo['icon'] = !empty($userInfo['icon']) ? $userInfo['icon'] : F_Ice::$ins->workApp->config->get('busconf.user.defaultSupplierIcon');
+            $userInfo['nickname'] = !empty($userInfo['nickname']) ? $userInfo['nickname'] : '蜜芽商家';
+        }
         if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\//", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
+        } else if($userInfo['icon'] == '') {
+            $userInfo['icon'] = F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
         }
         $userInfo['username'] = preg_replace('/(miya[\d]{3}|mobile_[\d]{3})([\d]{4})([\d]{4})/', "$1****$3", $userInfo['username']);
         if (!$userInfo['nickname']) {
@@ -271,5 +280,42 @@ class User extends \mia\miagroup\Lib\Service {
         } else {
             return $this->error(500);
         }
+    }
+    
+    /**
+     * 生成商家在蜜芽圈的用户
+     */
+    public function addSupplierUser($supplier_id, $user_info) {
+        //新增蜜芽圈用户
+        $new_user['username'] = 'supplier_' . $supplier_id;
+        $new_user['password'] = 'a255220a91378ba2f4aad17300ed8ab7';
+        $new_user['group_id'] = 0;
+        $new_user['relation'] = 3;
+        $new_user['create_date'] = date('Y-m-d H:i:s');
+        if (!empty($user_info['icon'])) {
+            $new_user['icon'] = $user_info['icon'];
+            $set_data[] = array('icon', $user_info['icon']);
+        }
+        if (!empty($user_info['nickname'])) {
+            $new_user['nickname'] = $user_info['nickname'];
+            $set_data[] = array('nickname', $user_info['nickname']);
+        }
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
+        $user_id = $this->userModel->addUser($new_user);
+        $user_info['id'] = $user_id;
+        
+        //更新用户信息
+        if (!empty($set_data)) {
+            $this->userModel->updateUserById($user_id, $set_data);
+        }
+        
+        //升级为专家用户
+        $this->userModel->addExpert(array('user_id' => $user_id, 'last_modify' => date('Y-m-d H:i:s'), 'status' => 1));
+        
+        //商家用户与蜜芽圈用户绑定
+        $itemService = new \mia\miagroup\Service\Item();
+        $itemService->addUserSupplierMapping($supplier_id, $user_id);
+        \DB_Query::switchCluster($preNode);
+        return $this->succ($user_info);
     }
 }
