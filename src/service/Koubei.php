@@ -20,7 +20,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $this->koubeiModel = new KoubeiModel();
         $this->subjectService = new SubjectService();
         $this->emojiUtil = new EmojiUtil();
-        $this->solr = new Solr();
         $this->koubeiConfig = \F_Ice::$ins->workApp->config->get('batchdiff.koubeibatch');
     }
     
