@@ -241,11 +241,10 @@ class Koubei {
             $issue_skip_url = $batch_info['issue_skip_url'];
             $res['issue_reward'] = $batch_info['issue_reward'];
         }
-        $img_info = json_decode(file_get_contents($issue_img.'?imageInfo'),true);
         // banner 结构体
         $res['issue_tip_url']['pic']['url']   = $issue_img;
-        $res['issue_tip_url']['pic']['width'] = $img_info['width'];
-        $res['issue_tip_url']['pic']['hight'] = $img_info['height'];
+        $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
+        $res['issue_tip_url']['pic']['hight'] = $batch_info['issue_img_height'];
         $res['issue_tip_url']['url']          = $issue_skip_url;
         return $res;
     }
