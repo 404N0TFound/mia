@@ -12,6 +12,15 @@ $address = array(
         'recv_timeout' => 20000
     ),
 
+    'solr' => array(
+        'default' => array(
+            'host' => '172.16.96.75',
+            'port' => 9001,
+            'path' => 'solr',
+            'core' => 'koubei'
+        ),
+    ),
+
     'headline' => [
         'remote' => 'http://alpha_stage.recommend.mia.com/api/',
     ],
@@ -19,5 +28,6 @@ $address = array(
     'subject' => [
         'remote' => 'http://172.16.96.75:8983/solr/toutiao/select',
     ],
+
 );
     

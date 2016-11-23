@@ -234,6 +234,7 @@ class Koubei {
         $result = $koubeiData->getKoubeiBySubjectId($subjectId);
         return $result;
     }
+<<<<<<< HEAD
     
     /**
      * 口碑回复状态更新
@@ -293,4 +294,28 @@ class Koubei {
         $result = $this->koubeiAppealData->getAppealInfoByIds($appeal_ids, $status);
         return $result;
     }
+=======
+
+    /**
+     * 首评口碑奖励及图片提示
+     */
+    public function getBatchKoubeiByDefaultInfo($batch_info = array()){
+        $res = array();
+        if(!empty($batch_info)){
+            $res['issue_img']    = $batch_info['issue_img'];
+            $res['issue_reward'] = $batch_info['issue_reward'];
+        }
+        return $res;
+    }
+
+    /*
+     * 首评验证
+     * */
+    public function getCheckFirstComment($order_id, $item_id){
+        $koubeiData = new KoubeiData();
+        $result = $koubeiData->checkFirstComment($order_id, $item_id);
+        return $result;
+    }
+
+>>>>>>> d21509f268cc96e43e1bcd129307d23e4f7fe83a
 }
