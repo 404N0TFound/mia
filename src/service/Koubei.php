@@ -250,7 +250,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 根据口碑ID获取口碑信息
      */
-    public function getBatchKoubeiByIds($koubeiIds, $userId = 0) {
+    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item')) {
         if (empty($koubeiIds)) {
             return array();
         }
@@ -270,7 +270,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'item_size' => $koubei['item_size']) ;
         }
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
-        $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item'));
+        $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field);
         foreach ($itemKoubei as $key => $value) {
             if (!empty($subjectRes['data'][$key])) {
                 foreach ($subjectRes['data'][$key]['items'] as $item) {
