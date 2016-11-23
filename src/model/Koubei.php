@@ -264,14 +264,4 @@ class Koubei {
         return $ids;
     }
 
-    public function convert($data){
-        $transfer = $data['data'];
-        $transfer_arr = array();
-        foreach($transfer as $k => $v){
-            $transfer_arr[($v['items'][0]['item_id'])] = $v;
-        }
-        $data['data'] = $transfer_arr;
-       return $data;
-    }
-
 }

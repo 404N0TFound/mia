@@ -546,12 +546,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public function itemBatchBestKoubei($itemIds = array()){
         // 获取口碑最优id
         //$itemIds = array('1005598','1003113');
+        $transfer_arr = array();
         $koubeiIds = $this->koubeiModel->getBatchKoubeiIds($itemIds);
         $res = $this->getBatchKoubeiByIds($koubeiIds);
         if(!empty($res)){
             // 处理数组
-            $result = $this->koubeiModel->convert($res);
-            return $this->succ($result);
+            $transfer = $res['data'];
+            foreach($transfer as $k => $v){
+                $transfer_arr[($v['item_koubei']['item_id'])] = $v;
+            }
+            $res['data'] = $transfer_arr;
+            return $this->succ($res);
         }
         return $this->error(500);
     }

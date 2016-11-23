@@ -269,17 +269,30 @@ class Koubei extends \DB_Query {
         return count($result);
     }
 
-    public function getBatchKoubeiIds($itemIds){
+    public function getBatchBestKoubeiIds($itemIds){
         if(!is_array($itemIds) || empty($itemIds)){
             return false;
         }
-        $where =array(
-            array('status',2),
-            array(':in','item_id',$itemIds),
-        );
-        $field = array('id','max(rank_score)');
-        $groupBy = 'item_id';
-        $ids = $this->getRows($where,$field,false,0,'rank_score desc',false,$groupBy);
+        $sql = 'SELECT
+                    a.*
+                FROM
+                    (
+                        SELECT
+                            id,
+                            item_id,
+                            rank_score
+                        FROM
+                            koubei
+                        WHERE
+                            item_id IN ('.(implode(",",$itemIds)).')
+                        AND 
+                            status = 2
+                        ORDER BY
+                            rank_score DESC
+                    ) AS a
+                GROUP BY
+                    a.item_id';
+        $ids = $this->query($sql);
         if(!empty($ids)){
             $ids = array_column($ids, 'id');
         }
