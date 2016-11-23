@@ -131,7 +131,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubeiIds[] = $v['id'];
         }
         $koubeiService = new KoubeiService();
-        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, 'user_info', 'count')['data'];
+        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count'))['data'];
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $koubeiInfos[$v['id']];
@@ -189,7 +189,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         $koubeiService = new KoubeiService();
-        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 'user_info', 'share_info')['data'];
+        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'share_info'))['data'];
         $commentService = new \mia\miagroup\Service\Comment();
         $commentInfos = $commentService->getBatchComments($commentIds, array('user_info', 'parent_comment'), array())['data'];
         foreach ($data['list'] as $v) {
