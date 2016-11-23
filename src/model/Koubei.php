@@ -260,7 +260,7 @@ class Koubei {
     }
 
     public function getBatchKoubeiIds($itemIds){
-        $ids = $this->koubeiData->getBatchKoubeiIds($itemIds);
+        $ids = $this->koubeiData->getBatchBestKoubeiIds($itemIds);
         return $ids;
     }
 
