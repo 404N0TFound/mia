@@ -4,15 +4,19 @@ use \F_Ice;
 use mia\miagroup\Data\Koubei\Koubei as KoubeiData;
 use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
 use \mia\miagroup\Data\Koubei\KoubeiSubject as KoubeiSubjectData;
+use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
 
 class Koubei {
     
-    public $koubeiData;
-    public $koubeiPicData;
+    private $koubeiData;
+    private $koubeiPicData;
+    private $koubeiAppealData;
+    
     
     public function __construct() {
         $this->koubeiData = new KoubeiData();
         $this->koubeiPicData = new KoubeiPicData();
+        $this->koubeiAppealData = new KoubeiAppealData();
     }
     
     /**
@@ -53,7 +57,7 @@ class Koubei {
      * @param array $KoubeiIds 口碑id
      * @param $status
      */
-    public function getBatchKoubeiByIds($KoubeiIds,$status){
+    public function getBatchKoubeiByIds($KoubeiIds, $status = array(2)){
         if (empty($KoubeiIds)) {
             return array();
         }
@@ -228,6 +232,65 @@ class Koubei {
     public function getKoubeiBySubjectId($subjectId){
         $koubeiData = new KoubeiData();
         $result = $koubeiData->getKoubeiBySubjectId($subjectId);
+        return $result;
+    }
+    
+    /**
+     * 口碑回复状态更新
+     */
+    public function updateKoubeiReplyStatus($koubeiId, $replyInfo) {
+        $koubeiData = new KoubeiData();
+        $setData = array();
+        $setData[] = array('reply', $replyInfo['reply']);
+        $setData[] = array('comment_status', 1);
+        $setData[] = array('comment_time', $replyInfo['comment_time']);
+        $setData[] = array('comment_supplier_id', $replyInfo['comment_supplier_id']);
+        $result = $koubeiData->updateKoubeiInfoById($koubeiId, $setData);
+        return $result;
+    }
+    
+    /**
+     * 新增口碑申诉
+     */
+    public function addKoubeiAppeal($appeal_info)
+    {
+        $appeal_id = $this->koubeiAppealData->addKoubeiAppeal($appeal_info);
+        return $appeal_id;
+    }
+    
+    /**
+     * 口碑申诉通过
+     */
+    public function passKoubeiAppeal($appeal_id, $operator_id = 0)
+    {
+        $appeal_info['status'] = 1;
+        $appeal_info['pass_time'] = date('Y-m-d H:i:s');
+        $appeal_info['operator_id'] = intval($operator_id);
+        $result = $this->koubeiAppealData->updateAppealInfoByKoubeiId($appeal_id, $appeal_info);
+        return $result;
+    }
+
+    /**
+     * 口碑申诉驳回
+     */
+    public function refuseKoubeiAppeal($appeal_id, $refuse_reason = '', $operator_id = 0)
+    {
+        $appeal_info['status'] = 2;
+        $appeal_info['refuse_time'] = date('Y-m-d H:i:s');
+        if (!empty($refuse_reason)) {
+            $appeal_info['refuse_reason'] = $refuse_reason;
+        }
+        $appeal_info['operator_id'] = $operator_id;
+        $result = $this->koubeiAppealData->updateAppealInfoByKoubeiId($appeal_id, $appeal_info);
+        return $result;
+    }
+    
+    /**
+     * 根据口碑ID获取口碑申诉信息
+     */
+    public function getAppealInfoByIds($appeal_ids, $status = array())
+    {
+        $result = $this->koubeiAppealData->getAppealInfoByIds($appeal_ids, $status);
         return $result;
     }
 

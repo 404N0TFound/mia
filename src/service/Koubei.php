@@ -253,6 +253,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * 根据口碑ID获取口碑信息
      */
     public function getBatchKoubeiByIds($koubeiIds, $userId = 0) {
+        if (empty($koubeiIds)) {
+            return array();
+        }
         $koubeiInfo = array();
         //批量获取口碑信息
         $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status = array(2));
@@ -495,6 +498,148 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $this->koubeiModel->addSubjectIdToKoubei($koubeiId,$subjectIssue['id']);
         }
         return $this->succ($res);
+    }
+    
+    /**
+     * 商家评论
+     */
+    public function koubeiComment($supplierId, $subjectId, $comment, $fid = 0) {
+        if (empty($comment) || intval($subjectId) <= 0) {
+            return $this->error(500);
+        }
+        $comment = trim($this->emojiUtil->emoji_unified_to_html($comment));
+        if ($comment == "") {
+            return $this->error(500);
+        }
+        //过滤敏感词
+        $audit = new \mia\miagroup\Service\Audit();
+        $sensitive_res = $audit->checkSensitiveWords($comment)['data'];
+        if(!empty($sensitive_res['sensitive_words'])){
+            return $this->error(1112);
+        }
+        //判断用户是否是商家
+        if ($supplierId > 0) {
+            $itemService = new ItemService();
+            $supplierUserRelation = $itemService->getMappingBySupplierId($supplierId)['data'];
+            if (empty($supplierUserRelation) || $supplierUserRelation['status'] != 1) {
+                return $this->error(6107);
+            }
+            $userId = $supplierUserRelation['user_id'];
+        } else {
+            //如果没有指定商家，默认蜜芽兔
+            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+        }
+        //判断是否是口碑
+        $subjectService = new SubjectService();
+        $subjectInfoData = $subjectService->getBatchSubjectInfos(array($subjectId), 0, array())['data'];
+        $subjectInfo = $subjectInfoData[$subjectId];
+        if (intval($subjectInfo['koubei_id']) <=0) {
+            return $this->error(6106);
+        }
+        $koubeiId = $subjectInfo['koubei_id'];
+        //判断是否有父评论
+        $commentService = new \mia\miagroup\Service\Comment();
+        if (intval($fid) > 0) {
+            $parentInfo = $commentService->getBatchComments([$fid])['data'][$fid];
+            if(!empty($parentInfo)) {
+                if($parentInfo['status'] != 1) {
+                    //父ID 无效
+                    return $this->error(1108);
+                }
+            }
+        }
+    
+        // 评论信息入库
+        $commentInfo['subject_id'] = $subjectId;
+        $commentInfo['comment'] = $comment;
+        $commentInfo['user_id'] = $userId;
+        $commentInfo['fid'] = $fid;
+        $commentInfo['is_expert'] = 1;
+        $commentInfo['id'] = $commentService->addComment($commentInfo);
+    
+        //更新口碑表口碑回复状态
+        $koubeiInfo['reply'] = $comment;
+        $koubeiInfo['comment_status'] = 1;
+        $koubeiInfo['comment_supplier_id'] = $supplierId;
+        $koubeiInfo['comment_time'] = date('Y-m-d H:i:s');
+        $this->koubeiModel->updateKoubeiReplyStatus($koubeiId, $koubeiInfo);
+    
+        // 给被评论的口碑发消息
+        $newService = new \mia\miagroup\Service\News();
+        if ($userId != $subjectInfo['user_id']) {
+            $newService->addNews('single', 'group', 'img_comment', $userId, $subjectInfo['user_id'], $commentInfo['id']);
+        }
+        // 给口碑的评论回复发消息
+        if ($parentInfo['comment_user'] && $parentInfo['comment_user']['user_id'] != $userId) {
+            $newService->addNews('single', 'group', 'img_comment', $userId, $parentInfo['comment_user']['user_id'], $commentInfo['id'])['data'];
+        }
+    
+        return $this->succ($commentInfo);
+    }
+    
+    /**
+     * 商家申诉口碑
+     */
+    public function supplierKoubeiAppeal($supplier_id, $koubei_id, $koubei_comment_id = 0, $appeal_reason = '', $supplier_name = '')
+    {
+        //检查是否是商家
+        $itemService = new ItemService();
+        $supplierUserRelation = $itemService->getMappingBySupplierId($supplier_id)['data'];
+        if (empty($supplierUserRelation) || $supplierUserRelation['status'] != 1) {
+            return $this->error(6107);
+        }
+        //检查是否是有效口碑
+        $koubei_info = $this->koubeiModel->getBatchKoubeiByIds(array($koubei_id))[$koubei_id];
+        if (empty($koubei_info)) {
+            return $this->error(500);
+        }
+        
+        //申诉信息记录
+        $appeal_info['supplier_id'] = $supplier_id;
+        $appeal_info['koubei_id'] = $koubei_id;
+        $appeal_info['subject_id'] = $koubei_info['subject_id'];
+        $appeal_info['appeal_time'] = date('Y-m-d H:i:s');
+        if (intval($koubei_comment_id) > 0) {
+            $appeal_info['koubei_comment_id'] = $koubei_comment_id;
+        }
+        if (!empty($appeal_reason)) {
+            $appeal_info['appeal_reason'] = $appeal_reason;
+        }
+        if (!empty($supplier_name)) {
+            $appeal_info['supplier_name'] = $supplier_name;
+        }
+        $appeal_info['id'] = $this->koubeiModel->addKoubeiAppeal($appeal_info);
+        return $appeal_info;
+    }
+    
+    /**
+     * 处理口碑申诉
+     */
+    public function setKoubeiAppealStatus($appeal_id, $status, $refuse_reason = '', $operator_id = 0)
+    {
+        //检查是否是有效申诉
+        $appeal_info = $this->koubeiModel->getAppealInfoByIds(array($appeal_id))[$appeal_id];
+        if (empty($appeal_info)) {
+            return $this->error(500);
+        }
+        switch ($status) {
+            case 1:
+                if (intval($appeal_info['koubei_comment_id']) > 0) {
+                    //执行口碑评论屏蔽操作
+                    $commentService = new \mia\miagroup\Service\Comment();
+                    $commentService->delComments(array($appeal_info['koubei_comment_id']), -1, $refuse_reason);
+                } else {
+                    //执行口碑屏蔽操作
+                    $subjectService = new \mia\miagroup\Service\Subject();
+                    $subjectService->delSubjects(array($appeal_info['subject_id']), -1, $refuse_reason);
+                }
+                $this->koubeiModel->passKoubeiAppeal($appeal_id, $operator_id);
+                break;
+            case 2:
+                $this->koubeiModel->refuseKoubeiAppeal($appeal_id, $refuse_reason, $operator_id);
+                break;
+        }
+        return $this->succ(true);
     }
 
     /**
