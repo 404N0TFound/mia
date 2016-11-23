@@ -234,7 +234,6 @@ class Koubei {
         $result = $koubeiData->getKoubeiBySubjectId($subjectId);
         return $result;
     }
-<<<<<<< HEAD
     
     /**
      * 口碑回复状态更新
@@ -294,7 +293,6 @@ class Koubei {
         $result = $this->koubeiAppealData->getAppealInfoByIds($appeal_ids, $status);
         return $result;
     }
-=======
 
     /**
      * 首评口碑奖励及图片提示
@@ -317,5 +315,4 @@ class Koubei {
         return $result;
     }
 
->>>>>>> d21509f268cc96e43e1bcd129307d23e4f7fe83a
 }
