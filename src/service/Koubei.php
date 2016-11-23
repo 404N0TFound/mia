@@ -8,7 +8,6 @@ use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
 use mia\miagroup\Remote\Coupon as CouponRemote;
-use mia\miagroup\Lib\Solr;
 
 class Koubei extends \mia\miagroup\Lib\Service {
     
