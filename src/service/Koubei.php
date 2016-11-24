@@ -680,13 +680,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //$order_code = 1;
         //$item_id = 1005598;
         // 验证是否为首评
+        if(empty($$item_id)){
+            return $this->error(500);
+        }
         $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id);
         if(!empty($check_res)){
             $batch_info = $this->koubeiConfig['shouping'];
             $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
             return $this->succ($shouping_Info);
         }
-        return $this->error(500);
     }
 
     /**
