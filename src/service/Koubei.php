@@ -497,7 +497,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $audit = new \mia\miagroup\Service\Audit();
         $sensitive_res = $audit->checkSensitiveWords($comment)['data'];
         if(!empty($sensitive_res['sensitive_words'])){
-            return $this->error(1112);
+            return $this->error(1112, '有敏感内容 "' . implode('","', $sensitive_res['sensitive_words']) . '"，发布失败');
         }
         //判断用户是否是商家
         if ($supplierId > 0) {
