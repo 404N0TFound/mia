@@ -264,7 +264,6 @@ class Koubei extends \DB_Query {
         $where = array();
         $where[] = ['status', 2];
         $where[] = ['item_id', $item_id];
-        $where[] = ['order_id', $order_id];
         $result = $this->getRows($where);
         return count($result);
     }
