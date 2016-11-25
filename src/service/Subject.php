@@ -142,10 +142,6 @@ class Subject extends \mia\miagroup\Lib\Service {
                         $imageUrl[$k]['width'] = $img_info['width'];
                         $smallImageUrl[$k] = NormalUtil::buildImgUrl($image, 'small')['url'];
                         $bigImageUrl[$k] = $img_info['url'];
-                        $koubei_img_info = NormalUtil::buildImgUrl($image,'koubeismall',320,640);
-                        $smallImageInfos[$k]['height'] = $koubei_img_info['height'];
-                        $smallImageInfos[$k]['width'] = $koubei_img_info['width'];
-                        $smallImageInfos[$k]['url'] = $koubei_img_info['url'];
                     }
                 }
             }
@@ -159,7 +155,7 @@ class Subject extends \mia\miagroup\Lib\Service {
                         $imageUrl[$key]['url'] = $img_info['url'];
                         $smallImageUrl[$key] = NormalUtil::buildImgUrl($image['url'],'small')['url'];
                         $bigImageUrl[$key] = $img_info['url'];
-                        $small_img_info = NormalUtil::buildImgUrl($image['url'],'koubeismall',320,640);
+                        $small_img_info = NormalUtil::buildImgUrl($image['url'],'koubeismall',$image['width'],$image['height']);
                         $smallImageInfos[$key]['width'] = $small_img_info['width'];
                         $smallImageInfos[$key]['height'] = $small_img_info['height'];
                         $smallImageInfos[$key]['url'] = $small_img_info['url'];
