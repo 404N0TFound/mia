@@ -77,7 +77,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取我关注专家的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids($expertUserIds,$page,$count,\F_Ice::$ins->workApp->config->get('busconf.subject.source.headline'));
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$userId);
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
 
         return $this->succ($subjectsList['data']);
     } 
