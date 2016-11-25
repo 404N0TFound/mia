@@ -424,6 +424,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function setKoubeiRank($koubeiIds, $rank)
     {
+        if (empty($koubeiIds) || !in_array($rank, array(0, 1))) {
+            return $this->error(500);
+        }
+        if (is_string($koubeiIds)) {
+            $koubeiIds = array($koubeiIds);
+        }
         $res = $this->koubeiModel->setKoubeiRank($koubeiIds, $rank);
         return $this->succ($res);
     }
