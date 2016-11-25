@@ -131,6 +131,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $imageUrl = array();
             $smallImageUrl = array();
             $bigImageUrl = array();
+            $smallImageInfos = array();
             if (!empty($subjectInfo['image_url']) && empty($subjectInfo['ext_info']['image'])) {
                 $imageUrlArr = explode("#", $subjectInfo['image_url']);
                 if (!empty($imageUrlArr[0])) {
@@ -141,6 +142,10 @@ class Subject extends \mia\miagroup\Lib\Service {
                         $imageUrl[$k]['width'] = $img_info['width'];
                         $smallImageUrl[$k] = NormalUtil::buildImgUrl($image, 'small')['url'];
                         $bigImageUrl[$k] = $img_info['url'];
+                        $koubei_img_info = NormalUtil::buildImgUrl($image,'koubeismall',320,640);
+                        $smallImageInfos[$k]['height'] = $koubei_img_info['height'];
+                        $smallImageInfos[$k]['width'] = $koubei_img_info['width'];
+                        $smallImageInfos[$k]['url'] = $koubei_img_info['url'];
                     }
                 }
             }
@@ -154,12 +159,17 @@ class Subject extends \mia\miagroup\Lib\Service {
                         $imageUrl[$key]['url'] = $img_info['url'];
                         $smallImageUrl[$key] = NormalUtil::buildImgUrl($image['url'],'small')['url'];
                         $bigImageUrl[$key] = $img_info['url'];
+                        $small_img_info = NormalUtil::buildImgUrl($image['url'],'koubeismall',320,640);
+                        $smallImageInfos[$key]['width'] = $small_img_info['width'];
+                        $smallImageInfos[$key]['height'] = $small_img_info['height'];
+                        $smallImageInfos[$key]['url'] = $small_img_info['url'];
                     }
                 }
             }
             $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
             $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
+            $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos;
             if (!empty($subjectInfo['ext_info']['koubei']) || !empty($subjectInfo['ext_info']['koubei_id'])) {
                 if (!empty($subjectInfo['ext_info']['koubei'])) {
                     $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei']['id'];

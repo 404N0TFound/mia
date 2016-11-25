@@ -103,7 +103,15 @@ $album = array(
              'file_type' => '@style@koubeilist',
              'limit_width' => true,
              'limit_height' => true,
-         )
+         ),
+         'koubeismall' => array(
+             'width' => 320,
+             'height' => 640,
+             'suffix' => '.jpg',
+             'file_type' => '@style@koubeismall',
+             'limit_width' => true,
+             'limit_height' => true,
+         ),
      ),
  );
  
