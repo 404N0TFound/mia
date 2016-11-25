@@ -6,15 +6,8 @@ use mia\miagroup\Lib\Redis;
 class WangSuLiveUtil
 {
     private $_config;
-    private $_stream;
-    private $_nonce;
     private $_vdoid;
-    private $_signature;
-    private $_expire;
-    private $_public = 0;
-    private $_signArr = [];
-    private $_buildQuery = [];
-    private $_client;
+    private $_stream;
 
     /**
      * WangSuLiveUtil constructor.
@@ -22,7 +15,9 @@ class WangSuLiveUtil
      */
     public function __construct()
     {
-
+        $this->_config = F_Ice::$ins->workApp->config->get('busconf.wangsu');
+        $this->_vdoid = $this->_getString();
+        $this->_stream = $this->_config['live_prefix'];
     }
 
     /**
@@ -33,26 +28,26 @@ class WangSuLiveUtil
     public function createStream($createId)
     {
         $data = [];
+        //streamId
         $streamId = $this->_getStremId($createId);
-        $query = $this->_getHttpQuery();
+        //流名
         $streamname = $this->_stream . $createId;
         $data = [
             'id' => $streamId,
-            'publish' => 'rtmp://' . $this->_config['live_host']['publish']['rtmp'] . '/live/' . $streamname . '?' . $query,
+            'publish' => 'rtmp://' . $this->_config['live_host']['publish']['rtmp'] . '/' . $streamname,
         ];
-        $streamInfoKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_jinshan_stream_info.key'), $streamId);
+        $streamInfoKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_wangsu_stream_info.key'), $streamId);
         $redis = new Redis();
-        $redis->setex($streamInfoKey, $data, NormalUtil::getConfig('busconf.rediskey.liveKey.live_jinshan_stream_info.expire_time'));
+        $redis->setex($streamInfoKey, $data, NormalUtil::getConfig('busconf.rediskey.liveKey.live_wangsu_stream_info.expire_time'));
         return $data;
     }
 
     /**
-     * @param $streamId
-     * @return array|mixed|null|string
+     * 获取推流流信息
      */
     public function getStreamInfoByStreamId($streamId)
     {
-        $streamInfoKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_jinshan_stream_info.key'), $streamId);
+        $streamInfoKey = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_wangsu_stream_info.key'), $streamId);
         $data = [];
         $redis = new Redis();
         if ($redis->exists($streamInfoKey)) {
@@ -62,8 +57,7 @@ class WangSuLiveUtil
     }
 
     /**
-     * @param $streamId
-     * @return array
+     * 获取拉流列表
      */
     public function getLiveUrls($streamId)
     {
@@ -71,114 +65,52 @@ class WangSuLiveUtil
         $data = [];
         if ($streamInfo) {
             $data = [
-                'rtmp' => 'rtmp://' . $this->_config['live_host']['live']['rtmp'] . '/live/' . $streamInfo['streamname'],
-                'hls' => 'http://' . $this->_config['live_host']['live']['hls'] . '/live/' . $streamInfo['streamname'] . "/index.m3u8",
-                'hdl' => 'http://' . $this->_config['live_host']['live']['hdl'] . '/live/' . $streamInfo['streamname'] . ".flv",
+                'rtmp' => $this->_config['live_host']['live']['rtmp'] . '/' . $streamInfo['streamname'],
+                'hls' => $this->_config['live_host']['live']['hls'] . '/' . $streamInfo['streamname'] . "/playlist.m3u8",
+                'hdl' => $this->_config['live_host']['live']['hdl'] . '/' . $streamInfo['streamname'] . ".flv",
             ];
         }
         return $data;
     }
 
     /**
-     * @param $streamId
-     * @return array
+     * 获取回放地址
      */
-    public function getPalyBackUrls($streamId)
+    public function getPalyBackUrls($streamId, $timeStart, $timeEnd)
     {
         $streamInfo = $this->_getVdoidAndStreamname($streamId);
         $data = [];
-        if ($streamInfo) {
+        if ($streamInfo && $timeStart && $timeEnd) {
             $data = [
-                'hls' => 'http://' . $this->_config['live_paly_back'] . '/record/live/' . $streamInfo['streamname'] . '/hls/' . $streamId . '.m3u8',
+                //参数格式wsStreamTimeABS=20130815140000&wsStreamTimeABSEnd = 20130815143000
+                'hls' => $this->_config['live_host']['live']['hls'] . '/' . $streamInfo['streamname'] . "/playlist.m3u8?wsStreamTimeABS=" . $timeStart . "&wsStreamTimeABSEnd = " . $timeEnd,
             ];
         }
         return $data;
-
     }
 
     /**
-     * @param $streamId
-     * @param string $format
-     * @return array
+     * 截图
      */
     public function getSnapShot($streamId, $format = '.jpg')
     {
-        $streamInfo = $this->_getVdoidAndStreamname($streamId);
-        $data = [];
-        if ($streamInfo) {
-            $args = [
-                'Bucket' => $this->_config['image_bucket'],
-                'Options' => [
-                    "prefix" => 'record/live/' . $streamInfo['streamname'] . '/picture',
-                    "delimiter" => $streamInfo['streamname'] . '-' . time() . $format,
-                    "max-keys" => 5
-                ]
-            ];
-            $result = $this->_client->listObjects($args);
-            if (isset($result['Contents'][0]) && !empty($result['Contents'][0])) {
-                $data['origin'] = 'http://' . $this->_config['live_snap_shot'];
-                $data[$result['Contents'][0]['Size']] = 'http://' . $this->_config['live_snap_shot'] . '/' . $result['Contents'][0]['Key'];
-            }
-        }
-        return $data;
+
     }
 
     /**
-     * @param $streamId
-     * @param string $format
-     * @return array
+     * 生成视频
      */
     public function getSaveAsMp4($streamId, $format = '.mp4')
     {
-        $streamInfo = $this->_getVdoidAndStreamname($streamId);
-        $data = [];
-        if ($streamInfo) {
-            $args = [
-                'Bucket' => $this->_config['live_bucket'],
-                'Options' => [
-                    "prefix" => $streamInfo['vdoid'],
-                    "delimiter" => $streamInfo['vdoid'] . $format,
-                    "max-keys" => 1
-                ]
-            ];
-            $result = $this->_client->listObjects($args);
-            if (isset($result['Contents'][0]) && !empty($result['Contents'][0])) {
-                $data['targetUrl'] = 'http://' . $this->_config['live_paly_back'] . '/' . $result['Contents'][0]['Key'];
-            }
-        }
-        return $data;
+
     }
 
     /**
      * 获取直播状态
-     *
-     * @return void
-     * @author
      **/
     public function getStatus($streamId)
     {
-        $result = $this->getRawStatus($streamId);
 
-        $returnValue = 'connected';
-        $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $streamId);
-        $redis = new Redis();
-        if (empty($result)) {
-            //策略： 直播状态首次中断并不立即返回中断状态，而是再次检测到中断并且相差5秒以上，才中断
-            //此策略为防止第三方瞬间返回中断然而实际没中断问题
-            //获取数量
-            $liveStreamStatus = $redis->get($liveStatusKey);
-            $lastDisconnectedTime = intval($liveStreamStatus);
-            if ($lastDisconnectedTime > 0) {
-                if (time() - $lastDisconnectedTime >= 600) {
-                    $returnValue = 'disconnected';
-                }
-            } else {
-                $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
-            }
-        } else {
-            $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
-        }
-        return $returnValue;
     }
 
     /**
@@ -195,31 +127,7 @@ class WangSuLiveUtil
     }
 
     /**
-     * 获取签名
-     * @param $data
-     * @param string $method
-     * @return string
-     */
-    private function _getSign($data, $method = 'GET')
-    {
-        $toSign = "$method\n$this->_expire";
-        //按照字典序排列
-        if (is_array($data)) {
-            $toSign .= "\n";
-            ksort($data);
-            $keys = array_keys($data);
-            foreach ($keys as $key) {
-                $toSign .= $key . '=' . $data[$key] . '&';
-            }
-            $toSign = trim($toSign, '&');
-        }
-        $sign = base64_encode(hash_hmac("sha1", $toSign, $this->_config['secret_key'], true));
-        return $sign;
-    }
-
-    /**
-     * @param int $length
-     * @return string
+     * 生成随机字符串
      */
     private function _getString($length = 8)
     {
@@ -230,12 +138,10 @@ class WangSuLiveUtil
             $str .= $chars[rand(0, $max)];
         }
         return $str;
-
     }
 
     /**
-     * @param $createId
-     * @return string
+     * 生成stremId
      */
     private function _getStremId($createId)
     {
@@ -243,16 +149,7 @@ class WangSuLiveUtil
     }
 
     /**
-     * @return null|string
-     */
-    private function _getHttpQuery()
-    {
-        return http_build_query($this->_buildQuery);
-    }
-
-    /**
-     * @param $streamId
-     * @return array
+     * 获取streamName
      */
     private function _getVdoidAndStreamname($streamId)
     {
@@ -264,7 +161,7 @@ class WangSuLiveUtil
                 'vdoid' => $idInfo[1]
             ];
         }
-        return $vdoid;
+        return $data;
     }
 
     /**
@@ -285,7 +182,6 @@ class WangSuLiveUtil
         $result = curl_exec($ch);
         curl_close($ch);
         return $result;
-
     }
 
 }

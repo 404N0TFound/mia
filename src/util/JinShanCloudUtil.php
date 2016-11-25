@@ -238,7 +238,7 @@ class JinShanCloudUtil
                 'vdoid'      => $idInfo[1]
             ];
         }
-        return $vdoid;
+        return $data;
     }
 
     private function _curlGet($url)
