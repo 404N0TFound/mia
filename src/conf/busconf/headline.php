@@ -40,6 +40,7 @@ $clientServerMapping = array(
 
 //推荐头条专家ID
 $expert = [
+    15857254,
     13864590,
     13864591,
     13864592,
