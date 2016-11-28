@@ -175,6 +175,31 @@ class LiveRoom extends \DB_Query {
         $affection = $this->update($setData,$where);
         return $affection;
     }
-    
 
+    /**
+     * 获取所有直播房间列表
+     */
+    public function getLiveRoomList($conditions)
+    {
+        if (isset($conditions['where'])) {
+            $where = [];
+            foreach ($conditions['where'] as $k => $v) {
+                $where[] = $v;
+            }
+        }
+        if (isset($conditions['fields'])) {
+            $fields = $conditions['fields'];
+        }
+        if (isset($conditions['limit'])) {
+            $limit = $conditions['limit'];
+        }
+        if (isset($conditions['offset'])) {
+            $offset = $conditions['offset'];
+        }
+        if (isset($conditions['orderBy'])) {
+            $orderBy = $conditions['orderBy'];
+        }
+        $data = $this->getRows($where, $fields, $limit, $offset, $orderBy);
+        return $data;
+    }
 }

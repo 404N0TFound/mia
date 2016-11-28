@@ -24,24 +24,6 @@ class SubjectLabelCategoryRelation extends \DB_Query
     }
 
     /**
-     * 根据标签分类查找关联的标签id
-     */
-    public function getLabelByCategroyIds($categroyIds, $offset = 0, $limit = 10) {
-        if (empty($categroyIds)) {
-            return array();
-        }
-        $where[] = array(':eq', 'status', 1);
-        $where[] = array(':in', 'category_id', $categroyIds);
-        $data =  $this->getRows($where,'*',$limit,$offset,'id desc');
-        $result = [];
-        foreach ($data as $key => $value) {
-            $result[$value['category_id']] = $value;
-        }
-        
-        return $result;
-    }
-
-    /**
      * 通过分类ID获取标签id
      */
     public function getLabelsByCategoryIds($categroyIds, $offset = 0, $limit = 10){
@@ -53,10 +35,20 @@ class SubjectLabelCategoryRelation extends \DB_Query
         $data =  $this->getRows($where,'*',$limit,$offset,'id desc');
         $result = [];
         foreach ($data as $key => $value) {
-            $result[] = $value;
+            $result[$value['category_id']] = $value;
         }
         
         return $result;
     }
 
+    /**
+     * 获取分类标签关系列表
+     */
+    public function getRelationList($offset = 0, $limit = 10, $status = array(1)) {
+        if (!empty($status)) {
+            $where[] = array('status', $status);
+        }
+        $result =  $this->getRows($where,'*',$limit,$offset,'id desc');
+        return $result;
+    }
 }

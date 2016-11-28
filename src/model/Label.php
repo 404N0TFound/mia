@@ -238,35 +238,26 @@ class Label {
     /**
      * 查找被推荐的分类标签
      */
-    public function getCategoryLables($page=1,$limit=50)
+    public function getCategoryLables($page=1,$limit=10)
     {
-        $labelInfo = $this->getLabelID();
-        $labelIds = array_keys($labelInfo);
-        $categoryIds = $this->labelCagegoryRelation->getLabelCategory($labelIds);
-        $categoryIds = count($categoryIds)>50 ? array_slice($categoryIds, 0,50) : $categoryIds;
-        $data = [];
-        foreach ($categoryIds as $key => $value) {
-            if(isset($labelInfo[$key])){
-                $labelInfo[$key]['category_id'] = $value;
-                $data[] = $labelInfo[$key];
+        //获取全部已归档标签
+        $relationInfos = $this->labelCagegoryRelation->getRelationList(0, 100);
+        $countArr = array();
+        $result = array();
+        foreach ($relationInfos as $value) {
+            if (!isset($countArr[$value['category_id']])) {
+                $countArr[$value['category_id']] = 0;
             }
+            if (count($result[$value['category_id']]) >= $limit) {
+                continue;
+            }
+            if (in_array($value['label_id'], $result[$value['category_id']])) {
+                continue;
+            }
+            $result[$value['category_id']][] = $value['label_id'];
+            $countArr[$value['category_id']] += 1;
         }
-        return $data;
-    }
-
-    /**
-     * 根据标签分类查找关联的标签id
-     */
-    public function getLabelByCategroyIds($categoryIds,$page=1,$limit=10)
-    {
-        if($limit){
-            $start = ($page-1)*$limit;
-        }else{
-            $start = false;
-            $limit = false;
-        }
-        $data = $this->labelCagegoryRelation->getLabelByCategroyIds($categoryIds,$start,$limit);
-        return $data;
+        return $result;
     }
 
     /**
