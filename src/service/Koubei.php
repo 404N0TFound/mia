@@ -664,7 +664,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!empty($koubei_ids)){
             $koubei_list = $this->getBatchKoubeiByIds($koubei_ids);
         }
-        $res = array('koubei_list' => $koubei_list['data'], 'brand_list' => $brand_list);
+        $res = array('koubei_list' => array_values($koubei_list['data']), 'brand_list' => $brand_list);
         return $this->succ($res);
     }
 
