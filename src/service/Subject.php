@@ -271,7 +271,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         //如果是专栏，获取作者的其他专栏
         if (!empty($subjectInfo['album_article'])) { 
             $con = [
-                'user_id'   => $subjectInfo['user_info']['user_id'],
+                'user_id'   => $subjectInfo['user_id'],
                 'iPageSize' => 5,
             ];
             $albumServiceData = $this->albumService->getArticleList($con);

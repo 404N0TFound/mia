@@ -7,12 +7,12 @@ $liveShareInfo = array(
     'live_by_user'      => array(
         'title'      => '%s@你',
         'desc'      => '天啦噜！%s正在蜜芽直播，更有红包等你来领！快上车→',
-        'wap_url'  => 'http://m.mia.com/mialive/live?roomid=%d&liveid=%d',
+        'wap_url'  => 'https://m.mia.com/mialive/live?roomid=%d&liveid=%d',
     ),
     'live_by_anchor'      => array(
         'title'      => '我正在蜜芽直播',
         'desc'      => '我正在蜜芽直播，快来一起看',
-        'wap_url'  => 'http://m.mia.com/mialive/live?roomid=%d&liveid=%d',
+        'wap_url'  => 'https://m.mia.com/mialive/live?roomid=%d&liveid=%d',
     ),
 );
 

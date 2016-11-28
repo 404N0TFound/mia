@@ -84,9 +84,15 @@ class AlbumArticle extends \DB_Query {
         }
         $orderBy = array('create_time DESC');
         $data = $this->getRows($where, array('id,album_id,user_id,subject_id,title,cover_image,content,is_recommend,ext_info,create_time'), $limit = FALSE, $offset = 0, $orderBy);
-        foreach ($data as $v) {
-            $v['ext_info'] = json_decode($v['ext_info'], true);
-            $result[$v['id']] = $v;
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                //http转https
+                $v['cover_image'] = str_replace('http:\/\/', 'https:\/\/', strval($v['cover_image']));
+                $v['cover_image'] = json_decode($v['cover_image'], true);
+                $v['ext_info'] = str_replace('http:\/\/', 'https:\/\/', strval($v['ext_info']));
+                $v['ext_info'] = json_decode($v['ext_info'], true);
+                $result[$v['id']] = $v;
+            }
         }
         return $result;
     }

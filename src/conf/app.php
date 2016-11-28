@@ -33,7 +33,7 @@ $runner = array(
 );
 
 $url = [
-    'img_url'=>'http://img.miyabaobei.com/',
-    'qiniu_url'=>'http://video1.miyabaobei.com/',
+    'img_url'=>'https://img.miyabaobei.com/',
+    'qiniu_url'=>'https://video1.miyabaobei.com/',
 ];
 
