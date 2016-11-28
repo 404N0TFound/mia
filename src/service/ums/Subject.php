@@ -47,7 +47,6 @@ class Subject extends \mia\miagroup\Lib\Service {
             $condition['status'] = $params['status'];
         }
         
-        $params['source'] = 1;
         if ($params['source'] !== null && $params['source'] !== '' && in_array($params['source'], array(1, 2, 3)) && intval($condition['id']) <= 0) {
             //帖子来源
             $condition['source'] = $params['source'];

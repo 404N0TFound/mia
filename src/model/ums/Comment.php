@@ -3,34 +3,33 @@ namespace mia\miagroup\Model\Ums;
 
 use Ice;
 
-class Subject extends \DB_Query {
+class Comment extends \DB_Query {
 
     protected $dbResource = 'miagroupums';
     //帖子
-    protected $tableSubject = 'group_subjects';
-    protected $indexSubject = array('id', 'user_id', 'created', 'status', 'is_top', 'is_fine');
+    protected $tableComment = 'group_subject_comment';
+    protected $indexComment = array('id', 'user_id', 'subject_id');
 
     /**
-     * 查询口碑表数据
+     * 查询评论
      */
-    public function getSubjectData($cond, $offset = 0, $limit = 50, $orderBy = '') {
-        $this->tableName = $this->tableSubject;
+    public function getCommentList($cond, $offset = 0, $limit = 50, $order_by = 'id desc') {
+        $this->tableName = $this->tableComment;
         $result = array('count' => 0, 'list' => array());
         $where = array();
         if (!empty($cond)) {
-            //检查是否使用索引，没有索引强制加
-            if (empty(array_intersect(array_keys($cond), $this->indexSubject))) {
-                $where[] = [':ge','created', date('Y-m-d H:i:s', time() - 86400 * 90)];
+            //检查是否使用索引，没有索引返回
+            if (empty(array_intersect(array_keys($cond), $this->indexComment))) {
+                return array();
             }
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
                     case 'start_time':
-                        $where[] = [':ge','created', $v];
+                        $where[] = [':ge','create_time', $v];
                         break;
                     case 'end_time':
-                        $where[] = [':le','created', $v];
-                        break;
+                        $where[] = [':le','create_time', $v];
                     default:
                         $where[] = [$k, $v];
                 }
@@ -40,10 +39,10 @@ class Subject extends \DB_Query {
         if (intval($result['count']) <= 0) {
             return $result;
         }
-        $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        $result['list'] = $this->getRows($where, '*', $limit, $offset, $order_by);
         if (!empty($result['list'])) {
             foreach ($result['list'] as $k => $v) {
-                $result['list'][$k]['subject_id'] = $v['id'];
+                $result['list'][$k]['id'] = $v['id'];
             }
         }
         return $result;

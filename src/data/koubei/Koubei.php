@@ -38,6 +38,29 @@ class Koubei extends \DB_Query {
     }
     
     /**
+     * 根据商品id批量获取商品带图口碑id
+     */
+    public function getKoubeiWithPicByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false) {
+        $result = array();
+        if (empty($itemIds)) {
+            return $result;
+        }
+        $where = array();
+        $where[] = ['koubei.item_id', $itemIds];
+        $where[] = ['koubei.status', 2];
+        $where[] = [':gt','koubei.subject_id',0];
+        $where[] = [':notnull', 'koubei_pic.koubei_id'];
+         
+        $data = $this->getRows($where,'koubei.id as id',$limit,$offset,$orderBy, 'LEFT JOIN koubei_pic ON koubei.id = koubei_pic.koubei_id');
+        if (!empty($data)) {
+            foreach($data as $v){
+                $result[] = $v['id'];
+            }
+        }
+        return $result;
+    }
+    
+    /**
      * 根据口碑id批量获取口碑信息
      * @param array() $koubeiIds 口碑id
      * @return array()
@@ -251,6 +274,51 @@ class Koubei extends \DB_Query {
         $sql = "update $this->tableName set $countType = $countType+$num where id in ($koubeiIds)";
         $result = $this->query($sql);
         return $result;
+    }
+
+
+    /*
+     * 查看口碑首评
+     * */
+    public function checkFirstComment($order_id, $item_id){
+        if (empty($item_id) || empty($order_id)) {
+            return false;
+        }
+        $where = array();
+        $where[] = ['status', 2];
+        $where[] = ['item_id', $item_id];
+        $result = $this->getRows($where);
+        return count($result);
+    }
+
+    public function getBatchBestKoubeiIds($itemIds){
+        if(!is_array($itemIds) || empty($itemIds)){
+            return false;
+        }
+        $sql = 'SELECT
+                    a.*
+                FROM
+                    (
+                        SELECT
+                            id,
+                            item_id,
+                            rank_score
+                        FROM
+                            koubei
+                        WHERE
+                            item_id IN ('.(implode(",",$itemIds)).')
+                        AND 
+                            status = 2
+                        ORDER BY
+                            rank_score DESC
+                    ) AS a
+                GROUP BY
+                    a.item_id';
+        $ids = $this->query($sql);
+        if(!empty($ids)){
+            $ids = array_column($ids, 'id');
+        }
+        return $ids;
     }
 
 }

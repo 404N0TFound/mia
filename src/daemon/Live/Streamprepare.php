@@ -21,8 +21,8 @@ class Streamprepare extends \FD_Daemon {
 
     public function execute() {
         // 获取状态为2(确认中)的直播
-        $where[] = array('status', 2);
-        $where[] = array('source', 1);
+        $where['status'] = array('status', 2);
+        $where['source'] = array('source', 1);
         $lives = $this->liveModel->getLiveList($where, 0, 1000);
         if (!empty($lives)) {
             // 获取用户的房间号
