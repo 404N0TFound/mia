@@ -254,13 +254,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 根据口碑ID获取口碑信息
      */
-    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item')) {
+    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item'), $status = array(2)) {
         if (empty($koubeiIds)) {
             return array();
         }
         $koubeiInfo = array();
         //批量获取口碑信息
-        $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status = array(2));
+        $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status);
         foreach($koubeiArr as $koubei){
             if(empty($koubei['subject_id'])) continue;
             //收集subjectids
@@ -594,6 +594,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubei_info = $this->koubeiModel->getBatchKoubeiByIds(array($koubei_id))[$koubei_id];
         if (empty($koubei_info)) {
             return $this->error(500);
+        }
+        //检查是否已申诉过
+        $is_exist = $this->koubeiModel->checkAppealInfoExist($koubei_id, $koubei_comment_id);
+        if (!empty($is_exist)) {
+            return $this->error(6108);
         }
         
         //申诉信息记录
