@@ -149,7 +149,7 @@ class Solr
             $data .= "&". $key."=".$value;
         }
         $url .= $data;
-        echo $url."\n";
+        //echo $url."\n";
         $result = file_get_contents($url);
         return $result;
     }
