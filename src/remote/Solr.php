@@ -201,7 +201,7 @@ class Solr
         // solr select
         $res = $this->select($solrInfo);
         if($res['success'] == 1){
-            $res = array_column($res['data']['response']['docs'],'id');
+            $res = $res['data']['response'];
             return $res;
         }
         return array();
