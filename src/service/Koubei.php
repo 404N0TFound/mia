@@ -283,7 +283,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ($koubeiInfo['id']);
         }
         $subjectService = new SubjectService();
-        $subjectData = $subjectService->getSingleSubjectById($subjectId, 0 , array('group_labels'))['data'];
+        $subjectData = $subjectService->getSingleSubjectById($subjectId, 0 , array('group_labels', 'album'))['data'];
+        if (!empty($subjectData['album_article']) || !empty($subjectData['video_info'])) {
+            //如果是专栏或者视频贴
+            return $this->error(500, '该类型贴不能同步到口碑');
+        }
         //如果没有同步过，则同步为口碑贴
         $koubeiSetData = array();
         $koubeiSetData['status'] = 2;
