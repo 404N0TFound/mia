@@ -149,7 +149,7 @@ class Solr
             $data .= "&". $key."=".$value;
         }
         $url .= $data;
-        //echo $url."\n";
+        echo $url."\n";
         $result = file_get_contents($url);
         return $result;
     }
@@ -189,9 +189,13 @@ class Solr
             'fq'        => array(),
             'page'      => $page,
             'pageSize'  => $count,
-            'fl'        => 'id'
+            'fl'        => 'id',
+            'sort'      => 'brand_id desc',
         ];
         if(!empty($category_id)){
+            $solrInfo['group.field'] = "brand_id";
+            $solrInfo['group.main'] = "true";
+            $solrInfo['group'] = "true";
             $solrInfo['fq'][]   = 'category_id:'.$category_id;
         }
         if(!empty($brand_id)){
@@ -227,6 +231,7 @@ class Solr
         if(!empty($category_id)){
             $solrInfo['fq'][]    = 'category_id:'.$category_id;
         }
+        $solrInfo['fq'][] = 'local_url:*';
         // solr select
         $res = $this->select($solrInfo);
         $new_brand_list = array();
