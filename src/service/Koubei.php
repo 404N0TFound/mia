@@ -616,7 +616,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $appeal_info['supplier_name'] = $supplier_name;
         }
         $appeal_info['id'] = $this->koubeiModel->addKoubeiAppeal($appeal_info);
-        return $appeal_info;
+        return $this->succ($appeal_info);;
     }
     
     /**
