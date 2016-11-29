@@ -190,12 +190,12 @@ class Solr
             'page'      => $page,
             'pageSize'  => $count,
             'fl'        => 'id',
-            'sort'      => 'brand_id desc',
+            'sort'      => 'rank_score desc',
         ];
         if(!empty($category_id)){
-            $solrInfo['group.field'] = "brand_id";
+            /*$solrInfo['group.field'] = "brand_id";
             $solrInfo['group.main'] = "true";
-            $solrInfo['group'] = "true";
+            $solrInfo['group'] = "true";*/
             $solrInfo['fq'][]   = 'category_id:'.$category_id;
         }
         if(!empty($brand_id)){
