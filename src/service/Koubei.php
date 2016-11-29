@@ -55,7 +55,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
-        $labels = array();$labels['label'] = array();$labels['image'] = array();
+        //供应商ID获取
+        $itemService = new ItemService();
+        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
+        $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
+        $labels = array();
+        $labels['label'] = array();
+        $labels['image'] = array();
         if(!empty($koubeiData['labels']))
         {
             foreach($koubeiData['labels'] as $label)
@@ -303,6 +309,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['created_time'] = date('Y-m-d H:i:s', time());
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($subjectData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
+        //供应商ID获取
+        $itemService = new ItemService();
+        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
+        $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
         
         $extInfo = array();
         $extInfo['label'] = array();
