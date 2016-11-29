@@ -50,7 +50,6 @@ class Koubei extends \DB_Query {
         $where[] = ['koubei.status', 2];
         $where[] = [':gt','koubei.subject_id',0];
         $where[] = [':notnull', 'koubei_pic.koubei_id'];
-         
         $data = $this->getRows($where,'koubei.id as id',$limit,$offset,$orderBy, 'LEFT JOIN koubei_pic ON koubei.id = koubei_pic.koubei_id');
         if (!empty($data)) {
             foreach($data as $v){
@@ -287,7 +286,6 @@ class Koubei extends \DB_Query {
         $where = array();
         $where[] = ['status', 2];
         $where[] = ['item_id', $item_id];
-        $where[] = ['order_id', $order_id];
         $result = $this->getRows($where);
         return count($result);
     }

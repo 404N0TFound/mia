@@ -288,9 +288,11 @@ class QiniuUtil {
         $bucket = $this->config['image_bucket'];
         $fileName = $this->_getImageFileName($videoUrl, 'jpg');
         $fileName = Qiniu\entry($bucket, $fileName);
-        $url = substr($videoUrl, strlen('http://'));
+        preg_match("/^(http|https):\/\//", $videoUrl, $match);
+        $prefix = $match[0];
+        $url = str_replace($prefix, '', $videoUrl);
         $url = $url . "?vframe/jpg/offset/".$second."|imageMogr2/thumbnail/640x|saveas/$fileName";
-        $image_url = 'http://' . $url . '/sign/' . $this->qiniuAuth->sign($url);
+        $image_url = $prefix . $url . '/sign/' . $this->qiniuAuth->sign($url);
         $context = stream_context_create(array(
             'http' => array(
                 'timeout' => 3000 //超时时间，单位为秒

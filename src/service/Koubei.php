@@ -633,4 +633,76 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         return $this->succ(true);
     }
+
+    /**
+     * solr 分类检索口碑列表
+     * @param $brand_id       品牌id          非必填
+     * @param $category_id    分类id          非必填
+     * @param $count          每页数量        必填
+     * @param $page           当前页          必填
+     * @ return array()
+     */
+    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1){
+
+        $solr        = new SolrRemote();
+        $koubei_list = array();
+        $brand_list  = array();
+        $koubei_ids  = $solr->koubeiList($brand_id, $category_id, $count, $page);
+        if(!empty($category_id)){
+            $brand_list  = $solr->brandList($category_id);
+        }
+        if(!empty($koubei_ids)){
+            $koubei_list = $this->getBatchKoubeiByIds($koubei_ids);
+        }
+        $res = array('koubei_list' => array_values($koubei_list['data']), 'brand_list' => $brand_list);
+        return $this->succ($res);
+    }
+
+
+    /**
+     * solr 分类检索口碑列表
+     * @param $order_code     订单编号
+     * @param $item_id        商品SKU
+     * @ return issue_reward  口碑发布奖励
+     * @ return issue_tip_url 口碑发布图片提升
+     */
+    public function issueinit($order_code = 0, $item_id = 0){
+        //$order_code = 1;
+        //$item_id = 1005598;
+        // 验证是否为首评
+        if(empty($item_id)){
+            return $this->error(500);
+        }
+        $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id);
+        if(empty($check_res)){
+            $batch_info = $this->koubeiConfig['shouping'];
+            $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
+            return $this->succ($shouping_Info);
+        }
+    }
+
+    /**
+     * 商品最优口碑
+     * @param item_id   商品SKU
+     * @ return | array(group_subject)
+     */
+    public function itemBatchBestKoubei($itemIds = array()){
+        // 获取口碑最优id
+        //$itemIds = array('1005598','1003113');
+        if(empty($itemIds)){
+            return $this->error(500);
+        }
+        $transfer_arr = array();
+        $koubeiIds = $this->koubeiModel->getBatchKoubeiIds($itemIds);
+        $res = $this->getBatchKoubeiByIds($koubeiIds);
+        if(!empty($res)){
+            // 处理数组
+            $transfer = $res['data'];
+            foreach($transfer as $k => $v){
+                $transfer_arr[($v['item_koubei']['item_id'])] = $v;
+            }
+            $res['data'] = $transfer_arr;
+            return $this->succ($res['data']);
+        }
+    }
 }
