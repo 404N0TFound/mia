@@ -158,7 +158,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取口碑列表
      */
-    public function getItemKoubeiList($itemId, $page=1, $count=20, $userId = 0)
+    public function getItemKoubeiList($itemId, $page=1, $count=20, $userId = 0, $onlyPic = false)
     {
         $koubeiRes = array("koubei_info" => array());
         if(!$itemId){
@@ -206,7 +206,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if($koubeiNums <=0){
             return $this->succ($koubeiRes);
         }
-        
+        $koubeiRes['total_count'] = $koubeiNums;//口碑数量
         //3、获取用户评分
         $itemScore = $this->koubeiModel->getItemUserScore($itemIds);
         //4、获取蜜粉推荐
@@ -214,7 +214,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
+        if ($onlyPic == false) {
+            $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
+        } else {
+            $koubeiIds = $this->koubeiModel->getKoubeiWithPicByItemIds($itemIds, $count, $offset);
+        }
         //5、获取口碑信息
         $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId)['data'];
         $koubeiRes['koubei_info'] = !empty($koubeiInfo) ? array_values($koubeiInfo) : array();

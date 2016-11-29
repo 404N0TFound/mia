@@ -53,6 +53,18 @@ class Koubei {
     }
     
     /**
+     * 获取商品带图口碑列表
+     */
+    public function getKoubeiWithPicByItemIds($itemIds, $limit, $offset){
+        if (empty($itemIds)) {
+            return array();
+        }
+        $orderBy = 'rank_score desc, created_time desc';
+        $koubeiData = $this->koubeiData->getKoubeiWithPicByItemIds($itemIds, $limit, $offset, $orderBy);
+        return $koubeiData;
+    }
+    
+    /**
      * 批量获取商品口碑
      * @param array $KoubeiIds 口碑id
      * @param $status
