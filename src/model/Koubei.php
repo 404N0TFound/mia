@@ -305,6 +305,15 @@ class Koubei {
         $result = $this->koubeiAppealData->getAppealInfoByIds($appeal_ids, $status);
         return $result;
     }
+    
+    /**
+     * 检查申诉是否已存在
+     */
+    public function checkAppealInfoExist($koubei_id, $koubei_comment_id = 0)
+    {
+        $result = $this->koubeiAppealData->checkAppealInfoExist($koubei_id, $koubei_comment_id);
+        return $result;
+    }
 
     /**
      * 首评口碑奖励及图片提示

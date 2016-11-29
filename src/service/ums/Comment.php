@@ -4,7 +4,6 @@ namespace mia\miagroup\Service\Ums;
 use mia\miagroup\Model\Ums\Comment as CommentModel;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Service\Comment as CommentService;
-use mia\miagroup\Service\Item as ItemService;
 
 class Comment extends \mia\miagroup\Lib\Service {
     
@@ -27,6 +26,12 @@ class Comment extends \mia\miagroup\Lib\Service {
         if (intval($params['id']) > 0) {
             //评论ID
             $condition['id'] = $params['id'];
+        }
+        if (intval($params['supplier_id']) > 0 && intval($condition['id']) <= 0) {
+            //供应商id
+            $itemService = new \mia\miagroup\Service\Item();
+            $userInfo = $itemService->getMappingBySupplierId($params['supplier_id'])['data'];
+            $condition['user_id'] = $userInfo['user_id'];
         }
         if (intval($params['user_id']) > 0 && intval($condition['id']) <= 0) {
             //用户id
@@ -72,9 +77,22 @@ class Comment extends \mia\miagroup\Lib\Service {
             $commentIds[] = $v['id'];
         }
         $commentService = new CommentService();
+        //获取评论信息
         $commentInfos = $commentService->getBatchComments($commentIds, array('user_info', 'parent_comment'), array())['data'];
+        //获取评论申诉信息
+        $koubeiModel = new \mia\miagroup\Model\Ums\Koubei();
+        $koubeiAppealInfos = $koubeiModel->getKoubeiAppealData(array('koubei_comment_id' => $commentIds), 0, false)['list'];
+        $appealStatus = array();
+        if (!empty($koubeiAppealInfos)) {
+            foreach ($koubeiAppealInfos as $appeal) {
+                $appealStatus[$appeal['koubei_comment_id']] = $appeal['status'];
+            }
+        }
         foreach ($data['list'] as $v) {
             $tmp = $commentInfos[$v['id']];
+            if (isset($appealStatus[$v['id']])) {
+                $tmp['appeal_status'] = $appealStatus[$v['id']];
+            }
             $result['list'][] = $tmp;
         }
         $result['count'] = $data['count'];

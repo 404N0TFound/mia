@@ -64,7 +64,7 @@ class Koubei extends \DB_Query {
     }
     
     /**
-     * 查询口碑表数据
+     * 查询口碑申诉表数据
      */
     public function getKoubeiAppealData($cond, $offset = 0, $limit = 50, $orderBy = 'id desc') {
         $this->tableName = $this->tableKoubeiAppeal;
