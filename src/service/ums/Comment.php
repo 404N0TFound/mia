@@ -85,13 +85,14 @@ class Comment extends \mia\miagroup\Lib\Service {
         $appealStatus = array();
         if (!empty($koubeiAppealInfos)) {
             foreach ($koubeiAppealInfos as $appeal) {
-                $appealStatus[$appeal['koubei_comment_id']] = $appeal['status'];
+                $appealStatus[$appeal['koubei_comment_id']] = array('appeal_id' => $appeal['id'], 'status' => $appeal['status']);
             }
         }
         foreach ($data['list'] as $v) {
             $tmp = $commentInfos[$v['id']];
             if (isset($appealStatus[$v['id']])) {
-                $tmp['appeal_status'] = $appealStatus[$v['id']];
+                $tmp['appeal_id'] = $appealStatus[$v['id']]['appeal_id'];
+                $tmp['appeal_status'] = $appealStatus[$v['id']]['status'];
             }
             $result['list'][] = $tmp;
         }
