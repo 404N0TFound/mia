@@ -404,8 +404,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $immutable_score += (3 * 0.2);
         }
         
-        //口碑评分，权重1
+        //口碑评分，权重1.5
         $immutable_score += (intval($data['score']) * 1.5);
+        
+        //蜜芽圈同步8分，权重1
+        $immutable_score += (($data['source'] == 1 ? 8 : 0) * 1);
         
         return $immutable_score;
     }
