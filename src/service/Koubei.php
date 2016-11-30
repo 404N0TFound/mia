@@ -91,7 +91,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $param['relation_id'] = $koubeiInsertId;
 
         //首评奖励(绑定代金券)
-        if(!empty($koubeiData['issue_reward'])){
+        if((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])){
             $couponRemote = new CouponRemote();
             $batch_code = $this->koubeiConfig['batch_code']['test'];
             if(!empty($batch_code)){
