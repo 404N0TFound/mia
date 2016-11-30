@@ -138,14 +138,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $appealStatus = array();
         if (!empty($koubeiAppealInfos)) {
             foreach ($koubeiAppealInfos as $appeal) {
-                $appealStatus[$appeal['koubei_id']] = $appeal['status'];
+                $appealStatus[$appeal['koubei_comment_id']] = array('appeal_id' => $appeal['id'], 'status' => $appeal['status']);
             }
         }
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $koubeiInfos[$v['id']];
             if (isset($appealStatus[$v['id']])) {
-                $tmp['subject']['item_koubei']['appeal_status'] = $appealStatus[$v['id']];
+                $tmp['subject']['item_koubei']['appeal_status'] = $appealStatus[$v['id']]['appeal_id'];
+                $tmp['subject']['item_koubei']['appeal_id'] = $appealStatus[$v['id']]['status'];
             }
             $result['list'][] = $tmp;
         }
