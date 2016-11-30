@@ -8,9 +8,9 @@ $secret_key = 'YBPALFcIODJ32FSMxJDXFJ2KmtiA-zu4BxGJ6oPl';
 /**
  * 七牛域名
  */
-$video_host = 'http://video1.miyabaobei.com/';
+$video_host = 'https://video1.miyabaobei.com/';
 $video_source_host = 'http://7xtpyl.com0.z0.glb.qiniucdn.com/'; //video空间源站域名，仅可用于视频拼接
-$image_host = 'http://image1.miyabaobei.com/';
+$image_host = 'https://image1.miyabaobei.com/';
 
 /**
  * 资源空间

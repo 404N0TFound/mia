@@ -33,21 +33,21 @@ class Live extends \DB_Query {
      * status 状态 (1创建中 2确认中 3直播中 4结束(有回放) 5结束(无回放) 6禁用 7失败)
      */
     public function getBatchLiveInfoByIds($liveIds, $status = array(3)) {
+        if (empty($liveIds)) {
+            return array();
+        }
         $result = [];
         $where[] = ['id', $liveIds];
         if (!empty($status)) {
             $where[] = ['status', $status];
         }
         $data = $this->getRows($where);
-        
-        if (!$data) {
-            return false;
-        } else {
+        if (!empty($data)) {
             foreach ($data as $v) {
                 $result[$v['id']] = $v;
             }
-            return $result;
         }
+        return $result;
     }
 
     /**

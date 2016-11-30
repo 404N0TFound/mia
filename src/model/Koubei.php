@@ -305,6 +305,15 @@ class Koubei {
         $result = $this->koubeiAppealData->getAppealInfoByIds($appeal_ids, $status);
         return $result;
     }
+    
+    /**
+     * 检查申诉是否已存在
+     */
+    public function checkAppealInfoExist($koubei_id, $koubei_comment_id = 0)
+    {
+        $result = $this->koubeiAppealData->checkAppealInfoExist($koubei_id, $koubei_comment_id);
+        return $result;
+    }
 
     /**
      * 首评口碑奖励及图片提示
@@ -319,7 +328,7 @@ class Koubei {
         // banner 结构体
         $res['issue_tip_url']['pic']['url']   = $issue_img;
         $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
-        $res['issue_tip_url']['pic']['hight'] = $batch_info['issue_img_height'];
+        $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
         $res['issue_tip_url']['url']          = $issue_skip_url;
         return $res;
     }

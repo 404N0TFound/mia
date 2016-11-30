@@ -5,29 +5,29 @@
  */
 $defaultShareInfo = array(
     'subject' => array(
-        'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
-        'wap_url' => 'http://m.miyabaobei.com/wx/group_detail/%s.html',
+        'img_url'   =>'https://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
+        'wap_url' => 'https://m.miyabaobei.com/wx/group_detail/%s.html',
         'title'      => '我在蜜芽圈发现一个超有用的帖子，分享给你',
         'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
         'extend_text'            => '看白富美妈妈分享的好货',
     ),
     'album' => array(
-        'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
-        'wap_url' => 'http://m.mia.com/headline/detail/%d/%d/1',
+        'img_url'   =>'https://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
+        'wap_url' => 'https://m.mia.com/headline/detail/%d/%d/1',
         'title'      => '我在蜜芽圈发现一个超有用的专栏，分享给你',
         'desc'      => '超过20万妈妈正在蜜芽圈热聊，快来看看~',
         'extend_text'            => '看白富美妈妈分享的好货',
     ),
     'video' => array(
-        'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
-        'wap_url' => 'http://m.miyabaobei.com/wx/group_detail/%s.html',
+        'img_url'   =>'https://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
+        'wap_url' => 'https://m.miyabaobei.com/wx/group_detail/%s.html',
         'title'      => '我在育儿头条发现一个超有用的视频，分享给你',
         'desc'      => '育儿头条，发现有用的育儿知识',
         'extend_text'            => '看白富美妈妈分享的好货',
     ),
     'label' => array(
-        'img_url'   =>'http://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
-        'wap_url' => 'http://m.mia.com/wx/group/grouplable/%s.html',
+        'img_url'   =>'https://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
+        'wap_url' => 'https://m.mia.com/wx/group/grouplable/%s.html',
         'title'      => '蜜芽圈',
         'desc'      => '妈妈们正在热聊#%s~#，你也来看看吧~',
         'extend_text'            => '看白富美妈妈分享的好货',
@@ -61,7 +61,7 @@ $groupShare = array(
  */
 $album = array(
     //h5内嵌页链接
-    'h5_url'=>'http://m.mia.com/headline/detail/%d/%d',
+    'h5_url'=>'https://m.mia.com/headline/detail/%d/%d',
 );
 
 /**
@@ -84,7 +84,7 @@ $album = array(
  /**
   * 帖子加水印的图片域名
   */
- $img_watermark_url = 'http://img05.miyabaobei.com';
+ $img_watermark_url = 'https://img05.miyabaobei.com';
  
  $img_format = array(
      'subject' => array(

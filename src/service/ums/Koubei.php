@@ -131,10 +131,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubeiIds[] = $v['id'];
         }
         $koubeiService = new KoubeiService();
-        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count'))['data'];
+        //获取口碑信息
+        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count'), array())['data'];
+        //获取口碑申诉信息
+        $koubeiAppealInfos = $this->koubeiModel->getKoubeiAppealData(array('koubei_id' => $koubeiIds), 0, false)['list'];
+        $appealStatus = array();
+        if (!empty($koubeiAppealInfos)) {
+            foreach ($koubeiAppealInfos as $appeal) {
+                $appealStatus[$appeal['koubei_comment_id']] = array('appeal_id' => $appeal['id'], 'status' => $appeal['status']);
+            }
+        }
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $koubeiInfos[$v['id']];
+            if (isset($appealStatus[$v['id']])) {
+                $tmp['subject']['item_koubei']['appeal_status'] = $appealStatus[$v['id']]['appeal_id'];
+                $tmp['subject']['item_koubei']['appeal_id'] = $appealStatus[$v['id']]['status'];
+            }
             $result['list'][] = $tmp;
         }
         $result['count'] = $data['count'];

@@ -189,9 +189,13 @@ class Solr
             'fq'        => array(),
             'page'      => $page,
             'pageSize'  => $count,
-            'fl'        => 'id'
+            'fl'        => 'id',
+            'sort'      => 'rank_score desc',
         ];
         if(!empty($category_id)){
+            /*$solrInfo['group.field'] = "brand_id";
+            $solrInfo['group.main'] = "true";
+            $solrInfo['group'] = "true";*/
             $solrInfo['fq'][]   = 'category_id:'.$category_id;
         }
         if(!empty($brand_id)){
@@ -201,7 +205,7 @@ class Solr
         // solr select
         $res = $this->select($solrInfo);
         if($res['success'] == 1){
-            $res = array_column($res['data']['response']['docs'],'id');
+            $res = $res['data']['response'];
             return $res;
         }
         return array();
@@ -220,17 +224,24 @@ class Solr
             'group'       => 'true',
             'group.main'  => 'true',
             'group.field' => 'brand_id',
-            'fl'          => 'brand_id,name,chinese_name,english_name',
+            'fl'          => 'brand_id,name',
             'pageSize'    => '20',
             'group.cache.percent' => '20'
         ];
         if(!empty($category_id)){
             $solrInfo['fq'][]    = 'category_id:'.$category_id;
         }
+        $solrInfo['fq'][] = 'local_url:*';
         // solr select
         $res = $this->select($solrInfo);
+        $new_brand_list = array();
         if($res['success'] == 1){
-            return $res['data']['response']['docs'];
+            $tmp = $res['data']['response']['docs'];
+            foreach ($tmp as $k => $v){
+                $new_brand_list[$k]['id'] = $v['brand_id'];
+                $new_brand_list[$k]['name'] = $v['name'];
+            }
+            return $new_brand_list;
         }
         return array();
     }

@@ -58,4 +58,14 @@ class KoubeiAppeal extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 根据koubei_id、koubei_comment_id查询申诉信息
+     */
+    public function checkAppealInfoExist($koubei_id, $koubei_comment_id = 0) {
+        $where[] = ['koubei_id', $koubei_id];
+        $where[] = ['koubei_comment_id', $koubei_comment_id];
+        $data = $this->getRows($where);
+        return $data;
+    }
 }

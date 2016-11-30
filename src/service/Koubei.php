@@ -254,13 +254,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 根据口碑ID获取口碑信息
      */
-    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item')) {
+    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item'), $status = array(2)) {
         if (empty($koubeiIds)) {
             return array();
         }
         $koubeiInfo = array();
         //批量获取口碑信息
-        $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status = array(2));
+        $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status);
         foreach($koubeiArr as $koubei){
             if(empty($koubei['subject_id'])) continue;
             //收集subjectids
@@ -595,6 +595,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($koubei_info)) {
             return $this->error(500);
         }
+        //检查是否已申诉过
+        $is_exist = $this->koubeiModel->checkAppealInfoExist($koubei_id, $koubei_comment_id);
+        if (!empty($is_exist)) {
+            return $this->error(6108);
+        }
         
         //申诉信息记录
         $appeal_info['supplier_id'] = $supplier_id;
@@ -611,7 +616,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $appeal_info['supplier_name'] = $supplier_name;
         }
         $appeal_info['id'] = $this->koubeiModel->addKoubeiAppeal($appeal_info);
-        return $appeal_info;
+        return $this->succ($appeal_info);;
     }
     
     /**
@@ -657,14 +662,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $solr        = new SolrRemote();
         $koubei_list = array();
         $brand_list  = array();
-        $koubei_ids  = $solr->koubeiList($brand_id, $category_id, $count, $page);
+        $koubei_info = $solr->koubeiList($brand_id, $category_id, $count, $page);
         if(!empty($category_id)){
             $brand_list  = $solr->brandList($category_id);
         }
-        if(!empty($koubei_ids)){
-            $koubei_list = $this->getBatchKoubeiByIds($koubei_ids);
+        if(!empty($koubei_info)){
+            $totalCount  = $koubei_info['numFound'];
+            $koubei_ids  = array_column($koubei_info['docs'],'id');
+            $koubei['count'] = $totalCount;
+            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids)['data']);
+
         }
-        $res = array('koubei_list' => $koubei_list['data'], 'brand_list' => $brand_list);
+        $res = array('koubei_list' => $koubei, 'brand_list' => $brand_list);
         return $this->succ($res);
     }
 
@@ -680,11 +689,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //$order_code = 1;
         //$item_id = 1005598;
         // 验证是否为首评
-        if(empty($$item_id)){
+        if(empty($item_id)){
             return $this->error(500);
         }
         $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id);
-        if(!empty($check_res)){
+        if(empty($check_res)){
             $batch_info = $this->koubeiConfig['shouping'];
             $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
             return $this->succ($shouping_Info);
