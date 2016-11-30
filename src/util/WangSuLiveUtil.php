@@ -2,6 +2,7 @@
 namespace mia\miagroup\Util;
 
 use mia\miagroup\Lib\Redis;
+use Wcs\SrcManage\FileManager;
 
 class WangSuLiveUtil
 {
@@ -15,7 +16,7 @@ class WangSuLiveUtil
      */
     public function __construct()
     {
-        $this->_config = F_Ice::$ins->workApp->config->get('busconf.wangsu');
+        $this->_config = \F_Ice::$ins->workApp->config->get('busconf.wangsu');
         $this->_vdoid = $this->_getString();
         $this->_stream = $this->_config['live_prefix'];
     }
@@ -90,19 +91,44 @@ class WangSuLiveUtil
     }
 
     /**
-     * 截图
+     * 获取截图
      */
-    public function getSnapShot($streamId, $format = '.jpg')
+    public function getSnapShot($streamId)
     {
+        $streamInfo = $this->_getVdoidAndStreamname($streamId);
+        $streamname = $streamInfo['streamname'];
 
+        $wsImg = new FileManager();
+        //存储格式wslive-流名--20161129142059.jpg。每场直播的流名都不一样，以此来区分。
+        $imgList = $wsImg->lists($this->_config['img_bucket'], 5, "wslive-" . $streamname . "--");
+        $result = json_decode($imgList, true);
+
+        if (isset($result['items'][0]) && !empty($result['items'][0])) {
+            $data['origin'] = $this->_config['live_snap_shot'];
+            $data[$result['items'][0]['fsize']] = $this->_config['live_snap_shot'] . '/' . $result['items'][0]['key'];
+        }
+        return $data;
     }
 
     /**
-     * 生成视频
+     * 获取生成的视频
      */
-    public function getSaveAsMp4($streamId, $format = '.mp4')
+    public function getSaveAsMp4($streamId)
     {
+        $streamInfo = $this->_getVdoidAndStreamname($streamId);
+        $streamname = $streamInfo['streamname'];
 
+        $wsImg = new FileManager();
+        //存储格式wslive-流名--20161130113043.mp4。每场直播的流名都不一样，以此来区分。
+        $videoList = $wsImg->lists($this->_config['video_bucket'], 5, "wslive-" . $streamname . "--");
+        $result = json_decode($videoList, true);
+
+        //多个视频的话，待完善
+        if (isset($result['items'][0]) && !empty($result['items'][0])) {
+            $data['origin'] = $this->_config['live_video'];
+            $data[$result['items'][0]['fsize']] = $this->_config['live_video'] . '/' . $result['items'][0]['key'];
+        }
+        return $data;
     }
 
     /**
@@ -110,18 +136,47 @@ class WangSuLiveUtil
      **/
     public function getStatus($streamId)
     {
+        $result = $this->getRawStatus($streamId);
 
+        $returnValue = 'connected';
+        $liveStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.key'), $streamId);
+        $redis = new Redis();
+        if (empty($result)) {
+            //断开状态
+            //策略： 直播状态首次中断并不立即返回中断状态，而是再次检测到中断并且相差5秒以上，才中断
+            //此策略为防止第三方瞬间返回中断然而实际没中断问题
+            //获取数量
+            $liveStreamStatus = $redis->get($liveStatusKey);
+            $lastDisconnectedTime = intval($liveStreamStatus);
+            if ($lastDisconnectedTime > 0) {
+                if (time() - $lastDisconnectedTime >= 5) {
+                    $returnValue = 'disconnected';
+                }
+            } else {
+                $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
+            }
+        } else {
+            $redis->setex($liveStatusKey, time(), \F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_status.expire_time'));
+        }
+        return $returnValue;
     }
 
     /**
-     * @param $streamId
-     * @return mixed|null|string
+     * 获取流信息
      */
     public function getRawStatus($streamId)
     {
         $streamInfo = $this->_getVdoidAndStreamname($streamId);
-        $streamName = $streamInfo['streamname'];
-        $url = $this->_config['live_stream_status'] . 'name=' . $streamName;
+        $streamname = $streamInfo['streamname'];
+        $r = time();
+        $query_arr = [
+            'n' => $this->_config['live_stream_api']['protal_username'],//平台帐号名
+            'r' => $r,//唯一随机字符
+            'u' => 'rtmp://' . $this->_config['live_host']['publish']['rtmp'] . '/' . $streamname,//所需查询的推流域名
+            'k' => md5($r . $this->_config['live_stream_api']['key']),//md5(r+key)
+        ];
+        $query_str = http_build_query($query_arr);
+        $url = $this->_config['live_stream_status'] . $query_str;
         $result = json_decode($this->_curlGet($url), true);
         return $result;
     }
@@ -164,10 +219,6 @@ class WangSuLiveUtil
         return $data;
     }
 
-    /**
-     * @param $url
-     * @return mixed
-     */
     private function _curlGet($url)
     {
         $ch = curl_init();
@@ -182,6 +233,6 @@ class WangSuLiveUtil
         $result = curl_exec($ch);
         curl_close($ch);
         return $result;
-    }
 
+    }
 }

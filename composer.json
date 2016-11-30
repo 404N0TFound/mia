@@ -7,7 +7,8 @@
         "Ice/Framework": ">=0.0.1-dev",
         "qiniu/php-sdk": "^7.0",
         "rongcloud/php-sdk": "^1.0",
-        "pili-engineering/pili-sdk-php": "v1.5.4"
+        "pili-engineering/pili-sdk-php": "v1.5.4",
+        "guzzlehttp/guzzle": "^6.2"
     },
     "autoload": {
         "psr-4": {
@@ -38,8 +39,13 @@
             "mia\\miagroup\\Data\\Order\\":    "src/data/order",
             "mia\\miagroup\\Data\\HeadLine\\":    "src/data/headline",
             "mia\\miagroup\\Data\\Audit\\":    "src/data/audit",
-            "mia\\miagroup\\Data\\PointTags\\":    "src/data/pointtags"
-        }
+            "mia\\miagroup\\Data\\PointTags\\":    "src/data/pointtags",
+            "Wcs\\": "src/lib/Wcs"
+        },
+        "files": [
+            "src/lib/Wcs/utils.php",
+            "src/lib/Wcs/auth.php"
+        ]
     },
     "repositories": [
         {

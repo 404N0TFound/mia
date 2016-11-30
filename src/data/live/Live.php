@@ -148,7 +148,7 @@ class Live extends \DB_Query {
     }
 
     /**
-     * 根据live表信息
+     * 更新live表信息
      */
     public function updateLive($where, $setData) {
         $data = $this->update($setData, $where);

@@ -1145,16 +1145,70 @@ class Live extends \mia\miagroup\Lib\Service
     /**
      * 查询当前房间是否有直播，有直播的话返回当前流信息
      */
-    public function getRoomStream()
+    public function getRoomStream($roomId)
     {
+        //查询房间信息
+        $room_info = $this->liveModel->getRoomInfoByRoomId($roomId);
+        if (empty($room_info['live_id'])) {
+            //当前没有直播
+            return $this->succ([]);
+        }
+        //获取直播信息
+        $live_info = $this->liveModel->getLiveInfoById($room_info['live_id']);
+        if (empty($live_info)) {
+            //当前没有直播
+            return $this->succ([]);
+        }
 
+        $qiniu = new QiniuUtil();
+        $jinshan = new JinShanCloudUtil();
+        $wangsu = new WangSuLiveUtil();
+        if ($live_info['source'] == 1) {
+            $streamStatusInfo = $qiniu->getRawStatus($live_info['stream_id']);
+            //视频帧率
+            $frame_rate = $streamStatusInfo['framesPerSecond']['video'];
+            //音频输入码率，单位kb
+            $bw_in_audio = $streamStatusInfo['framesPerSecond']['audio'];
+            //实际码率
+            $bw_real = $streamStatusInfo['bytesPerSecond'] / 1024 * 8;
+        } elseif ($live_info['source'] == 2) {
+            $streamName = array_shift(explode('-', $live_info['stream_id']));
+            $streamStatusInfo = $jinshan->getRawStatus($live_info['stream_id']);
+            //视频帧率
+            $frame_rate = $streamStatusInfo['app']['live'][$streamName]['video']['frame_rate'];
+            //视频输入码率，单位kb
+            //$bw_in_video = $streamStatusInfo['app']['live'][$streamName]['video']['bw_in_video'];
+            //视频实时帧率
+            //$real_framerate = $streamStatusInfo['app']['live'][$streamName]['video']['real_framerate'];
+            //音频输入码率，单位kb
+            //$bw_in_audio = $streamStatusInfo['app']['live'][$streamName]['audio']['bw_in_audio'];
+            //实际码率
+            $bw_real = $streamStatusInfo['app']['live'][$streamName]['bw_real'];
+        } elseif ($live_info['source'] == 3) {
+            $streamStatusInfo = $wangsu->getRawStatus($live_info['stream_id']);
+            //视频帧率
+            $frame_rate = $streamStatusInfo['dataValue']['fps'];
+            //音频输入码率，单位kb
+            //$bw_in_audio = $streamStatusInfo['framesPerSecond']['audio'];
+            //实际码率
+            $bw_real = $streamStatusInfo['dataValue']['inbandwidth'];
+        }
+        $frame_info = ['frame_rate' => $frame_rate, 'bw_real' => $bw_real];
+        return $this->succ($frame_info);
     }
 
     /**
      * 查询当前房间历史直播信息
      */
-    public function getRoomHistory()
+    public function getRoomHistory($roomId, $page, $limit = 10)
     {
 
+    }
+
+    public function test($streamId)
+    {
+        $liveCloud = new WangSuLiveUtil();
+        $res = $liveCloud->getRawStatus($streamId);
+        return $this->succ($res);
     }
 }

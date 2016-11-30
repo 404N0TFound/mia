@@ -164,7 +164,7 @@ class JinShanCloudUtil
             $liveStreamStatus = $redis->get($liveStatusKey);
             $lastDisconnectedTime = intval($liveStreamStatus);
             if($lastDisconnectedTime > 0){
-                if(time() - $lastDisconnectedTime >= 600){
+                if(time() - $lastDisconnectedTime >= 5){
                     $returnValue = 'disconnected';
                 }
             }else{

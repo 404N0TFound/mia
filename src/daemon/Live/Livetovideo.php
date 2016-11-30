@@ -7,6 +7,7 @@ use mia\miagroup\Service\Subject;
 use mia\miagroup\Model\Live as LiveModel;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Util\WangSuLiveUtil;
 
 /**
  *把直播回放移到视频资源中，关发表回放帖子
@@ -18,6 +19,7 @@ class Livetovideo extends \FD_Daemon {
     public function execute() {
         $qiniu = new QiniuUtil();
         $jinshan = new JinShanCloudUtil();
+        $wangsu = new WangSuLiveUtil();
         $subject = new Subject();
         $liveModel = new LiveModel();
         $redis = new Redis();
@@ -35,7 +37,18 @@ class Livetovideo extends \FD_Daemon {
         // m3u8转换成MP4
         $live_to_video_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_to_video.key'), $liveInfo['id']);
         if (!$redis->exists($live_to_video_key)) {
-            $tomp4 = $liveInfo['source']==1 ? $qiniu->getSaveAsMp4($liveInfo['stream_id']) : $jinshan->getSaveAsMp4($liveInfo['stream_id']);
+
+            switch ($liveInfo['source']) {
+                case 1:
+                    $qiniu->getSaveAsMp4($liveInfo['stream_id']);
+                    break;
+                case 2:
+                    $jinshan->getSaveAsMp4($liveInfo['stream_id']);
+                    break;
+                case 3:
+                    $wangsu->getSaveAsMp4($liveInfo['stream_id']);
+                    break;
+            }
 
             if (!isset($tomp4['targetUrl']) || empty($tomp4['targetUrl'])) {
                 echo 'm3u8转换成MP4失败' . "\n";
@@ -43,7 +56,7 @@ class Livetovideo extends \FD_Daemon {
                 $redis->rpop($live_list_key);
                 return;
             }
-            if($liveInfo['source']==2){
+            if ($liveInfo['source'] == 2 || $liveInfo['source'] == 3) {
                 $tomp4['fileName'] = $qiniu->getVideoFileName($tomp4['targetUrl']);
             }
 
@@ -62,6 +75,9 @@ class Livetovideo extends \FD_Daemon {
 
         }elseif ($liveInfo['source'] == 2) {
             //把金山的回放移到七牛上
+            $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
+        }elseif ($liveInfo['source'] == 3) {
+            //把网宿的回放移到七牛上
             $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
         }
 
