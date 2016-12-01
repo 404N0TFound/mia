@@ -91,7 +91,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $param['relation_id'] = $koubeiInsertId;
 
         //首评奖励(绑定代金券)
-        if(!empty($koubeiData['issue_reward'])){
+        if((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])){
             $couponRemote = new CouponRemote();
             $batch_code = $this->koubeiConfig['batch_code']['test'];
             if(!empty($batch_code)){
@@ -662,14 +662,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $solr        = new SolrRemote();
         $koubei_list = array();
         $brand_list  = array();
-        $koubei_ids  = $solr->koubeiList($brand_id, $category_id, $count, $page);
+        $koubei_info = $solr->koubeiList($brand_id, $category_id, $count, $page);
         if(!empty($category_id)){
             $brand_list  = $solr->brandList($category_id);
         }
-        if(!empty($koubei_ids)){
-            $koubei_list = $this->getBatchKoubeiByIds($koubei_ids);
+        if(!empty($koubei_info)){
+            $totalCount  = $koubei_info['numFound'];
+            $koubei_ids  = array_column($koubei_info['docs'],'id');
+            $koubei['count'] = $totalCount;
+            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids)['data']);
+
         }
-        $res = array('koubei_list' => array_values($koubei_list['data']), 'brand_list' => $brand_list);
+        $res = array('koubei_list' => $koubei, 'brand_list' => $brand_list);
         return $this->succ($res);
     }
 

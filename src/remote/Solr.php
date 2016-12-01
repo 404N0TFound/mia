@@ -189,9 +189,13 @@ class Solr
             'fq'        => array(),
             'page'      => $page,
             'pageSize'  => $count,
-            'fl'        => 'id'
+            'fl'        => 'id',
+            'sort'      => 'rank_score desc',
         ];
         if(!empty($category_id)){
+            /*$solrInfo['group.field'] = "brand_id";
+            $solrInfo['group.main'] = "true";
+            $solrInfo['group'] = "true";*/
             $solrInfo['fq'][]   = 'category_id:'.$category_id;
         }
         if(!empty($brand_id)){
@@ -201,7 +205,7 @@ class Solr
         // solr select
         $res = $this->select($solrInfo);
         if($res['success'] == 1){
-            $res = array_column($res['data']['response']['docs'],'id');
+            $res = $res['data']['response'];
             return $res;
         }
         return array();
@@ -227,6 +231,7 @@ class Solr
         if(!empty($category_id)){
             $solrInfo['fq'][]    = 'category_id:'.$category_id;
         }
+        $solrInfo['fq'][] = 'local_url:*';
         // solr select
         $res = $this->select($solrInfo);
         $new_brand_list = array();
