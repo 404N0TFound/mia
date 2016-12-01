@@ -59,7 +59,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
-        $labels = array();$labels['label'] = array();$labels['image'] = array();
+        //供应商ID获取
+        $itemService = new ItemService();
+        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
+        $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
+        $labels = array();
+        $labels['label'] = array();
+        $labels['image'] = array();
         if(!empty($koubeiData['labels']))
         {
             foreach($koubeiData['labels'] as $label)
@@ -91,7 +97,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $param['relation_id'] = $koubeiInsertId;
 
         //首评奖励(绑定代金券)
-        if(!empty($koubeiData['issue_reward'])){
+        if((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])){
             $couponRemote = new CouponRemote();
             $batch_code = $this->koubeiConfig['batch_code']['test'];
             if(!empty($batch_code)){
@@ -271,7 +277,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'rank' => $koubei['rank'],
                 'score' => $koubei['score'],
                 'item_id' => $koubei['item_id'],
-                'item_size' => $koubei['item_size']) ;
+                'item_size' => $koubei['item_size'],
+                'status' => $koubei['status']
+            );
         }
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field);
@@ -303,7 +311,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ($koubeiInfo['id']);
         }
         $subjectService = new SubjectService();
-        $subjectData = $subjectService->getSingleSubjectById($subjectId, 0 , array('group_labels'))['data'];
+        $subjectData = $subjectService->getSingleSubjectById($subjectId, 0 , array('group_labels', 'album'))['data'];
+        if (!empty($subjectData['album_article']) || !empty($subjectData['video_info'])) {
+            //如果是专栏或者视频贴
+            return $this->error(500, '该类型贴不能同步到口碑');
+        }
         //如果没有同步过，则同步为口碑贴
         $koubeiSetData = array();
         $koubeiSetData['status'] = 2;
@@ -315,7 +327,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['created_time'] = date('Y-m-d H:i:s', time());
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($subjectData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
-
+        //供应商ID获取
+        $itemService = new ItemService();
+        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
+        $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
+        
         $extInfo = array();
         $extInfo['label'] = array();
         $extInfo['image'] = array();
@@ -405,10 +421,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         else if($content_count > 10) {
             $immutable_score += (3 * 0.2);
         }
-
-        //口碑评分，权重1
+        
+        //口碑评分，权重1.5
         $immutable_score += (intval($data['score']) * 1.5);
-
+        
+        //蜜芽圈同步8分，权重1
+        $immutable_score += (($data['source'] == 1 ? 8 : 0) * 1);
+        
         return $immutable_score;
     }
 
@@ -444,6 +463,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function setKoubeiRank($koubeiIds, $rank)
     {
+        if (empty($koubeiIds) || !in_array($rank, array(0, 1))) {
+            return $this->error(500);
+        }
+        if (is_string($koubeiIds)) {
+            $koubeiIds = array($koubeiIds);
+        }
         $res = $this->koubeiModel->setKoubeiRank($koubeiIds, $rank);
         return $this->succ($res);
     }
@@ -517,7 +542,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $audit = new \mia\miagroup\Service\Audit();
         $sensitive_res = $audit->checkSensitiveWords($comment)['data'];
         if(!empty($sensitive_res['sensitive_words'])){
-            return $this->error(1112);
+            return $this->error(1112, '有敏感内容 "' . implode('","', $sensitive_res['sensitive_words']) . '"，发布失败');
         }
         //判断用户是否是商家
         if ($supplierId > 0) {

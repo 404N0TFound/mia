@@ -138,15 +138,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $appealStatus = array();
         if (!empty($koubeiAppealInfos)) {
             foreach ($koubeiAppealInfos as $appeal) {
-                $appealStatus[$appeal['koubei_comment_id']] = array('appeal_id' => $appeal['id'], 'status' => $appeal['status']);
+                $appealStatus[$appeal['koubei_id']] = array('appeal_id' => $appeal['id'], 'status' => $appeal['status']);
             }
         }
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $koubeiInfos[$v['id']];
             if (isset($appealStatus[$v['id']])) {
-                $tmp['subject']['item_koubei']['appeal_status'] = $appealStatus[$v['id']]['appeal_id'];
-                $tmp['subject']['item_koubei']['appeal_id'] = $appealStatus[$v['id']]['status'];
+                $tmp['subject']['item_koubei']['appeal_status'] = $appealStatus[$v['id']]['status'];
+                $tmp['subject']['item_koubei']['appeal_id'] = $appealStatus[$v['id']]['appeal_id'];
             }
             $result['list'][] = $tmp;
         }
@@ -277,6 +277,63 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $result['list'][] = $tmp;
         }
         $result['count'] = $data['count'];
+        return $this->succ($result);
+    }
+    
+    /**
+     * ums口碑商家自主回复监控
+     */
+    public function getSupplierKoubeiMonitorList($params) {
+        $result = array();
+        $condition = array();
+        //初始化入参
+        $orderBy = 'supplier_id desc'; //默认排序
+    
+        if (intval($params['supplier_id']) > 0) {
+            //商家ID
+            $condition['supplier_id'] = $params['supplier_id'];
+        }
+        if (strtotime($params['start_time']) > 0) {
+            //起始时间
+            $condition['start_time'] = $params['start_time'];
+        }
+        if (strtotime($params['end_time']) > 0) {
+            //结束时间
+            $condition['end_time'] = $params['end_time'];
+        }
+    
+        $data = $this->koubeiModel->getSupplierKoubeiData($condition, $orderBy);
+        if (empty($data)) {
+            return $this->succ($result);
+        }
+        $koubeiIds = array();
+        $supplyIds = array();
+        $koubeiArr = array();
+        foreach ($data as $v) {
+            $koubeiIds[] = $v['id'];
+            $koubeiArr[$v['supplier_id']][] = $v['id'];
+        }
+    
+        $supplyIds = array_keys($koubeiArr);
+        //根据口碑id获取各商家生成口碑数、差评数、机选差评数、被评论过的口碑数及评论比例
+        $koubeiStatistics = $this->koubeiModel->supplierKoubeiStatistics($koubeiIds);
+        //根据商家id获取仓库名
+        $wearhouseName = $this->stockModel->getBatchNameBySupplyIds($supplyIds);
+    
+        //拼接商家各计数及商家名
+        foreach ($supplyIds as $supplyId) {
+            $supplierKoubei = array();
+            $supplierKoubei['supplier_id'] = $supplyId;
+            $supplierKoubei['wearhouse_name'] = $wearhouseName[$supplyId];
+            $supplierKoubei['koubei_nums'] = $koubeiStatistics['koubei'][$supplyId] ? $koubeiStatistics['koubei'][$supplyId] : 0;
+            $supplierKoubei['lscore_nums'] = $koubeiStatistics['lowscore'][$supplyId] ? $koubeiStatistics['lowscore'][$supplyId] : 0;
+            $supplierKoubei['mscore_nums'] = $koubeiStatistics['mscore'][$supplyId] ? $koubeiStatistics['mscore'][$supplyId] : 0;
+            $supplierKoubei['deal_nums'] = $koubeiStatistics['deal'][$supplyId] ? $koubeiStatistics['deal'][$supplyId] : 0;
+            $supplierKoubei['appeal_nums'] = $koubeiStatistics['appeal'][$supplyId] ? $koubeiStatistics['appeal'][$supplyId] : 0;
+            $supplierKoubei['pass_nums'] = $koubeiStatistics['pass'][$supplyId] ? $koubeiStatistics['pass'][$supplyId] : 0;
+            $supplierKoubei['reject_nums'] = $koubeiStatistics['reject'][$supplyId] ? $koubeiStatistics['reject'][$supplyId] : 0;
+            $result[] = $supplierKoubei;
+        }
         return $this->succ($result);
     }
 }

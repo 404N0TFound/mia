@@ -71,6 +71,9 @@ class Correctscore extends \FD_Daemon {
                 continue;
             }
             $tmpKoubei = $koubeiInfos[$value['id']];
+            if ($tmpKoubei['score'] == 0) { //蜜芽圈同步过来的不需要修正
+                continue;
+            }
             $score = null;
             $reduce = 0;
             switch ($value['flag']) {
@@ -80,14 +83,11 @@ class Correctscore extends \FD_Daemon {
                 case 2: //中评往二星分数修正
                     $reduce = ($tmpKoubei['score']-2)>0 ? (($tmpKoubei['score'] - 2) * 2) : 0;
                     break;
-                case 3: //好评往最高3星修正
-                    $reduce = ($tmpKoubei['score']-3)<0 ? ($tmpKoubei['score'] - 3) * 2 : 0;
-                    break;
             }
             $score[] = array('machine_score', $value['flag']); //机器评分
-            if ($reduce != 0) {
-                $rankScore = (($tmpKoubei['rank_score'] - $reduce) > 0) ? $tmpKoubei['rank_score'] - $reduce : 0;
-                $immutableScore = (($tmpKoubei['immutable_score'] - $reduce) > 0) ? $tmpKoubei['immutable_score'] - $reduce : 0;
+            if ($reduce > 0) {
+                $rankScore = (($tmpKoubei['rank_score'] - $reduce) > 0) ? ($tmpKoubei['rank_score'] - $reduce) : 0;
+                $immutableScore = (($tmpKoubei['immutable_score'] - $reduce) > 0) ? ($tmpKoubei['immutable_score'] - $reduce) : 0;
                 $score[] = array('rank_score', $rankScore);
                 $score[] = array('immutable_score', $immutableScore);
             }
