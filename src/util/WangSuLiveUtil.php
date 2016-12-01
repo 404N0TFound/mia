@@ -172,12 +172,14 @@ class WangSuLiveUtil
         $query_arr = [
             'n' => $this->_config['live_stream_api']['protal_username'],//平台帐号名
             'r' => $r,//唯一随机字符
-            'u' => 'rtmp://' . $this->_config['live_host']['publish']['rtmp'] . '/' . $streamname,//所需查询的推流域名
+            'u' => $this->_config['live_host']['publish']['rtmp_q'],//所需查询的推流域名
             'k' => md5($r . $this->_config['live_stream_api']['key']),//md5(r+key)
+            'channel' => $streamname,
         ];
         $query_str = http_build_query($query_arr);
-        $url = $this->_config['live_stream_status'] . $query_str;
+        $url = $this->_config['live_stream_status'] . $query_str;echo $url;
         $result = json_decode($this->_curlGet($url), true);
+        var_export($result);
         return $result;
     }
 
