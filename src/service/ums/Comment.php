@@ -167,7 +167,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         $commentService = new CommentService();
         $koubeiService = new \mia\miagroup\Service\Koubei();
         //获取评论信息
-        $commentInfos = $commentService->getBatchComments($commentIds, array(), array())['data'];
+        $commentInfos = $commentService->getBatchComments($commentIds, array('user_info'), array())['data'];
         $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds)['data'];
         foreach ($data['list'] as $v) {
             $tmp = $commentInfos[$v['id']];
