@@ -141,4 +141,140 @@ class Koubei extends \DB_Query {
         $result['list'] = $this->getRows($where, $fileds, $limit, $offset, $orderBy, $join);
         return $result;
     }
+    
+    /**
+     * 查询商家口碑表数据
+     */
+    public function getSupplierKoubeiData($cond, $orderBy = '') {
+        $this->tableName = $this->tableKoubei;
+        $result = array();
+        $where = array();
+        $where[] = [':gt','supplier_id', 0];
+        $where[] = ['status',array(1,2)];
+        //时间默认为当天
+        $startTime = date('Y-m-d',time())." 00:00:00";
+        $endTime = date('Y-m-d',time())." 23:59:59";
+        $where[] = [':ge','created_time', $startTime];
+        $where[] = [':le','created_time', $endTime];
+    
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'start_time':
+                        $where[] = [':ge','created_time', $v];
+                        break;
+                    case 'end_time':
+                        $where[] = [':le','created_time', $v];
+                        break;
+                    default:
+                        $where[] = [$k, $v];
+                }
+            }
+        }
+    
+        $fileds = "id,supplier_id";
+        $result= $this->getRows($where, $fileds, false, 0, $orderBy);
+        return $result;
+    }
+    
+    /**
+     * 组装商家口碑的各计数
+     */
+    public function supplierKoubeiStatistics($koubeiIds){
+        $koubeiStatistics = array();
+        $con = array();
+        if(empty($koubeiIds) || !is_array($koubeiIds)){
+            return $koubeiStatistics;
+        }
+        $con['koubei_ids'] = $koubeiIds;
+        $con['status'] = array(1,2);
+        //生成口碑数
+        $koubeiStatistics['koubei'] = $this->getKoubeiStatistics($con);
+        $koubeiStatistics['lowscore'] = $this->getKoubeiStatistics($con,'lowscore');
+        $koubeiStatistics['mscore'] = $this->getKoubeiStatistics($con,'mscore');
+    
+        $koubeiStatistics['deal'] = $this->getKoubeiStatistics($con,'deal');
+    
+        $koubeiStatistics['appeal'] = $this->getKoubeiAppealStatistics($koubeiIds,0);
+        $koubeiStatistics['pass'] = $this->getKoubeiAppealStatistics($koubeiIds,1);
+        $koubeiStatistics['reject'] = $this->getKoubeiAppealStatistics($koubeiIds,2);
+    
+        return $koubeiStatistics;
+    }
+    
+    /**
+     * 获取商家口碑相关计数
+     */
+    public function getKoubeiStatistics($cond,$sType=''){
+        $this->tableName = $this->tableKoubei;
+        $resArr = array();
+        $where = array();
+    
+        if(empty($cond) || empty($cond['koubei_ids'])){
+            return $resArr;
+        }
+    
+        $where[] = [':gt','supplier_id', 0];
+        $where[] = ['id', $cond['koubei_ids']];
+    
+        if(isset($con['status'])){
+            $where[] = ['status', $con['status']];
+        }
+        switch ($sType) {
+            case 'deal'://回复处理
+                $where[] = ['comment_status',1];
+                break;
+            case 'lowscore'://差评
+                $where[] = [':le','score',3];
+                break;
+            case 'mscore'://机选差评
+                $where[] = ['machine_score',1];
+                break;
+            default://生成口碑
+                $where[] = ['id', $cond['koubei_ids']];
+        }
+    
+        $filed = "supplier_id, count(1) as nums";
+        $groupBy = "supplier_id";
+        $result = $this->getRows($where,$filed,false,0,false,false,$groupBy);
+        if(!empty($result)){
+            foreach($result as $value){
+                $resArr[$value['supplier_id']] = $value['nums'];
+            }
+        }
+    
+        return $resArr;
+    }
+    
+    /**
+     * 获取商家口碑相关申诉计数
+     */
+    public function getKoubeiAppealStatistics($koubeiIds,$status){
+        $this->tableName = $this->tableKoubeiAppeal;
+        $resArr = array();
+        $where = array();
+    
+        if(empty($koubeiIds) || empty($koubeiIds)){
+            return $resArr;
+        }
+    
+        $where[] = [':ne','supplier_id', 0];
+        $where[] = ['koubei_id', $koubeiIds];
+    
+        if(isset($status)){
+            $where[] = ['status', $status];
+        }
+    
+        $filed = "supplier_id, count(1) as nums";
+        $groupBy = "supplier_id";
+        $result = $this->getRows($where,$field,false,0,false,false,$groupBy);
+        if(!empty($result)){
+            foreach($result as $value){
+                $resArr[$value['supplier_id']] = $value['nums'];
+            }
+        }
+    
+        return $resArr;
+    }
 }
