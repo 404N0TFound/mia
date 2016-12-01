@@ -2,7 +2,8 @@
 $live_host = [
     'publish' => [
         //rtmp://wangsu-publish-rtmp.live.miyabaobei.com/wslive/流名
-        'rtmp' => 'rtmp://wangsu-publish-rtmp.live.miyabaobei.com/wslive',
+        'rtmp' => 'wangsu-publish-rtmp.live.miyabaobei.com/wslive',
+        'rtmp_q' => 'wangsu-publish-rtmp.live.miyabaobei.com',
     ],
     'live' => [
         //rtmp:// wangsu-live-rtmp.live.miyabaobei.com/wslive/流名
@@ -25,7 +26,7 @@ $live_video = 'http://mia-video.miyabaobei.com';
 
 $live_stream_api = [
     'protal_username'=>'miyabaobei',//平台帐号名
-    'key'=>'',//key值
+    'key'=>'6988D7619C227A1',//key值
 ];
 
 //直播状态URL
