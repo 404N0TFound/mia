@@ -9,6 +9,8 @@ class User extends \DB_Query {
 
     protected $tableUsers = 'users';
     
+    protected $tableUserSupplierMapping = 'user_supplier_mapping';
+    
     /**
      * 根据username查询uid
      */
@@ -47,5 +49,21 @@ class User extends \DB_Query {
         } else {
             return false;
         }
+    }
+    
+    /**
+     * 获取所有自主口碑商家
+     */
+    public function getAllKoubeiSupplier() {
+        $this->dbResource = 'miagroupums';
+        $this->tableName = $this->tableUserSupplierMapping;
+        $data = $this->getRows();
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[$v['supplier_id']] = $v['user_id'];
+            }
+        }
+        return $result;
     }
 }

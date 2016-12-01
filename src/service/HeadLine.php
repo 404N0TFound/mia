@@ -34,7 +34,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     /**
      * 根据头条栏目获取头条
      */
-    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array(), $opera_id = 0) {
+    public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array()) {
         if(empty($channelId)){
             return $this->succ(array());
         }
@@ -70,12 +70,12 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_unique(array_merge($headlineIds, $headLineData));
         }
-        // 头条区分版本
-        if(empty($opera_id)) {
+        
+        if($action == 'refresh') {
+            $operationData = array();
+        } else {
             //获取运营数据
             $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
-        } else {
-            $operationData = array();
         }
         //推荐数据、运营数据去重
         $headLineData = array_diff($headLineData, array_intersect($headLineData, array_keys($operationData)));

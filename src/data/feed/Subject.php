@@ -19,7 +19,7 @@ class Subject extends \DB_Query
         if (!empty($source)) {
             $where[] = ['source',$source];
         }
-        $data = $this->getRows($where, '*', $limit, $offset, 'id desc');
+        $data = $this->getRows($where, '*', $limit, $offset, 'created desc,id desc');
         $result = [];
         foreach ($data as $key => $value) {
             $result[] = $value['id'];
