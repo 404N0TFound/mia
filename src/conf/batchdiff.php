@@ -8,7 +8,7 @@ $koubeibatch = array(
         'issue_skip_url' => ''
     ),
     'batch_code' => array(
-        'test'   => ''
+        'test'   => '11111-20161128-1'
     ),
 );
 
