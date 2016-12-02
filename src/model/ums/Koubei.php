@@ -149,13 +149,7 @@ class Koubei extends \DB_Query {
         $this->tableName = $this->tableKoubei;
         $result = array();
         $where = array();
-        $where[] = [':gt','supplier_id', 0];
         $where[] = ['status',array(1,2)];
-        //时间默认为当天
-        $startTime = date('Y-m-d',time())." 00:00:00";
-        $endTime = date('Y-m-d',time())." 23:59:59";
-        $where[] = [':ge','created_time', $startTime];
-        $where[] = [':le','created_time', $endTime];
     
         if (!empty($cond)) {
             //组装where条件
@@ -266,9 +260,9 @@ class Koubei extends \DB_Query {
             $where[] = ['status', $status];
         }
     
-        $filed = "supplier_id, count(1) as nums";
+        $field = "supplier_id, count(1) as nums";
         $groupBy = "supplier_id";
-        $result = $this->getRows($where,$field,false,0,false,false,$groupBy);
+        $result = $this->getRows($where,$filed,false,0,false,false,$groupBy);
         if(!empty($result)){
             foreach($result as $value){
                 $resArr[$value['supplier_id']] = $value['nums'];
