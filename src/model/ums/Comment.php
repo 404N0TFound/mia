@@ -70,6 +70,8 @@ class Comment extends \DB_Query {
                         $where[] = ["$this->tableComment.$k", $v];
                         break;
                     case 'koubei_id':
+                        $where[] = ["$this->tableKoubei.id", $v];
+                        break;
                     case 'item_id':
                         $where[] = ["$this->tableKoubei.$k", $v];
                         break;
