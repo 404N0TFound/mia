@@ -4,6 +4,7 @@ namespace mia\miagroup\Service\Ums;
 use mia\miagroup\Model\Ums\Koubei as KoubeiModel;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Model\Ums\Item as ItemModel;
+use mia\miagroup\Model\Ums\StockWarehouse as StockModel;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Koubei as KoubeiService;
 use mia\miagroup\Util\EmojiUtil;
@@ -13,12 +14,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
     private $koubeiModel;
     private $userModel;
     private $itemModel;
+    private $stockModel;
     
     public function __construct() {
         $this->koubeiModel = new KoubeiModel();
         $this->userModel = new UserModel();
         $this->emojiUtil = new EmojiUtil();
         $this->itemModel = new ItemModel();
+        $this->stockModel = new StockModel();
     }
     
     /**
@@ -276,17 +279,33 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //初始化入参
         $orderBy = 'supplier_id desc'; //默认排序
     
-        if (intval($params['supplier_id']) > 0) {
-            //商家ID
-            $condition['supplier_id'] = $params['supplier_id'];
+        //获取所有自主商家id
+        $supplyInfo= $this->userModel->getAllKoubeiSupplier();
+        if(!empty($supplyInfo)){
+            $supplierIds = array_keys($supplyInfo);
+            //如果无某商家查询，则默为所有自主商家
+            if (intval($params['supplier_id']) > 0) {
+                //商家ID
+                $condition['supplier_id'] = $params['supplier_id'];
+            }else{
+                //默认为所有的自主商家id
+                $condition['supplier_id'] = $supplierIds;
+            }
         }
+
+        //如果无时间查询，则默认为当天
         if (strtotime($params['start_time']) > 0) {
             //起始时间
             $condition['start_time'] = $params['start_time'];
+        }else{
+            $condition['start_time'] = date('Y-m-d',time())." 00:00:00";
+            //$condition['start_time'] = "2016-11-29 00:00:00";
         }
         if (strtotime($params['end_time']) > 0) {
             //结束时间
             $condition['end_time'] = $params['end_time'];
+        }else{
+            $condition['end_time'] = date('Y-m-d',time())." 23:59:59";
         }
     
         $data = $this->koubeiModel->getSupplierKoubeiData($condition, $orderBy);
@@ -311,10 +330,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         foreach ($supplyIds as $supplyId) {
             $supplierKoubei = array();
             $supplierKoubei['supplier_id'] = $supplyId;
-            $supplierKoubei['wearhouse_name'] = $wearhouseName[$supplyId];
+            $supplierKoubei['wearhouse_name'] = $wearhouseName[$supplyId][0];
             $supplierKoubei['koubei_nums'] = $koubeiStatistics['koubei'][$supplyId] ? $koubeiStatistics['koubei'][$supplyId] : 0;
             $supplierKoubei['lscore_nums'] = $koubeiStatistics['lowscore'][$supplyId] ? $koubeiStatistics['lowscore'][$supplyId] : 0;
             $supplierKoubei['mscore_nums'] = $koubeiStatistics['mscore'][$supplyId] ? $koubeiStatistics['mscore'][$supplyId] : 0;
+            $supplierKoubei['deal_rate'] = (round($koubeiStatistics['deal'][$supplyId] / $koubeiStatistics['koubei'][$supplyId], 2) * 100)."%";
             $supplierKoubei['deal_nums'] = $koubeiStatistics['deal'][$supplyId] ? $koubeiStatistics['deal'][$supplyId] : 0;
             $supplierKoubei['appeal_nums'] = $koubeiStatistics['appeal'][$supplyId] ? $koubeiStatistics['appeal'][$supplyId] : 0;
             $supplierKoubei['pass_nums'] = $koubeiStatistics['pass'][$supplyId] ? $koubeiStatistics['pass'][$supplyId] : 0;
