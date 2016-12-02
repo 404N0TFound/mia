@@ -24,7 +24,11 @@ class Subject extends \mia\miagroup\Lib\Service {
         $koubeiCondtion = array();
         //初始化入参
         $orderBy = 'id desc'; //默认排序
-        $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 50;
+        if ($params['limit'] === false) {
+            $limit = false;
+        } else {
+            $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 20;
+        }
         $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
         if (intval($params['id']) > 0) {
             //帖子ID
