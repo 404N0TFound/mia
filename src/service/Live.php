@@ -1204,11 +1204,4 @@ class Live extends \mia\miagroup\Lib\Service
     {
 
     }
-
-    public function test($streamId)
-    {
-        $liveCloud = new WangSuLiveUtil();
-        $res = $liveCloud->getRawStatus($streamId);
-        return $this->succ($res);
-    }
 }

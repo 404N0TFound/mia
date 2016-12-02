@@ -514,16 +514,18 @@ class Subject extends \mia\miagroup\Lib\Service {
         if ($needThumb === true && $videoInfo['source'] == 'qiniu') {
             
             $qiniusdk = new QiniuUtil();
-            
-            // 从七牛获取缩略图
-            $qiniuConfig = F_Ice::$ins->workApp->config->get('busconf.qiniu');
-            
-            $videoInfo['cover_image'] = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $videoInfo['video_origin_url']);
+
             // 获取视频元信息
             $avInfo = $qiniusdk->getVideoFileInfo($videoInfo['video_origin_url']);
             if (!empty($avInfo['duration'])) {
                 $videoInfo['video_time'] = $avInfo['duration'];
             }
+
+            // 从七牛获取缩略图
+            $qiniuConfig = F_Ice::$ins->workApp->config->get('busconf.qiniu');
+            $second = floor($avInfo['duration']/2);
+            $videoInfo['cover_image'] = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $videoInfo['video_origin_url'], $second);
+
             // 通知七牛对视频转码
             $videoInfo['transcoding_pipe'] = $qiniusdk->videoTrancodingHLS($videoInfo['video_origin_url']);
         }
