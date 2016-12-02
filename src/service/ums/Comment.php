@@ -137,10 +137,10 @@ class Comment extends \mia\miagroup\Lib\Service {
         }
         if ($params['supplier_type'] !== null && $params['supplier_type'] !== '' && in_array($params['supplier_type'], array('客服', '商家')) && intval($condition['user_id']) <= 0 && intval($condition['koubei_id']) <= 0) {
             //回复者类型
-            if ($params['status'] == '客服') {
-                $condition['user_id'] = $this->userModel->getAllKoubeiSupplier();
-            } else {
+            if ($params['supplier_type'] == '客服') {
                 $condition['user_id'] = F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+            } else {
+                $condition['user_id'] = $this->userModel->getAllKoubeiSupplier();
             }
         }
         if (intval($params['item_id']) > 0 && intval($condition['koubei_id']) <= 0) {
