@@ -266,7 +266,7 @@ class Koubei extends \DB_Query {
             $where[] = ['status', $status];
         }
     
-        $filed = "supplier_id, count(1) as nums";
+        $field = "supplier_id, count(1) as nums";
         $groupBy = "supplier_id";
         $result = $this->getRows($where,$field,false,0,false,false,$groupBy);
         if(!empty($result)){
