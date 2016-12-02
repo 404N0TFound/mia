@@ -261,7 +261,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'rank' => $koubei['rank'],
                 'score' => $koubei['score'],
                 'item_id' => $koubei['item_id'],
-                'item_size' => $koubei['item_size']) ;
+                'item_size' => $koubei['item_size'],
+                'status' => $koubei['status']
+            );
         }
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item'));
