@@ -346,8 +346,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $supplierKoubei['koubei_nums'] = $koubeiStatistics['koubei'][$supplyId] ? $koubeiStatistics['koubei'][$supplyId] : 0;
             $supplierKoubei['lscore_nums'] = $koubeiStatistics['lowscore'][$supplyId] ? $koubeiStatistics['lowscore'][$supplyId] : 0;
             $supplierKoubei['mscore_nums'] = $koubeiStatistics['mscore'][$supplyId] ? $koubeiStatistics['mscore'][$supplyId] : 0;
-            $supplierKoubei['deal_rate'] = (round($koubeiStatistics['deal'][$supplyId] / $koubeiStatistics['koubei'][$supplyId], 2) * 100)."%";
             $supplierKoubei['deal_nums'] = $koubeiStatistics['deal'][$supplyId] ? $koubeiStatistics['deal'][$supplyId] : 0;
+            $supplierKoubei['deal_rate'] = (round($koubeiStatistics['deal'][$supplyId] / $koubeiStatistics['koubei'][$supplyId], 2) * 100)."%";
             $supplierKoubei['appeal_nums'] = $koubeiStatistics['appeal'][$supplyId] ? $koubeiStatistics['appeal'][$supplyId] : 0;
             $supplierKoubei['pass_nums'] = $koubeiStatistics['pass'][$supplyId] ? $koubeiStatistics['pass'][$supplyId] : 0;
             $supplierKoubei['reject_nums'] = $koubeiStatistics['reject'][$supplyId] ? $koubeiStatistics['reject'][$supplyId] : 0;
