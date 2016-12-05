@@ -79,11 +79,14 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             if ($relation_type == 'banner') {
                 $relation_type = 'promotion';
             }
+            if ($relation_type == 'album') {
+                $relation_type = 'subject';
+            }
             $referIds[] = [$relation_id . '_' . $relation_type];
         }
         $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
 
-        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id'] && $headlineIds != [$headLineData[0],$headLineData[1]]) {
+        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id'] && $referIds != [$headLineData[0],$headLineData[1]]) {
             //格式化客户端上传的headlineIds
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_unique(array_merge($headlineIds, $headLineData));
