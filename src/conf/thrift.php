@@ -22,7 +22,8 @@ $address = array(
     ),
 
     'headline' => [
-        'remote' => 'http://alpha_stage.recommend.mia.com/api/',
+        //'remote' => 'http://alpha_stage.recommend.mia.com/api/',
+        'remote' => 'zhanghaibo_dev.recommend.mia.com/api/',
     ],
 
     'subject' => [

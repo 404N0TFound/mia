@@ -13,27 +13,47 @@ class RecommendedHeadline
      * 根据action获取头条列表
      * @param  init $userId
      * @param  init $channelId
-     * @param  string $action  [init,refresh,next,home_banner]
+     * @param  string $action [init,refresh,next,home_banner]
      * @return array
      */
-    public function headlineList($channelId,$action='init',$userId=0,$count=10)
+    public function headlineList($channelId, $action = 'init', $userId = 0, $count = 10, $headlineIds = [])
     {
         $params = [
             'user_id' => $userId,
-            'tab_id'  => $channelId,
-            'action'  => $action,
-            'num'  => $count,
+            'tab_id' => $channelId,
+            'action' => $action,
+            'num' => $count,
+            'refer_ids' => json_encode($headlineIds),
         ];
-        $url = $this->config['remote'].'list/'.$action;
-        $res = $this->_curlPost($url,$params);
-        
+        $url = $this->config['remote'] . 'list/' . $action;
+        $res = $this->_curlPost($url, $params);
         $data = [];
-        if (!empty($res['list'])) {
+        if (!empty($res['list']) && strpos($res['list'][0], '_') === false) {
             foreach ($res['list'] as $v) {
                 $data[] = $v . '_subject';
             }
         }
-        
+        if (!empty($res['list']) && strpos($res['list'][0], '_') !== false) {
+
+            $data = $res['list'];
+
+        }
+        return $data;
+    }
+
+
+    public function promotionList(array $ids)
+    {
+        $params = [
+            'id' => json_encode($ids),
+            'type' => 'promotion',
+        ];
+        $url = $this->config['remote'] . 'list/getInfoById';
+        $res = $this->_curlPost($url, $params);
+        $data = [];
+        if (!empty($res['list'])) {
+            $data = $res['list'];
+        }
         return $data;
     }
 
@@ -62,44 +82,42 @@ class RecommendedHeadline
         return $res;
     }
 
-    public function headlineRelate($channelId,$subjectId, $userId=0,$count=10)
+    public function headlineRelate($channelId, $subjectId, $userId = 0, $count = 10)
     {
         $params = [
             'user_id' => $userId,
-            'doc_id'  => $subjectId,
-            'tab_id'  => $channelId,
-            'num'  => $count,
+            'doc_id' => $subjectId,
+            'tab_id' => $channelId,
+            'num' => $count,
         ];
-        $url = $this->config['remote'].'doc/relate';
-        $res = $this->_curlPost($url,$params);
+        $url = $this->config['remote'] . 'doc/relate';
+        $res = $this->_curlPost($url, $params);
         return $res['list'];
     }
 
 
-    public function headlineRead($channelId,$subjectId,$userId=0)
+    public function headlineRead($channelId, $subjectId, $userId = 0)
     {
         $params = [
             'user_id' => $userId,
-            'doc_id'  => $subjectId,
-            'tab_id'  => $channelId,
+            'doc_id' => $subjectId,
+            'tab_id' => $channelId,
         ];
-        $url = $this->config['remote'].'doc/read';
-        $this->_curlPost($url,$params);
+        $url = $this->config['remote'] . 'doc/read';
+        $this->_curlPost($url, $params);
         return true;
     }
 
 
-
-    private function _curlPost($url,$params,$headers=[])
+    private function _curlPost($url, $params, $headers = [])
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
 
-        if($headers){
+        if ($headers) {
             curl_setopt($ch, CURLOPT_HEADER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER , $headers);
-        }
-        else {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        } else {
             curl_setopt($ch, CURLOPT_HEADER, false);
         }
         curl_setopt($ch, CURLOPT_NOBODY, false);
@@ -114,21 +132,21 @@ class RecommendedHeadline
         $error_no = curl_errno($ch);
         $error_str = curl_error($ch);
         $getCurlInfo = curl_getinfo($ch);
-        
+
         $result = json_decode($result, true);
         curl_close($ch);
-        
+
         //记录日志
         \F_Ice::$ins->mainApp->logger_remote->info(array(
-            'third_server'  =>  'headline',
-            'type'          =>  'INFO',
-            'request_param' =>  $params,
-            'response_code' =>  $error_no,
-            'response_data' =>  $result,
-            'response_msg'  =>  $error_str,
-            'resp_time'     =>  $getCurlInfo['total_time'],
+            'third_server' => 'headline',
+            'type' => 'INFO',
+            'request_param' => $params,
+            'response_code' => $error_no,
+            'response_data' => $result,
+            'response_msg' => $error_str,
+            'resp_time' => $getCurlInfo['total_time'],
         ));
-        
+
         if ($result['ret'] != 0) {
             return false;
         } else {
@@ -136,16 +154,15 @@ class RecommendedHeadline
         }
     }
 
-    private function _curlPost2($url,$headers=[])
+    private function _curlPost2($url, $headers = [])
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
 
-        if($headers){
+        if ($headers) {
             curl_setopt($ch, CURLOPT_HEADER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER , $headers);
-        }
-        else {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        } else {
             curl_setopt($ch, CURLOPT_HEADER, false);
         }
         curl_setopt($ch, CURLOPT_NOBODY, false);
