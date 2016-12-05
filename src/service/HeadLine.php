@@ -666,9 +666,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $tmpData['id'] = $relation_id . '_banner';
                         $tmpData['type'] = 'banner';
                         $tmpData['banner'] = array(
-                            'pic' =>$promotion['img'],
+                            'pic' =>$promotion['pic'],
                             'url' => $promotion['desc_url'],
-                            'content' => $promotion['intro'],
+                            'content' => $promotion['title'],
                             'source' => $promotion['username'],
                             'view_num' => $promotion['read_num'],
                         );
