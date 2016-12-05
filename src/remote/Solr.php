@@ -228,6 +228,16 @@ class Solr
             //所属仓库
             $solr_info['fq'][]   = 'warehouse_type:'. $conditon['warehouse_type'];
         }
+        if(!empty(intval($conditon['status']))){
+            $solr_info['fq'][]   = 'status:'. $conditon['status'];
+        }
+        if(!empty($conditon['score'])){
+            $solr_info['fq'][]   = 'score:'. $conditon['score'];
+        }
+        if(!empty($conditon['sort'])){
+            $solr_info['fq'][]   = 'sort:'. $conditon['sort'];
+        }
+
         // solr select
         $res = $this->select($solr_info);
         if($res['success'] == 1){
