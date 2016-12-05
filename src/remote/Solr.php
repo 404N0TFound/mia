@@ -218,11 +218,11 @@ class Solr
         }
         if($conditon['koubei_with_pic'] === true || $conditon['self_sell'] === false) { 
             //是否带图
-            $solr_info['fq'][]   = $conditon['koubei_with_pic'] === true ? 'local_url:*' : 'local_url:';
+            $solr_info['fq'][]   = $conditon['koubei_with_pic'] === true ? 'local_url:*' : '-(local_url:*)';
         }
         if ($conditon['self_sell'] === true || $conditon['self_sell'] === false) {
             //自营非自营
-            $solr_info['fq'][]   = $conditon['self_sell'] === true ? 'supplier_id:0' : 'supplier_id:0';
+            $solr_info['fq'][]   = $conditon['self_sell'] === true ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
         }
         if (intval($conditon['warehouse_type']) > 0) {
             //所属仓库
