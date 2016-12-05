@@ -79,7 +79,7 @@ class Comment extends \DB_Query {
                         $where[] = [':ge', "$this->tableKoubei.created_time", $v];
                         break;
                     case 'koubei_end_time':
-                        $where[] = [':le', "$this->tableKoubei.create_time", $v];
+                        $where[] = [':le', "$this->tableKoubei.created_time", $v];
                 }
             }
         }
