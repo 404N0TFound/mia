@@ -177,6 +177,86 @@ class Solr
         }
         return $result;
     }
+    
+    /**
+     * 通过品牌id获取优质口碑
+     */
+    public function getHighQualityKoubeiByBrandId($brand_id, $page = 1, $count = 20)
+    {
+        
+    }
+    
+    /**
+     * 通过类目id获取优质口碑
+     */
+    public function getHighQualityKoubeiByCategoryId($category_id, $page = 1, $count = 20)
+    {
+    
+    }
+    
+    /**
+     * 获取口碑列表
+     * condition key : category_id brand_id warehouse_type self_sell koubei_with_pic
+     */
+    public function getKoubeiList($conditon, $field = '', $page = 1, $count = 20, $order_by = 'rank_score desc')
+    {
+        $solr_info = [
+            'q'         => '*:*',
+            'fq'        => array(),
+            'page'      => $page,
+            'pageSize'  => $count,
+            'fl'        => 'id',
+            'sort'      => $order_by,
+        ];
+        if(intval($conditon['category_id']) > 0) { 
+            //类目ID
+            $solr_info['fq'][]   = 'category_id:'. $conditon['category_id'];
+        }
+        if(intval($conditon['brand_id']) > 0) { 
+            //品牌ID
+            $solr_info['fq'][]   = 'brand_id:'. $conditon['brand_id'];
+        }
+        if($conditon['koubei_with_pic'] === true || $conditon['self_sell'] === false) { 
+            //是否带图
+            $solr_info['fq'][]   = $conditon['koubei_with_pic'] === true ? 'local_url:*' : 'local_url:';
+        }
+        if ($conditon['self_sell'] === true || $conditon['self_sell'] === false) {
+            //自营非自营
+            $solr_info['fq'][]   = $conditon['self_sell'] === true ? 'supplier_id:0' : 'supplier_id:0';
+        }
+        if (intval($conditon['warehouse_type']) > 0) {
+            //所属仓库
+            $solr_info['fq'][]   = 'warehouse_type:'. $conditon['warehouse_type'];
+        }
+        // solr select
+        $res = $this->select($solr_info);
+        if($res['success'] == 1){
+            $res = $res['data']['response'];
+            return $res;
+        }
+        return array();
+    }
+    
+    /**
+     * 对口碑id重新排序，使unique_key不重复
+     */
+    private function sortKoubeiId($sort_data, $unique_key)
+    {
+        if (!in_array($unique_key, array('item_id', 'brand_id'))) {
+            return false;
+        }
+        $sorted_data = array();
+        foreach ($sort_data as $data) {
+            $sorted_data[$data[$unique_key]] = $data['id'];
+        }
+        $final_data = array();
+        
+        foreach ($sorted_data as $data) {
+            $final_data = reset($data);
+            array_pop($data);
+        }
+        
+    }
 
     /**
      * 口碑列表
