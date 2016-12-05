@@ -270,7 +270,9 @@ class Solr
             'page'      => $page,
             'pageSize'  => $count,
             'fl'        => 'id',
-            'sort'      => 'rank_score desc',
+            'status'    => 2,
+            'score'     => '(4,5)',
+            'sort'      => 'score desc,id desc,rank_score desc',
         ];
         if(!empty($category_id)){
             /*$solrInfo['group.field'] = "brand_id";
@@ -306,6 +308,8 @@ class Solr
             'group.field' => 'brand_id',
             'fl'          => 'brand_id,name',
             'pageSize'    => '20',
+            'status'    => 2,
+            'score'     => '(4,5)',
             'group.cache.percent' => '20'
         ];
         if(!empty($category_id)){

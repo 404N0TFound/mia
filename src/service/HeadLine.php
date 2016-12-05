@@ -30,15 +30,24 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $this->userServer     = new UserServer();
         $this->headlineConfig = \F_Ice::$ins->workApp->config->get('busconf.headline');
     }
-    
+
     /**
      * 根据头条栏目获取头条
+     *
+     * @param $channelId
+     * @param int $page
+     * @param int $count
+     * @param string $action
+     * @param int $currentUid
+     * @param array $headlineIds  refer_ids
+     * @return mixed
      */
+
     public function getHeadLinesByChannel($channelId, $page = 1, $count = 10, $action = '', $currentUid = 0, $headlineIds = array()) {
         if(empty($channelId)){
             return $this->succ(array());
         }
-        //获取订阅数据
+        //获取用户关注专家的内容
         if($channelId == $this->headlineConfig['lockedChannel']['attention']['id']) {
             $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $currentUid, $page, $count)['data'];
             $headLineList = array();
@@ -64,14 +73,27 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         } else { //不登录情况下用户的唯一标识
             $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
         }
-        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count);
-        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id']) {
+        $referIds = [];
+        foreach ($headlineIds as $v) {
+            list($relation_id, $relation_type) = explode('_', $v);
+            if ($relation_type == 'banner') {
+                $relation_type = 'promotion';
+            }
+            if ($relation_type == 'album') {
+                $relation_type = 'subject';
+            }
+            $referIds[] = [$relation_id . '_' . $relation_type];
+        }
+        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
+
+        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id'] && $referIds != [$headLineData[0],$headLineData[1]]) {
             //格式化客户端上传的headlineIds
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_unique(array_merge($headlineIds, $headLineData));
         }
-        
+
         if($action == 'refresh') {
+            //刷新不需要运营数据
             $operationData = array();
         } else {
             //获取运营数据
@@ -505,11 +527,13 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         return $referHeadLineIds;
     }
-    
+
     /**
      * 根据IDs查找并格式化头条数据
-     * @param $sortIds 有序的头条ID数组
-     * @param $opertionData headLineModel->getHeadLinesByChannel方法输出的数据
+     * @param array $sortIds 有序的头条ID数组
+     * @param array $opertionData headLineModel->getHeadLinesByChannel方法输出的数据
+     * @param bool $baseInfo
+     * @return array
      */
     private function _getFormatHeadlineData(array $sortIds, array $opertionData, $baseInfo = false) {
         //收集ID
@@ -518,6 +542,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $subjectIds = [];
         $roomIds    = [];
         $topicIds   = [];
+        $promotionIds = [];
         foreach ($datas as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
             //帖子
@@ -529,6 +554,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             //专题
             } elseif ($relation_type == 'topic') {
                 $topicIds[] = $relation_id;
+            //推荐活动
+            } elseif ($relation_type == 'promotion') {
+                $promotionIds[] = $relation_id;
             }
         }
 
@@ -536,12 +564,14 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds, 0, array('album'))['data'];
             $lives = $this->liveServer->getLiveRoomByIds($roomIds, array())['data'];
             $topics = $this->getHeadLineTopics($topicIds, array())['data'];
+            $promotions = $this->headlineRemote->promotionList($promotionIds);
         } else { //列表信息
             $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
             $lives = $this->liveServer->getLiveRoomByIds($roomIds, array('user_info', 'live_info'))['data'];
             $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
+            $promotions = $this->headlineRemote->promotionList($promotionIds);
         }
-        
+
         //以row为key重新拼装opertionData
         $sortedOpertionData = array();
         foreach ($opertionData as $v) {
@@ -641,10 +671,25 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $tmpData['headline_topic'] = $topic;
                     }
                     break;
+                case 'promotion':
+                    if (isset($promotions[$relation_id]) && !empty($promotions[$relation_id])) {
+                        $promotion = $promotions[$relation_id];
+                        $tmpData['id'] = $relation_id . '_banner';
+                        $tmpData['type'] = 'banner';
+                        $tmpData['banner'] = array(
+                            'pic' =>$promotion['pic'],
+                            'url' => $promotion['desc_url'],
+                            'content' => $promotion['title'],
+                            'source' => $promotion['username'],
+                            'view_num' => $promotion['read_num'],
+                        );
+                    }
+                    break;
             }
             if (!empty($tmpData)) {
                 $headLineList[] = $tmpData;
-            } else { //如果源关联项已不存在，则删除
+            } else {
+                //如果源关联项已不存在，则删除
                 if (isset($sortedOpertionData[$row])) {
                     $this->delOperateHeadLine($sortedOpertionData[$row]['id']);
                 }
