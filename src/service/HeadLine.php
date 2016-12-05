@@ -73,9 +73,20 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         } else { //不登录情况下用户的唯一标识
             $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
         }
-        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$headlineIds);
+        $referIds = [];
+        foreach ($headlineIds as $v) {
+            list($relation_id, $relation_type) = explode('_', $v);
+            if ($relation_type == 'banner') {
+                $relation_type = 'promotion';
+            }
+            if ($relation_type == 'album') {
+                $relation_type = 'subject';
+            }
+            $referIds[] = [$relation_id . '_' . $relation_type];
+        }
+        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
 
-        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id'] && $headlineIds != [$headLineData[0],$headLineData[1]]) {
+        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id'] && $referIds != [$headLineData[0],$headLineData[1]]) {
             //格式化客户端上传的headlineIds
             $headlineIds = $this->_formatClientIds($headlineIds);
             $headLineData = array_unique(array_merge($headlineIds, $headLineData));
