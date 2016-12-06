@@ -40,17 +40,30 @@ class Koubei extends \DB_Query {
     /**
      * 根据商品id批量获取商品带图口碑id
      */
-    public function getKoubeiWithPicByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false) {
+    public function getKoubeiByItemIdsAndCondition($item_ids, $conditon, $limit = 20, $offset = 0, $order_by = false) {
         $result = array();
-        if (empty($itemIds)) {
+        if (empty($item_ids)) {
             return $result;
         }
         $where = array();
-        $where[] = ['koubei.item_id', $itemIds];
+        $join = false;
+        $where[] = ['koubei.item_id', $item_ids];
         $where[] = ['koubei.status', 2];
-        $where[] = [':gt','koubei.subject_id',0];
+        $where[] = [':gt','koubei.subject_id', 0];
+        if (!empty($conditon)) {
+            foreach ($conditon as $k => $v) {
+                switch ($k) {
+                    case 'with_pic':
+                        $join = 'LEFT JOIN koubei_pic ON koubei.id = koubei_pic.koubei_id';
+                        $where[] = [':notnull', 'koubei_pic.koubei_id'];
+                        break;
+                    default:
+                        $where[] = ["koubei.$k", $v];
+                }
+            }
+        }
         $where[] = [':notnull', 'koubei_pic.koubei_id'];
-        $data = $this->getRows($where,'koubei.id as id',$limit,$offset,$orderBy, 'LEFT JOIN koubei_pic ON koubei.id = koubei_pic.koubei_id');
+        $data = $this->getRows($where, 'koubei.id as id', $limit, $offset, $order_by, $join);
         if (!empty($data)) {
             foreach($data as $v){
                 $result[] = $v['id'];
