@@ -222,7 +222,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取优质口碑
      */
-    public function getHighQualityKoubei($item_id, $current_uid = 0, $page = 1, $count = 10) {
+    public function getHighQualityKoubei($item_id, $current_uid = 0, $count = 10) {
         $koubei_res = array("koubei_info" => array());
         //获取商品的关联商品或者套装单品
         $item_service = new ItemService();
@@ -242,12 +242,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
 
         //通过商品id获取口碑id
-        $offset = $page > 1 ? ($page - 1) * $count : 0;
         $condition = array();
         $condition['with_pic'] = true;
-        $condition['score'] = array(4, 5);
-        $condition['machine_score'] = 3;
-        $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count, $offset);
+//         $condition['score'] = array(4, 5);
+//         $condition['machine_score'] = 3;
+        $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
+        if (count($koubei_ids) < $count) {
+            $count = $count - count($koubei_ids);
+            $condition['with_pic'] = false;
+            $koubei_ids = array_merge($koubei_ids, $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count));
+        }
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $current_uid)['data'];
         $koubei_res['koubei_info'] = !empty($koubei_infos) ? array_values($koubei_infos) : array();

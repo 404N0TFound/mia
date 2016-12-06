@@ -55,15 +55,14 @@ class Koubei extends \DB_Query {
                 switch ($k) {
                     case 'with_pic':
                         $join = 'LEFT JOIN koubei_pic ON koubei.id = koubei_pic.koubei_id';
-                        $where[] = [':notnull', 'koubei_pic.koubei_id'];
+                        $where[] = $v ? [':notnull', 'koubei_pic.koubei_id'] : [':isnull', 'koubei_pic.koubei_id'];
                         break;
                     default:
                         $where[] = ["koubei.$k", $v];
                 }
             }
         }
-        $where[] = [':notnull', 'koubei_pic.koubei_id'];
-        $data = $this->getRows($where, 'koubei.id as id', $limit, $offset, $order_by, $join);
+        $data = $this->getRows($where, 'distinct(koubei.id) as id', $limit, $offset, $order_by, $join);
         if (!empty($data)) {
             foreach($data as $v){
                 $result[] = $v['id'];
