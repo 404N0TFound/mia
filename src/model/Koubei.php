@@ -55,7 +55,7 @@ class Koubei {
     /**
      * 获取商品带图口碑列表
      */
-    public function getKoubeiByItemIdsAndCondition($item_ids, $conditon = array(), $offset = 0, $limit = 10){
+    public function getKoubeiByItemIdsAndCondition($item_ids, $conditon = array(), $limit = 10, $offset = 0){
         if (empty($item_ids)) {
             return array();
         }
