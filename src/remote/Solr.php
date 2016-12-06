@@ -7,8 +7,26 @@ class Solr
     public   $solrserver    = '';
 
     public function __construct(){
-        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.default');
+        $this->switchServer();
         $this->handleSolrUrlParams();
+    }
+
+    public function switchServer(){
+        date_default_timezone_set('Asia/Shanghai');
+        $switch = strtotime(date('Ymd')) + 2*59*60;
+        $switch_back = $switch + 60*60;
+        if($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '172.16.104.209'){
+            $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.default');
+        }else{
+            $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
+            if(time() >= $switch && time() <= $switch_back){
+                $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
+            }else{
+                if(!$this->ping()){
+                    $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
+                }
+            }
+        }
     }
 
     /**
@@ -169,12 +187,12 @@ class Solr
             $data = json_decode($solrData, true);
             if(isset($data['responseHeader']['status']) == true && $data['responseHeader']['status'] == 0) {
                 $result = array('success'=>1,'info'=>'操作成功', 'data'=>json_decode($solrData, true));
-            } else {
+        } else {
                 $result = array('success'=>0,'info'=>'更新失败', 'error'=>$solrData);
-            }
+        }
         } else {
             $result = array('success'=>0,'info'=>'网络错误,服务器繁忙');
-        }
+    }
         return $result;
     }
     
@@ -246,7 +264,39 @@ class Solr
         }
         return array();
     }
-    
+
+    public function curl_get($url, $time_out=1) {
+        if(0 === stripos($url, 'http:')){
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $time_out);
+            $data = curl_exec($ch);
+            $res[0] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $res[1] = $data;
+            curl_close($ch);
+            return $res;
+        } else {
+            echo 'ERROR URL';
+            exit();
+        }
+    }
+
+
+    /**
+     * 搜索引擎状态
+     */
+    public function ping() {
+        $res = $this->curl_get($this->solrserver . $this->core.'/admin/ping?wt=php');
+        if($res[0] == 200 && !empty($res[1])){
+            return true;
+        }
+        return false;
+    }
+
+
+
     /**
      * 对口碑id重新排序，使unique_key不重复
      */
