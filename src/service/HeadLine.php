@@ -76,10 +76,10 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         $referIds = $this->changeType($headlineIds);
         $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
         //4.9以下去除promote
-        $version = explode('_', $this->ext_params['version'], 4);
+        $version = explode('_', $this->ext_params['version'], 3);
         array_shift($version);
         $version = intval(implode($version));
-        if ($version < 490) {
+        if ($version < 49) {
             foreach ($headLineData as $key=>$headData) {
                 if (strpos($headData, 'promotion') !== false) {
                     unset($headLineData[$key]);
