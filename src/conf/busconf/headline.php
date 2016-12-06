@@ -36,6 +36,9 @@ $clientServerMapping = array(
     'video' => 'video',
     'live'  => 'live',
     'headline_topic' => 'topic',
+    'banner' => 'banner',
+    'promotion' => 'promotion',
+    'subject' => 'subject',
 );
 
 //推荐头条专家ID
