@@ -64,7 +64,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                     $tmpData['video'] = $subject;
                     $headLineList[] = $tmpData;
                 }
-                
             }
             return $this->succ($headLineList);
         }
@@ -73,23 +72,25 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         } else { //不登录情况下用户的唯一标识
             $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
         }
+
         $referIds = [];
         foreach ($headlineIds as $v) {
-            list($relation_id, $relation_type) = explode('_', $v);
+            list($relation_id, $relation_type) = explode('_', $v, 2);
             if ($relation_type == 'banner') {
                 $relation_type = 'promotion';
             }
             if ($relation_type == 'album') {
                 $relation_type = 'subject';
             }
-            $referIds[] = [$relation_id . '_' . $relation_type];
+            $referIds[] = $relation_id . '_' . $relation_type;
         }
-        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
 
-        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id'] && $referIds != [$headLineData[0],$headLineData[1]]) {
+        $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
+        //$headlineIds 在init之外的其他情况也会传
+        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id'] && $referIds = [$headLineData[0], $headLineData[1]]) {
             //格式化客户端上传的headlineIds
-            $headlineIds = $this->_formatClientIds($headlineIds);
-            $headLineData = array_unique(array_merge($headlineIds, $headLineData));
+            $referIds = $this->_formatClientIds($referIds);
+            $headLineData = array_unique(array_merge($referIds, $headLineData));
         }
 
         if($action == 'refresh') {
@@ -592,7 +593,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $relation_cover_image = $sortedOpertionData[$row]['ext_info']['cover_image'];
             } else {
                 $id = array_shift($sortIds);
-                list($relation_id, $relation_type) = explode('_', $id);
+                list($relation_id, $relation_type) = explode('_', $id, 2);
             }
             //将运营配置的title、cover_image替换掉原有的
             switch ($relation_type) {
