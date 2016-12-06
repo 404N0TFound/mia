@@ -43,7 +43,7 @@ class Koubei {
      * @param $limit
      * @param $offset
      */
-    public function getKoubeiIds($itemIds, $limit, $offset){
+    public function getKoubeiIdsByItemIds($itemIds, $limit = 10, $offset = 0, $conditon = array()){
         if (empty($itemIds)) {
             return array();
         }
@@ -55,13 +55,13 @@ class Koubei {
     /**
      * 获取商品带图口碑列表
      */
-    public function getKoubeiWithPicByItemIds($itemIds, $limit, $offset){
-        if (empty($itemIds)) {
+    public function getKoubeiByItemIdsAndCondition($item_ids, $conditon = array(), $offset = 0, $limit = 10){
+        if (empty($item_ids)) {
             return array();
         }
-        $orderBy = 'rank_score desc, created_time desc';
-        $koubeiData = $this->koubeiData->getKoubeiWithPicByItemIds($itemIds, $limit, $offset, $orderBy);
-        return $koubeiData;
+        $order_by = 'rank_score desc, created_time desc';
+        $koubei_data = $this->koubeiData->getKoubeiByItemIdsAndCondition($item_ids, $conditon, $limit, $offset, $order_by);
+        return $koubei_data;
     }
     
     /**
