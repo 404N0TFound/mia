@@ -87,6 +87,14 @@ $cron_list['live_push_message'] = array(
     'start_time' => '2016-10-12 00:00:00',
     'interval' => 60
 );
+//直播结束清空配置信息
+$cron_list['live_clean_setting'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=live --action=Cleanlivesetting",
+    'start_time' => '2016-12-6 00:00:00',
+    'interval' => 7200
+);
 /*************
  * 直播相关结束
  *************/
