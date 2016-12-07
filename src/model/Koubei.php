@@ -213,7 +213,15 @@ class Koubei {
      */
     public function setKoubeiStatus($koubeiId, $koubeiInfo){
         $koubeiSetInfo = array();
-        $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
+        //口碑状态
+        if(isset($koubeiInfo['status'])){
+            $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
+        }
+        //口碑工单
+        if(isset($koubeiInfo['work_order'])){
+            $koubeiSetInfo[] = ['work_order',$koubeiInfo['work_order']];
+        }
+        
         $result = $this->koubeiData->updateKoubeiInfoById($koubeiId, $koubeiSetInfo);
     }
     

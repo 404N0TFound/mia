@@ -213,7 +213,7 @@ class Koubei extends \DB_Query {
         $where[] = ['id', $cond['koubei_ids']];
     
         if(isset($con['status'])){
-            $where[] = ['status', $con['status']];
+            $where[] = ['status', $cond['status']];
         }
         switch ($sType) {
             case 'deal'://回复处理

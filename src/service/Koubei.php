@@ -32,14 +32,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if($checkOrder === true){
             //获取订单信息，验证是否可以发布口碑（order service）
             $orderService = new OrderService();
-            $orderInfo = $orderService->getOrderInfo($koubeiData['order_code'])['data'];
+            $orderParams = array('order_code'=>$koubeiData['order_code']);
+            $orderInfo = $orderService->getOrderInfo($orderParams)['data'];
+            $orderId = array_keys($orderInfo);
             $finishTime = strtotime($orderInfo['finish_time']) ;
             if($orderInfo['status'] != 5  || (time()- $finishTime) > 15 * 86400 )
             {
                 return $this->error(6102);
             }
             //获取口碑信息，验证是否该口碑已经发布过
-            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'],$koubeiData['item_id']);
+            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId[0],$koubeiData['item_id']);
             if(!empty($koubeiInfo)){
                 return $this->error(6103);
             }
@@ -270,27 +272,42 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 根据口碑ID获取口碑信息
      */
-    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item'), $status = array(2)) {
+    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item' ,'order_info'), $status = array(2)) {
         if (empty($koubeiIds)) {
             return array();
         }
         $koubeiInfo = array();
+        $orderIds = array();
         //批量获取口碑信息
         $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status);
         foreach($koubeiArr as $koubei){
             if(empty($koubei['subject_id'])) continue;
             //收集subjectids
             $subjectId[] = $koubei['subject_id'];
-
+            
             $itemKoubei[$koubei['subject_id']] = array(
                 'id' => $koubei['id'],
                 'rank' => $koubei['rank'],
                 'score' => $koubei['score'],
                 'item_id' => $koubei['item_id'],
                 'item_size' => $koubei['item_size'],
-                'status' => $koubei['status']
+                'status' => $koubei['status'],
+                'order_id' => $koubei['order_id'],
             );
+           // 获取口碑订单id，用于获取订单编号(order_code)
+            if(!empty($koubei['order_id'])){
+                $orderIds[] = $koubei['order_id'];
+            }
+            
         }
+        
+        if(in_array('order_info', $field)){
+            //获取订单信息，验证是否可以发布口碑（order service）
+            $orderService = new OrderService();
+            $orderParams = array('order_id'=>$orderIds);
+            $orderInfo = $orderService->getOrderInfo($orderParams)['data'];
+        }
+        
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field);
         foreach ($itemKoubei as $key => $value) {
@@ -301,9 +318,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         break;
                     }
                 }
-                $subjectRes['data'][$key]['item_koubei'] = $value;
                 // 口碑信息拼装到帖子
                 $koubeiInfo[$value['id']] = $subjectRes['data'][$key];
+                if($value['order_id']){
+                    $koubeiInfo[$value['id']]['order_code'] = $orderInfo[$value['order_id']];
+                }
             }
         }
         return $this->succ($koubeiInfo);
@@ -758,5 +777,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $res['data'] = $transfer_arr;
             return $this->succ($res['data']);
         }
+    }
+    
+    /**
+     * 将工单号更新到口碑表
+     * @param int $koubeiId
+     * @param int $workOrder
+     */
+    public function setWorkorderToKoubei($koubeiId,$workOrder) {
+        if (empty($koubeiId) || empty($workOrder)) {
+            return $this->error(500);
+        }
+        $koubeUpData = array('work_order'=>$workOrder);
+        $res = $this->koubeiModel->setKoubeiStatus($koubeiId,$koubeUpData);
+        return $this->succ($res);
     }
 }
