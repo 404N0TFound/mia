@@ -367,6 +367,7 @@ class Solr
             'group.field' => 'brand_id',
             'fl'          => 'brand_id,name',
             'pageSize'    => '20',
+            'group.cache.percent' => '20'
         ];
         if(!empty($category_id)){
             $solrInfo['fq'][]    = 'category_id:'.$category_id;
