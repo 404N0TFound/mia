@@ -201,15 +201,15 @@ class Solr
      */
     public function getHighQualityKoubeiByBrandId($brand_id, $page = 1, $count = 20)
     {
-        
-    }
+
+        }
     
     /**
      * 通过类目id获取优质口碑
      */
     public function getHighQualityKoubeiByCategoryId($category_id, $page = 1, $count = 20)
     {
-    
+
     }
     
     /**
@@ -335,20 +335,19 @@ class Solr
             'page'      => $page,
             'pageSize'  => $count,
             'fl'        => 'id',
-            'status'    => 2,
-            'score'     => '(4,5)',
             'sort'      => 'score desc,id desc,rank_score desc',
         ];
         if(!empty($category_id)){
-            /*$solrInfo['group.field'] = "brand_id";
-            $solrInfo['group.main'] = "true";
-            $solrInfo['group'] = "true";*/
             $solrInfo['fq'][]   = 'category_id:'.$category_id;
         }
         if(!empty($brand_id)){
             $solrInfo['fq'][]   = 'brand_id:'.$brand_id;
         }
         $solrInfo['fq'][] = 'local_url:*';
+        $solrInfo['fq'][] = 'status:2';
+        $solrInfo['fq'][] = 'score:(4 OR 5)';
+        $solrInfo['fq'][] = '-(subject_id:0)';
+        $solrInfo['fq'][] = '-(item_id:0)';
         // solr select
         $res = $this->select($solrInfo);
         if($res['success'] == 1){
@@ -373,14 +372,16 @@ class Solr
             'group.field' => 'brand_id',
             'fl'          => 'brand_id,name',
             'pageSize'    => '20',
-            'status'    => 2,
-            'score'     => '(4,5)',
             'group.cache.percent' => '20'
         ];
         if(!empty($category_id)){
             $solrInfo['fq'][]    = 'category_id:'.$category_id;
         }
         $solrInfo['fq'][] = 'local_url:*';
+        $solrInfo['fq'][] = 'status:2';
+        $solrInfo['fq'][] = 'score:(4 OR 5)';
+        $solrInfo['fq'][] = '-(subject_id:0)';
+        $solrInfo['fq'][] = '-(item_id:0)';
         // solr select
         $res = $this->select($solrInfo);
         $new_brand_list = array();
