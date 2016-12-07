@@ -158,6 +158,7 @@ class Label extends \mia\miagroup\Lib\Service {
     public function getRecommendLabels($page=1,$count=10) {
         $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
         $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
+        echo '<pre>';print_r($labelInfos);exit;
         return $this->succ(array_values($labelInfos));
     }
 
