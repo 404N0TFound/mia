@@ -7,24 +7,21 @@ class Solr
     public   $solrserver    = '';
 
     public function __construct(){
-        $this->switchServer();
+        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.default');
         $this->handleSolrUrlParams();
+        //$this->switchServer();
     }
 
     public function switchServer(){
         date_default_timezone_set('Asia/Shanghai');
         $switch = strtotime(date('Ymd')) + 2*59*60;
         $switch_back = $switch + 60*60;
-        if($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '172.16.104.209'){
-            $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.default');
+        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
+        if(time() >= $switch && time() <= $switch_back){
+            $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
         }else{
-            $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
-            if(time() >= $switch && time() <= $switch_back){
+            if(!$this->ping()){
                 $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
-            }else{
-                if(!$this->ping()){
-                    $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
-                }
             }
         }
     }
@@ -216,14 +213,14 @@ class Solr
      * 获取口碑列表
      * condition key : category_id brand_id warehouse_type self_sell koubei_with_pic
      */
-    public function getKoubeiList($conditon, $field = '', $page = 1, $count = 20, $order_by = 'rank_score desc')
+    public function getKoubeiList($conditon, $field = 'id', $page = 1, $count = 20, $order_by = 'rank_score desc')
     {
         $solr_info = [
             'q'         => '*:*',
             'fq'        => array(),
             'page'      => $page,
             'pageSize'  => $count,
-            'fl'        => 'id',
+            'fl'        => $field,
             'sort'      => $order_by,
         ];
         if(intval($conditon['category_id']) > 0) { 
@@ -243,9 +240,9 @@ class Solr
             //是否带图
             $solr_info['fq'][]   = $conditon['koubei_with_pic'] === true ? 'local_url:*' : '-(local_url:*)';
         }
-        if ($conditon['self_sell'] === true || $conditon['self_sell'] === false) {
+        if ($conditon['self_sale'] === true || $conditon['self_sale'] === false) {
             //自营非自营
-            $solr_info['fq'][]   = $conditon['self_sell'] === true ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
+            $solr_info['fq'][]   = $conditon['self_sale'] === true ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
         }
         if (intval($conditon['warehouse_type']) > 0) {
             //所属仓库
@@ -260,12 +257,12 @@ class Solr
         if(!empty($conditon['sort'])){
             $solr_info['fq'][]   = 'sort:'. $conditon['sort'];
         }
-
         // solr select
         $res = $this->select($solr_info);
         if($res['success'] == 1){
             $res = $res['data']['response'];
-            return $res;
+            $data = array('list' => $res['docs'], 'count' => $res['numFound']);
+            return $data;
         }
         return array();
     }

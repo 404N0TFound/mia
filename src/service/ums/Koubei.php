@@ -77,20 +77,21 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //机器评分
             $condition['machine_score'] = 1;
         }
+        if ($params['machine_score'] !== null && $params['machine_score'] !== '' && in_array($params['machine_score'], array(1, 2, 3)) && intval($condition['id']) <= 0) {
+            //机器评分
+            $condition['machine_score'] = $params['machine_score'];
+        }
         if (intval($params['item_id']) > 0 && intval($condition['id']) <= 0) {
             //商品ID
             $condition['item_id'] = $params['item_id'];
-            $orderBy = 'rank_score desc'; //按分数排序，与app保持一致
         }
         if (!empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             $solrCond['bran_id'] = $params['brand'];
         }
-
-        if ($params['supplier_id'] != 'all' && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (in_array($params['self_sale'], array(true, false)) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //sku属性
-            $solrCond['self_sell'] = $params['supplier_id'];
+            $solrCond['self_sale'] = $params['self_sale'];
         }
-        
         if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //类目ID
             $solrCond['category_id'] = $params['category_id'];
@@ -99,7 +100,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //仓库类型
             $solrCond['warehouse'] = $params['warehouse'];
         }
-        
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
             $condition['start_time'] = $params['start_time'];
@@ -118,11 +118,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $condition['comment_end_time'] = $params['comment_end_time'];
             $orderBy = 'comment_time desc';
         }
-        
-        if(isset($solrCond['bran_id']) || isset($solrCond['self_sell']) || 
+        if(isset($solrCond['bran_id']) || isset($solrCond['self_sale']) || 
             isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
-            $solr = new mia\miagroup\Remote\Solr();
-            $data = $solr->getKoubeiList($koubeiCondtion,'',$offset, $limit,$orderBy);
+            $solr = new \mia\miagroup\Remote\Solr();
+            $data = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
         }else{
             $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
         }
