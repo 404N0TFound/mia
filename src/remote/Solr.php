@@ -228,7 +228,12 @@ class Solr
         ];
         if(intval($conditon['category_id']) > 0) { 
             //类目ID
-            $solr_info['fq'][]   = 'category_id:'. $conditon['category_id'];
+            if (is_array($conditon['category_id'])) {
+                $solr_info['fq'][]   = "category_id:'". implode(' OR ', $conditon['category_id']) . "'";
+            } else {
+                $solr_info['fq'][]   = 'category_id:'. $conditon['category_id'];
+            }
+            
         }
         if(intval($conditon['brand_id']) > 0) { 
             //品牌ID
