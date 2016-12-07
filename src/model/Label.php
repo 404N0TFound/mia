@@ -238,7 +238,7 @@ class Label {
     /**
      * 查找被推荐的分类标签
      */
-    public function getCategoryLables($page=1,$limit=10)
+    public function getCategoryLables($page=1,$limit=30)
     {
         //获取全部已归档标签
         $relationInfos = $this->labelCagegoryRelation->getRelationList(0, 100);

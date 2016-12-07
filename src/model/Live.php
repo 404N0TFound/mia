@@ -414,11 +414,12 @@ class Live {
     }
 
     /**
-     * 获取有过直播记录的房间列表
+     * 获取有过直播记录的房间列表,且当前不在直播状态
      */
     public function getLiveRoomList($page = 1, $limit = 100, $fields = "id,user_id,latest_live_id,settings")
     {
         $cond['where'][] = ['status', 1];
+        $cond['where'][] = ['live_id', 0];//当前不在直播状态
         $cond['where'][] = [':and', [':notnull', 'latest_live_id']];
 
         $cond['offset'] = ($page - 1) * $limit;
