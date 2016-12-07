@@ -30,6 +30,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public function getKoubeiList($params) {
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
+        $solrCond = array();
         //初始化入参
         $orderBy = 'id desc'; //默认排序
         if ($params['limit'] === false) {
@@ -82,35 +83,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $orderBy = 'rank_score desc'; //按分数排序，与app保持一致
         }
         if (!empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
-            //品牌ID
-            $brandId = intval($this->itemModel->getBrandIdByName($params['brand']));
-            $itemIds = $this->itemModel->getAllItemByBrandId($brandId);
-            if (!empty($itemIds)) {
-                $condition['item_id'] = $itemIds;
-            } else {
-                return $this->succ($result);
-            }
+            $solrCond['bran_id'] = $params['brand'];
         }
 
-        if (intval($params['supplier_id']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
-            //供应商ID
-            $itemIds = $this->itemModel->getAllItemBySupplyId($params['supplier_id']);
-            if (!empty($itemIds)) {
-                $condition['item_id'] = $itemIds;
-            } else {
-                return $this->succ($result);
-            }
+        if ($params['supplier_id'] != 'all' && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+            //sku属性
+            $solrCond['self_sell'] = $params['supplier_id'];
         }
         
-        if (intval($params['cate_1']) > 0 && intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //类目ID
-            $itemIds = $this->itemModel->getAllItemByCategoryId($params['category_id']);
-            if (!empty($itemIds)) {
-                $condition['item_id'] = $itemIds;
-            } else {
-                return $this->succ($result);
-            }
+            $solrCond['category_id'] = $params['category_id'];
         }
+        if (intval($params['warehouse_type']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+            //仓库类型
+            $solrCond['warehouse'] = $params['warehouse'];
+        }
+        
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
             $condition['start_time'] = $params['start_time'];
@@ -129,7 +118,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $condition['comment_end_time'] = $params['comment_end_time'];
             $orderBy = 'comment_time desc';
         }
-        $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
+        
+        if(isset($solrCond['bran_id']) || isset($solrCond['self_sell']) || 
+            isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
+            $solr = new mia\miagroup\Remote\Solr();
+            $data = $solr->getKoubeiList($koubeiCondtion,'',$offset, $limit,$orderBy);
+        }else{
+            $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
+        }
+        
         if (empty($data['list'])) {
             return $this->succ($result);
         }
