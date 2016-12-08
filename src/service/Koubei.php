@@ -301,7 +301,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             
         }
         
-        if(in_array('order_info', $field)){
+        if(in_array('order_info', $field) || !empty($orderIds)){
             //获取订单信息，验证是否可以发布口碑（order service）
             $orderService = new OrderService();
             $orderParams = array('order_id'=>$orderIds);
