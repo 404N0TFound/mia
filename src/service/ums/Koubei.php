@@ -92,7 +92,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (!empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             $solrCond['bran_id'] = $params['brand'];
         }
-        if (($params['self_sale'] != -1) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if ($params['self_sale'] != -1 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //sku属性
             $solrCond['self_sale'] = $params['self_sale'];
         }
@@ -105,9 +105,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //类目ID
             $solrCond['category_id'] = $params['category_id'];
         }
-        if (intval($params['warehouse_type']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['warehouse_type']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //仓库类型
-            $solrCond['warehouse'] = $params['warehouse'];
+            $solrCond['warehouse_type'] = $params['warehouse_type'];
         }
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
