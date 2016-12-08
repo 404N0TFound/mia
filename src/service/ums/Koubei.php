@@ -73,11 +73,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //是否是精品
             $condition['rank'] = $params['rank'];
         }
-        if ($params['score'] !== null && $params['score'] !== '' && intval($condition['id']) <= 0) {
+        if ((is_array($params['score']) || (!is_array($params['score']) && intval($params['score']) >= 0)) && intval($condition['id']) <= 0) {
             //用户评分
             $condition['score'] = $params['score'];
         }
-        if (($params['score'] == '机选差评' || in_array('机选差评', $params['score']))  && intval($condition['id']) <= 0) {
+        if (($params['score'] == '机选差评' || (is_array($params['score']) && in_array('机选差评', $params['score'])))  && intval($condition['id']) <= 0) {
             //机器评分
             $condition['machine_score'] = 1;
         }
