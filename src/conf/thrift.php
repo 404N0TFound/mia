@@ -12,12 +12,35 @@ $address = array(
         'recv_timeout' => 20000
     ),
 
+    'solr' => array(
+        'default' => array(
+            'host' => '172.16.96.75',
+            'port' => 9001,
+            'path' => 'solr',
+            'core' => 'koubei'
+        ),
+        'online_slave' => array(
+            'host' => '10.1.51.24',
+            'port' => 8983,
+            'path' => 'solr',
+            'core' => 'koubei'
+        ),
+        'online' => array(
+            'host' => '10.1.117.10',
+            'port' => 8983,
+            'path' => 'solr',
+            'core' => 'koubei'
+        ),
+    ),
+
     'headline' => [
-        'remote' => 'http://alpha_stage.recommend.mia.com/api/',
+        //'remote' => 'http://alpha_stage.recommend.mia.com/api/',
+        'remote' => 'zhanghaibo_dev.recommend.mia.com/api/',
     ],
 
     'subject' => [
         'remote' => 'http://172.16.96.75:8983/solr/toutiao/select',
     ],
+
 );
     

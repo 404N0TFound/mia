@@ -132,7 +132,7 @@ class HeadLine {
         $data = $this->headLineTopicData->getHeadLineTopicByIds($topicIds, $status);
         if(!empty($data)){
             foreach ($data as $key=> $topic){
-                $topicInfo = json_decode($topic['topic_info'], true);
+                $topicInfo = $topic['topic_info'];
                 $data[$key]['id'] = $topic['id'];
                 $data[$key]['title'] = $topicInfo['title'];
                 $data[$key]['text'] = $topicInfo['text'];

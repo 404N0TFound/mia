@@ -64,6 +64,9 @@ class HeadLineTopic extends \DB_Query {
         $data = $this->getRows($where,'*',false,0,$orderBy);
         if (!empty($data)) {
             foreach ($data as $v) {
+                //http转https
+                $v['topic_info'] = str_replace('http:\/\/', 'https:\/\/', strval($v['topic_info']));
+                $v['topic_info'] = json_decode($v['topic_info'], true);
                 $result[$v['id']] = $v;
             }
         }

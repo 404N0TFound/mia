@@ -32,6 +32,8 @@ class HeadLineChannelContent extends \DB_Query {
         $data = $this->getRows($where,'*',false,0,$orderBy);
         $result = [];
         foreach ($data as $v) {
+            //http转https
+            $v['ext_info'] = str_replace('http:\/\/', 'https:\/\/', strval($v['ext_info']));
             $v['ext_info'] = json_decode($v['ext_info'], true);
             $result[$v['relation_id'].'_'.$v['relation_type']] = $v;
         }
@@ -77,6 +79,8 @@ class HeadLineChannelContent extends \DB_Query {
         $where[] = [':eq','id', $id];
         $data = $this->getRow($where);
         if (!empty($data)) {
+            //http转https
+            $data['ext_info'] = str_replace('http:\/\/', 'https:\/\/', strval($data['ext_info']));
             $data['ext_info'] = json_decode($data['ext_info'], true);
         }
         return $data;

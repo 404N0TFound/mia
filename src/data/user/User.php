@@ -23,6 +23,12 @@ class User extends DB_Query {
         $field = "id,username,nickname,child_birth_day,user_status,cell_phone,child_sex,child_nickname,consume_money,icon,level,is_id_verified,is_cell_verified,mibean_level,create_date,status";
         $where[] = array('id', $user_ids);
         $user_data = $this->getRows($where, $field);
+        if (!empty($user_data)) {
+            foreach ($user_data as $k => $v) {
+                //http转https
+                $user_data[$k]['icon'] = str_replace('http://', 'https://', strval($v['icon']));
+            }
+        }
         return $user_data;
     }
     

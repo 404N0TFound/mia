@@ -33,21 +33,21 @@ class Live extends \DB_Query {
      * status 状态 (1创建中 2确认中 3直播中 4结束(有回放) 5结束(无回放) 6禁用 7失败)
      */
     public function getBatchLiveInfoByIds($liveIds, $status = array(3)) {
+        if (empty($liveIds)) {
+            return array();
+        }
         $result = [];
         $where[] = ['id', $liveIds];
         if (!empty($status)) {
             $where[] = ['status', $status];
         }
         $data = $this->getRows($where);
-        
-        if (!$data) {
-            return false;
-        } else {
+        if (!empty($data)) {
             foreach ($data as $v) {
                 $result[$v['id']] = $v;
             }
-            return $result;
         }
+        return $result;
     }
 
     /**
@@ -55,7 +55,7 @@ class Live extends \DB_Query {
      * index：user_id subject_id start_time create_time
      */
     public function getLiveList($cond, $offset = 0, $limit = 100, $orderBy='') {
-        if (empty($cond['user_id']) && empty($cond['subject_id']) && empty($cond['start_time']) && empty($cond['create_time'])) {
+        if (empty($cond['id']) && empty($cond['user_id']) && empty($cond['subject_id']) && empty($cond['start_time']) && empty($cond['create_time'])) {
             // 不用索引返回false
             $cond[] = [':ge','created_time', date('Y-m-d H:i:s', time() - 86400 * 90)];
         }
@@ -145,5 +145,13 @@ class Live extends \DB_Query {
         $sql = "UPDATE $this->tableName SET $setField WHERE `id` = $liveId";
         $result = $this->query($sql);
         return $result;
+    }
+
+    /**
+     * 更新live表信息
+     */
+    public function updateLive($where, $setData) {
+        $data = $this->update($setData, $where);
+        return $data;
     }
 }

@@ -12,14 +12,19 @@ class Order extends \DB_Query {
     protected $mapping = array();
     
     //根据订单编号获取订单信息
-    public function getOrderInfoByOrderCode($orderCode){
-        if(empty($orderCode)){
+    public function getOrderInfoByOrderCode($orderParams){
+        $where = array();
+        if(isset($orderParams['order_code']) && !empty($orderParams['order_code'])){
+            $where[] = ['order_code', $orderParams['order_code']];
+        }
+        if(isset($orderParams['order_id']) && !empty($orderParams['order_id'])){
+            $where[] = ['id', $orderParams['order_id']];
+        }
+        if (empty($where)) {
             return array();
         }
-        $where = array();
-        $where[] = ['order_code', $orderCode];
         
-        $data = $this->getRow($where);
+        $data = $this->getRows($where);
 
         if(empty($data)){
             return array();

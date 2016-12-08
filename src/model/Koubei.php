@@ -43,7 +43,7 @@ class Koubei {
      * @param $limit
      * @param $offset
      */
-    public function getKoubeiIds($itemIds, $limit, $offset){
+    public function getKoubeiIdsByItemIds($itemIds, $limit = 10, $offset = 0, $conditon = array()){
         if (empty($itemIds)) {
             return array();
         }
@@ -55,13 +55,13 @@ class Koubei {
     /**
      * 获取商品带图口碑列表
      */
-    public function getKoubeiWithPicByItemIds($itemIds, $limit, $offset){
-        if (empty($itemIds)) {
+    public function getKoubeiByItemIdsAndCondition($item_ids, $conditon = array(), $limit = 10, $offset = 0){
+        if (empty($item_ids)) {
             return array();
         }
-        $orderBy = 'rank_score desc, created_time desc';
-        $koubeiData = $this->koubeiData->getKoubeiWithPicByItemIds($itemIds, $limit, $offset, $orderBy);
-        return $koubeiData;
+        $order_by = 'rank_score desc, created_time desc';
+        $koubei_data = $this->koubeiData->getKoubeiByItemIdsAndCondition($item_ids, $conditon, $limit, $offset, $order_by);
+        return $koubei_data;
     }
     
     /**
@@ -213,7 +213,15 @@ class Koubei {
      */
     public function setKoubeiStatus($koubeiId, $koubeiInfo){
         $koubeiSetInfo = array();
-        $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
+        //口碑状态
+        if(isset($koubeiInfo['status'])){
+            $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
+        }
+        //口碑工单
+        if(isset($koubeiInfo['work_order'])){
+            $koubeiSetInfo[] = ['work_order',$koubeiInfo['work_order']];
+        }
+        
         $result = $this->koubeiData->updateKoubeiInfoById($koubeiId, $koubeiSetInfo);
     }
     
@@ -305,4 +313,46 @@ class Koubei {
         $result = $this->koubeiAppealData->getAppealInfoByIds($appeal_ids, $status);
         return $result;
     }
+    
+    /**
+     * 检查申诉是否已存在
+     */
+    public function checkAppealInfoExist($koubei_id, $koubei_comment_id = 0)
+    {
+        $result = $this->koubeiAppealData->checkAppealInfoExist($koubei_id, $koubei_comment_id);
+        return $result;
+    }
+
+    /**
+     * 首评口碑奖励及图片提示
+     */
+    public function getBatchKoubeiByDefaultInfo($batch_info = array()){
+        $res = array();
+        if(!empty($batch_info)){
+            $issue_img      = $batch_info['issue_img'];
+            $issue_skip_url = $batch_info['issue_skip_url'];
+            $res['issue_reward'] = $batch_info['issue_reward'];
+        }
+        // banner 结构体
+        $res['issue_tip_url']['pic']['url']   = $issue_img;
+        $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
+        $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
+        $res['issue_tip_url']['url']          = $issue_skip_url;
+        return $res;
+    }
+
+    /*
+     * 首评验证
+     * */
+    public function getCheckFirstComment($order_id, $item_id){
+        $koubeiData = new KoubeiData();
+        $result = $koubeiData->checkFirstComment($order_id, $item_id);
+        return $result;
+    }
+
+    public function getBatchKoubeiIds($itemIds){
+        $ids = $this->koubeiData->getBatchBestKoubeiIds($itemIds);
+        return $ids;
+    }
+
 }

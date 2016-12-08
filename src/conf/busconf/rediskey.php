@@ -66,6 +66,11 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'jinshan_stream_info_%s',
         'expire_time' => 86400 * 30,
     ],
+    //网宿流信息
+    'live_wangsu_stream_info' => [ //使用String数据结构
+        'key' => $liveServicePrefix . 'wangsu_stream_info_%s',
+        'expire_time' => 86400 * 30,
+    ],
     //记录直播流不稳定的次数
     'live_stream_frame_status'=>[
         'key' => $liveServicePrefix . 'stream_frame_status_%s',

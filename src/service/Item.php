@@ -3,6 +3,7 @@ namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Item as ItemModel;
 
+
 class Item extends \mia\miagroup\Lib\Service {
     public $itemModel;
     public function __construct() {
@@ -10,37 +11,54 @@ class Item extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 获取商品相关的套装id
-     * @param $itemId 商品id
+     * 获取商品的关联商品或者套装单品
      */
-    public function getSpuRelateItem($itemId){
-        $spuArr = $this->itemModel->getSpuByItemId($itemId);
-        return $this->succ($spuArr);
-    }
-    
-    /**
-     * 获取套装的商品
-     * @param $spuId 套装id
-     */
-    public function getItemRelateSpu($spuId){
-        $itmeArr = $this->itemModel->getItemBySpuId($spuId);
-        return $this->succ($itmeArr);
+    public function getRelateItemById($item_id)
+    {
+        $item_info = $this->itemModel->getBatchItemByIds([$item_id])[$item_id];
+        if (empty($item_info)) {
+            return $this->succ(array());
+        }
+        $item_ids = array();
+        // 如果是单品，直接取商品口碑
+        if ($item_info['is_spu'] == 0) {
+            if (!empty($itemInfo['relate_flag'])) {
+                $related_items = $this->itemModel->getBatchItemByFlags([$item_info['relate_flag']]);
+                if (!empty($related_items)) {
+                    foreach ($related_items as $v) {
+                        $item_ids[] = $v['id'];
+                    }
+                }
+            }
+        } elseif ($item_info['is_spu'] == 1 && $item_info['spu_type'] == 1) { // 是单品套装的情况
+            // 根据套装id获取套装的商品
+            $spu_item_ids = $this->itemModel->getItemBySpuId($item_id);
+            // 根据套装的商品，获取商品的所有套装，实现套装和套装的互通
+            $item_id_array = $this->itemModel->getSpuByItemId($spu_item_ids[0]);
+            // 如果该商品还有其他套装
+            if (count($item_id_array) > 1) {
+                // 过滤掉其他套装中为多品套装的
+                $items = $this->itemModel->getBatchItemByIds($item_id_array);
+                foreach ($items as $item) {
+                    if ($item['is_spu'] == 1 && $item['spu_type'] == 1) {
+                        $item_ids[] = $item['id'];
+                    }
+                }
+            }
+            // 将套装的商品id和所有套装id拼在一起，实现单品和套装互通
+            array_push($item_ids, $spu_item_ids[0]);
+        }
+        $item_ids[] = $item_id;
+        return $item_ids;
     }
     
     /**
      * 根据商品id批量获取商品
      * @param int $itemIds
      */
-    public function getItemList($itemIds){
+    public function getItemList($itemIds)
+    {
         $itemInList = $this->itemModel->getBatchItemByIds($itemIds);
-        return $this->succ($itemInList);
-    }
-    /**
-     * 根据商品关联标识获取关联商品
-     * @param  $relateFlags 商品关联标识
-     */
-    public function getRelateItemList($relateFlags){
-        $itemInList = $this->itemModel->getBatchItemByFlags($relateFlags);
         return $this->succ($itemInList);
     }
     

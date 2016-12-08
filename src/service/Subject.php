@@ -131,6 +131,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $imageUrl = array();
             $smallImageUrl = array();
             $bigImageUrl = array();
+            $smallImageInfos = array();
             if (!empty($subjectInfo['image_url']) && empty($subjectInfo['ext_info']['image'])) {
                 $imageUrlArr = explode("#", $subjectInfo['image_url']);
                 if (!empty($imageUrlArr[0])) {
@@ -154,12 +155,17 @@ class Subject extends \mia\miagroup\Lib\Service {
                         $imageUrl[$key]['url'] = $img_info['url'];
                         $smallImageUrl[$key] = NormalUtil::buildImgUrl($image['url'],'small')['url'];
                         $bigImageUrl[$key] = $img_info['url'];
+                        $small_img_info = NormalUtil::buildImgUrl($image['url'],'koubeismall',$image['width'],$image['height']);
+                        $smallImageInfos[$key]['width'] = $small_img_info['width'];
+                        $smallImageInfos[$key]['height'] = $small_img_info['height'];
+                        $smallImageInfos[$key]['url'] = $small_img_info['url'];
                     }
                 }
             }
             $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
             $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
+            $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos[0];
             if (!empty($subjectInfo['ext_info']['koubei']) || !empty($subjectInfo['ext_info']['koubei_id'])) {
                 if (!empty($subjectInfo['ext_info']['koubei'])) {
                     $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei']['id'];
@@ -265,7 +271,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         //如果是专栏，获取作者的其他专栏
         if (!empty($subjectInfo['album_article'])) { 
             $con = [
-                'user_id'   => $subjectInfo['user_info']['user_id'],
+                'user_id'   => $subjectInfo['user_id'],
                 'iPageSize' => 5,
             ];
             $albumServiceData = $this->albumService->getArticleList($con);
@@ -508,16 +514,18 @@ class Subject extends \mia\miagroup\Lib\Service {
         if ($needThumb === true && $videoInfo['source'] == 'qiniu') {
             
             $qiniusdk = new QiniuUtil();
-            
-            // 从七牛获取缩略图
-            $qiniuConfig = F_Ice::$ins->workApp->config->get('busconf.qiniu');
-            
-            $videoInfo['cover_image'] = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $videoInfo['video_origin_url']);
+
             // 获取视频元信息
             $avInfo = $qiniusdk->getVideoFileInfo($videoInfo['video_origin_url']);
             if (!empty($avInfo['duration'])) {
                 $videoInfo['video_time'] = $avInfo['duration'];
             }
+
+            // 从七牛获取缩略图
+            $qiniuConfig = F_Ice::$ins->workApp->config->get('busconf.qiniu');
+            $second = floor($avInfo['duration']/2);
+            $videoInfo['cover_image'] = $qiniusdk->getVideoThumb($qiniuConfig['video_host'] . $videoInfo['video_origin_url'], $second);
+
             // 通知七牛对视频转码
             $videoInfo['transcoding_pipe'] = $qiniusdk->videoTrancodingHLS($videoInfo['video_origin_url']);
         }

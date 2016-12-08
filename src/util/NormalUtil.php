@@ -269,8 +269,4 @@ class NormalUtil {
         }
         return ['url'=>$url,'width'=>$real_width,'height'=>$real_height];
     }
-    
-    
-    
-    
 }

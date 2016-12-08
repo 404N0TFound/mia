@@ -30,6 +30,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public function getKoubeiList($params) {
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
+        $solrCond = array();
         //初始化入参
         $orderBy = 'id desc'; //默认排序
         if ($params['limit'] === false) {
@@ -76,40 +77,28 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //机器评分
             $condition['machine_score'] = 1;
         }
+        if ($params['machine_score'] !== null && $params['machine_score'] !== '' && in_array($params['machine_score'], array(1, 2, 3)) && intval($condition['id']) <= 0) {
+            //机器评分
+            $condition['machine_score'] = $params['machine_score'];
+        }
         if (intval($params['item_id']) > 0 && intval($condition['id']) <= 0) {
             //商品ID
             $condition['item_id'] = $params['item_id'];
-            $orderBy = 'rank_score desc'; //按分数排序，与app保持一致
         }
         if (!empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
-            //品牌ID
-            $brandId = intval($this->itemModel->getBrandIdByName($params['brand']));
-            $itemIds = $this->itemModel->getAllItemByBrandId($brandId);
-            if (!empty($itemIds)) {
-                $condition['item_id'] = $itemIds;
-            } else {
-                return $this->succ($result);
-            }
+            $solrCond['bran_id'] = $params['brand'];
         }
-
-        if (intval($params['supplier_id']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
-            //供应商ID
-            $itemIds = $this->itemModel->getAllItemBySupplyId($params['supplier_id']);
-            if (!empty($itemIds)) {
-                $condition['item_id'] = $itemIds;
-            } else {
-                return $this->succ($result);
-            }
+        if (in_array($params['self_sale'], array(true, false)) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+            //sku属性
+            $solrCond['self_sale'] = $params['self_sale'];
         }
-        
-        if (intval($params['cate_1']) > 0 && intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //类目ID
-            $itemIds = $this->itemModel->getAllItemByCategoryId($params['category_id']);
-            if (!empty($itemIds)) {
-                $condition['item_id'] = $itemIds;
-            } else {
-                return $this->succ($result);
-            }
+            $solrCond['category_id'] = $params['category_id'];
+        }
+        if (intval($params['warehouse_type']) > 0 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+            //仓库类型
+            $solrCond['warehouse'] = $params['warehouse'];
         }
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
@@ -129,7 +118,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $condition['comment_end_time'] = $params['comment_end_time'];
             $orderBy = 'comment_time desc';
         }
-        $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
+        if(isset($solrCond['bran_id']) || isset($solrCond['self_sale']) || 
+            isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
+            $solr = new \mia\miagroup\Remote\Solr();
+            $data = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
+        }else{
+            $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
+        }
+        
         if (empty($data['list'])) {
             return $this->succ($result);
         }
@@ -138,10 +134,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubeiIds[] = $v['id'];
         }
         $koubeiService = new KoubeiService();
-        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds)['data'];
+        //获取口碑信息
+        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count','order_info'), array())['data'];
+        //获取口碑申诉信息
+        $koubeiAppealInfos = $this->koubeiModel->getKoubeiAppealData(array('koubei_id' => $koubeiIds), 0, false)['list'];
+        $appealStatus = array();
+        if (!empty($koubeiAppealInfos)) {
+            foreach ($koubeiAppealInfos as $appeal) {
+                $appealStatus[$appeal['koubei_id']] = array('appeal_id' => $appeal['id'], 'status' => $appeal['status']);
+            }
+        }
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $koubeiInfos[$v['id']];
+            if (isset($appealStatus[$v['id']])) {
+                $tmp['subject']['item_koubei']['appeal_status'] = $appealStatus[$v['id']]['status'];
+                $tmp['subject']['item_koubei']['appeal_id'] = $appealStatus[$v['id']]['appeal_id'];
+            }
             $result['list'][] = $tmp;
         }
         $result['count'] = $data['count'];
@@ -200,7 +209,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         $koubeiService = new KoubeiService();
-        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds)['data'];
+        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'share_info'))['data'];
         $commentService = new \mia\miagroup\Service\Comment();
         $commentInfos = $commentService->getBatchComments($commentIds, array('user_info', 'parent_comment'), array())['data'];
         foreach ($data['list'] as $v) {

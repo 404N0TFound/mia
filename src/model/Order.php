@@ -11,8 +11,8 @@ class Order {
     }
     
     //根据订单编号获取订单信息
-    public function getOrderInfoByOrderCode($orderCode){
-        $orderData = $this->orderData->getOrderInfoByOrderCode($orderCode);
+    public function getOrderInfoByOrderCode($orderParams){
+        $orderData = $this->orderData->getOrderInfoByOrderCode($orderParams);
         return $orderData;
     }
 

@@ -412,4 +412,49 @@ class Live {
         }
         return $result;
     }
+
+    /**
+     * 获取有过直播记录的房间列表,且当前不在直播状态
+     */
+    public function getLiveRoomList($page = 1, $limit = 100, $fields = "id,user_id,latest_live_id,settings")
+    {
+        $cond['where'][] = ['status', 1];
+        $cond['where'][] = ['live_id', 0];//当前不在直播状态
+        $cond['where'][] = [':and', [':notnull', 'latest_live_id']];
+
+        $cond['offset'] = ($page - 1) * $limit;
+        $cond['limit'] = $limit;
+        $cond['fields'] = $fields;
+        $cond['orderBy'] = "latest_live_id DESC";
+
+        $data = $this->liveRoomData->getLiveRoomList($cond);
+        $resData = [];
+        foreach ($data as $v) {
+            $resData[$v['user_id']] = $v;
+        }
+        return $resData;
+    }
+
+    /**
+     * 获取有过直播记录的房间数
+     */
+    public function getLiveRoomNum()
+    {
+        $cond['where'][] = ['status', 1];
+        $cond['where'][] = [':and', [':notnull', 'latest_live_id']];
+
+        $cond['fields'] = 'count(id) as total';
+
+        $data = $this->liveRoomData->getLiveRoomList($cond);
+        return intval($data[0]['total']);
+    }
+
+    /**
+     * 更新live表
+     */
+    public function updateLiveInfo($where,$setData)
+    {
+        $data = $this->liveData->updateLive($where, $setData);
+        return $data;
+    }
 }
