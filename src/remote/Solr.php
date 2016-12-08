@@ -7,22 +7,20 @@ class Solr
     public   $solrserver    = '';
 
     public function __construct(){
-        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.default');
-        $this->handleSolrUrlParams();
-        //$this->switchServer();
+        $this->switchServer();
     }
 
+    /*
+     * 主从配置，主服务器不可用时，切换从服务器，从服务器自动拉取主服务器数据
+     * 主服务器全量更新的同时，从服务器也全量更新
+     * */
     public function switchServer(){
-        date_default_timezone_set('Asia/Shanghai');
-        $switch = strtotime(date('Ymd')) + 2*59*60;
-        $switch_back = $switch + 60*60;
+
         $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
-        if(time() >= $switch && time() <= $switch_back){
+        $this->handleSolrUrlParams();
+        if($this->ping() == false){
             $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
-        }else{
-            if(!$this->ping()){
-                $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
-            }
+            $this->handleSolrUrlParams();
         }
     }
 
@@ -199,7 +197,7 @@ class Solr
     public function getHighQualityKoubeiByBrandId($brand_id, $page = 1, $count = 20)
     {
 
-        }
+    }
     
     /**
      * 通过类目id获取优质口碑
