@@ -48,6 +48,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //用户id
             $condition['user_id'] = $params['user_id'];
         }
+        if (intval($params['supplier_id']) > 0 && intval($condition['id']) <= 0) {
+            //供应商id
+            $condition['supplier_id'] = $params['supplier_id'];
+        }
         if (!empty($params['user_name']) && intval($condition['user_id']) <= 0 && intval($condition['id']) <= 0) {
             //用户名
             $condition['user_id'] = intval($this->userModel->getUidByUserName($params['user_name']));
@@ -147,7 +151,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubeiService = new KoubeiService();
         //获取口碑信息
-        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count','order_info'), array())['data'];
+        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count', 'item', 'order_info'), array())['data'];
         //获取口碑申诉信息
         $koubeiAppealInfos = $this->koubeiModel->getKoubeiAppealData(array('koubei_id' => $koubeiIds), 0, false)['list'];
         $appealStatus = array();
