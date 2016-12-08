@@ -30,7 +30,7 @@ class Cleanlivesetting extends \FD_Daemon
                 $id_arr[] = intval($roomInfo['latest_live_id']);
             }
             //latest_live_id寻找对应的直播
-            $liveList = $liveMod->getLiveList(['id' => ['id', $id_arr], 'end_time' => [':lt', 'end_time', date("Y-m-d H:i:s", time() - 3600 * 2)]]);
+            $liveList = $liveMod->getLiveList(['id' => ['id', $id_arr], 'end_time' => [':lt', 'end_time', date("Y-m-d H:i:s", time() - 3600 * 2)]], 0, 100);
 
             foreach ($liveList as $live) {
                 $setting = json_decode($roomList[$live['user_id']]['settings'], true);
