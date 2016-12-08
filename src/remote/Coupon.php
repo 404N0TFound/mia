@@ -228,7 +228,7 @@ class Coupon
                 'uid'          => $user_id,
                 'opUser'       => $user_id
             );
-            
+
             $request_startTime = gettimeofday(true);
             $coupon_param = new \miasrv\coupon\api\TParamsBindCouponByBatchCode($param);
             $res = $this->apiClient->bindCouponByBatchCode($coupon_param, $this->commonParams);

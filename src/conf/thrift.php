@@ -19,6 +19,18 @@ $address = array(
             'path' => 'solr',
             'core' => 'koubei'
         ),
+        'online_slave' => array(
+            'host' => '10.1.51.24',
+            'port' => 8983,
+            'path' => 'solr',
+            'core' => 'koubei'
+        ),
+        'online' => array(
+            'host' => '10.1.117.10',
+            'port' => 8983,
+            'path' => 'solr',
+            'core' => 'koubei'
+        ),
     ),
 
     'headline' => [
