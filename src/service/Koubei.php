@@ -237,9 +237,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
         if ($onlyPic == false) {
-            $koubeiIds = $this->koubeiModel->getKoubeiIds($itemIds,$count,$offset);
+            $koubeiIds = $this->koubeiModel->getKoubeiIdsByItemIds($itemIds,$count,$offset);
         } else {
-            $koubeiIds = $this->koubeiModel->getKoubeiWithPicByItemIds($itemIds, $count, $offset);
+            $koubeiIds = $this->koubeiModel->getKoubeiByItemIdsAndCondition($itemIds, array('with_pic' => true), $count, $offset);
         }
         //5、获取口碑信息
         $koubeiInfo = $this->getBatchKoubeiByIds($koubeiIds,$userId)['data'];
