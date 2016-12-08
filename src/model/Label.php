@@ -251,7 +251,7 @@ class Label {
             if (count($result[$value['category_id']]) >= $limit) {
                 continue;
             }
-            if (in_array($value['label_id'], $result[$value['category_id']])) {
+            if (isset($result[$value['category_id']]) && in_array($value['label_id'], $result[$value['category_id']])) {
                 continue;
             }
             $result[$value['category_id']][] = $value['label_id'];
