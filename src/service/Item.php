@@ -22,7 +22,7 @@ class Item extends \mia\miagroup\Lib\Service {
         $item_ids = array();
         // 如果是单品，直接取商品口碑
         if ($item_info['is_spu'] == 0) {
-            if (!empty($itemInfo['relate_flag'])) {
+            if (!empty($item_info['relate_flag'])) {
                 $related_items = $this->itemModel->getBatchItemByFlags([$item_info['relate_flag']]);
                 if (!empty($related_items)) {
                     foreach ($related_items as $v) {
