@@ -14,9 +14,9 @@ class Item extends \mia\miagroup\Lib\Service {
     /**
      * 获取商品的一级类目和二级类目
      */
-    public function getItemCategory() {
+    public function getItemCategory($parentId = 0) {
         //所有一级类目
-        $headCategory = $this->itemModel->getItemCategory(0, 0);
+        $headCategory = $this->itemModel->getItemCategory($parentId, 0);
         //所有二级类目
         $leafCategory = $this->itemModel->getItemCategory(null, 1);
         
@@ -41,4 +41,5 @@ class Item extends \mia\miagroup\Lib\Service {
         }
         return $this->succ(array_values($result));
     }
+    
 }

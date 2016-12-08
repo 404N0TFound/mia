@@ -88,10 +88,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (!empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             $solrCond['bran_id'] = $params['brand'];
         }
-        if (in_array($params['self_sale'], array(true, false)) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (($params['self_sale'] != -1) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //sku属性
             $solrCond['self_sale'] = $params['self_sale'];
         }
+        if (!empty($params['category_ids']) && intval($params['category_id']) <= 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+            //只有一级类目的时候
+            $solrCond['category_id'] = $params['category_ids'];
+        }
+        
         if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
             //类目ID
             $solrCond['category_id'] = $params['category_id'];
@@ -122,6 +127,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
             isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
             $solr = new \mia\miagroup\Remote\Solr();
             $data = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
+            if(!empty($data['list'])){
+                foreach ($data['list'] as $v) {
+                    $koubeiIds[] = $v['id'];
+                }
+                $condition['id'] = $koubeiIds;
+                $data = $this->koubeiModel->getKoubeiData($condition);
+            }
         }else{
             $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
         }
