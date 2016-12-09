@@ -75,7 +75,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         //转换客户端传来的格式
         $referIds = $this->changeType($headlineIds);
         //$headlineIds 在init之外的其他情况也会传
-        if ($action != 'init' && $channelId != $this->headlineConfig['lockedChannel']['recommend']['id']) {
+        if ($action != 'init' || $channelId != $this->headlineConfig['lockedChannel']['recommend']['id']) {
             $referIds = [];
         }
         $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
