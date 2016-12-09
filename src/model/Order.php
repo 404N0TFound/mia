@@ -10,10 +10,19 @@ class Order {
         $this->orderData = new OrderData();
     }
     
-    //根据订单编号获取订单信息
-    public function getOrderInfoByOrderCode($orderParams){
-        $orderData = $this->orderData->getOrderInfoByOrderCode($orderParams);
+    /**
+     * 根据订单编号获取订单信息
+     */
+    public function getOrderInfoByOrderCode($orderCodes){
+        $orderData = $this->orderData->getOrderInfoByOrderCode($orderCodes);
         return $orderData;
     }
-
+    
+    /**
+     * 根据订单ID获取订单信息
+     */
+    public function getOrderInfoByIds($orderIds){
+        $orderData = $this->orderData->getOrderInfoByIds($orderIds);
+        return $orderData;
+    }
 }

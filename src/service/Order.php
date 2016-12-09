@@ -13,15 +13,24 @@ class Order extends \mia\miagroup\Lib\Service {
     
     //根据订单编号获取订单信息（订单状态为已完成,且完成时间15天内的才可以发布口碑！）
     public function getOrderInfo($orderParams){
-        $orderInfo = $this->orderModel->getOrderInfoByOrderCode($orderParams);
-        $orderRes = array();
-        if(!empty($orderInfo)){
-            foreach($orderInfo as $order){
-                $orderRes[$order['id']] = $order['order_code'];
-            }
-        }
+        $orderInfos = $this->orderModel->getOrderInfoByOrderCode($orderParams);
         return $this->succ($orderRes);
     }
     
 
+    /**
+     * 根据订单编号获取订单信息
+     */
+    public function getOrderInfoByOrderCode($orderCodes){
+        $orderData = $this->orderModel->getOrderInfoByOrderCode($orderCodes);
+        return $this->succ($orderData);
+    }
+    
+    /**
+     * 根据订单ID获取订单信息
+     */
+    public function getOrderInfoByIds($orderIds){
+        $orderData = $this->orderModel->getOrderInfoByIds($orderIds);
+        return $this->succ($orderData);
+    }
 }
