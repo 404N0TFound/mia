@@ -333,20 +333,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
 
-        //如果无时间查询，则默认为当天
-        if (strtotime($params['start_time']) > 0) {
-            //起始时间
-            $condition['start_time'] = $params['start_time'];
-        }else{
-            $condition['start_time'] = date('Y-m-d',time())." 00:00:00";
-            //$condition['start_time'] = "2016-11-29 00:00:00";
-        }
-        if (strtotime($params['end_time']) > 0) {
-            //结束时间
-            $condition['end_time'] = $params['end_time'];
-        }else{
-            $condition['end_time'] = date('Y-m-d',time())." 23:59:59";
-        }
+        //起始时间
+        $condition['start_time'] = $params['start_time'];
+        //结束时间
+        $condition['end_time'] = $params['end_time'];
     
         $data = $this->koubeiModel->getSupplierKoubeiData($condition, $orderBy);
         if (empty($data)) {
