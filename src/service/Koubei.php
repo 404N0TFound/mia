@@ -711,7 +711,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $page           当前页          必填
      * @ return array()
      */
-    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1){
+    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1,$userId = 0){
 
         $solr        = new SolrRemote();
         $koubei_list = array();
@@ -724,7 +724,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $totalCount  = $koubei_info['numFound'];
             $koubei_ids  = array_column($koubei_info['docs'],'id');
             $koubei['count'] = $totalCount;
-            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids)['data']);
+            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids,$userId));
 
         }
         $res = array('koubei_list' => $koubei, 'brand_list' => $brand_list);
