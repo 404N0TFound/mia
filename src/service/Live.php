@@ -1192,9 +1192,9 @@ class Live extends \mia\miagroup\Lib\Service
             //视频帧率
             $frame_rate = $streamStatusInfo['framesPerSecond']['video'];
             //音频输入码率，单位kb
-            $bw_in_audio = $streamStatusInfo['framesPerSecond']['audio'];
+            //$bw_in_audio = $streamStatusInfo['framesPerSecond']['audio'];
             //实际码率
-            $bw_real = $streamStatusInfo['bytesPerSecond'] / 1024 * 8;
+            $bw_rate = $streamStatusInfo['bytesPerSecond'] / 1024 * 8;
         } elseif ($live_info['source'] == 2) {
             $streamName = array_shift(explode('-', $live_info['stream_id']));
             $streamStatusInfo = $jinshan->getRawStatus($live_info['stream_id']);
@@ -1207,7 +1207,7 @@ class Live extends \mia\miagroup\Lib\Service
             //音频输入码率，单位kb
             //$bw_in_audio = $streamStatusInfo['app']['live'][$streamName]['audio']['bw_in_audio'];
             //实际码率
-            $bw_real = $streamStatusInfo['app']['live'][$streamName]['bw_real'];
+            $bw_rate = $streamStatusInfo['app']['live'][$streamName]['bw_real'];
         } elseif ($live_info['source'] == 3) {
             $streamStatusInfo = $wangsu->getRawStatus($live_info['stream_id']);
             //视频帧率
@@ -1215,9 +1215,9 @@ class Live extends \mia\miagroup\Lib\Service
             //音频输入码率，单位kb
             //$bw_in_audio = $streamStatusInfo['framesPerSecond']['audio'];
             //实际码率
-            $bw_real = $streamStatusInfo['dataValue']['inbandwidth'];
+            $bw_rate = $streamStatusInfo['dataValue']['inbandwidth'];
         }
-        $frame_info = ['frame_rate' => $frame_rate, 'bw_real' => $bw_real];
+        $frame_info = ['frame_rate' => $frame_rate, 'bw_real' => $bw_rate];
         return $this->succ($frame_info);
     }
 
