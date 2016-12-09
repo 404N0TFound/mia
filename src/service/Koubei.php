@@ -303,7 +303,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(in_array('order_info', $field) || !empty($orderIds)){
             //获取订单信息，验证是否可以发布口碑（order service）
             $orderService = new OrderService();
-            $orderInfo = $orderService->getOrderInfoByIds($orderIds)['data'];
+            $orderInfos = $orderService->getOrderInfoByIds($orderIds)['data'];
         }
         
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
@@ -319,7 +319,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $subjectRes['data'][$key]['item_koubei'] = $value;
                 //把口碑的订单编号（order_code）拼到口碑信息中
                 if($value['order_id']){
-                    $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfo[$value['order_id']];
+                    $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
                 }
                 // 口碑信息拼装到帖子
                 $koubeiInfo[$value['id']] = $subjectRes['data'][$key];
