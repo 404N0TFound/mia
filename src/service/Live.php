@@ -203,7 +203,7 @@ class Live extends \mia\miagroup\Lib\Service
             //创建聊天室失败
             return $this->error(30001);
         }
-        //获取房间信息，查主库
+        //获取房间当前直播的信息('user_info', 'live_info', 'share_info', 'settings', 'redbag', 'coupon')，查主库
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $roomData = $this->getRoomLiveById($roomInfo['id'], $userId)['data'];
         \DB_Query::switchCluster($preNode);
@@ -305,7 +305,11 @@ class Live extends \mia\miagroup\Lib\Service
     }
 
     /**
-     * 获取房间当前直播的信息
+     * 获取房间当前直播的信息，或指定场次的直播
+     * @param $roomId
+     * @param $currentUid
+     * @param int $liveId，不传liveId，查询直播间当前状态，传liveId获取对应的快照和回放地址
+     * @return mixed
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0)
     {
@@ -612,8 +616,8 @@ class Live extends \mia\miagroup\Lib\Service
 
 
     /**
-     * 获取直播房间列表
-     * $lastIds 对应的room的曾经直播场次id，不指定为latest_live_id
+     * 根据房间id，获取直播相关信息，并合并setting
+     * $lastIds 对应的room的曾经直播场次id，不指定为latest_live_id，信息。
      * @author jiadonghui@mia.com
      */
     public function getLiveRoomByIds($roomIds, $currentUid = 0, $field = array('user_info', 'live_info', 'share_info', 'settings'), $lastIds = array())
@@ -621,7 +625,7 @@ class Live extends \mia\miagroup\Lib\Service
         if (empty($roomIds) || !array($roomIds)) {
             return $this->succ(array());
         }
-        //批量获取房间信息
+        //批量获取房间信息,里面的setting信息，相同字段后面会被live表的setting覆盖
         $roomInfos = $this->liveModel->getBatchLiveRoomByIds($roomIds);
         if (empty($roomInfos)) {
             return $this->succ(array());
@@ -638,6 +642,7 @@ class Live extends \mia\miagroup\Lib\Service
                 $liveIdArr[] = $roomInfo['latest_live_id'];
             }
         }
+        //如果传了$lastIds，直接替换为指定的直播场次id
         if (!empty($lastIds)) {
             $liveIdArr = $lastIds;
         }
@@ -649,12 +654,12 @@ class Live extends \mia\miagroup\Lib\Service
         }
         //通过liveids批量获取直播列表
         if (in_array('live_info', $field)) {
-            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr, array(3, 4))['data'];
+            $liveArr = $this->getBatchLiveInfoByIds($liveIdArr, array(1, 3, 4))['data'];
         }
         $couponService = new Coupon();
         //将主播信息整合到房间信息中
         $roomRes = array();
-        foreach ($roomIds as $roomId) {
+        foreach ($roomIds as $k=>$roomId) {
             if (!empty($roomInfos[$roomId])) {
                 $roomInfo = $roomInfos[$roomId];
             } else {
@@ -662,7 +667,6 @@ class Live extends \mia\miagroup\Lib\Service
             }
             $liveConfig = \F_Ice::$ins->workApp->config->get('busconf.live');
             $roomRes[$roomInfo['id']]['id'] = $roomInfo['id'];
-            $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
             $roomRes[$roomInfo['id']]['chat_room_id'] = $roomInfo['chat_room_id'];
             $roomRes[$roomInfo['id']]['settings'] = $roomInfo['settings'];
             $roomRes[$roomInfo['id']]['user_id'] = $roomInfo['user_id'];
@@ -670,7 +674,27 @@ class Live extends \mia\miagroup\Lib\Service
             $roomRes[$roomInfo['id']]['status'] = 0;
             $roomRes[$roomInfo['id']]['tips'] = $liveConfig['liveRoomTips']; //房间提示信息
             $roomRes[$roomInfo['id']]['latest_live_id'] = $roomInfo['latest_live_id']; //房间提示信息
-            $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']] ? $liveArr[$roomInfo['live_id']] : $liveArr[$roomInfo['latest_live_id']];
+            if (!empty($lastIds)) {
+                //指定场次
+                $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$lastIds[$k]];
+                $roomRes[$roomInfo['id']]['live_id'] = $liveArr[$lastIds[$k]]['live_id'];
+                if (!empty($liveArr[$lastIds[$k]]['settings'])) {
+                    //roomInfo 为房间的设置信息，指定场次后需要取指定场次的，用merge覆盖掉
+                    $roomRes[$roomInfo['id']]['settings'] = array_merge($roomInfo['settings'], json_decode($liveArr[$lastIds[$k]]['settings'], true));
+                }
+            } elseif (!empty($liveArr[$roomInfo['live_id']])) {
+                //当前直播
+                $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['live_id']];
+                $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
+            } elseif (!empty($liveArr[$roomInfo['latest_live_id']])) {
+                //上次直播
+                $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['latest_live_id'];
+                $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['latest_live_id']];
+                if (!empty($liveArr[$roomInfo['latest_live_id']]['settings'])) {
+                    //roomInfo 为房间的设置信息，latest_live_id场次的，用merge覆盖掉
+                    $roomRes[$roomInfo['id']]['settings'] = array_merge($roomInfo['settings'], json_decode($liveArr[$roomInfo['latest_live_id']], true));
+                }
+            }
             //用户信息
             if (in_array('user_info', $field)) {
                 if (!empty($userArr[$roomInfo['user_id']])) {
@@ -686,9 +710,9 @@ class Live extends \mia\miagroup\Lib\Service
                     $roomRes[$roomInfo['id']]['status'] = 0;
                 }
             }
-            if (!empty($liveArr[$roomInfo['latest_live_id']]['settings'])) {
-                $last_settings = json_decode($liveArr[$roomInfo['latest_live_id']]['settings'], true);
-                //让room表的数据覆盖上次直播的，以免对正在直播的数据有影响
+            if (!empty($roomRes[$roomInfo['id']]['settings'])) {
+                //$roomInfo  里的配置只是房间的，用组合过的配置覆盖下，保证信息完整，且是当前需要场次的
+                $last_settings = $roomRes[$roomInfo['id']]['settings'];
                 if (empty($roomInfo['banners']) && !empty($last_settings['banners'])) {
                     $roomInfo['banners'] = $last_settings['banners'];
                 }
@@ -731,7 +755,7 @@ class Live extends \mia\miagroup\Lib\Service
             // 优惠券信息
             if (in_array('coupon', $field)) {
 
-                if (!empty($roomInfo['coupon'])) {
+                if (!empty($roomInfo['coupon']) && !empty($roomInfo['coupon']['batch_code'])) {
                     $batch_code = $roomInfo['coupon']['batch_code'];
 
                     if (in_array('send_coupon', $field)) {
