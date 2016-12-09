@@ -682,7 +682,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $page           当前页          必填
      * @ return array()
      */
-    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1,$userId){
+    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1,$userId = 0){
 
         $solr        = new SolrRemote();
         $koubei_list = array();
