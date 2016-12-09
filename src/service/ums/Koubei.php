@@ -127,20 +127,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $condition['comment_end_time'] = $params['comment_end_time'];
             $orderBy = 'comment_time desc';
         }
-        if(isset($solrCond['brand_id']) || isset($solrCond['self_sale']) || 
+        
+        if(isset($solrCond['bran_id']) || isset($solrCond['self_sale']) ||
             isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
             $solr = new \mia\miagroup\Remote\Solr();
-            $data = $solr->getKoubeiList($solrCond, 'id', 1, 1000000, $orderBy);
-            if(!empty($data['list'])){
-                foreach ($data['list'] as $v) {
+            $solrData = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
+            if(!empty($solrData['list'])){
+                foreach ($solrData['list'] as $v) {
                     $koubeiIds[] = $v['id'];
                 }
                 $condition['id'] = $koubeiIds;
-                $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit);
+                $data = $this->koubeiModel->getKoubeiData($condition);
             }
+            $data['count'] = $solrData['count'];
         }else{
             $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
         }
+        
         
         if (empty($data['list'])) {
             return $this->succ($result);
