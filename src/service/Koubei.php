@@ -32,9 +32,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if($checkOrder === true){
             //获取订单信息，验证是否可以发布口碑（order service）
             $orderService = new OrderService();
-            $orderParams = array('order_code'=>$koubeiData['order_code']);
-            $orderInfo = $orderService->getOrderInfo($orderParams)['data'];
-            $orderId = array_keys($orderInfo);
+            $orderInfo = $orderService->getOrderInfoByOrderCode(array($koubeiData['order_code']))['data'][$koubeiData['order_code']];
+            $orderId = $orderInfo['id'];
             $finishTime = strtotime($orderInfo['finish_time']) ;
             if($orderInfo['status'] != 5  || (time()- $finishTime) > 15 * 86400 )
             {
@@ -304,8 +303,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(in_array('order_info', $field) || !empty($orderIds)){
             //获取订单信息，验证是否可以发布口碑（order service）
             $orderService = new OrderService();
-            $orderParams = array('order_id'=>$orderIds);
-            $orderInfo = $orderService->getOrderInfo($orderParams)['data'];
+            $orderInfos = $orderService->getOrderInfoByIds($orderIds)['data'];
         }
         
         //3、根据口碑中帖子id批量获取帖子信息（subject service）

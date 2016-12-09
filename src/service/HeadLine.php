@@ -74,6 +74,10 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         //转换客户端传来的格式
         $referIds = $this->changeType($headlineIds);
+        //$headlineIds 在init之外的其他情况也会传
+        if ($action != 'init' && $channelId != $this->headlineConfig['lockedChannel']['recommend']['id']) {
+            $referIds = [];
+        }
         $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
         //4.9以下去除promote
         $version = explode('_', $this->ext_params['version'], 3);
@@ -87,8 +91,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             }
             $headLineData = array_values($headLineData);
         }
-        //$headlineIds 在init之外的其他情况也会传
-        if ($action == 'init' && $channelId == $this->headlineConfig['lockedChannel']['recommend']['id'] && $referIds = [$headLineData[0], $headLineData[1]]) {
+        if ($referIds != [$headLineData[0], $headLineData[1]]) {
             //格式化客户端上传的headlineIds
             $referIds = $this->_formatClientIds($referIds);
             //去重

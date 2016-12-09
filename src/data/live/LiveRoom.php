@@ -90,15 +90,33 @@ class LiveRoom extends \DB_Query {
                 $result[$v['id']] = $v;
                 $v['settings'] = str_replace('http:\/\/', 'https:\/\/', strval($v['settings']));
                 $settings = json_decode(strval($v['settings']), true);
-                $result[$v['id']]['banners'] = is_array($settings['banners']) ? array_values($settings['banners']) : array();
-                $result[$v['id']]['share'] = $settings['share'];
-                $result[$v['id']]['redbag'] = $settings['redbag'];
-                $result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
-                $result[$v['id']]['is_show_playback'] = $settings['is_show_playback'];
-                $result[$v['id']]['source'] = $settings['source'];
-                $result[$v['id']]['title'] = $settings['title'];
-                $result[$v['id']]['user_num'] = $settings['user_num'];
-                $result[$v['id']]['coupon'] = $settings['coupon'];
+                if (array_key_exists('banners', $settings)) {
+                    $result[$v['id']]['banners'] = is_array($settings['banners']) ? array_values($settings['banners']) : array();
+                }
+                if (array_key_exists('share', $settings)) {
+                    $result[$v['id']]['share'] = $settings['share'];
+                }
+                if (array_key_exists('redbag', $settings)) {
+                    $result[$v['id']]['redbag'] = $settings['redbag'];
+                }
+                if (array_key_exists('is_show_gift', $settings)) {
+                    $result[$v['id']]['is_show_gift'] = $settings['is_show_gift'];
+                }
+                if (array_key_exists('is_show_playback', $settings)) {
+                    $result[$v['id']]['is_show_playback'] = $settings['is_show_playback'];
+                }
+                if (array_key_exists('source', $settings)) {
+                    $result[$v['id']]['source'] = $settings['source'];
+                }
+                if (array_key_exists('title', $settings)) {
+                    $result[$v['id']]['title'] = $settings['title'];
+                }
+                if (array_key_exists('user_num', $settings)) {
+                    $result[$v['id']]['user_num'] = $settings['user_num'];
+                }
+                if (array_key_exists('coupon', $settings)) {
+                    $result[$v['id']]['coupon'] = $settings['coupon'];
+                }
                 $result[$v['id']]['settings'] = $settings;
             }
             return $result;

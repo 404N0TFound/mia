@@ -11,27 +11,39 @@ class Order extends \DB_Query {
 
     protected $mapping = array();
     
-    //根据订单编号获取订单信息
-    public function getOrderInfoByOrderCode($orderParams){
-        $where = array();
-        if(isset($orderParams['order_code']) && !empty($orderParams['order_code'])){
-            $where[] = ['order_code', $orderParams['order_code']];
-        }
-        if(isset($orderParams['order_id']) && !empty($orderParams['order_id'])){
-            $where[] = ['id', $orderParams['order_id']];
-        }
-        if (empty($where)) {
+    /**
+     * 根据订单编号获取订单信息
+     */
+    public function getOrderInfoByOrderCode($orderCodes){
+        if (empty($orderCodes)) {
             return array();
         }
-        
+        $where[] = ['order_code', $orderCodes];
         $data = $this->getRows($where);
-
-        if(empty($data)){
-            return array();
-        }else{
-            return $data;
+        $result = array();
+        if(!empty($data)){
+            foreach($data as $v){
+                $result[$v['order_code']] = $v;
+            }
         }
+        return $result;
     }
     
-
+    /**
+     * 根据订单ID获取订单信息
+     */
+    public function getOrderInfoByIds($orderIds){
+        if (empty($orderIds)) {
+            return array();
+        }
+        $where[] = ['id', $orderIds];
+        $data = $this->getRows($where);
+        $result = array();
+        if(!empty($data)){
+            foreach($data as $v){
+                $result[$v['id']] = $v;
+            }
+        }
+        return $result;
+    }
 }
