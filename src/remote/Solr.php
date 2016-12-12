@@ -548,22 +548,4 @@ class Solr
         return array();
     }
 
-    public function getSupplierGoodsScore($suppliers){
-
-        $solrInfo = [
-            'q'      => '*:*',
-            'fl'     => 'id,supplier_id,item_id,score',
-            'facet'  => 'true',
-            'facet.field' => array('item_id,score'),
-        ];
-        $solrInfo['fq'][]    = 'supplier_id:'.$suppliers;
-        $solrInfo['fq'][] = 'local_url:*';
-        $solrInfo['fq'][] = 'status:2';
-        $solrInfo['fq'][] = '-(supplier_id:0)';
-        $solrInfo['fq'][] = '-(item_id:0)';
-
-        $res = $this->select($solrInfo);
-        var_dump($res);exit;
-    }
-
 }
