@@ -716,14 +716,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $solr        = new SolrRemote();
         $koubei      = array();
         $brand_list  = array();
-
-        if(!empty($category_id)){
+        if(!empty($category_id) && empty($brand_id)){
             // 类目下口碑去重分页列表
             $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page);
             $brand_list  = $solr->brandList($category_id);
         }else{
             // 品牌口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByBrandId($brand_id, $page);
+            $koubei_info = $solr->getHighQualityKoubeiByBrandId($category_id, $brand_id, $page);
         }
         if(!empty($koubei_info)){
             $koubei['count'] = $koubei_info['count'];
