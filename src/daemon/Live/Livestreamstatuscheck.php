@@ -65,18 +65,17 @@ class Livestreamstatuscheck extends \FD_Daemon {
             }
 
             //添加记录
-            if (!empty($frame_rate) && !empty($bw_rate)) {
-                $streamInfo['frame_rate'] = $frame_rate;
-                $streamInfo['bw_rate'] = $bw_rate;
-                $streamInfo['bw_audio'] = $bw_in_audio;
+            $streamInfo['frame_rate'] = $frame_rate;
+            $streamInfo['bw_rate'] = $bw_rate;
+            $streamInfo['bw_audio'] = $bw_in_audio;
 
-                $streamInfo['live_id'] = $live['id'];
-                $streamInfo['user_id'] = $live['user_id'];
-                $streamInfo['source'] = $live['source'];
-                $streamInfo['stream_id'] = $live['stream_id'];
-                $streamInfo['create_time'] = date('Y-m-d H:i:s');
-                $res = $streamData->addStreamInfo($streamInfo);
-            }
+            $streamInfo['live_id'] = $live['id'];
+            $streamInfo['user_id'] = $live['user_id'];
+            $streamInfo['source'] = $live['source'];
+            $streamInfo['stream_id'] = $live['stream_id'];
+            $streamInfo['create_time'] = date('Y-m-d H:i:s');
+            $res = $streamData->addStreamInfo($streamInfo);
+
 
             $frameNum = $redis->zCard($framekey);
             $redis->zadd($framekey,$frameNum,$frame_rate);
