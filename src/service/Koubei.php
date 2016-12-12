@@ -714,9 +714,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1,$userId = 0){
 
         $solr        = new SolrRemote();
-        $koubei_list = array();
+        $koubei      = array();
         $brand_list  = array();
-        $koubei_info = $solr->koubeiList($brand_id, $category_id, $count, $page);
+
+        if(!empty($category_id)){
+            // 类目下口碑去重分页列表
+            $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page);
+            $brand_list  = $solr->brandList($category_id);
+        }else{
+            // 品牌口碑去重分页列表
+            $koubei_info = $solr->getHighQualityKoubeiByBrandId($brand_id, $page);
+        }
+        if(!empty($koubei_info)){
+            $koubei['count'] = $koubei_info['count'];
+            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_info['list'], $userId)['data']);
+        }
+
+        /*$koubei_info = $solr->koubeiList($brand_id, $category_id, $count, $page);
         if(!empty($category_id)){
             $brand_list  = $solr->brandList($category_id);
         }
@@ -724,9 +738,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $totalCount  = $koubei_info['numFound'];
             $koubei_ids  = array_column($koubei_info['docs'],'id');
             $koubei['count'] = $totalCount;
-            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids,$userId));
+            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids, $userId)['data']);
 
-        }
+        }*/
         $res = array('koubei_list' => $koubei, 'brand_list' => $brand_list);
         return $this->succ($res);
     }
