@@ -54,21 +54,23 @@ class Livestreamstatuscheck extends \FD_Daemon {
             } elseif ($live['source'] == 3) {
                 $streamStatusInfo = $wangsu->getRawStatus($live['stream_id']);
                 //视频帧率
-                $frame_rate = $streamStatusInfo['dataValue']['fps'];
+                $frame_rate = $streamStatusInfo['fps'];
                 //实际码率
-                $bw_rate = $streamStatusInfo['dataValue']['inbandwidth'];
+                $bw_rate = $streamStatusInfo['inbandwidth'] / 1024 * 8;
             }
 
             //添加记录
-            $streamInfo['frame_rate'] = $frame_rate;
-            $streamInfo['bw_rate'] = $bw_rate;
+            if (!empty($frame_rate) && !empty($bw_rate)) {
+                $streamInfo['frame_rate'] = $frame_rate;
+                $streamInfo['bw_rate'] = $bw_rate;
 
-            $streamInfo['live_id'] = $live['id'];
-            $streamInfo['user_id'] = $live['user_id'];
-            $streamInfo['source'] = $live['source'];
-            $streamInfo['stream_id'] = $live['stream_id'];
-            $streamInfo['create_time'] = date('Y-m-d H:i:s');
-            $res = $streamData->addStreamInfo($streamInfo);
+                $streamInfo['live_id'] = $live['id'];
+                $streamInfo['user_id'] = $live['user_id'];
+                $streamInfo['source'] = $live['source'];
+                $streamInfo['stream_id'] = $live['stream_id'];
+                $streamInfo['create_time'] = date('Y-m-d H:i:s');
+                $res = $streamData->addStreamInfo($streamInfo);
+            }
 
             $frameNum = $redis->zCard($framekey);
             $redis->zadd($framekey,$frameNum,$frame_rate);

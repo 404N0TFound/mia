@@ -1211,11 +1211,11 @@ class Live extends \mia\miagroup\Lib\Service
         } elseif ($live_info['source'] == 3) {
             $streamStatusInfo = $wangsu->getRawStatus($live_info['stream_id']);
             //视频帧率
-            $frame_rate = $streamStatusInfo['dataValue']['fps'];
+            $frame_rate = $streamStatusInfo['fps'];
             //音频输入码率，单位kb
             //$bw_in_audio = $streamStatusInfo['framesPerSecond']['audio'];
             //实际码率
-            $bw_rate = $streamStatusInfo['dataValue']['inbandwidth'];
+            $bw_rate = $streamStatusInfo['inbandwidth'] / 1024 * 8;
         }
         $frame_info = ['frame_rate' => $frame_rate, 'bw_real' => $bw_rate];
         return $this->succ($frame_info);

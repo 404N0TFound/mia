@@ -23,7 +23,7 @@ class WangSuLiveUtil
 
     /**
      * 创建推流地址
-     * @param $createId
+     * @param $createId   room_id + time
      * @return array
      */
     public function createStream($createId)
@@ -174,13 +174,17 @@ class WangSuLiveUtil
             'r' => $r,//唯一随机字符
             'u' => $this->_config['live_host']['publish']['rtmp_q'],//所需查询的推流域名
             'k' => md5($r . $this->_config['live_stream_api']['key']),//md5(r+key)
-            'channel' => $streamname,
+            //'channel' => $streamname,
         ];
         $query_str = http_build_query($query_arr);
-        $url = $this->_config['live_stream_status'] . $query_str;echo $url;
+        $url = $this->_config['live_stream_status'] . $query_str;
         $result = json_decode($this->_curlGet($url), true);
-        var_export($result);
-        return $result;
+        foreach ($result['dataValue'] as $frameInfo) {
+            if (array_pop(explode('/', $frameInfo['streamname'])) == $streamname) {
+                return $frameInfo;
+            }
+        }
+        return [];
     }
 
     /**
