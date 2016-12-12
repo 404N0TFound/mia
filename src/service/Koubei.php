@@ -223,7 +223,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取优质口碑
      */
-    public function getHighQualityKoubei($item_id, $current_uid = 0, $count = 10) {
+    public function getHighQualityKoubei($item_id, $current_uid = 0, $count = 8) {
         $koubei_res = array("koubei_info" => array());
         //获取商品的关联商品或者套装单品
         $item_service = new ItemService();

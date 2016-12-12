@@ -145,7 +145,7 @@ class Comment extends \mia\miagroup\Lib\Service {
     /**
      * 发布帖子评论
      */
-    public function comment($subjectId, $commentInfo) {
+    public function comment($subjectId, $commentInfo, $checkSensitive = true) {
         if (empty($commentInfo) || intval($subjectId) <= 0) {
             return $this->error(500);
         }
@@ -165,11 +165,15 @@ class Comment extends \mia\miagroup\Lib\Service {
         if(!$is_valid['is_valid']){
             return $this->error(1115);
         }
-        //过滤敏感词
-        $sensitive_res = $audit->checkSensitiveWords($commentInfo['comment'])['data'];
-        if(!empty($sensitive_res['sensitive_words'])){
-            return $this->error(1112);
+        
+        if ($checkSensitive == true) {
+            //过滤敏感词
+            $sensitive_res = $audit->checkSensitiveWords($commentInfo['comment'])['data'];
+            if(!empty($sensitive_res['sensitive_words'])){
+                return $this->error(1112, '有敏感内容 "' . implode('","', $sensitive_res['sensitive_words']) . '"，发布失败');
+            }
         }
+        
         //判断是否有父评论
         if (intval($commentInfo['fid']) > 0) {
             $parentInfo = $this->getBatchComments([$commentInfo['fid']])['data'][$commentInfo['fid']];
