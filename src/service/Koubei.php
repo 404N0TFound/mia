@@ -779,9 +779,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($itemIds)){
             return $this->error(500);
         }
-        $transfer_arr = array();
-        $koubeiIds = $this->koubeiModel->getBatchKoubeiIds($itemIds);
-        $res = $this->getBatchKoubeiByIds($koubeiIds);
+        $rel_ids = array();
+        $item_service = new ItemService();
+        //通过商品id获取口碑id
+        foreach ($itemIds as $value) {
+            $item_ids = $item_service->getRelateItemById($value);
+            if(!empty($item_ids)){
+               $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
+                $rel_ids[] = $koubei_ids[0];
+           }
+        }
+        $res = $this->getBatchKoubeiByIds($rel_ids);
         if(!empty($res)){
             // 处理数组
             $transfer = $res['data'];
