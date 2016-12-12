@@ -40,13 +40,13 @@ class Livetovideo extends \FD_Daemon {
 
             switch ($liveInfo['source']) {
                 case 1:
-                    $qiniu->getSaveAsMp4($liveInfo['stream_id']);
+                    $tomp4 = $qiniu->getSaveAsMp4($liveInfo['stream_id']);
                     break;
                 case 2:
-                    $jinshan->getSaveAsMp4($liveInfo['stream_id']);
+                    $tomp4 = $jinshan->getSaveAsMp4($liveInfo['stream_id']);
                     break;
                 case 3:
-                    $wangsu->getSaveAsMp4($liveInfo['stream_id']);
+                    $tomp4 = $wangsu->getSaveAsMp4($liveInfo['stream_id']);
                     break;
             }
 
