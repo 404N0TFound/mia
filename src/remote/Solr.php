@@ -5,6 +5,7 @@ class Solr
     private  $core          = '';
     public   $config        = '';
     public   $solrserver    = '';
+    public   $export_count  = 2000;
 
     public function __construct(){
         $this->switchServer();
@@ -194,17 +195,45 @@ class Solr
     /**
      * 通过品牌id获取优质口碑
      */
-    public function getHighQualityKoubeiByBrandId($brand_id, $page = 1, $count = 20)
+    public function getHighQualityKoubeiByBrandId($brand_id = 0, $page = 1)
     {
+        $field = 'id,item_id';
+        $sort = 'score desc,id desc,rank_score desc';
+        // 处理brand_id
+        $conditon = array(
+            'brand_id' => $brand_id,
+            'koubei_with_pic' => true,
+            'status' => 2,
+            'score' => '(4 OR 5)',
+            'fl' => $field,
+            'sort' => $sort,
+            'subject_id' => '-(subject_id:0)',
+            'item_id' => '-(item_id:0)'
+        );
 
+        $res = $this->getKoubeiList($conditon, $field, $page, $this->export_count, $sort);
+        if(!empty($res['list'])){
+            //$sort_ids = $this->sortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
+            $sort_ids = $this->anotherSortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
+            $result = array('list' => $sort_ids, 'count' => $res['count']);
+            return $result;
+        }
+        return array();
     }
     
     /**
      * 通过类目id获取优质口碑
      */
-    public function getHighQualityKoubeiByCategoryId($category_id, $page = 1, $count = 20)
+    public function getHighQualityKoubeiByCategoryId($category_id = 0, $page = 1)
     {
-
+        $brand_ids = $this->brandList($category_id);
+        if(!empty($brand_ids)){
+            $brand_ids = array_column($brand_ids, 'id');
+            // 通过品牌获取口碑列表
+            $result = $this->getHighQualityKoubeiByBrandId($brand_ids, $page);
+            return $result;
+        }
+        return array();
     }
     
     /**
@@ -224,7 +253,7 @@ class Solr
         if(intval($conditon['category_id']) > 0) { 
             //类目ID
             if (is_array($conditon['category_id'])) {
-                $solr_info['fq'][]   = "category_id:'". implode(' OR ', $conditon['category_id']) . "'";
+                $solr_info['fq'][]   = "category_id:(". implode(' OR ', $conditon['category_id']) . ")";
             } else {
                 $solr_info['fq'][]   = 'category_id:'. $conditon['category_id'];
             }
@@ -232,7 +261,11 @@ class Solr
         }
         if(intval($conditon['brand_id']) > 0) { 
             //品牌ID
-            $solr_info['fq'][]   = 'brand_id:'. $conditon['brand_id'];
+            if (is_array($conditon['brand_id'])) {
+                $solr_info['fq'][]   = "brand_id:". implode(' OR ', $conditon['brand_id']);
+            } else {
+                $solr_info['fq'][]   = 'brand_id:'. $conditon['brand_id'];
+            }
         }
         if($conditon['koubei_with_pic'] === true || $conditon['self_sell'] === false) { 
             //是否带图
@@ -252,8 +285,11 @@ class Solr
         if(!empty($conditon['score'])){
             $solr_info['fq'][]   = 'score:'. $conditon['score'];
         }
-        if(!empty($conditon['sort'])){
-            $solr_info['fq'][]   = 'sort:'. $conditon['sort'];
+        if(!empty($conditon['item_id'])){
+            $solr_info['fq'][]   = $conditon['item_id'];
+        }
+        if(!empty($conditon['subject_id'])){
+            $solr_info['fq'][]   = $conditon['subject_id'];
         }
         // solr select
         $res = $this->select($solr_info);
@@ -296,27 +332,147 @@ class Solr
     }
 
 
-
     /**
      * 对口碑id重新排序，使unique_key不重复
      */
-    private function sortKoubeiId($sort_data, $unique_key)
+    private function sortKoubeiId($sort_data, $unique_key, $total_count, $default_count, $page)
     {
-        if (!in_array($unique_key, array('item_id', 'brand_id'))) {
+        if (!in_array($unique_key, array('item_id'))) {
             return false;
         }
+        if($total_count <= $default_count){
+            $final_data = array_column($sort_data,'id');
+            return $final_data;
+        }
         $sorted_data = array();
+        // 规则排序
         foreach ($sort_data as $data) {
-            $sorted_data[$data[$unique_key]] = $data['id'];
+            $sorted_data[$data[$unique_key]][] = $data['id'];
         }
-        $final_data = array();
-        
-        foreach ($sorted_data as $data) {
-            $final_data = reset($data);
-            array_pop($data);
+        // 循环取出的条数（默认值）
+        $final = array();
+        $sort_ids = array();
+        for ($i=1; $i <= $page; $i++) {
+            if($i <= round($total_count/$default_count)){
+                //echo '第'.$i.'页数据';
+                $sort_ids = $this->order_list($sorted_data, $default_count, $final, $total_count, $i);
+            }
         }
-        
+        // 取出当前页的条数
+        $current_sort_ids = array_slice($sort_ids,($page -1)*$default_count);
+        return $current_sort_ids;
     }
+
+
+    /**
+     * @param $sorted_data
+     * @param int $default
+     * @param $final
+     * @param int $total_count
+     * @param int $page
+     * @return array
+     */
+    public function order_list(&$sorted_data, $default = 20, &$final, $total_count = 0, $page = 1)
+    {
+        $i = 0;
+        static $count=0;
+        if(count($final) < $total_count){
+            foreach($sorted_data as $key => $data){
+                if($i < $default){
+                    //echo '<pre>-';print_r($data);
+                    if(!empty($data) && !in_array(reset($data),$final)){
+                        $final[] = reset($data);
+                        array_shift($sorted_data[$key]);
+                        $i++;
+                        $count++;
+                    }
+                }
+            }
+            // 11为每页显示的数量，66为总个数
+            $default_rows = 20;
+            // 记录当前页
+            $begin_position = ($page-1)*$default_rows;
+            if($begin_position < $total_count){
+                $current_count = count(array_slice($final, $begin_position));
+                //echo '第'.$page.'已取到'.$current_count.'条';
+                if($current_count < $default_rows && $count < $total_count){
+                    $diff_count = $default_rows - $current_count;
+                    //echo '差'.$diff_count;
+                    $this->order_list($sorted_data, $diff_count, $final, $total_count, $page);
+                }
+            }
+        }
+        return $final;
+    }
+
+    /*
+    * another koubei sort arithmetic
+    * */
+    private function anotherSortKoubeiId($sort_data, $unique_key, $total_count, $default_count, $page){
+
+        if (!in_array($unique_key, array('item_id'))) {
+            return false;
+        }
+
+        if($total_count <= $default_count){
+            $final_data = array_column($sort_data,'id');
+            return $final_data;
+        }
+        $sorted_data = array();
+        array_values($sort_data);
+        // 规则排序
+        foreach ($sort_data as $key => $data) {
+            $sorted_data[$key][$data['item_id']] = $data['id'];
+        }
+        // 循环取出的条数（默认值）
+        $sort_ids = array();
+        if($page <= round($total_count/$default_count)){
+            for ($i=1; $i <= $page; $i++) {
+                //echo '第'.$i.'页数据';
+                $sort_ids = $this->another_order_list($sorted_data, $default_count);
+            }
+        }else{
+            return array();
+        }
+        // 取出当前页的条数
+        foreach($sort_ids as $value){
+            foreach($value as $item){
+                $current_sort_ids[] = $item;
+            }
+        }
+        return $current_sort_ids;
+    }
+
+    /*
+     * another sort arithmetic
+     * */
+    private function another_order_list(&$arr, $default = 20){
+
+        //echo '<pre>';print_r($arr);exit;
+
+        $return_arr  = [];
+        $removal_arr = [];
+        foreach ($arr as $key => $value) {
+
+            if(in_array(array_keys($value)[0], $removal_arr)){
+                continue;
+            }
+            $return_arr[] = $value;
+            //echo '<pre>';print_r($return_arr);
+            $removal_arr[]=array_keys($value);
+            unset($arr[$key]);
+            if(count($return_arr) == $default){
+                return $return_arr;
+            }
+        }
+        if(empty($arr)){
+            return $return_arr;
+        }
+        if(count($return_arr)< $default){
+            return array_merge($this->another_order_list($arr,$default-count($return_arr)),$return_arr);
+        }
+    }
+
 
     /**
      * 口碑列表

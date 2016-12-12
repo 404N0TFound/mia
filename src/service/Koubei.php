@@ -711,12 +711,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $page           当前页          必填
      * @ return array()
      */
-    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1){
+    public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1,$userId = 0){
 
         $solr        = new SolrRemote();
-        $koubei_list = array();
+        $koubei      = array();
         $brand_list  = array();
-        $koubei_info = $solr->koubeiList($brand_id, $category_id, $count, $page);
+
+        if(!empty($category_id)){
+            // 类目下口碑去重分页列表
+            $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page);
+            $brand_list  = $solr->brandList($category_id);
+        }else{
+            // 品牌口碑去重分页列表
+            $koubei_info = $solr->getHighQualityKoubeiByBrandId($brand_id, $page);
+        }
+        if(!empty($koubei_info)){
+            $koubei['count'] = $koubei_info['count'];
+            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_info['list'], $userId)['data']);
+        }
+
+        /*$koubei_info = $solr->koubeiList($brand_id, $category_id, $count, $page);
         if(!empty($category_id)){
             $brand_list  = $solr->brandList($category_id);
         }
@@ -724,9 +738,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $totalCount  = $koubei_info['numFound'];
             $koubei_ids  = array_column($koubei_info['docs'],'id');
             $koubei['count'] = $totalCount;
-            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids)['data']);
+            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids, $userId)['data']);
 
-        }
+        }*/
         $res = array('koubei_list' => $koubei, 'brand_list' => $brand_list);
         return $this->succ($res);
     }
@@ -765,9 +779,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($itemIds)){
             return $this->error(500);
         }
-        $transfer_arr = array();
-        $koubeiIds = $this->koubeiModel->getBatchKoubeiIds($itemIds);
-        $res = $this->getBatchKoubeiByIds($koubeiIds);
+        $rel_ids = array();
+        $item_service = new ItemService();
+        //通过商品id获取口碑id
+        foreach ($itemIds as $value) {
+            $item_ids = $item_service->getRelateItemById($value);
+            if(!empty($item_ids)){
+               $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
+                $rel_ids[] = $koubei_ids[0];
+           }
+        }
+        $res = $this->getBatchKoubeiByIds($rel_ids);
         if(!empty($res)){
             // 处理数组
             $transfer = $res['data'];

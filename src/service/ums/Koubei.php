@@ -128,7 +128,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $orderBy = 'comment_time desc';
         }
         
-        if(isset($solrCond['bran_id']) || isset($solrCond['self_sale']) ||
+        if(isset($solrCond['brand_id']) || isset($solrCond['self_sale']) ||
             isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
             $solr = new \mia\miagroup\Remote\Solr();
             $solrData = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
@@ -138,8 +138,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }
                 $condition['id'] = $koubeiIds;
                 $data = $this->koubeiModel->getKoubeiData($condition);
+                $data['count'] = $solrData['count'];
             }
-            $data['count'] = $solrData['count'];
         }else{
             $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
         }
