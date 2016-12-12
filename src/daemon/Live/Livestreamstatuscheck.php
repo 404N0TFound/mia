@@ -44,6 +44,8 @@ class Livestreamstatuscheck extends \FD_Daemon {
                 $frame_rate = $streamStatusInfo['framesPerSecond']['video'];
                 //实际码率
                 $bw_rate = $streamStatusInfo['bytesPerSecond'] / 1024 * 8;
+                //音频输入码率，单位kb
+                $bw_in_audio = $streamStatusInfo['framesPerSecond']['audio'];
             } elseif ($live['source'] == 2) {
                 $streamName = array_shift(explode('-',$live['stream_id']));
                 $streamStatusInfo = $jinshan->getRawStatus($live['stream_id']);
@@ -51,18 +53,22 @@ class Livestreamstatuscheck extends \FD_Daemon {
                 $frame_rate = $streamStatusInfo['app']['live'][$streamName]['video']['frame_rate'];
                 //实际码率
                 $bw_rate = $streamStatusInfo['app']['live'][$streamName]['bw_real'];
+                //音频输入码率，单位kb
+                $bw_in_audio = $streamStatusInfo['app']['live'][$streamName]['audio']['bw_in_audio'];
             } elseif ($live['source'] == 3) {
                 $streamStatusInfo = $wangsu->getRawStatus($live['stream_id']);
                 //视频帧率
                 $frame_rate = $streamStatusInfo['fps'];
                 //实际码率
                 $bw_rate = $streamStatusInfo['inbandwidth'] / 1024 * 8;
+                $bw_in_audio = 0.00;
             }
 
             //添加记录
             if (!empty($frame_rate) && !empty($bw_rate)) {
                 $streamInfo['frame_rate'] = $frame_rate;
                 $streamInfo['bw_rate'] = $bw_rate;
+                $streamInfo['bw_audio'] = $bw_in_audio;
 
                 $streamInfo['live_id'] = $live['id'];
                 $streamInfo['user_id'] = $live['user_id'];
