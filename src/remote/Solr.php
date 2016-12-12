@@ -195,12 +195,13 @@ class Solr
     /**
      * 通过品牌id获取优质口碑
      */
-    public function getHighQualityKoubeiByBrandId($brand_id = 0, $page = 1)
+    public function getHighQualityKoubeiByBrandId($category_id, $brand_id = 0, $page = 1)
     {
         $field = 'id,item_id';
         $sort = 'score desc,id desc,rank_score desc';
         // 处理brand_id
         $conditon = array(
+            'category_id'=>$category_id,
             'brand_id' => $brand_id,
             'koubei_with_pic' => true,
             'status' => 2,
@@ -230,7 +231,7 @@ class Solr
         if(!empty($brand_ids)){
             $brand_ids = array_column($brand_ids, 'id');
             // 通过品牌获取口碑列表
-            $result = $this->getHighQualityKoubeiByBrandId($brand_ids, $page);
+            $result = $this->getHighQualityKoubeiByBrandId($category_id, $brand_ids, $page);
             return $result;
         }
         return array();
