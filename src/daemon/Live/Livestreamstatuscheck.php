@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Daemon\Live;
 
+use mia\miagroup\Data\Live\LiveStream;
 use \mia\miagroup\Lib\Redis;
 use \mia\miagroup\Util\RongCloudUtil;
 use \mia\miagroup\Util\QiniuUtil;
@@ -8,6 +9,7 @@ use \mia\miagroup\Util\JinShanCloudUtil;
 use \mia\miagroup\Data\Live\Live as LiveData;
 use \mia\miagroup\Model\Live as LiveModel;
 use \mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Util\WangSuLiveUtil;
 
 /**
  * 10秒采集一次
@@ -22,30 +24,61 @@ class Livestreamstatuscheck extends \FD_Daemon {
         $rong_api = new RongCloudUtil();
         $qiniu = new QiniuUtil();
         $jinshan = new JinShanCloudUtil();
+        $wangsu = new WangSuLiveUtil();
+        $streamData = new LiveStream();
     
         //获取正在直播的聊天室的id
         $result = $liveData->getBatchLiveInfo();
         foreach($result as $live){
-            
             //只检测开播5分钟之后的直播
             if(strtotime($live['start_time']) + 300 > time()){
                 continue;
             }
-            
+
             $framekey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame.key'),$live['chat_room_id']);
             $frameStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame_status.key'),$live['chat_room_id']);
-            if($live['source']==1){
+            if($live['source']==1) {
+                //七牛
                 $streamStatusInfo = $qiniu->getRawStatus($live['stream_id']);
+                //视频帧率
                 $frame_rate = $streamStatusInfo['framesPerSecond']['video'];
-            } elseif ($live['source']==2) {
+                //实际码率
+                $bw_rate = $streamStatusInfo['bytesPerSecond'] / 1024 * 8;
+                //音频输入码率，单位kb
+                $bw_in_audio = $streamStatusInfo['framesPerSecond']['audio'];
+            } elseif ($live['source'] == 2) {
                 $streamName = array_shift(explode('-',$live['stream_id']));
                 $streamStatusInfo = $jinshan->getRawStatus($live['stream_id']);
+                //视频帧率
                 $frame_rate = $streamStatusInfo['app']['live'][$streamName]['video']['frame_rate'];
+                //实际码率
+                $bw_rate = $streamStatusInfo['app']['live'][$streamName]['bw_real'];
+                //音频输入码率，单位kb
+                $bw_in_audio = $streamStatusInfo['app']['live'][$streamName]['audio']['bw_in_audio'];
+            } elseif ($live['source'] == 3) {
+                $streamStatusInfo = $wangsu->getRawStatus($live['stream_id']);
+                //视频帧率
+                $frame_rate = $streamStatusInfo['fps'];
+                //实际码率
+                $bw_rate = $streamStatusInfo['inbandwidth'] / 1024 * 8;
+                $bw_in_audio = 0.00;
             }
-            
+
+            //添加记录
+            $streamInfo['frame_rate'] = $frame_rate;
+            $streamInfo['bw_rate'] = $bw_rate;
+            $streamInfo['bw_audio'] = $bw_in_audio;
+
+            $streamInfo['live_id'] = $live['id'];
+            $streamInfo['user_id'] = $live['user_id'];
+            $streamInfo['source'] = $live['source'];
+            $streamInfo['stream_id'] = $live['stream_id'];
+            $streamInfo['create_time'] = date('Y-m-d H:i:s');
+            $res = $streamData->addStreamInfo($streamInfo);
+
+
             $frameNum = $redis->zCard($framekey);
             $redis->zadd($framekey,$frameNum,$frame_rate);
-            
             if($frameNum >= 5){
                 $frameData = $redis->zRange($framekey,0,-1);
                 for($i=0;$i<count($frameData);$i++){
