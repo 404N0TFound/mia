@@ -60,5 +60,5 @@ $expert = [
  * 头条banner降级开关
  */
 $headLineSwitch = array(
-    'default_switch' => 1, //默认开启
+    'default_switch' => 0, //默认开启
 );
