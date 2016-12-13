@@ -372,6 +372,15 @@ class Koubei {
     }
 
     /**
+     * 查询标签
+     */
+    public function getTags($where)
+    {
+        $tagsInfo = $this->koubeiTagsData->getTagsInfo($where);
+        return $tagsInfo;
+    }
+
+    /**
      * 添加口碑标签
      */
     public function addTag($data)
@@ -426,6 +435,22 @@ class Koubei {
         }
         $where[] = [':eq', 'item_id', $item_id];
         $tags = $this->koubeiTagsRelationData->getTags($where, $cols = 'tag_id', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id");
-        return $tags;
+        $tagArr = [];
+        if(!empty($tags)){
+            foreach ($tags as $v){
+                $tagArr[] = $v['tag_id'];
+            }
+        }
+        return $tagArr;
+    }
+
+
+    /**
+     * 查询标签商品关系
+     */
+    public function getItemTags($where)
+    {
+        $res = $this->koubeiTagsRelationData->getTags($where);
+        return $res;
     }
 }

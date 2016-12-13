@@ -29,7 +29,6 @@ class KoubeiTagsRelation extends \DB_Query {
             return [];
         }
         $result = $this->getRows($where, $cols, $limit, $offset, $orderBy, $join, $groupBy);
-        var_dump($where);
         return $result;
     }
 }
