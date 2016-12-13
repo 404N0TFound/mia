@@ -414,4 +414,18 @@ class Koubei {
         $tagId = $this->koubeiTagsRelationData->addTagsRealtion($insertData);
         return $tagId;
     }
+
+    /**
+     * 商品标签查询
+     * $where = array(), $cols = '*', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = FALSE, $having = FALSE, $tableOptions = FALSE, $selectOptions = FALSE
+     */
+    public function getItemKoubeiTags($item_id)
+    {
+        if (empty($item_id)) {
+            return [];
+        }
+        $where[] = [':eq', 'item_id', $item_id];
+        $tags = $this->koubeiTagsRelationData->getTags($where, $cols = 'tag_id', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id");
+        return $tags;
+    }
 }

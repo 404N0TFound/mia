@@ -925,6 +925,34 @@ class Koubei extends \mia\miagroup\Lib\Service {
         } else {
             return $this->succ($id);
         }
+    }
+
+    /**
+     * 获取指定商品，指定标签的口碑列表
+     * @param $item_id
+     * @param $tag_id
+     */
+    public function getTagsKoubeiList($item_id,$tag_id)
+    {
+        if (empty($item_id) || empty($tag_id)) {
+            return $this->error(500, "参数错误");
+        }
+    }
+
+    /**
+     * 获取指定商品的印象父标签列表
+     * @param $item_id
+     */
+    public function getItemTagList($item_id)
+    {
+        if (empty($item_id)) {
+            return $this->error(500, "参数错误");
+        }
+        //查询商品所有标签
+        $tagsIds = $this->koubeiModel->getItemKoubeiTags($item_id);
+
+        var_dump($tagsIds);
+        //提取所有父标签
 
     }
 }
