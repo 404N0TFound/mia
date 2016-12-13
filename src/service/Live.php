@@ -679,7 +679,7 @@ class Live extends \mia\miagroup\Lib\Service
             if (!empty($lastIds)) {
                 //指定场次
                 $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$lastIds[$k]];
-                $roomRes[$roomInfo['id']]['live_id'] = $liveArr[$lastIds[$k]]['live_id'];
+                $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
                 if (!empty($liveArr[$lastIds[$k]]['settings'])) {
                     //roomInfo 为房间的设置信息，指定场次后需要取指定场次的，用merge覆盖掉
                     $roomRes[$roomInfo['id']]['settings'] = array_merge($roomInfo['settings'], json_decode($liveArr[$lastIds[$k]]['settings'], true));
@@ -690,7 +690,7 @@ class Live extends \mia\miagroup\Lib\Service
                 $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
             } elseif (!empty($liveArr[$roomInfo['latest_live_id']])) {
                 //上次直播
-                $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['latest_live_id'];
+                $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
                 $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['latest_live_id']];
                 if (!empty($liveArr[$roomInfo['latest_live_id']]['settings'])) {
                     //roomInfo 为房间的设置信息，latest_live_id场次的，用merge覆盖掉
