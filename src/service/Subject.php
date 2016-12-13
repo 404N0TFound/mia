@@ -701,7 +701,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         //校验是否是屏蔽用户
         $audit = new \mia\miagroup\Service\Audit();
         $isShieldStatus = $audit->checkUserIsShield($userId)['data'];
-        if($isShieldStatus['is_shield']) {
+        if($isShieldStatus['is_shield'] === true) {
             $data['status'] = -1;
             return $this->succ($data);
         }
