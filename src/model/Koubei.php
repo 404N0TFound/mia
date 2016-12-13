@@ -425,7 +425,8 @@ class Koubei {
     }
 
     /**
-     * 商品标签查询
+     * 商品标签查询，父子都可能有
+     * array ( 5 => '2', 6 => '2', 7 => '1', 8 => '1', 9 => '1',) id和数量的组合
      * $where = array(), $cols = '*', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = FALSE, $having = FALSE, $tableOptions = FALSE, $selectOptions = FALSE
      */
     public function getItemKoubeiTags($item_id)
@@ -434,11 +435,11 @@ class Koubei {
             return [];
         }
         $where[] = [':eq', 'item_id', $item_id];
-        $tags = $this->koubeiTagsRelationData->getTags($where, $cols = 'tag_id', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id");
+        $tags = $this->koubeiTagsRelationData->getTags($where, $cols = 'tag_id,count(id) as num', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id");
         $tagArr = [];
         if(!empty($tags)){
             foreach ($tags as $v){
-                $tagArr[] = $v['tag_id'];
+                $tagArr[$v['tag_id']] = $v['num'];
             }
         }
         return $tagArr;
@@ -446,7 +447,7 @@ class Koubei {
 
 
     /**
-     * 查询标签商品关系
+     * 查询标签,口碑关系
      */
     public function getItemTags($where)
     {

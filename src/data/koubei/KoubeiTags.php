@@ -48,7 +48,7 @@ class KoubeiTags extends \DB_Query
      * 查询标签信息
      */
     public function getTagsInfo($where)
-    {
+    { echo 11111111111111111111;
         $result = $this->getRows($where, 'id,tag_name,parent_id');
         return $result;
     }

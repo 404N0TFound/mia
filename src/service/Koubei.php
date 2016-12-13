@@ -909,10 +909,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->error(500, "标签不存在");
         }
         //判断是否是子标签，只允许是子标签，或没有子类的父标签
-        $childArr = $this->koubeiModel->getChildTags($tagInfo['id']);
-        if (!empty($childArr)) {
-            return $this->error(500, "标签为父标签，且存在子标签");
-        }
+        /**
+         * $childArr = $this->koubeiModel->getChildTags($tagInfo['id']);
+         * if (!empty($childArr)) {
+         *     return $this->error(500, "标签为父标签，且存在子标签");
+         * }
+         */
         //防止重复数据
         $res = $this->koubeiModel->getItemTags([[':eq', 'koubei_id', $koubei_id],[':eq', 'item_id', $item_id],[':eq', 'tag_id', $tagInfo['id']]]);
         if(!empty($res)){
@@ -934,17 +936,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取指定商品，指定标签的口碑列表
      * @param $item_id
-     * @param $tag_id
+     * @param $tag_id（父标签）
      */
     public function getTagsKoubeiList($item_id,$tag_id)
     {
         if (empty($item_id) || empty($tag_id)) {
             return $this->error(500, "参数错误");
         }
+        $childArr = $this->koubeiModel->getChildTags($tag_id);
+        $tags = $this->koubeiModel->getItemTags([[':in', 'tag_id', array_merge($childArr,[$tag_id])], [':eq', 'item_id', $item_id]]);
     }
 
     /**
-     * 获取指定商品的印象父标签列表
+     * 获取指定商品的印象标签列表(父标签列表)
      * @param $item_id
      */
     public function getItemTagList($item_id)
@@ -956,15 +960,35 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $tagsIds = $this->koubeiModel->getItemKoubeiTags($item_id);
         //提取所有父标签
         //查询目前是子标签的父标签
-        $childId = $this->koubeiModel->getTags([[':in', 'id', $tagsIds], [':gt', 'parent_id', 0]]);
+        $childId = $this->koubeiModel->getTags([[':in', 'id', array_keys($tagsIds)], [':gt', 'parent_id', 0]]);
         if (!empty($childId)) {
             foreach ($childId as $v) {
-                $childArr[] = $v['parent_id'];
+                //子=>父
+                $childArr[$v['id']] = $v['parent_id'];
             }
         }
-        $fid = array_unique(array_merge($tagsIds, $childArr));
-        //查询目前标签为父标签的
-        $tagList = $this->koubeiModel->getTags([[':in', 'id', $fid], [':eq', 'parent_id', 0]]);
-
+        foreach ($childArr as $child=>$parent){
+            if(array_key_exists($parent,$tagsIds)){
+                //父标签已存在，把子标签的数加到父标签上
+                $tagsIds[$parent] += $tagsIds[$child];
+            } else {
+                //父标签不存在，创建父标签
+                $tagsIds[$parent] = $tagsIds[$child];
+            }
+            //删除子标签
+            unset($tagsIds[$child]);
+        }
+        //$tagsIds只剩父标签了
+        //查询剩余父标签信息
+        $tagList = $this->koubeiModel->getTags([[':in', 'id', array_keys($tagsIds)], [':eq', 'parent_id', 0]]);
+        $res = [];
+        foreach ($tagList as $tagInfo){
+            $r['tag_id'] = $tagInfo['id'];
+            $r['tag_name'] = $tagInfo['tag_name'];
+            $r['num'] = intval($tagsIds[$tagInfo['id']]);
+            $res[] = $r;
+            unset($r);
+        }
+        return $this->succ($res);
     }
 }
