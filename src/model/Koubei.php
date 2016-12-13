@@ -405,4 +405,13 @@ class Koubei {
         $res = $this->koubeiTagsData->updateTags($setData, $id);
         return $res;
     }
+
+    /**
+     * 添加标签和口碑关系
+     */
+    public function addTagsRelation($insertData)
+    {
+        $tagId = $this->koubeiTagsRelationData->addTagsRealtion($insertData);
+        return $tagId;
+    }
 }

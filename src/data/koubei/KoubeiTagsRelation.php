@@ -14,10 +14,9 @@ class KoubeiTagsRelation extends \DB_Query {
     /**
      * 添加关系记录
      */
-    public function addTagsRealtion()
+    public function addTagsRealtion($insertData)
     {
-
+        $result = $this->insert($insertData);
+        return $result;
     }
-
-
 }

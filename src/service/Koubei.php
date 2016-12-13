@@ -819,9 +819,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * 导入口碑印象标签信息
      * @param $tagName
      */
-    public function syncTags($tagName)
+    public function syncTags($tagName, $positive)
     {
-        if(empty($tagName)){
+        if (empty($tagName) || empty($positive)) {
             return $this->error(500);
         }
         //检查标签是否存在
@@ -833,6 +833,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //标签信息入库
         $insertData['tag_name'] = $tagName;
         $insertData['parent_id'] = 0;
+        $insertData['positive'] = $positive;
 
         $tagId = $this->koubeiModel->addTag($insertData);
 
@@ -887,17 +888,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
     /**
      * 导入口碑和标签关系
-     * @param $relationInfo tag_name（子标签） koubei_id item_id positive
+     * @param $relationInfo tag_name（子标签） koubei_id
      */
     public function syncKoubeiTags($relationInfo)
     {
         $tag_name = $relationInfo["tag_name"];
         $koubei_id = $relationInfo["koubei_id"];
-        $item_id = $relationInfo["item_id"];
-        $positive = $relationInfo["positive"];
-        if (empty($tag_name) || empty($koubei_id) || empty($item_id) || empty($positive)) {
+
+        if (empty($tag_name) || empty($koubei_id)) {
             return $this->error(500, "参数错误");
         }
+
+        $item_id = $this->getBatchKoubeiByIds([$koubei_id]);
+
         //根据标签名，检查标签是否存在
         $tagInfo = $this->koubeiModel->getTagInfo($tag_name);
         if (empty($tagInfo)) {
@@ -909,6 +912,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->error(500, "标签为父标签，且存在子标签");
         }
         //关系数据入库
+        $insertData["koubei_id"] = $koubei_id;
+        $insertData["item_id"] = $item_id;
+        $insertData["tag_id"] = $tagInfo['id'];
+
+        $id = $this->koubeiModel->addTagsRelation($insertData);
+
+        if (!$id) {
+            return $this->error(500,"添加失败");
+        } else {
+            return $this->succ($id);
+        }
 
     }
 }
