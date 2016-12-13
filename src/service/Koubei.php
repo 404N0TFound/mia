@@ -899,8 +899,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->error(500, "参数错误");
         }
 
-        $item_id = $this->getBatchKoubeiByIds([$koubei_id]);
-
+        $item_id = $this->koubeiModel->getBatchKoubeiByIds([$koubei_id])[$koubei_id]['item_id'];
+        if(empty($item_id)){
+            return $this->error(500, "口碑不存在");
+        }
         //根据标签名，检查标签是否存在
         $tagInfo = $this->koubeiModel->getTagInfo($tag_name);
         if (empty($tagInfo)) {
