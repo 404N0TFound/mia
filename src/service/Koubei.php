@@ -814,4 +814,101 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId,$koubeUpData);
         return $this->succ($res);
     }
+
+    /**
+     * 导入口碑印象标签信息
+     * @param $tagName
+     */
+    public function syncTags($tagName)
+    {
+        if(empty($tagName)){
+            return $this->error(500);
+        }
+        //检查标签是否存在
+        $tagInfo = $this->koubeiModel->getTagInfo($tagName);
+
+        if(!empty($tagInfo)){
+            return $this->error(500,"标签存在");
+        }
+        //标签信息入库
+        $insertData['tag_name'] = $tagName;
+        $insertData['parent_id'] = 0;
+
+        $tagId = $this->koubeiModel->addTag($insertData);
+
+        if (!$tagId) {
+            return $this->error(500,"添加失败");
+        } else {
+            return $this->succ($tagId);
+        }
+    }
+
+
+    /**
+     * 导入印象标签父子关系
+     * @param $tagName
+     * @param $parentName
+     */
+    public function syncTagsRelation($tagName, $parentName)
+    {
+        if(empty($tagName) || empty($parentName)){
+            return $this->error(500);
+        }
+        //检查父子标签名是否存在，不存在则创建
+        $childTagInfo = $this->koubeiModel->getTagInfo($tagName);
+        $parentTagInfo = $this->koubeiModel->getTagInfo($parentName);
+        if (empty($childTagInfo)) {
+            $childId = $this->syncTags($tagName)['data'];
+        }
+        if (empty($parentTagInfo)) {
+            $parentId = $this->syncTags($parentName)['data'];
+        }
+        if ($childId && $parentId) {
+            return $this->error(500, "添加失败");
+        }
+        //检查父类标签是否是以前是子标签,是的话则报错
+        if ($parentTagInfo['parent_id'] != 0) {
+            return $this->error(500, "父标签错误");
+        }
+        //检查子标签是否有子类，有的话不可以修改
+        $childArr = $this->koubeiModel->getChildTags($childTagInfo['id']);
+        if (!empty($childArr)) {
+            return $this->error(500, "子标签错误");
+        }
+        //更新子标签parent_id
+        $SetData[] = ['parent_id', $parentTagInfo['id']];
+        $res = $this->koubeiModel->updateTags($SetData, $childTagInfo['id']);
+        if (!$res) {
+            return $this->error(500, "添加失败");
+        } else {
+            return $this->succ($res);
+        }
+    }
+
+    /**
+     * 导入口碑和标签关系
+     * @param $relationInfo tag_name（子标签） koubei_id item_id positive
+     */
+    public function syncKoubeiTags($relationInfo)
+    {
+        $tag_name = $relationInfo["tag_name"];
+        $koubei_id = $relationInfo["koubei_id"];
+        $item_id = $relationInfo["item_id"];
+        $positive = $relationInfo["positive"];
+        if (empty($tag_name) || empty($koubei_id) || empty($item_id) || empty($positive)) {
+            return $this->error(500, "参数错误");
+        }
+        //根据标签名，检查标签是否存在
+        $tagInfo = $this->koubeiModel->getTagInfo($tag_name);
+        if (empty($tagInfo)) {
+            return $this->error(500, "标签不存在");
+        }
+        //判断是否是子标签，只允许是子标签，或没有子类的父标签
+        $childArr = $this->koubeiModel->getChildTags($tagInfo['id']);
+        if (!empty($childArr)) {
+            return $this->error(500, "标签为父标签，且存在子标签");
+        }
+        //关系数据入库
+
+    }
 }

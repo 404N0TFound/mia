@@ -5,18 +5,24 @@ use mia\miagroup\Data\Koubei\Koubei as KoubeiData;
 use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
 use \mia\miagroup\Data\Koubei\KoubeiSubject as KoubeiSubjectData;
 use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
+use mia\miagroup\Data\Koubei\KoubeiTags;
+use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
 
 class Koubei {
     
     private $koubeiData;
     private $koubeiPicData;
     private $koubeiAppealData;
+    private $koubeiTagsData;
+    private $koubeiTagsRelationData;
     
     
     public function __construct() {
         $this->koubeiData = new KoubeiData();
         $this->koubeiPicData = new KoubeiPicData();
         $this->koubeiAppealData = new KoubeiAppealData();
+        $this->koubeiTagsData = new KoubeiTags();
+        $this->koubeiTagsRelationData = new KoubeiTagsRelation();
     }
     
     /**
@@ -355,4 +361,48 @@ class Koubei {
         return $ids;
     }
 
+    /**
+     * 查询口碑印象
+     */
+    public function getTagInfo($tagName)
+    {
+        $where[] = [':eq', 'tag_name', $tagName];
+        $tagsInfo = $this->koubeiTagsData->getTagInfo($where);
+        return $tagsInfo;
+    }
+
+    /**
+     * 添加口碑标签
+     */
+    public function addTag($data)
+    {
+        $tagId = $this->koubeiTagsData->addTag($data);
+        return $tagId;
+    }
+
+    /**
+     * 获取当前标签的子类
+     */
+    public function getChildTags($parentId)
+    {
+        $where[] = [':eq', 'parent_id', $parentId];
+        $res = $this->koubeiTagsData->getTagsInfo($where);
+        if (empty($res)) {
+            return [];
+        }
+        foreach ($res as $k => $v) {
+            $childArr[] = $v['id'];
+        }
+        return $childArr;
+    }
+
+
+    /**
+     * 更新标签
+     */
+    public function updateTags($setData, $id)
+    {
+        $res = $this->koubeiTagsData->updateTags($setData, $id);
+        return $res;
+    }
 }
