@@ -701,14 +701,13 @@ class Subject extends \mia\miagroup\Lib\Service {
         //校验是否是屏蔽用户
         $audit = new \mia\miagroup\Service\Audit();
         $isShieldStatus = $audit->checkUserIsShield($userId)['data'];
-        if($isShieldStatus['is_shield'] === true) {
+        if($isShieldStatus['is_shield']) {
             $data['status'] = -1;
             return $this->succ($data);
         }
         //获取帖子ID
         $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId,$currentId,$page,$iPageSize);
         if(empty($subject_ids)){
-            $data['status'] = -1;
             return $this->succ($data);
         }
         $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId)['data']);
