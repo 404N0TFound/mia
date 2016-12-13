@@ -263,7 +263,7 @@ class Solr
         if(intval($conditon['brand_id']) > 0) { 
             //品牌ID
             if (is_array($conditon['brand_id'])) {
-                $solr_info['fq'][]   = "brand_id:". implode(' OR ', $conditon['brand_id']);
+                $solr_info['fq'][]   = "brand_id:(". implode(' OR ', $conditon['brand_id']) . ")";
             } else {
                 $solr_info['fq'][]   = 'brand_id:'. $conditon['brand_id'];
             }
@@ -272,7 +272,7 @@ class Solr
             //是否带图
             $solr_info['fq'][]   = $conditon['koubei_with_pic'] === true ? 'local_url:*' : '-(local_url:*)';
         }
-        if (in_array($conditon['self_sale'],array(0,1))) {
+        if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
             //自营非自营
             $solr_info['fq'][]   = $conditon['self_sale'] == 1 ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
         }
