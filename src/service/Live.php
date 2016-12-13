@@ -401,7 +401,7 @@ class Live extends \mia\miagroup\Lib\Service
         $jinshan = new JinShanCloudUtil();
         $wangsu = new WangSuLiveUtil();
         if (empty($liveId)) {
-            //不传liveId，查询直播间当前状态
+            //不传liveId，查询最近一次直播，或当前直播
             if (empty($roomData['live_id'])) {
                 //查询房间最近一次直播的信息
                 if (!empty($roomData['latest_live_id'])) {
@@ -456,6 +456,7 @@ class Live extends \mia\miagroup\Lib\Service
                     $roomData['snapshot'] = $liveCloud->getSnapShot($liveInfo['stream_id']);
                     //回放地址
                     $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                    $roomData['status'] = 1;//当前直播
                 }
             }
         } else if (intval($liveId) > 0) {
@@ -480,6 +481,7 @@ class Live extends \mia\miagroup\Lib\Service
                 $roomData['snapshot'] = $liveCloud->getSnapShot($liveInfo['stream_id']);
                 //回放地址
                 $roomData['play_back_hls_url'] = $liveInfo['play_back_hls_url'];
+                $roomData['status'] = 2;//查看指定场次回放
             }
         }
         //直播观看数记录
