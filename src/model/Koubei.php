@@ -429,12 +429,12 @@ class Koubei {
      * array ( 5 => '2', 6 => '2', 7 => '1', 8 => '1', 9 => '1',) id和数量的组合
      * $where = array(), $cols = '*', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = FALSE, $having = FALSE, $tableOptions = FALSE, $selectOptions = FALSE
      */
-    public function getItemKoubeiTags($item_id)
+    public function getItemKoubeiTags($item_ids)
     {
-        if (empty($item_id)) {
+        if (empty($item_ids)) {
             return [];
         }
-        $where[] = [':eq', 'item_id', $item_id];
+        $where[] = ['item_id', $item_ids];
         $tags = $this->koubeiTagsRelationData->getTags($where, $cols = 'tag_id,count(id) as num', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id");
         $tagArr = [];
         if(!empty($tags)){

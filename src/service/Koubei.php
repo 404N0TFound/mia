@@ -940,11 +940,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function getTagsKoubeiList($item_id,$tag_id)
     {
+        //聚合印象
         if (empty($item_id) || empty($tag_id)) {
             return $this->error(500, "参数错误");
         }
         $childArr = $this->koubeiModel->getChildTags($tag_id);
-        $tags = $this->koubeiModel->getItemTags([[':in', 'tag_id', array_merge($childArr,[$tag_id])], [':eq', 'item_id', $item_id]]);
+
+        //获取商品的关联商品或者套装单品
+        $item_service = new ItemService();
+        $item_ids = $item_service->getRelateItemById($item_id);
+
+        //查询标签列表
+        $result = $this->koubeiModel->getItemTags([[':in', 'tag_id', array_merge($childArr,[$tag_id])], [':in', 'item_id', $item_id]]);
+
+        $koubeiIds = [];
+        foreach ($result as $k=>$v){
+            $koubeiIds[] = $v['koubei_id'];
+        }
     }
 
     /**
@@ -953,11 +965,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function getItemTagList($item_id)
     {
+        //聚合印象
         if (empty($item_id)) {
             return $this->error(500, "参数错误");
         }
+        //获取商品的关联商品或者套装单品
+        $item_service = new ItemService();
+        $item_ids = $item_service->getRelateItemById($item_id);
+
         //查询商品所有标签
-        $tagsIds = $this->koubeiModel->getItemKoubeiTags($item_id);
+        $tagsIds = $this->koubeiModel->getItemKoubeiTags($item_ids);
         //提取所有父标签
         //查询目前是子标签的父标签
         $childId = $this->koubeiModel->getTags([[':in', 'id', array_keys($tagsIds)], [':gt', 'parent_id', 0]]);
