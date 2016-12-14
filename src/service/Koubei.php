@@ -855,17 +855,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($tagName) || empty($parentName)){
             return $this->error(500);
         }
-        //检查父子标签名是否存在，不存在则创建
+        //检查父子标签名是否存在
         $childTagInfo = $this->koubeiModel->getTagInfo($tagName);
         $parentTagInfo = $this->koubeiModel->getTagInfo($parentName);
-        if (empty($childTagInfo)) {
-            $childId = $this->syncTags($tagName)['data'];
-        }
-        if (empty($parentTagInfo)) {
-            $parentId = $this->syncTags($parentName)['data'];
-        }
-        if ($childId && $parentId) {
-            return $this->error(500, "添加失败");
+
+        if (empty($childTagInfo) || empty($parentTagInfo)) {
+            return $this->error(500, "标签不存在");
         }
         //检查父类标签是否是以前是子标签,是的话则报错
         if ($parentTagInfo['parent_id'] != 0) {
@@ -966,10 +961,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取指定商品的印象标签列表(父标签列表)
      * @param $item_id
+     * @param array $field  normal普通标签 collect聚合标签
+     * @return
      */
-    public function getItemTagList($item_id)
+    public function getItemTagList($item_id, $field = ["normal", "collect"])
     {
-        //聚合印象
         if (empty($item_id)) {
             return $this->error(500, "参数错误");
         }
@@ -977,39 +973,45 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_service = new ItemService();
         $item_ids = $item_service->getRelateItemById($item_id);
 
-        //查询商品所有标签
-        $tagsIds = $this->koubeiModel->getItemKoubeiTags($item_ids);
-        //提取所有父标签
-        //查询目前是子标签的父标签
-        $childId = $this->koubeiModel->getTags([[':in', 'id', array_keys($tagsIds)], [':gt', 'parent_id', 0]]);
-        if (!empty($childId)) {
-            foreach ($childId as $v) {
-                //子=>父
-                $childArr[$v['id']] = $v['parent_id'];
+        //聚合印象，内容数量小于3则不显示
+        if (in_array('collect', $field)) {
+            //查询商品所有父标签
+            $tagsIds = $this->koubeiModel->getItemKoubeiTags($item_ids);
+
+            //查询标签信息
+            $tagInfos = $this->koubeiModel->getTags(array_keys($tagsIds));
+
+            //根据商品id查询个标签数量
+            $tagCount = $this->getTagsCount($item_ids, array_keys($tagsIds));
+
+            foreach ($tagInfos as &$tag) {
+                if (array_key_exists($tag['id'], $tagCount)) {
+                    $tag["count"] = $tagCount[$tag['id']];
+                }
             }
+
+            //调整展示数量和顺序
+
+
         }
-        foreach ($childArr as $child=>$parent){
-            if(array_key_exists($parent,$tagsIds)){
-                //父标签已存在，把子标签的数加到父标签上
-                $tagsIds[$parent] += $tagsIds[$child];
-            } else {
-                //父标签不存在，创建父标签
-                $tagsIds[$parent] = $tagsIds[$child];
-            }
-            //删除子标签
-            unset($tagsIds[$child]);
-        }
-        //$tagsIds只剩父标签了
-        //查询剩余父标签信息
-        $tagList = $this->koubeiModel->getTags([[':in', 'id', array_keys($tagsIds)], [':eq', 'parent_id', 0]]);
+
+        //常规印象为：全部，有图，好评，内容数量小于3则不显示
+
+    }
+
+    /**
+     * @param $item_ids
+     * @param $tagsIds
+     */
+    public function getTagsCount($item_ids, $tagsIds)
+    {
+        $tagInfos = $this->koubeiModel->getItemKoubeiTags($item_ids, $tagsIds,1);
         $res = [];
-        foreach ($tagList as $tagInfo){
-            $r['tag_id'] = $tagInfo['id'];
-            $r['tag_name'] = $tagInfo['tag_name'];
-            $r['num'] = intval($tagsIds[$tagInfo['id']]);
-            $res[] = $r;
-            unset($r);
+        if(!empty($tagInfos)){
+            foreach ($tagInfos as $v){
+                $res[$v["tag_id_1"]] = $v["num"];
+            }
         }
-        return $this->succ($res);
+        return $res;
     }
 }

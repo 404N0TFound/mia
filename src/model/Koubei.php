@@ -372,12 +372,19 @@ class Koubei {
     }
 
     /**
-     * 查询标签
+     * 查询标签信息
      */
-    public function getTags($where)
+    public function getTags($tagsIds)
     {
+        $where[] = ['id', $tagsIds];
         $tagsInfo = $this->koubeiTagsData->getTagsInfo($where);
-        return $tagsInfo;
+        $res = [];
+        if(!empty($tagsInfo)){
+            foreach ($tagsInfo as $v){
+                $res[$v["id"]] = $v;
+            }
+        }
+        return $res;
     }
 
     /**
@@ -425,26 +432,37 @@ class Koubei {
     }
 
     /**
-     * 商品标签查询，父子都可能有
-     * array ( 5 => '2', 6 => '2', 7 => '1', 8 => '1', 9 => '1',) id和数量的组合
-     * $where = array(), $cols = '*', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = FALSE, $having = FALSE, $tableOptions = FALSE, $selectOptions = FALSE
+     * 根据商品id，查询出所有父标签
+     * @param $item_ids 商品id数组
+     * @param array $tag_ids 查指定父标签的
+     * @param int $count  是否统计数量(统计每个父标签的数量)
+     * @return array
      */
-    public function getItemKoubeiTags($item_ids)
+    public function getItemKoubeiTags($item_ids,$tag_ids = [],$count = 0)
     {
         if (empty($item_ids)) {
             return [];
         }
         $where[] = ['item_id', $item_ids];
-        $tags = $this->koubeiTagsRelationData->getTags($where, $cols = 'tag_id,count(id) as num', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id");
-        $tagArr = [];
+        if($count == 1){
+            $cols = 'tag_id_1,count(id) as num';
+        } else {
+            $cols = 'tag_id_1';
+        }
+
+        if(!empty($tag_ids)){
+            $where[] = ['tag_id_1', $tag_ids];
+        }
+
+        $tags = $this->koubeiTagsRelationData->getTags($where, $cols, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id_1");
+        $res = [];
         if(!empty($tags)){
-            foreach ($tags as $v){
-                $tagArr[$v['tag_id']] = $v['num'];
+            foreach ($tags as $k=>$v){
+                $res[$v['tag_id_1']] = $v;
             }
         }
-        return $tagArr;
+        return $res;
     }
-
 
     /**
      * 查询标签,口碑关系

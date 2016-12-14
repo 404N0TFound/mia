@@ -25,7 +25,7 @@ class KoubeiTagsRelation extends \DB_Query {
      */
     public function getTags($where, $cols = '*', $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = FALSE)
     {
-        if(empty($where)){
+        if (empty($where)) {
             return [];
         }
         $result = $this->getRows($where, $cols, $limit, $offset, $orderBy, $join, $groupBy);
