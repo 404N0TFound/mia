@@ -990,7 +990,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }
             }
 
-            //调整展示数量和顺序
+            //调整展示数量和顺序  按大小排序  正向10个  负向1个
 
 
         }
@@ -1000,8 +1000,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
     }
 
     /**
+     * 批量获取商品的标签，总数
      * @param $item_ids
      * @param $tagsIds
+     * @return array
      */
     public function getTagsCount($item_ids, $tagsIds)
     {
