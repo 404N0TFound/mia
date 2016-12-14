@@ -319,7 +319,7 @@ class Live extends \mia\miagroup\Lib\Service
         } else {
             $liveIds = [$liveId];
         }
-        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag', 'coupon','last_live'), $liveIds)['data'][$roomId];
+        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag', 'coupon'), $liveIds)['data'][$roomId];
         if (empty($roomData)) {
             //没有直播房间信息
             return $this->error(30003);
