@@ -319,7 +319,7 @@ class Live extends \mia\miagroup\Lib\Service
         } else {
             $liveIds = [$liveId];
         }
-        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag', 'coupon'), $liveIds)['data'][$roomId];
+        $roomData = $this->getLiveRoomByIds([$roomId], $currentUid, array('user_info', 'live_info', 'share_info', 'settings', 'redbag', 'coupon','last_live'), $liveIds)['data'][$roomId];
         if (empty($roomData)) {
             //没有直播房间信息
             return $this->error(30003);
@@ -622,7 +622,7 @@ class Live extends \mia\miagroup\Lib\Service
      * $lastIds 对应的room的曾经直播场次id，不指定为latest_live_id，信息。
      * @author jiadonghui@mia.com
      */
-    public function getLiveRoomByIds($roomIds, $currentUid = 0, $field = array('user_info', 'live_info', 'share_info', 'settings'), $lastIds = array())
+    public function getLiveRoomByIds($roomIds, $currentUid = 0, $field = array('user_info', 'live_info', 'share_info', 'settings','last_live'), $lastIds = array())
     {
         if (empty($roomIds) || !array($roomIds)) {
             return $this->succ(array());
@@ -692,9 +692,9 @@ class Live extends \mia\miagroup\Lib\Service
                 //上次直播
                 $roomRes[$roomInfo['id']]['live_id'] = $roomInfo['live_id'];
                 $roomRes[$roomInfo['id']]['live_info'] = $liveArr[$roomInfo['latest_live_id']];
-                if (!empty($liveArr[$roomInfo['latest_live_id']]['settings'])) {
+                if (!empty($liveArr[$roomInfo['latest_live_id']]['settings']) && in_array('last_live', $field)) {
                     //roomInfo 为房间的设置信息，latest_live_id场次的，用merge覆盖掉
-                    $roomRes[$roomInfo['id']]['settings'] = array_merge($roomInfo['settings'], json_decode($liveArr[$roomInfo['latest_live_id']], true));
+                    $roomRes[$roomInfo['id']]['settings'] = array_merge($roomInfo['settings'], json_decode($liveArr[$roomInfo['latest_live_id']]["settings"], true));
                 }
             }
             //用户信息
