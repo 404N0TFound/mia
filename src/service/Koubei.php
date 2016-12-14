@@ -787,7 +787,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
                 $res = $this->getBatchKoubeiByIds(array($koubei_ids[0]));
                 foreach($res['data'] as $v){
-                    $transfer_koubei[][$value] = $v;
+                    $transfer_koubei[$value] = $v;
                 }
 
            }
