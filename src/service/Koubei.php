@@ -908,22 +908,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($tagInfo)) {
             return $this->error(500, "标签不存在");
         }
-        //判断是否是子标签，只允许是子标签，或没有子类的父标签
-        /**
-         * $childArr = $this->koubeiModel->getChildTags($tagInfo['id']);
-         * if (!empty($childArr)) {
-         *     return $this->error(500, "标签为父标签，且存在子标签");
-         * }
-         */
+        //判断是否是子标签
+        if ($tagInfo['parent_id'] == 0) {
+            //是父标签
+            $insertData["tag_id_1"] = $tagInfo['id'];
+            $insertData["tag_id_2"] = 0;
+        } else {
+            //是子标签
+            $insertData["tag_id_1"] = $tagInfo['parent_id'];
+            $insertData["tag_id_2"] = $tagInfo['id'];
+        }
+
         //防止重复数据
-        $res = $this->koubeiModel->getItemTags([[':eq', 'koubei_id', $koubei_id],[':eq', 'item_id', $item_id],[':eq', 'tag_id', $tagInfo['id']]]);
+        $res = $this->koubeiModel->getItemTags([[':eq', 'koubei_id', $koubei_id],[':eq', 'item_id', $item_id],[':eq', 'tag_id_1', $insertData["tag_id_1"]],[':eq', 'tag_id_2', $insertData["tag_id_2"]]]);
         if(!empty($res)){
             return $this->error(500, "数据重复");
         }
         //关系数据入库
         $insertData["koubei_id"] = $koubei_id;
         $insertData["item_id"] = $item_id;
-        $insertData["tag_id"] = $tagInfo['id'];
+
         $id = $this->koubeiModel->addTagsRelation($insertData);
 
         if (!$id) {
