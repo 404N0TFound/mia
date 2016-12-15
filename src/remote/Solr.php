@@ -583,7 +583,8 @@ class Solr
         $docs = $res['data']['response']['docs'];
         if(!empty($docs)) {
             // 获取总order_ids
-            $statis['order_ids'] = array_column($docs, 'order_id');
+            $order_ids = $this->getSupplierGoodsScoreOrderIds($supplier, $search_time);
+            $statis['order_ids'] = $order_ids;
             $facet_pivot = $res['data']['facet_counts']['facet_pivot']['score'];
            foreach($facet_pivot as $value){
                if($value['value'] == 5){
@@ -606,6 +607,36 @@ class Solr
         return $statis;
     }
 
+
+    /*
+     * 获取当前商家下的所有有分值口碑order_id
+     * */
+    public function getSupplierGoodsScoreOrderIds($supplier = 0, $search_time = ''){
+
+        $begin_time = strtotime("-6 months", $search_time);
+        $solrInfo = [
+            'q'           => '*:*',
+            'fl'          => 'order_id',
+            'facet'       => 'true',
+            'facet.pivot' => 'order_id',
+            'facet.field' => array('order_id'),
+        ];
+        $solrInfo['fq'][] = 'supplier_id:'.$supplier;
+        $solrInfo['fq'][] = 'status:2';
+        $solrInfo['fq'][] = '-(item_id:0)';
+        $solrInfo['fq'][] = '-(order_id:0)';
+        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO '.$search_time.']';
+
+        $res = $this->select($solrInfo);
+        $facet_pivot = $res['data']['facet_counts']['facet_pivot']['order_id'];
+        if(!empty($facet_pivot)){
+            $order_ids = array_column($facet_pivot,'value');
+            return $order_ids;
+        }
+        return array();
+    }
+
+
     /*
      * 获取默认5分好评
      * */
@@ -615,6 +646,9 @@ class Solr
         $solrInfo = [
             'q'           => '*:*',
             'fl'          => 'order_id',
+            'facet'       => 'true',
+            'facet.pivot' => 'order_id',
+            'facet.field' => array('order_id'),
         ];
         $solrInfo['fq'][] = 'supplier_id:'.$supplier;
         $solrInfo['fq'][] = 'status:5';
@@ -623,9 +657,9 @@ class Solr
         $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO '.$search_time.']';
 
         $res = $this->select($solrInfo);
-        $docs = $res['data']['response']['docs'];
-        if(!empty($docs)){
-            $order_ids = array_column($docs,'order_id');
+        $facet_pivot = $res['data']['facet_counts']['facet_pivot']['order_id'];
+        if(!empty($facet_pivot)){
+            $order_ids = array_column($facet_pivot,'value');
             return $order_ids;
         }
         return array();
