@@ -820,10 +820,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $supplier_list = array();
         $solr = new SolrRemote('koubei');
         $solr_supplier = new SolrRemote('supplier');
-        foreach($suppliers as $value){
-            $supplier_info = $solr->getSupplierGoodsScore($value, $search_time);
+        //foreach($suppliers as $value){
+            $supplier_info = $solr->getSupplierGoodsScore($suppliers, $search_time);
             // 获取默认5分好评
-            $default_info = $solr_supplier->getDefaultScoreFive($value, $search_time);
+            $default_info = $solr_supplier->getDefaultScoreFive($suppliers, $search_time);
             $supplier_info['count']['num_default'] = 0;
             if(!empty($default_info)){
                 $supplier_info['count']['num_default'] = count(array_diff($default_info,$supplier_info['order_ids']));
@@ -841,8 +841,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if(!empty($denominator)){
                 $supplier_info['count']['score_today'] = round($numerator/$denominator, 3);
             }
-            $supplier_list[$value] = $supplier_info['count'];
-        }
+            $supplier_list[$suppliers] = $supplier_info['count'];
+        //}
         return $this->succ($supplier_list);
     }
 }
