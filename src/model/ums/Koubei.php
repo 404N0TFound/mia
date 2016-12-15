@@ -220,6 +220,7 @@ class Koubei extends \DB_Query {
                 $where[] = ['comment_status',1];
                 break;
             case 'lowscore'://差评
+                $where[] = [':ge','score',1];
                 $where[] = [':le','score',3];
                 break;
             case 'mscore'://机选差评
