@@ -223,7 +223,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取优质口碑
      */
-    public function getHighQualityKoubei($item_id, $current_uid = 0, $count = 10) {
+    public function getHighQualityKoubei($item_id, $current_uid = 0, $count = 8) {
         $koubei_res = array("koubei_info" => array());
         //获取商品的关联商品或者套装单品
         $item_service = new ItemService();
@@ -716,14 +716,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $solr        = new SolrRemote();
         $koubei      = array();
         $brand_list  = array();
-
-        if(!empty($category_id)){
+        if(!empty($category_id) && empty($brand_id)){
             // 类目下口碑去重分页列表
             $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page);
             $brand_list  = $solr->brandList($category_id);
         }else{
             // 品牌口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByBrandId($brand_id, $page);
+            $koubei_info = $solr->getHighQualityKoubeiByBrandId($category_id, $brand_id, $page);
         }
         if(!empty($koubei_info)){
             $koubei['count'] = $koubei_info['count'];
@@ -777,28 +776,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
         // 获取口碑最优id
         //$itemIds = array('1005598','1003113');
         if(empty($itemIds)){
-            return $this->error(500);
+            return $this->succ(array());
         }
-        $rel_ids = array();
+        $transfer_koubei = array();
         $item_service = new ItemService();
         //通过商品id获取口碑id
         foreach ($itemIds as $value) {
             $item_ids = $item_service->getRelateItemById($value);
             if(!empty($item_ids)){
-               $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
-                $rel_ids[] = $koubei_ids[0];
+                $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
+                $res = $this->getBatchKoubeiByIds(array($koubei_ids[0]));
+                foreach($res['data'] as $v){
+                    $transfer_koubei[$value] = $v;
+                }
+
            }
         }
-        $res = $this->getBatchKoubeiByIds($rel_ids);
-        if(!empty($res)){
-            // 处理数组
-            $transfer = $res['data'];
-            foreach($transfer as $k => $v){
-                $transfer_arr[($v['item_koubei']['item_id'])] = $v;
-            }
-            $res['data'] = $transfer_arr;
-            return $this->succ($res['data']);
-        }
+        return $this->succ($transfer_koubei);
     }
     
     /**

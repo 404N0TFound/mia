@@ -33,6 +33,9 @@ class Cleanlivesetting extends \FD_Daemon
             $liveList = $liveMod->getLiveList(['id' => ['id', $id_arr], 'end_time' => [':lt', 'end_time', date("Y-m-d H:i:s", time() - 3600 * 2)]], 0, 100);
 
             foreach ($liveList as $live) {
+                if (!empty($live['settings'])) {
+                    continue;
+                }
                 $setting = json_decode($roomList[$live['user_id']]['settings'], true);
                 $trans = [];
                 $check = 0;
