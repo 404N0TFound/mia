@@ -899,7 +899,8 @@ class Subject extends \mia\miagroup\Lib\Service {
         foreach($subjectIds as $subjectId){
             //查出帖子信息
             $subjectInfo = $this->subjectModel->getSubjectByIds(array($subjectId),array())[$subjectId];
-            //判断该帖子是否被删除或屏蔽过，如果是，则必须要处理
+            print_r($subjectInfo);exit;
+            //判断该帖子是否被删除或屏蔽过，如果是，则无需处理
             if($subjectInfo['status'] == $status){
                 continue;
             }
