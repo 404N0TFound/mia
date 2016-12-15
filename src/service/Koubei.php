@@ -713,7 +713,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1,$userId = 0){
 
-        $solr        = new SolrRemote();
+        $solr        = new SolrRemote('koubei');
         $koubei      = array();
         $brand_list  = array();
         if(!empty($category_id) && empty($brand_id)){
