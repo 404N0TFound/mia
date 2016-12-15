@@ -17,7 +17,7 @@ class Koubei extends \DB_Query {
      * @param array() $itemIds 商品id
      * @return array()
      */
-    public function getKoubeiIdsByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false) {
+    public function getKoubeiIdsByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false ,$condition = array()) {
         $result = array();
         if (empty($itemIds)) {
             return $result;
@@ -26,7 +26,9 @@ class Koubei extends \DB_Query {
         $where[] = ['item_id', $itemIds];
         $where[] = ['status', 2];
         $where[] = [':gt','subject_id',0];
-        
+        if (isset($condition["koubei_id"])) {
+            $where[] = ['id', $condition["koubei_id"]];
+        }
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
         if (!empty($data)) {
@@ -76,7 +78,7 @@ class Koubei extends \DB_Query {
      * @param array() $koubeiIds 口碑id
      * @return array()
      */
-    public function getBatchKoubeiByIds($koubeiIds, $status = array(2)) 
+    public function getBatchKoubeiByIds($koubeiIds, $status = array(2))
     {
         $result = array();
         if (empty($koubeiIds)) {
@@ -87,7 +89,7 @@ class Koubei extends \DB_Query {
         if (!empty($status)) {
             $where[] = ['status', $status];
         }
-    
+
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,immutable_score,item_size,extr_info,item_id,user_id,status,order_id,work_order';
         $data = $this->getRows($where,$fields);
         
@@ -118,8 +120,14 @@ class Koubei extends \DB_Query {
         if(isset($con['score'])){
             $where[] = [':ge','score',$con['score']];
         }
-        
-        $data = $this->getRow($where,$filed);
+
+        $order_by = FALSE;
+        $join = FALSE;
+        if(isset($con['with_pic'])){
+            $join = 'LEFT JOIN koubei_pic ON koubei.id = koubei_pic.koubei_id';
+            $where[] = [':notnull', 'koubei_pic.koubei_id'];
+        }
+        $data = $this->getRow($where, $filed, $order_by, $join);
         if(!empty($data) && $data['nums'] > 0){
             $nums = $data['nums'];
         }
