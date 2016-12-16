@@ -237,7 +237,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
     public function getItemKoubeiTagList($itemId, $tag_id, $page = 1, $count = 20, $userId = 0)
     {
-
+        $koubei_res = array("koubei_info" => array());
+        if(empty($itemId) || empty($tag_id)){
+            return $this->succ($koubei_res);
+        }
+        $koubei_res = $this->getTagsKoubeiList($itemId, $tag_id, $page, $count, $userId);
+        if($page == 1){
+            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"]);
+        }
+        return $this->succ($koubei_res);
     }
 
     /**
@@ -1001,7 +1009,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         //判断标签类型
         $normalTagArr = \F_Ice::$ins->workApp->config->get('busconf.koubei.normalTagArr');
-        if(array_key_exists($tag_id,$normalTagArr)){
+        if (array_key_exists($tag_id, $normalTagArr)) {
             $type = "normal";
         } else {
             $type = "collect";
@@ -1017,10 +1025,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
         $offset = $page > 1 ? ($page - 1) * $limit : 0;
 
-        if($type == "collect"){
+        if ($type == "collect") {
             //聚合印象
             //查询口碑id列表
-            $koubeiIds = $this->koubeiModel->getItemKoubeiIds($item_ids,$tag_id);
+            $koubeiIds = $this->koubeiModel->getItemKoubeiIds($item_ids, $tag_id, $limit, $offset);
             $koubei_res = array("koubei_info" => array());
             //通过商品id获取口碑id
             $cond['koubei_id'] = $koubeiIds;
@@ -1048,7 +1056,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubei_res['koubei_info'] = !empty($koubei_infos) ? array_values($koubei_infos) : array();
         //如果综合评分和蜜粉推荐都为0，且当页无口碑，则返回空数组，如果当页有口碑，则返回口碑记录
         //（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
-        if($item_score > 0 && $item_rec_nums == 0){
+        if ($item_score > 0 && $item_rec_nums == 0) {
             $koubei_res['total_score'] = $item_score;//综合评分
         } else if ($item_score > 0 && $item_rec_nums > 0) {
             $koubei_res['total_score'] = $item_score;//综合评分
@@ -1065,6 +1073,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function getItemTagList($item_id, $field = ["normal", "collect"])
     {
+        $tagOpen = \F_Ice::$ins->workApp->config->get('busconf.koubei.tagOpen');
+        if (!$tagOpen) {
+            return $this->succ([]);
+        }
         if (empty($item_id)) {
             return $this->error(500, "参数错误");
         }
@@ -1151,7 +1163,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $res;
     }
 
-
     /*
      * 批量获取供应商口碑评分数量
      * */
@@ -1183,8 +1194,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $supplier_info['count']['score_today'] = round($numerator/$denominator, 3);
         }
         $supplier_list[$suppliers] = $supplier_info['count'];
-
         return $this->succ($supplier_list);
-
     }
 }
