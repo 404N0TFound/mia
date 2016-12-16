@@ -5,18 +5,24 @@ use mia\miagroup\Data\Koubei\Koubei as KoubeiData;
 use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
 use \mia\miagroup\Data\Koubei\KoubeiSubject as KoubeiSubjectData;
 use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
+use mia\miagroup\Data\Koubei\KoubeiTags;
+use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
 
 class Koubei {
     
     private $koubeiData;
     private $koubeiPicData;
     private $koubeiAppealData;
+    private $koubeiTagsData;
+    private $koubeiTagsRelationData;
     
     
     public function __construct() {
         $this->koubeiData = new KoubeiData();
         $this->koubeiPicData = new KoubeiPicData();
         $this->koubeiAppealData = new KoubeiAppealData();
+        $this->koubeiTagsData = new KoubeiTags();
+        $this->koubeiTagsRelationData = new KoubeiTagsRelation();
     }
     
     /**
@@ -43,12 +49,12 @@ class Koubei {
      * @param $limit
      * @param $offset
      */
-    public function getKoubeiIdsByItemIds($itemIds, $limit = 10, $offset = 0, $conditon = array()){
+    public function getKoubeiIdsByItemIds($itemIds, $limit = 10, $offset = 0, $condition = array()){
         if (empty($itemIds)) {
             return array();
         }
         $orderBy = 'auto_evaluate asc, rank_score desc, created_time desc';
-        $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy);
+        $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy, $condition);
         return $koubeiData;
     }
     
@@ -63,7 +69,25 @@ class Koubei {
         $koubei_data = $this->koubeiData->getKoubeiByItemIdsAndCondition($item_ids, $conditon, $limit, $offset, $order_by);
         return $koubei_data;
     }
-    
+
+    /**
+     * 获取好评的口碑列表
+     */
+    public function getKoubeiPraisedList($item_ids, $condition = array(), $limit = 10, $offset = 0){
+        if (empty($item_ids)) {
+            return array();
+        }
+        $conditon = array();
+        $conditon['item_id'] = $item_ids;
+        $conditon['subject_id'] = 0;
+        $conditon['status'] = 2;
+        $conditon['score'] = 4;
+
+        $order_by = 'rank_score desc, created_time desc';
+        $koubei_data = $this->koubeiData->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $order_by, $condition);
+        return $koubei_data;
+    }
+
     /**
      * 批量获取商品口碑
      * @param array $KoubeiIds 口碑id
@@ -82,12 +106,14 @@ class Koubei {
         }
         return $koubeiInfos;
     }
-    
+
     /**
      * 获取口碑数量
-     * @param $itemIds int 商品id
+     * @param $itemIds 商品id
+     * @param $withPic
+     * @return int
      */
-    public function getItemKoubeiNums($itemIds){
+    public function getItemKoubeiNums($itemIds, $withPic = 0){
         if(empty($itemIds)){
             return 0;
         }
@@ -96,7 +122,9 @@ class Koubei {
         $where['item_id'] = $itemIds;
         $where['subject_id'] = 0;
         $where['status'] = 2;
-        
+        if ($withPic == 1) {
+            $where['with_pic'] = 1;
+        }
         $koubeiNums = $this->koubeiData->getItemInvolveNums($filed, $where);
         return $koubeiNums;    
     }
@@ -355,4 +383,141 @@ class Koubei {
         return $ids;
     }
 
+    /**
+     * 查询口碑印象
+     */
+    public function getTagInfo($tagName)
+    {
+        $where[] = [':eq', 'tag_name', $tagName];
+        $tagsInfo = $this->koubeiTagsData->getTagInfo($where);
+        return $tagsInfo;
+    }
+
+    /**
+     * 查询标签信息
+     */
+    public function getTags($tagsIds)
+    {
+        $where[] = ['id', $tagsIds];
+        $tagsInfo = $this->koubeiTagsData->getTagsInfo($where);
+        $res = [];
+        if(!empty($tagsInfo)){
+            foreach ($tagsInfo as $v){
+                $res[$v["id"]] = $v;
+            }
+        }
+        return $res;
+    }
+
+    /**
+     * 添加口碑标签
+     */
+    public function addTag($data)
+    {
+        $tagId = $this->koubeiTagsData->addTag($data);
+        return $tagId;
+    }
+
+    /**
+     * 获取当前标签的子类
+     */
+    public function getChildTags($parentId)
+    {
+        $where[] = [':eq', 'parent_id', $parentId];
+        $res = $this->koubeiTagsData->getTagsInfo($where);
+        if (empty($res)) {
+            return [];
+        }
+        foreach ($res as $k => $v) {
+            $childArr[] = $v['id'];
+        }
+        return $childArr;
+    }
+
+
+    /**
+     * 更新标签
+     */
+    public function updateTags($setData, $id)
+    {
+        $res = $this->koubeiTagsData->updateTags($setData, $id);
+        return $res;
+    }
+
+    /**
+     * 添加标签和口碑关系
+     */
+    public function addTagsRelation($insertData)
+    {
+        $tagId = $this->koubeiTagsRelationData->addTagsRealtion($insertData);
+        return $tagId;
+    }
+
+    /**
+     * 商品标签统计
+     * 根据商品id，查询出所有父标签
+     * @param $item_ids 商品id数组
+     * @param array $tag_ids 查指定父标签的
+     * @param int $count  是否统计数量(统计每个父标签的数量)
+     * @return array
+     */
+    public function getItemKoubeiTags($item_ids,$tag_ids = [],$count = 0)
+    {
+        if (empty($item_ids)) {
+            return [];
+        }
+        $where[] = ['item_id', $item_ids];
+        if($count == 1){
+            $cols = 'tag_id_1,count(id) as num';
+        } else {
+            $cols = 'tag_id_1';
+        }
+
+        if (!empty($tag_ids)) {
+            $where[] = ['tag_id_1', $tag_ids];
+        }
+
+        $tags = $this->koubeiTagsRelationData->getTags($where, $cols, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id_1");
+        $res = [];
+        if(!empty($tags)){
+            foreach ($tags as $k=>$v){
+                $res[$v['tag_id_1']] = $v;
+            }
+        }
+        return $res;
+    }
+
+    /**
+     * 获取口碑IDs
+     * 根据商品和标签
+     * @param $item_ids
+     * @param $tag_id
+     * @return array
+     */
+
+    public function getItemKoubeiIds($item_ids,$tag_id)
+    {
+        if (empty($item_ids) || empty($tag_id)) {
+            return [];
+        }
+        $where[] = ['item_id', $item_ids];
+        $where[] = ['tag_id_1', $tag_id];
+        $koubeiIds = $this->koubeiTagsRelationData->getTags($where,"koubei_id");
+        $res = [];
+        if(!empty($koubeiIds)){
+            foreach ($koubeiIds as $v){
+                $res[] = $v['koubei_id'];
+            }
+        }
+        return $res;
+    }
+
+    /**
+     * 查询标签,口碑关系
+     */
+    public function getItemTags($where)
+    {
+        $res = $this->koubeiTagsRelationData->getTags($where);
+        return $res;
+    }
 }
