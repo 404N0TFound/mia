@@ -303,8 +303,10 @@ class Live extends \mia\miagroup\Lib\Service
         $this->liveModel->setLiveCount($liveId, 'audience_top_num', $onlineCount);
         //移除头条视频推荐
         $headLineService = new \mia\miagroup\Service\HeadLine();
-        $headlineId = $headLineService->getOperateHeadlineByRelationID($roomId, \F_Ice::$ins->workApp->config->get('busconf.headline.clientServerMapping.live'));
-        $headLineService->delOperateHeadLine($headlineId);
+        $headline = $headLineService->getOperateHeadlineByRelationID($roomId, \F_Ice::$ins->workApp->config->get('busconf.headline.clientServerMapping.live'))['data'];
+        if (!empty($headline['id'])) {
+            $headLineService->delOperateHeadLine($headline['id']);
+        }
         return $this->succ($setRoomRes);
     }
 
