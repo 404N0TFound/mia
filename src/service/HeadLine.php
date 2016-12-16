@@ -436,6 +436,17 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 通过relation_id/type获取运营头条
+     */
+    public function getOperateHeadlineByRelationID($relation_id, $relation_type) {
+        if (empty($relation_id) || !in_array($relation_type, $this->headlineConfig['clientServerMapping'])) {
+            return false;
+        }
+        $data = $this->headLineModel->getOperateHeadlineByRelationId($relation_id, $relation_type);
+        return $this->succ($data);
+    }
+    
+    /**
      * 获取头条专题
      * @param $field 额外字段 count
      */
