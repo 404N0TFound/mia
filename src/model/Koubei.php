@@ -466,9 +466,9 @@ class Koubei {
         if (empty($item_ids)) {
             return [];
         }
-        $where[] = ['item_id', $item_ids];
+        $where[] = ['koubei_tags_relation.item_id', $item_ids];
         if($count == 1){
-            $cols = 'tag_id_1,count(id) as num';
+            $cols = 'tag_id_1,count(tag_id_1) as num';
         } else {
             $cols = 'tag_id_1';
         }
@@ -477,7 +477,12 @@ class Koubei {
             $where[] = ['tag_id_1', $tag_ids];
         }
 
-        $tags = $this->koubeiTagsRelationData->getTags($where, $cols, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy = "tag_id_1");
+        $where[] = ['koubei.status', 2];
+        $where[] = [':gt', 'koubei.subject_id', 0];
+
+        $conditions['join'] = 'koubei';
+        $conditions['group_by'] = 'tag_id_1';
+        $tags = $this->koubeiTagsRelationData->getTagsKoubei($where, $cols, $conditions);
         $res = [];
         if(!empty($tags)){
             foreach ($tags as $k=>$v){
@@ -494,18 +499,22 @@ class Koubei {
      * @param $tag_id
      * @return array
      */
-
-    public function getItemKoubeiIds($item_ids,$tag_id)
+    public function getItemKoubeiIds($item_ids, $tag_id, $limit, $offset)
     {
         if (empty($item_ids) || empty($tag_id)) {
             return [];
         }
-        $where[] = ['item_id', $item_ids];
-        $where[] = ['tag_id_1', $tag_id];
-        $koubeiIds = $this->koubeiTagsRelationData->getTags($where,"koubei_id");
+        $where[] = ['koubei_tags_relation.item_id', $item_ids];
+        $where[] = ['koubei_tags_relation.tag_id_1', $tag_id];
+
+        $conditions['join'] = 'koubei';
+        $conditions['limit'] = $limit;
+        $conditions['offset'] = $offset;
+        $conditions['order_by'] = 'koubei.rank_score desc, koubei.created_time desc';
+        $koubeiIds = $this->koubeiTagsRelationData->getTagsKoubei($where, "koubei_id", $conditions);
         $res = [];
-        if(!empty($koubeiIds)){
-            foreach ($koubeiIds as $v){
+        if (!empty($koubeiIds)) {
+            foreach ($koubeiIds as $v) {
                 $res[] = $v['koubei_id'];
             }
         }
