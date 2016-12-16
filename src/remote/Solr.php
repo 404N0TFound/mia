@@ -557,7 +557,7 @@ class Solr
      * */
     public function getSupplierGoodsScore($supplier = 0, $search_time = ''){
 
-        $begin_time = strtotime("-6 months", $search_time);
+        $begin_time = strtotime("-3 months", $search_time);
         $solrInfo = [
             'q'           => '*:*',
             'fl'          => 'order_id',
@@ -613,7 +613,7 @@ class Solr
      * */
     public function getSupplierGoodsScoreOrderIds($supplier = 0, $search_time = ''){
 
-        $begin_time = strtotime("-6 months", $search_time);
+        $begin_time = strtotime("-3 months", $search_time);
         $solrInfo = [
             'q'           => '*:*',
             'fl'          => 'order_id',
@@ -642,7 +642,7 @@ class Solr
      * */
     public function getDefaultScoreFive($supplier = 0, $search_time = ''){
 
-        $begin_time = strtotime("-6 months", $search_time);
+        $begin_time = strtotime("-3 months", $search_time);
         $solrInfo = [
             'q'           => '*:*',
             'fl'          => 'order_id',
