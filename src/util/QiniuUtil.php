@@ -62,7 +62,7 @@ class QiniuUtil {
         $returnData = [];
         if(isset($idInfo[2])){
             $returnData = [
-                'hls' => 'http://' . $this->config['live_host']['hls'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".m3u8",
+                'hls' => 'https://' . $this->config['live_host']['hls'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".m3u8",
                 'rtmp'=> 'rtmp://' . $this->config['live_host']['rtmp'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2],
                 'hdl' => 'http://' . $this->config['live_host']['hdl'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".flv",
             ];
@@ -78,7 +78,7 @@ class QiniuUtil {
         $returnData = [];
         if(isset($idInfo[2])){
             $returnData = [
-                'hls' => 'http://' . $this->config['live_host']['playback'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . '.m3u8?start=0&end=' . (time()+86400),
+                'hls' => 'https://' . $this->config['live_host']['playback'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . '.m3u8?start=0&end=' . (time()+86400),
             ];
         }
         return $returnData;
@@ -136,7 +136,7 @@ class QiniuUtil {
     /**
      * 获取直播快照
      */
-    public function getSnapShot($streamId, $size = 100, $name = null, $time = null){
+    public function getSnapShot($streamId, $width = 640, $height = 640, $time = null, $name = null){
         $returnValue = [];
         if(!$name){
             $time = time();
@@ -148,12 +148,11 @@ class QiniuUtil {
             $result = $stream->snapshot($name, $format, $time);
             if(isset($result['targetUrl'])){
                 $returnValue['origin'] = $result['targetUrl'];
-                $returnValue[$size] = "{$result['targetUrl']}?imageView2/2/w/{$size}/h/{$size}/q/85";
+                $returnValue['format'] = "{$result['targetUrl']}?imageView2/2/w/{$width}/h/{$height}/q/85";
             }
-//             throw new \Exception();
         } catch (\Exception $e) {
             $returnValue['origin'] = '';
-            $returnValue[$size] = '';
+            $returnValue['format'] = '';
         }
         
         return $returnValue;
