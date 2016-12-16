@@ -123,6 +123,15 @@ class HeadLine {
     }
     
     /**
+     * 通过relation_id/type获取运营头条
+     */
+    public function getOperateHeadlineByRelationId($relation_id, $relation_type)
+    {
+        $data = $this->headLineChannelContentData->getHeadLineByRelationId($relation_id, $relation_type);
+        return $data;
+    }
+    
+    /**
      * 获取头条专题
      */
     public function getHeadLineTopics($topicIds, $status = array(1)) {

@@ -179,6 +179,7 @@ class Live extends \mia\miagroup\Lib\Service
             $streamInfo = $liveCloud->createStream($streamId);
             //新增直播记录
             $liveInfo['user_id'] = $userId;
+            $liveInfo['room_id'] = $roomInfo['id'];
             $liveInfo['stream_id'] = $streamInfo['id'];
             $liveInfo['chat_room_id'] = $chatId;
             $liveInfo['status'] = 1;//创建中
@@ -244,6 +245,19 @@ class Live extends \mia\miagroup\Lib\Service
             $setData[] = ['start_time', date('Y-m-d H:i:s')];
         }
         $data = $this->liveModel->updateLiveById($liveId, $setData);
+        
+        //写入头条视频推荐
+        $headLineService = new \mia\miagroup\Service\HeadLine();
+        $headLineInfo['channel_id'] = $this->koubeiConfig = \F_Ice::$ins->workApp->config->get('batchdiff.headline_video_channel_id');
+        $headLineInfo['relation_id'] = $live_info['room_id'];
+        $headLineInfo['relation_type'] = \F_Ice::$ins->workApp->config->get('busconf.headline.clientServerMapping.live');
+        $headLineInfo['page'] = 1;
+        $headLineInfo['row'] = 1;
+        $headLineInfo['begin_time'] = date('Y-m-d H:i:s');
+        $headLineInfo['end_time'] = date('Y-m-d H:i:s', time() + 3600);
+        $headLineInfo['create_time'] = date('Y-m-d H:i:s');
+        $headLineService->addOperateHeadLine($headLineInfo);
+        
         return $this->succ($data);
     }
 
@@ -287,7 +301,12 @@ class Live extends \mia\miagroup\Lib\Service
         $onlineCount = $this->liveModel->getLiveCountByIds(array($liveId));
         $onlineCount = $onlineCount[$liveId]['online_num'];
         $this->liveModel->setLiveCount($liveId, 'audience_top_num', $onlineCount);
-
+        //移除头条视频推荐
+        $headLineService = new \mia\miagroup\Service\HeadLine();
+        $headline = $headLineService->getOperateHeadlineByRelationID($roomId, \F_Ice::$ins->workApp->config->get('busconf.headline.clientServerMapping.live'))['data'];
+        if (!empty($headline['id'])) {
+            $headLineService->delOperateHeadLine($headline['id']);
+        }
         return $this->succ($setRoomRes);
     }
 
