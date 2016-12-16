@@ -228,7 +228,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取优质口碑
      */
-    public function getHighQualityKoubei($item_id, $current_uid = 0, $count = 10) {
+    public function getHighQualityKoubei($item_id, $current_uid = 0, $count = 8) {
         $koubei_res = array("koubei_info" => array());
         //获取商品的关联商品或者套装单品
         $item_service = new ItemService();
@@ -718,17 +718,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1,$userId = 0){
 
-        $solr        = new SolrRemote();
+        $solr        = new SolrRemote('koubei');
         $koubei      = array();
         $brand_list  = array();
-
-        if(!empty($category_id)){
+        if(!empty($category_id) && empty($brand_id)){
             // 类目下口碑去重分页列表
             $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page);
             $brand_list  = $solr->brandList($category_id);
         }else{
             // 品牌口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByBrandId($brand_id, $page);
+            $koubei_info = $solr->getHighQualityKoubeiByBrandId($category_id, $brand_id, $page);
         }
         if(!empty($koubei_info)){
             $koubei['count'] = $koubei_info['count'];
@@ -782,28 +781,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
         // 获取口碑最优id
         //$itemIds = array('1005598','1003113');
         if(empty($itemIds)){
-            return $this->error(500);
+            return $this->succ(array());
         }
-        $rel_ids = array();
+        $transfer_koubei = array();
         $item_service = new ItemService();
         //通过商品id获取口碑id
         foreach ($itemIds as $value) {
             $item_ids = $item_service->getRelateItemById($value);
             if(!empty($item_ids)){
-               $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
-                $rel_ids[] = $koubei_ids[0];
+                $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
+                $res = $this->getBatchKoubeiByIds(array($koubei_ids[0]));
+                foreach($res['data'] as $v){
+                    $transfer_koubei[$value] = $v;
+                }
+
            }
         }
-        $res = $this->getBatchKoubeiByIds($rel_ids);
-        if(!empty($res)){
-            // 处理数组
-            $transfer = $res['data'];
-            foreach($transfer as $k => $v){
-                $transfer_arr[($v['item_koubei']['item_id'])] = $v;
-            }
-            $res['data'] = $transfer_arr;
-            return $this->succ($res['data']);
-        }
+        return $this->succ($transfer_koubei);
     }
     
     /**
@@ -819,6 +813,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId,$koubeUpData);
         return $this->succ($res);
     }
+
 
     /**
      * 导入口碑印象标签信息
@@ -1098,5 +1093,42 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         return $res;
+    }
+
+
+    /*
+     * 批量获取供应商口碑评分数量
+     * */
+    public function getSupplierKoubeiScore($suppliers = '',$search_time = ''){
+        if(empty($suppliers) || empty($search_time)){
+            return $this->succ(array());
+        }
+        $supplier_list = array();
+        $solr = new SolrRemote('koubei');
+        $solr_supplier = new SolrRemote('supplier');
+        $supplier_info = $solr->getSupplierGoodsScore($suppliers, $search_time);
+        // 获取默认5分好评
+        $default_info = $solr_supplier->getDefaultScoreFive($suppliers, $search_time);
+        $supplier_info['count']['num_default'] = 0;
+        if(!empty($default_info)){
+            $supplier_info['count']['num_default'] = count(array_diff($default_info,$supplier_info['order_ids']));
+        }
+        // 统计今日得分
+        $numerator = (
+                5*$supplier_info['count']['num_five']+
+                4*$supplier_info['count']['num_four']+
+                3*$supplier_info['count']['num_three']+
+                2*$supplier_info['count']['num_two']+
+                1*$supplier_info['count']['num_one'])*100
+            +5*$supplier_info['count']['num_default'];
+        $denominator = array_sum($supplier_info['count'])*100+$supplier_info['count']['num_default'];
+        $supplier_info['count']['score_today'] = 0;
+        if(!empty($denominator)){
+            $supplier_info['count']['score_today'] = round($numerator/$denominator, 3);
+        }
+        $supplier_list[$suppliers] = $supplier_info['count'];
+
+        return $this->succ($supplier_list);
+
     }
 }

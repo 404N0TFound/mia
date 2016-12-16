@@ -220,6 +220,7 @@ class Koubei extends \DB_Query {
                 $where[] = ['comment_status',1];
                 break;
             case 'lowscore'://差评
+                $where[] = [':ge','score',1];
                 $where[] = [':le','score',3];
                 break;
             case 'mscore'://机选差评
@@ -260,7 +261,7 @@ class Koubei extends \DB_Query {
             $where[] = ['status', $status];
         }
     
-        $field = "supplier_id, count(1) as nums";
+        $filed = "supplier_id, count(1) as nums";
         $groupBy = "supplier_id";
         $result = $this->getRows($where,$filed,false,0,false,false,$groupBy);
         if(!empty($result)){

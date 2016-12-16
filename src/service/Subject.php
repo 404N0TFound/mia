@@ -708,7 +708,6 @@ class Subject extends \mia\miagroup\Lib\Service {
         //获取帖子ID
         $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId,$currentId,$page,$iPageSize);
         if(empty($subject_ids)){
-            $data['status'] = -1;
             return $this->succ($data);
         }
         $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId)['data']);
