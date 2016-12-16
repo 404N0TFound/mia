@@ -40,7 +40,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 return $this->error(6102);
             }
             //获取口碑信息，验证是否该口碑已经发布过
-            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId[0],$koubeiData['item_id']);
+            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id']);
             if(!empty($koubeiInfo)){
                 return $this->error(6103);
             }
@@ -177,6 +177,63 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         return $this->succ($koubeiInsertId);
     }
+    
+    /**
+     * 默认好评
+     */
+    public function autoEvaluateKoubei($koubeiData) {
+        if (empty($koubeiData['order_code']) || empty($koubeiData['item_id']) || empty($koubeiData['item_id'])) {
+            return $this->error(500);
+        }
+        //获取订单信息，验证是否可以发布口碑
+        $orderService = new OrderService();
+        $orderInfo = $orderService->getOrderInfoByOrderCode(array($koubeiData['order_code']))['data'][$koubeiData['order_code']];
+        if(empty($orderInfo) || $orderInfo['status'] != 5) {
+            return $this->error(6102);
+        }
+        //获取口碑信息，验证是否该口碑已经发布过
+        $koubeInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'], $koubeiData['item_id']);
+        if(!empty($koubeInfo)) {
+            return $this->error(6103);
+        }
+        
+        //保存口碑
+        $koubeiSetData = array();
+        $koubeiSetData['status'] = 2;
+        $koubeiSetData['auto_evaluate'] = 1;
+        $koubeiSetData['score'] = 5;
+        $koubeiSetData['item_id'] = $koubeiData['item_id'];
+        $koubeiSetData['user_id'] = $orderInfo['user_id'];
+        $koubeiSetData['order_id'] = $orderInfo['id'];
+        $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
+        $koubeiSetData['immutable_score'] = 0;
+        $koubeiSetData['rank_score'] = 0;
+        //供应商ID获取
+        $itemService = new ItemService();
+        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
+        $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
+        $koubeiInsertId = $this->koubeiModel->saveKoubei($koubeiSetData);
+        if(!$koubeiInsertId) {
+            return $this->error(6101);
+        }
+        
+        //发口碑同时发布蜜芽圈帖子
+        $subjectInfo = array();
+        $subjectInfo['user_info']['user_id'] = $koubeiSetData['user_id'];
+        $subjectInfo['title'] = '';
+        $subjectInfo['text'] = '';
+        $subjectInfo['status'] = 3; //不展示
+        $subjectInfo['created'] = $koubeiSetData['created_time'];
+        $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
+        $subjectIssue = $this->subjectService->issue($subjectInfo, array('item_id'=>$koubeiSetData['item_id']), array(), $koubeiInsertId)['data'];
+        
+        //将帖子id回写到口碑表中
+        if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
+            $this->koubeiModel->addSubjectIdToKoubei($koubeiInsertId, $subjectIssue['id']);
+        }
+        
+        return $this->succ($koubeiInsertId);
+    }
 
     public function getItemKoubeiTagList($itemId, $tag_id, $page = 1, $count = 20, $userId = 0)
     {
@@ -288,7 +345,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if(empty($koubei['subject_id'])) continue;
             //收集subjectids
             $subjectId[] = $koubei['subject_id'];
-            
             $itemKoubei[$koubei['subject_id']] = array(
                 'id' => $koubei['id'],
                 'rank' => $koubei['rank'],
@@ -298,21 +354,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'status' => $koubei['status'],
                 'order_id' => $koubei['order_id'],
             );
-           // 获取口碑订单id，用于获取订单编号(order_code)
+            //获取口碑订单id，用于获取订单编号(order_code)
             if(!empty($koubei['order_id'])){
                 $orderIds[] = $koubei['order_id'];
             }
-            
         }
-        
-        if(in_array('order_info', $field) || !empty($orderIds)){
+        if(in_array('order_info', $field) && !empty($orderIds)){
             //获取订单信息，验证是否可以发布口碑（order service）
             $orderService = new OrderService();
             $orderInfos = $orderService->getOrderInfoByIds($orderIds)['data'];
         }
-        
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
-        $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field);
+        $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field, array(1, 3));
         foreach ($itemKoubei as $key => $value) {
             if (!empty($subjectRes['data'][$key])) {
                 foreach ($subjectRes['data'][$key]['items'] as $item) {
@@ -320,6 +373,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         $value['item_info'] = $item;
                         break;
                     }
+                }
+                if ($subjectRes['data'][$key]['status'] == 3) {
+                    $subjectRes['data'][$key]['text'] = \F_Ice::$ins->workApp->config->get('busconf.koubei.autoEvaluateText');
                 }
                 $subjectRes['data'][$key]['item_koubei'] = $value;
                 //把口碑的订单编号（order_code）拼到口碑信息中

@@ -407,6 +407,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (intval($subjectInfo['source']) > 0) {
             $subjectSetInfo['source'] = $subjectInfo['source'];
         }
+        if (isset($subjectInfo['status'])) {
+            $subjectSetInfo['status'] = $subjectInfo['status'];
+        }
         // ext_info保存帖子口碑关联信息
         if (intval($koubeiId) > 0) {
             $subjectSetInfo['ext_info']['koubei']['id'] = $koubeiId;
