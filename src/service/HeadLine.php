@@ -699,6 +699,8 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $live['title'] = $relation_title ? $relation_title : $live['title'];
                         if(!empty($relation_cover_image)){
                             $live['cover_image'] = $relation_cover_image;
+                        } else if (!empty($live['live_info']['pic'])) {
+                            $live['cover_image'] = $live['live_info']['pic'];
                         }
                         $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';

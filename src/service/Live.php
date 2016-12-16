@@ -559,6 +559,11 @@ class Live extends \mia\miagroup\Lib\Service
                 $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'), $liveId);
                 $sale_num = $redis->get($sale_num_key);
                 $liveInfo['sale_num'] = $sale_num ?: '0';
+                //直播封面图
+                if (empty($liveInfo['pic'])) {
+                    $url = $liveCloud->getSnapShot($liveInfo['stream_id']);
+                    $liveInfo['pic'] = array('url' => $url['origin'], 'width' => 600, 'height' => 600);
+                }
             }
             //如果直播已结束，给回放地址
             if ($liveInfo['status'] == 4 || $liveInfo['status'] == 3) {
