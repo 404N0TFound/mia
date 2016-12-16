@@ -178,6 +178,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $this->succ($koubeiInsertId);
     }
 
+    public function getItemKoubeiTagList($itemId, $tag_id, $page = 1, $count = 20, $userId = 0)
+    {
+
+    }
+
     /**
      * 获取口碑列表
      */
