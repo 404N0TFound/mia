@@ -7,7 +7,8 @@ class Solr
     public   $solrserver    = '';
     public   $export_count  = 2000;
 
-    public function __construct(){
+    public function __construct($core){
+        $this->setCore($core);
         $this->switchServer();
     }
 
@@ -29,7 +30,6 @@ class Solr
      * 封装数据
      */
     public function handleSolrUrlParams(){
-        $this->setCore($this->config['core']);
         $this->solrserver = 'http://'.$this->config['host'].':'.$this->config['port'].'/'.$this->config['path'].'/';
     }
 
@@ -106,6 +106,9 @@ class Solr
                 }
                 $params['facet'] = 'on';
                 $params['facet.field'] = $fieldStr;
+            }
+            if(empty($data['facet.pivot']) == false){
+                $params['facet.pivot'] = $data['facet.pivot'];
             }
             // Field Collapsing
             if(empty($data['group']) == false){
@@ -544,6 +547,120 @@ class Solr
                 $new_brand_list[$k]['name'] = $v['name'];
             }
             return $new_brand_list;
+        }
+        return array();
+    }
+
+
+    /*
+     * 获取各项分数统计
+     * */
+    public function getSupplierGoodsScore($supplier = 0, $search_time = ''){
+
+        $begin_time = strtotime("-6 months", $search_time);
+        $solrInfo = [
+            'q'           => '*:*',
+            'fl'          => 'order_id',
+            'facet'       => 'true',
+            'facet.pivot' => 'score',
+            'facet.field' => array('score'),
+        ];
+        $solrInfo['fq'][] = 'supplier_id:'.$supplier;
+        $solrInfo['fq'][] = 'status:2';
+        $solrInfo['fq'][] = '-(item_id:0)';
+        $solrInfo['fq'][] = '-(order_id:0)';
+        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO '.$search_time.']';
+
+        $res = $this->select($solrInfo);
+        $statis = array();
+        $statis['count'] = [
+            'num_five'  => 0,
+            'num_four'  => 0,
+            'num_three' => 0,
+            'num_two'   => 0,
+            'num_one'   => 0,
+        ];
+        $docs = $res['data']['response']['docs'];
+        if(!empty($docs)) {
+            // 获取总order_ids
+            $order_ids = $this->getSupplierGoodsScoreOrderIds($supplier, $search_time);
+            $statis['order_ids'] = $order_ids;
+            $facet_pivot = $res['data']['facet_counts']['facet_pivot']['score'];
+           foreach($facet_pivot as $value){
+               if($value['value'] == 5){
+                   $statis['count']['num_five'] = $value['count'];
+               }
+               if($value['value'] == 4){
+                   $statis['count']['num_four'] = $value['count'];
+               }
+               if($value['value'] == 3){
+                   $statis['count']['num_three'] = $value['count'];
+               }
+               if($value['value'] == 2){
+                   $statis['count']['num_two'] = $value['count'];
+               }
+               if($value['value'] == 1){
+                   $statis['count']['num_one'] = $value['count'];
+               }
+           }
+        }
+        return $statis;
+    }
+
+
+    /*
+     * 获取当前商家下的所有有分值口碑order_id
+     * */
+    public function getSupplierGoodsScoreOrderIds($supplier = 0, $search_time = ''){
+
+        $begin_time = strtotime("-6 months", $search_time);
+        $solrInfo = [
+            'q'           => '*:*',
+            'fl'          => 'order_id',
+            'facet'       => 'true',
+            'facet.pivot' => 'order_id',
+            'facet.field' => array('order_id'),
+        ];
+        $solrInfo['fq'][] = 'supplier_id:'.$supplier;
+        $solrInfo['fq'][] = 'status:2';
+        $solrInfo['fq'][] = '-(item_id:0)';
+        $solrInfo['fq'][] = '-(order_id:0)';
+        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO '.$search_time.']';
+
+        $res = $this->select($solrInfo);
+        $facet_pivot = $res['data']['facet_counts']['facet_pivot']['order_id'];
+        if(!empty($facet_pivot)){
+            $order_ids = array_column($facet_pivot,'value');
+            return $order_ids;
+        }
+        return array();
+    }
+
+
+    /*
+     * 获取默认5分好评
+     * */
+    public function getDefaultScoreFive($supplier = 0, $search_time = ''){
+
+        $begin_time = strtotime("-6 months", $search_time);
+        $solrInfo = [
+            'q'           => '*:*',
+            'fl'          => 'order_id',
+            'facet'       => 'true',
+            'facet.pivot' => 'order_id',
+            'facet.field' => array('order_id'),
+        ];
+        $solrInfo['fq'][] = 'supplier_id:'.$supplier;
+        $solrInfo['fq'][] = 'status:5';
+        $solrInfo['fq'][] = '-(item_id:0)';
+        $solrInfo['fq'][] = '-(order_id:0)';
+        $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO '.$search_time.']';
+
+        $res = $this->select($solrInfo);
+        $facet_pivot = $res['data']['facet_counts']['facet_pivot']['order_id'];
+        if(!empty($facet_pivot)){
+            $order_ids = array_column($facet_pivot,'value');
+            return $order_ids;
         }
         return array();
     }
