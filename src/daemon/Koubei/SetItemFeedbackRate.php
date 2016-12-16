@@ -27,9 +27,9 @@ class SetItemFeedbackRate extends \FD_Daemon {
     }
 
     public function execute() {
-         $this->setItemFeedbackRate();
+         //$this->setItemFeedbackRate();
          //更新增量的商品的口碑好评率
-         //$this->setIncrementItemFeedbackRate();
+         $this->setIncrementItemFeedbackRate();
     }
     
     //全量计算且更新商品口碑好评率
@@ -64,20 +64,19 @@ class SetItemFeedbackRate extends \FD_Daemon {
             //2、通过口碑商品id获取商品关联款及套装款id
             $itemIds = $this->itemService->getRelateItemById($itemInfo['id']);
             $itemIds = array_unique($itemIds);
-//             echo $itemInfo['id'];
-//             print_r($itemIds);
             //3、获取商品全部评分口碑数量
             $filed = ' count(*) as nums ';
             $where = array();
             $where['item_id'] = $itemIds;
             $where['status'] = 2;
+            $where['score'] = 1;
             $totalNums = $this->koubeiData->getItemInvolveNums($filed, $where);
             //4、获取商品4分以上的评分口碑数量
             $where['score'] = 4;
             $highScoreNums = $this->koubeiData->getItemInvolveNums($filed, $where);
             //5、通过口碑评分，计算出商品关联及套装好评率
             $feedbackRate = round($highScoreNums/$totalNums* 100,2) ;
-//             echo $itemInfo['id']."####".$totalNums."####".$highScoreNums."#####".$feedbackRate."\n";
+
             //6、将好评率更新到待计算口碑好评率的商品记录中
             $itemSetData = array();
             $itemSetData[] = ['feedback_rate',$feedbackRate];
