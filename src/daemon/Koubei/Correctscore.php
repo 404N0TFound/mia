@@ -70,8 +70,12 @@ class Correctscore extends \FD_Daemon {
             if (!isset($koubeiInfos[$value['id']])) {
                 continue;
             }
+            if ($koubeiInfos[$value['id']]['auto_evaluate'] == 1) { //自动好评直接跳过
+                continue;
+            }
             $tmpKoubei = $koubeiInfos[$value['id']];
-            if ($tmpKoubei['score'] == 0) { //蜜芽圈同步过来的不需要修正
+            //蜜芽圈同步过来的不需要修正，自动好评不需要修正
+            if ($tmpKoubei['score'] == 0 || $tmpKoubei['auto_evaluate'] == 1) {
                 continue;
             }
             $score = null;
