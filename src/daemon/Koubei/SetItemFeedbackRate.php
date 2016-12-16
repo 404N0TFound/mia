@@ -8,7 +8,7 @@ use mia\miagroup\Service\Item as ItemService;
 /**
  * 更新商品口碑好评率
  */
-class SetItemFeedbackRate extends \FD_Daemon {
+class Setitemfeedbackrate extends \FD_Daemon {
 
     private $koubeiData;
     private $itemData;
