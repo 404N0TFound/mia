@@ -62,7 +62,7 @@ class QiniuUtil {
         $returnData = [];
         if(isset($idInfo[2])){
             $returnData = [
-                'hls' => 'https://' . $this->config['live_host']['hls'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".m3u8",
+                'hls' => 'http://' . $this->config['live_host']['hls'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".m3u8",
                 'rtmp'=> 'rtmp://' . $this->config['live_host']['rtmp'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2],
                 'hdl' => 'http://' . $this->config['live_host']['hdl'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . ".flv",
             ];
@@ -78,7 +78,7 @@ class QiniuUtil {
         $returnData = [];
         if(isset($idInfo[2])){
             $returnData = [
-                'hls' => 'https://' . $this->config['live_host']['playback'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . '.m3u8?start=0&end=' . (time()+86400),
+                'hls' => 'http://' . $this->config['live_host']['playback'] . '/' . $this->config['live_hub'] . '/' . $idInfo[2] . '.m3u8?start=0&end=' . (time()+86400),
             ];
         }
         return $returnData;
