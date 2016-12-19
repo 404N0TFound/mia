@@ -235,7 +235,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['total_score'] = $item_score;//综合评分
             $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
-
+        if($page == 1){
+            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"]);
+        }
         return $this->succ($koubei_res);
     }
     
