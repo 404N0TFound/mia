@@ -212,7 +212,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_info = $item_service->getBatchItemBrandByIds([$itemId]);
 
         //好评率
-        $feedbackRate = $item_info['data'][$itemId]['feedback_rate'];
+        $feedbackRate = intval($item_info['data'][$itemId]['feedback_rate'])."%";
         $koubei_res['feedback_rate'] = $feedbackRate;//口碑数量
 
         //获取用户评分
@@ -264,7 +264,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
 
         //好评率
-        $feedbackRate = $item_info['data'][$item_id]['feedback_rate'];
+        $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate'])."%";
 
         //通过商品id获取口碑id
         $condition = array();
@@ -977,7 +977,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
 
         //好评率
-        $feedbackRate = $item_info['data'][$item_id]['feedback_rate'];
+        $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate'])."%";
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
         //获取蜜粉推荐
