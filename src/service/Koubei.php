@@ -1128,12 +1128,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $tagList[$k]['tag_id'] = $v["id"];
                     $tagList[$k]['tag_name'] = $v["tag_name"];
                     $tagList[$k]['count'] = intval($v["count"]);
+                    $tagList[$k]['positive'] = 1;
                     $good++;
                 } elseif ($v["count"] >= 2 && $v['positive'] == 2 && $bad < 1) {
                     $tagList[$k]['type'] = "collect";
                     $tagList[$k]['tag_id'] = $v["id"];
                     $tagList[$k]['tag_name'] = $v["tag_name"];
                     $tagList[$k]['count'] = intval($v["count"]);
+                    $tagList[$k]['positive'] = 2;
                     $bad++;
                 }
             }
@@ -1149,13 +1151,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $picNum = $this->koubeiModel->getItemKoubeiNums($item_ids, 1);
             $praiseNum = $this->koubeiModel->getItemRecNums($item_ids);
             if ($totalNum >= 3) {
-                $normalTags[] = ["type" => "normal", "tag_id" => "1", "tag_name" => "全部", "count" => intval($totalNum)];
+                $normalTags[] = ["type" => "normal", "tag_id" => "1", "tag_name" => "全部", "count" => intval($totalNum), 'positive' => 1];
             }
             if ($picNum >= 3) {
-                $normalTags[] = ["type" => "normal", "tag_id" => "2", "tag_name" => "有图", "count" => intval($picNum)];
+                $normalTags[] = ["type" => "normal", "tag_id" => "2", "tag_name" => "有图", "count" => intval($picNum), 'positive' => 1];
             }
             if ($praiseNum >= 3) {
-                $normalTags[] = ["type" => "normal", "tag_id" => "3", "tag_name" => "好评", "count" => intval($praiseNum)];
+                $normalTags[] = ["type" => "normal", "tag_id" => "3", "tag_name" => "好评", "count" => intval($praiseNum), 'positive' => 1];
             }
         }
         $result = array_merge($normalTags,$tagList);
