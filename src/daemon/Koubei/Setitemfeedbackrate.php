@@ -52,7 +52,7 @@ class Setitemfeedbackrate extends \FD_Daemon {
             $lastId = intval($lastId);
         }
         //1、获取待计算口碑好评率的商品id
-        $itemInfoData = $this->itemData->getListById($lastId,10);
+        $itemInfoData = $this->itemData->getListById($lastId,100);
         //循环将好评率更新到商品记录中
         foreach ($itemInfoData as $itemInfo){
             if (isset($maxId)) { //获取最大event_id
