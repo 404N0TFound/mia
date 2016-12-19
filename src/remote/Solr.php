@@ -569,7 +569,7 @@ class Solr
         $solrInfo['fq'][] = 'status:2';
         $solrInfo['fq'][] = '-(item_id:0)';
         $solrInfo['fq'][] = '-(order_id:0)';
-        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO '.$search_time.']';
+        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
 
         $res = $this->select($solrInfo);
         $statis = array();
@@ -625,7 +625,7 @@ class Solr
         $solrInfo['fq'][] = 'status:2';
         $solrInfo['fq'][] = '-(item_id:0)';
         $solrInfo['fq'][] = '-(order_id:0)';
-        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO '.$search_time.']';
+        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
 
         $res = $this->select($solrInfo);
         $facet_pivot = $res['data']['facet_counts']['facet_pivot']['order_id'];
@@ -654,13 +654,13 @@ class Solr
         $solrInfo['fq'][] = 'status:5';
         $solrInfo['fq'][] = '-(item_id:0)';
         $solrInfo['fq'][] = '-(order_id:0)';
-        $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO '.$search_time.']';
+        $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO *]';
 
         $res = $this->select($solrInfo);
         $facet_pivot = $res['data']['facet_counts']['facet_pivot']['order_id'];
         if(!empty($facet_pivot)){
             $order_ids = array_column($facet_pivot,'value');
-            return $order_ids;
+            return array('order_ids' => $order_ids, 'count' => $res['data']['response']['numFound']);
         }
         return array();
     }
