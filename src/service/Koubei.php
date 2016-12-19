@@ -1024,7 +1024,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
         $koubei_res['feedback_rate'] = $feedbackRate;
-        return $this->succ($koubei_res);
+        return $koubei_res;
     }
 
     /**
