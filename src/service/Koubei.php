@@ -813,21 +813,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /*
      * 批量获取供应商口碑评分数量
      * */
-    public function getSupplierKoubeiScore($suppliers = '',$search_time = ''){
-        if(empty($suppliers) || empty($search_time)){
+    public function getSupplierKoubeiScore($supplier = '',$search_time = ''){
+        if(empty($supplier) || empty($search_time)){
             return $this->succ(array());
         }
         $supplier_list = array();
         $solr = new SolrRemote('koubei');
         $solr_supplier = new SolrRemote('supplier');
-        $supplier_info = $solr->getSupplierGoodsScore($suppliers, $search_time);
+        $supplier_info = $solr->getSupplierGoodsScore('supplier_id', $supplier, $search_time);
         // 获取默认5分好评
-        $default_info = $solr_supplier->getDefaultScoreFive($suppliers, $search_time);
+        $default_info = $solr_supplier->getDefaultScoreFive('supplier_id', $supplier, $search_time);
+        $koubei_sum_score = array_sum($supplier_info['count']);
         $supplier_info['count']['num_default'] = 0;
         if(!empty($default_info)){
-            // 总共有多少分类
-            //$supplier_info['count']['num_default'] = count(array_diff($default_info,$supplier_info['order_ids']));
-            $supplier_info['count']['num_default'] = $default_info['count'];
+            $supplier_info['count']['num_default'] = $default_info['count'] - $koubei_sum_score;
         }
         // 统计今日得分
         $numerator = (
@@ -837,12 +836,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 2*$supplier_info['count']['num_two']+
                 1*$supplier_info['count']['num_one'])*100
             +5*$supplier_info['count']['num_default'];
-        $denominator = array_sum($supplier_info['count'])*100+$supplier_info['count']['num_default'];
+        $denominator = $koubei_sum_score*100+$supplier_info['count']['num_default'];
         $supplier_info['count']['score_today'] = 0;
         if(!empty($denominator)){
             $supplier_info['count']['score_today'] = round($numerator/$denominator, 3);
         }
-        $supplier_list[$suppliers] = $supplier_info['count'];
+        $supplier_list[$supplier] = $supplier_info['count'];
 
         return $this->succ($supplier_list);
     }
