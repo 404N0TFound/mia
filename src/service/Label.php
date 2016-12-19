@@ -236,7 +236,7 @@ class Label extends \mia\miagroup\Lib\Service {
                 if ($exist_recommend == 1) {
                     $data = $this->getLableSubjects($labelId, 0, 1, 10, 1)['data'];
                 } else {
-                    $data = $this->getLableSubjects($labelId)['data'];
+                    $data = $this->getLableSubjects($labelId, $userId)['data'];
                 }
                 foreach ($data as $v) {
                     if (!empty($v['image_infos'])) {
