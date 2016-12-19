@@ -1065,13 +1065,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $good = 0;
             $bad = 0;
             foreach ($tagInfos as $k => $v) {
-                if ($v["count"] >= 3 && $v['positive'] == 1 && $good < 10) {
+                if ($v["count"] >= 2 && $v['positive'] == 1 && $good < 10) {
                     $tagList[$k]['type'] = "collect";
                     $tagList[$k]['tag_id'] = $v["id"];
                     $tagList[$k]['tag_name'] = $v["tag_name"];
                     $tagList[$k]['count'] = $v["count"];
                     $good++;
-                } elseif ($v["count"] >= 3 && $v['positive'] == 2 && $bad < 1) {
+                } elseif ($v["count"] >= 2 && $v['positive'] == 2 && $bad < 1) {
                     $tagList[$k]['type'] = "collect";
                     $tagList[$k]['tag_id'] = $v["id"];
                     $tagList[$k]['tag_name'] = $v["tag_name"];
