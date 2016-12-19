@@ -825,7 +825,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $default_info = $solr_supplier->getDefaultScoreFive($suppliers, $search_time);
         $supplier_info['count']['num_default'] = 0;
         if(!empty($default_info)){
-            $supplier_info['count']['num_default'] = count(array_diff($default_info,$supplier_info['order_ids']));
+            // 总共有多少分类
+            //$supplier_info['count']['num_default'] = count(array_diff($default_info,$supplier_info['order_ids']));
+            $supplier_info['count']['num_default'] = $default_info['count'];
         }
         // 统计今日得分
         $numerator = (
