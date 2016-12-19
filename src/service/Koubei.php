@@ -266,6 +266,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ($koubei_res);
         }
         $koubei_res['total_count'] = $koubei_nums;//口碑数量
+        $item_info = $item_service->getBatchItemBrandByIds([$itemId]);
+
+        //好评率
+        $feedbackRate = $item_info['data'][$itemId]['feedback_rate'];
+        $koubei_res['feedback_rate'] = $feedbackRate;//口碑数量
+
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
         //获取蜜粉推荐
@@ -312,6 +318,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //获取蜜粉推荐
         $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
 
+        $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
+
+        //好评率
+        $feedbackRate = $item_info['data'][$item_id]['feedback_rate'];
+
         //通过商品id获取口碑id
         $condition = array();
         $condition['with_pic'] = true;
@@ -335,6 +346,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['total_score'] = $item_score;//综合评分
             $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
+        $koubei_res['feedback_rate'] = $feedbackRate;//好评率
         return $this->succ($koubei_res);
     }
     
@@ -1018,7 +1030,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //获取商品的关联商品或者套装单品
         $item_service = new ItemService();
         $item_ids = $item_service->getRelateItemById($item_id);
+        $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
 
+        //好评率
+        $feedbackRate = $item_info['data'][$item_id]['feedback_rate'];
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
         //获取蜜粉推荐
@@ -1062,6 +1077,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['total_score'] = $item_score;//综合评分
             $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
+        $koubei_res['feedback_rate'] = $feedbackRate;
         return $this->succ($koubei_res);
     }
 
@@ -1102,7 +1118,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }
             }
             //调整展示数量和顺序,按大小排序,正向最多10个，负向最多1个
-            $tagList = [];
             $good = 0;
             $bad = 0;
             foreach ($tagInfos as $k => $v) {
