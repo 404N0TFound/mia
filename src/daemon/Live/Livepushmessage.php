@@ -46,7 +46,7 @@ class Livepushmessage extends \FD_Daemon
                 $end = floor($fansNum['data'][$userId] / $limit) + 1;
                 $name = $usersInfo['data'][$live['user_id']]['nickname'];
 
-                $content = [$name . '正在蜜芽直播，快来看→', $name . '喊你来看直播啦，快上车→', '【直播】' . $name . '（主播名称）的直播开始了，别错过→'];//发送内容
+                $content = [$name . '正在蜜芽直播，快来看→', $name . '喊你来看直播啦，快上车→', '【直播】' . $name . '的直播开始了，别错过→'];//发送内容
                 $content = $content[rand(0, 2)];
                 for ($i = 1; $i <= $end; $i++) {
                     $fansList = $fans->getFansList($userId, $i, $limit);
