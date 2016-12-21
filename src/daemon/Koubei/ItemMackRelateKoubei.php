@@ -31,9 +31,9 @@ class Itemmackrelatekoubei extends \FD_Daemon {
 
     public function execute() {
         // 全量更新商品口碑得分
-        $this->fullImportItemScore();
+        //$this->fullImportItemScore();
         // 增量更新商品口碑得分
-        //$this->deltaImportItemScore();
+        $this->deltaImportItemScore();
     }
 
     /*
