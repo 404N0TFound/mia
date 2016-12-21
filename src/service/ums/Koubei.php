@@ -130,7 +130,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         if(isset($solrCond['brand_id']) || isset($solrCond['self_sale']) ||
             isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
-            $solr = new \mia\miagroup\Remote\Solr();
+            $solr = new \mia\miagroup\Remote\Solr('koubei');
             $solrData = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
             if(!empty($solrData['list'])){
                 foreach ($solrData['list'] as $v) {
