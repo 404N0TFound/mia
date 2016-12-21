@@ -212,8 +212,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_info = $item_service->getBatchItemBrandByIds([$itemId]);
 
         //好评率
-        $feedbackRate = intval($item_info['data'][$itemId]['feedback_rate'])."%";
-        $koubei_res['feedback_rate'] = $feedbackRate;//口碑数量
+        $feedbackRate = intval($item_info['data'][$itemId]['feedback_rate']);
+        if(!empty($feedbackRate)){
+            $koubei_res['feedback_rate'] = $feedbackRate."%";
+        }
 
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
@@ -266,7 +268,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
 
         //好评率
-        $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate'])."%";
+        $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
+        if(!empty($feedbackRate)){
+            $koubei_res['feedback_rate'] = $feedbackRate."%";//好评率
+        }
 
         //通过商品id获取口碑id
         $condition = array();
@@ -291,7 +296,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['total_score'] = $item_score;//综合评分
             $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
-        $koubei_res['feedback_rate'] = $feedbackRate;//好评率
         return $this->succ($koubei_res);
     }
     
@@ -979,7 +983,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
 
         //好评率
-        $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate'])."%";
+        $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
+
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
         //获取蜜粉推荐
@@ -1023,7 +1028,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['total_score'] = $item_score;//综合评分
             $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
-        $koubei_res['feedback_rate'] = $feedbackRate;
+        if(!empty($feedbackRate)){
+            $koubei_res['feedback_rate'] = $feedbackRate."%";//好评率
+        }
         return $koubei_res;
     }
 
