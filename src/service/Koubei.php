@@ -277,7 +277,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
         //获取蜜粉推荐
-        $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
+        //$item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
 
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
@@ -288,11 +288,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         //如果综合评分和蜜粉推荐都为0，且当页无口碑，则返回空数组，如果当页有口碑，则返回口碑记录
         //（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
-        if($item_score > 0 && $item_rec_nums == 0){
+        if($item_score > 0){
             $koubei_res['total_score'] = $item_score;//综合评分
-        } else if ($item_score > 0 && $item_rec_nums > 0) {
-            $koubei_res['total_score'] = $item_score;//综合评分
-            $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
         if($page == 1){
             $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
@@ -1038,20 +1035,29 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_ids = $item_service->getRelateItemById($item_id);
         $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
 
+        $koubei_res = array("koubei_info" => array());
+
+        //获取口碑数量
+        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids);
+        if ($koubei_nums <= 0) {
+            return $this->succ($koubei_res);
+        }
+        $koubei_res['total_count'] = $koubei_nums;//口碑数量
+
         //好评率
         $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
 
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
         //获取蜜粉推荐
-        $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
+        //$item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
         $offset = $page > 1 ? ($page - 1) * $limit : 0;
 
         if ($type == "collect") {
             //聚合印象
             //查询口碑id列表
             $koubeiIds = $this->koubeiModel->getItemKoubeiIds($item_ids, $tag_id, $limit, $offset);
-            $koubei_res = array("koubei_info" => array());
+
             //通过商品id获取口碑id
             $cond['koubei_id'] = $koubeiIds;
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $cond);
@@ -1078,15 +1084,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubei_res['koubei_info'] = !empty($koubei_infos) ? array_values($koubei_infos) : array();
         //如果综合评分和蜜粉推荐都为0，且当页无口碑，则返回空数组，如果当页有口碑，则返回口碑记录
         //（适用情况，该商品及关联商品无口碑贴，全为蜜芽贴）
-        if ($item_score > 0 && $item_rec_nums == 0) {
+        if ($item_score > 0) {
             $koubei_res['total_score'] = $item_score;//综合评分
-        } else if ($item_score > 0 && $item_rec_nums > 0) {
-            $koubei_res['total_score'] = $item_score;//综合评分
-            $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
         if(!empty($feedbackRate)){
             $koubei_res['feedback_rate'] = $feedbackRate."%";//好评率
         }
+        $koubei_res['total_count'] = $koubei_nums;//口碑数量
         return $koubei_res;
     }
 
