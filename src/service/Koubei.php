@@ -789,7 +789,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 foreach($res['data'] as $v){
                     $transfer_koubei[$value] = $v;
                 }
-
            }
         }
         return $this->succ($transfer_koubei);
@@ -845,4 +844,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         return $this->succ($supplier_list);
     }
+
+
+    /**
+     * 根据商品ID获取口碑ID集合
+     */
+    public function getBatchKoubeiIdsByItemId($item_id)
+    {
+        if(empty($item_id)){
+            return $this->succ(array());
+        }
+        $solr = new SolrRemote('koubei');
+        $solr_supplier = new SolrRemote('supplier');
+        // 获取口碑各项得分
+        $item_info = $solr->getSupplierGoodsScore('item_id', $item_id, time());
+        $koubei_sum_score = array_sum($item_info['count']);
+        // 获取商品默认5分好评
+        $default_count = $solr_supplier->getDefaultScoreFive('item_id', $item_id, time());
+        $default_count_five = $default_count['count'] - $koubei_sum_score;
+        $item_score = array('each'=>$item_info['count'],'num_default'=>$default_count_five);
+        return $this->succ($item_score);
+    }
+
 }
