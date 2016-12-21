@@ -26,7 +26,7 @@ class Itemmackrelatekoubei extends \FD_Daemon {
         $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
         $tempFilePath = $runFilePath . '/koubei/';
         $this->lastIdFile = $tempFilePath . 'item_score_last_id';
-        $this->lastIdFile = 'C:/Users/admin/PhpstormProjects/groupservice/var/daemonlogs/item_score_last_id';
+        //$this->lastIdFile = 'C:/Users/admin/PhpstormProjects/groupservice/var/daemonlogs/item_score_last_id';
     }
 
     public function execute() {
