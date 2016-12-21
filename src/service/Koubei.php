@@ -775,7 +775,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public function itemBatchBestKoubei($itemIds = array()){
         // 获取口碑最优id
         //$itemIds = array('1005598','1003113');
-        if(empty($itemIds)){
+        if(!is_array($itemIds) || empty($itemIds)){
             return $this->succ(array());
         }
         $transfer_koubei = array();
