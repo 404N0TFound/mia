@@ -42,9 +42,10 @@ class Itemmackrelatekoubei extends \FD_Daemon {
     public function fullImportItemScore(){
         //读取上一次处理的id
         $lastId = 0;
-        $fpLastIdFile = fopen($this->lastIdFile, 'r+');
         if (!file_exists($this->lastIdFile)) {
             $fpLastIdFile = fopen($this->lastIdFile, 'w');
+        }else{
+            $fpLastIdFile = fopen($this->lastIdFile, 'r+');
         }
         if (!flock($fpLastIdFile, LOCK_EX | LOCK_NB)) {
             // 已经打开的指针操作
