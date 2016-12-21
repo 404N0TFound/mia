@@ -247,7 +247,7 @@ class Solr
             'item_id' => '-(item_id:0)'
         );
 
-        $res = $this->getKoubeiList($conditon, $field, $page, $this->export_count, $sort);
+        $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
         if(!empty($res['list'])){
             //$sort_ids = $this->sortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
             $sort_ids = $this->anotherSortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
