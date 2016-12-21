@@ -157,21 +157,50 @@ class Solr
     }
 
     public function httpGet($method, $parame){
-        $url = $this->solrserver . $this->core."/".$method;
-        $data = "";
-        $wt = 'json';
-        if(empty($parame['wt']) == false) {
-            $wt = $parame['wt'];
-            unset($parame['wt']);
+
+        try{
+            $url = $this->solrserver . $this->core."/".$method;
+            $data = "";
+            $wt = 'json';
+            if(empty($parame['wt']) == false) {
+                $wt = $parame['wt'];
+                unset($parame['wt']);
+            }
+            $url .= "?wt=".$wt;
+            foreach($parame as $key=>$value) {
+                $data .= "&". $key."=".$value;
+            }
+            $url .= $data;
+            //echo $url."\n";
+            $request_startTime = gettimeofday(true);
+            $result = file_get_contents($url);
+            $request_endTime = gettimeofday(true);
+            $res_log = json_decode($result,true);
+
+            $code = $res_log['responseHeader']['status'] === 0 ? $res_log['responseHeader']['status'] : -1;
+            // 日志记录
+            \F_Ice::$ins->mainApp->logger_remote->info(array(
+                'third_server'  =>  'solr',
+                'type'          =>  'INFO',
+                'request_param' =>  $data,
+                'response_code' =>  $code,
+                'response_msg'  =>  '',
+                'request_url'   =>  $url,
+                'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
+            ));
+            return $result;
+        }catch (\Exception $e){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'solr',
+                'type'          =>  'ERROR',
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ));
         }
-        $url .= "?wt=".$wt;
-        foreach($parame as $key=>$value) {
-            $data .= "&". $key."=".$value;
-        }
-        $url .= $data;
-        //echo $url."\n";
-        $result = file_get_contents($url);
-        return $result;
     }
 
     /**
@@ -574,7 +603,6 @@ class Solr
         $solrInfo['fq'][] = '-(item_id:0)';
         $solrInfo['fq'][] = '-(order_id:0)';
         $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
-
         $res = $this->select($solrInfo);
         $statis = array();
         $statis['count'] = [
