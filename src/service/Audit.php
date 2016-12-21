@@ -14,6 +14,7 @@ class Audit extends \mia\miagroup\Lib\Service {
     private $auditModel;
     
     public function __construct() {
+        parent::__construct();
         $this->auditModel = new AuditModel();
     }
     
