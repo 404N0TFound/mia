@@ -20,9 +20,14 @@ class Service extends \FS_Service {
             \F_Ice::$ins->mainApp->logger_access->info(array(
                 //'current_uid'         => '',    //当前调用接口的用户ID
                 'code'                => $this->code,                //接口返回code
+                'msg'                => $this->msg,                //接口返回code
                 'resp_time'           => $respTime,                  //接口响应时间
-                'params'              => $this->params,              //接口参数
-                'ext_params'          => $this->ext_params,          //其他参数
+                'curl_params' => array(
+                    "class" => \F_Ice::$ins->runner->request->class,
+                    "action" => \F_Ice::$ins->runner->request->action,
+                    "params" => $this->params,
+                    "ext_params" => $this->ext_params,
+                )
             ));
         }
     }
