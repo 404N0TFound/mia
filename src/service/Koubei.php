@@ -273,12 +273,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item' ,'order_info'), $status = array(2)) {
         if (empty($koubeiIds)) {
-            return array();
+            return $this->succ(array());
         }
         $koubeiInfo = array();
         $orderIds = array();
         //批量获取口碑信息
         $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status);
+        if (empty($koubeiArr)) {
+            return $this->succ();
+        }
         foreach($koubeiArr as $koubei){
             if(empty($koubei['subject_id'])) continue;
             //收集subjectids
