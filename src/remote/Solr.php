@@ -369,11 +369,11 @@ class Solr
         }
         if (strtotime($conditon['comment_start_time']) > 0) {
             //回复起始时间
-            $solr_info['fq'][]   = "comment_time:[".strtotime($conditon['comment_start_time']) ." TO *]";
+            $solr_info['fq'][]   = "comment_start_time:[".strtotime($conditon['comment_start_time']) ." TO *]";
         }
         if (strtotime($conditon['comment_end_time']) > 0) {
             //回复结束时间
-            $solr_info['fq'][]   =  "comment_time:[* TO ". strtotime($conditon['comment_end_time']) ."]";
+            $solr_info['fq'][]   =  "comment_end_time:[* TO ". strtotime($conditon['comment_end_time']) ."]";
         }
         // solr select
         $res = $this->select($solr_info);
