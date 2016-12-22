@@ -48,7 +48,7 @@ class Koubei {
             return array();
         }
         $orderBy = 'rank_score desc, created_time desc';
-        $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy, $conditon);
+        $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy);
         return $koubeiData;
     }
     
