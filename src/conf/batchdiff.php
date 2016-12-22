@@ -12,3 +12,7 @@ $koubeibatch = array(
     ),
 );
 
+/**
+ * 头条视频栏目ID
+ */
+$headline_video_channel_id = 19;

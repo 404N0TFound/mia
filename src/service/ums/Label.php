@@ -9,6 +9,7 @@ class Label extends Service{
     private $labelModel;
     
     public function __construct(){
+        parent::__construct();
         $this->labelModel = new LabelModel();
     }
     

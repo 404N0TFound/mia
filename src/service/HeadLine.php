@@ -436,6 +436,17 @@ class HeadLine extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 通过relation_id/type获取运营头条
+     */
+    public function getOperateHeadlineByRelationID($relation_id, $relation_type) {
+        if (empty($relation_id) || !in_array($relation_type, $this->headlineConfig['clientServerMapping'])) {
+            return false;
+        }
+        $data = $this->headLineModel->getOperateHeadlineByRelationId($relation_id, $relation_type);
+        return $this->succ($data);
+    }
+    
+    /**
      * 获取头条专题
      * @param $field 额外字段 count
      */
@@ -688,6 +699,8 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         $live['title'] = $relation_title ? $relation_title : $live['title'];
                         if(!empty($relation_cover_image)){
                             $live['cover_image'] = $relation_cover_image;
+                        } else if (!empty($live['live_info']['pic'])) {
+                            $live['cover_image'] = $live['live_info']['pic'];
                         }
                         $tmpData['id'] = $live['id'] . '_live';
                         $tmpData['type'] = 'live';
