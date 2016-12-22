@@ -17,7 +17,7 @@ class Koubei extends \DB_Query {
      * @param array() $itemIds 商品id
      * @return array()
      */
-    public function getKoubeiIdsByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false) {
+    public function getKoubeiIdsByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false, $conditon = array()) {
         $result = array();
         if (empty($itemIds)) {
             return $result;
@@ -26,7 +26,12 @@ class Koubei extends \DB_Query {
         $where[] = ['item_id', $itemIds];
         $where[] = ['status', 2];
         $where[] = [':gt','subject_id',0];
-        
+
+        if (!empty($conditon)) {
+            foreach ($conditon as $k => $v) {
+                $where[] = [$k , $v];
+            }
+        }
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
         if (!empty($data)) {
