@@ -283,12 +283,6 @@ class Solr
             'fl'        => $field,
             'sort'      => $order_by,
         ];
-        //如果没有查询条件，则默认查最近三个月的
-        if(empty($conditon)){
-            $defaultTime = strtotime(date('Y-m-d H:i:s', time() - 86400 * 90));
-            $solr_info['fq'][]   =  "created_time:[".$defaultTime ." TO *]";
-        }
-        
         if(intval($conditon['category_id']) > 0) { 
             //类目ID
             if (is_array($conditon['category_id'])) {
