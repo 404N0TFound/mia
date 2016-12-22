@@ -13,6 +13,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     public $subjectModel;
     
     public function __construct() {
+        parent::__construct();
         $this->koubeiModel = new KoubeiModel();
         $this->userModel = new UserModel();
         $this->subjectModel = new SubjectModel();

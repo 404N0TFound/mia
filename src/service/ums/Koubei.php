@@ -17,6 +17,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     private $stockModel;
     
     public function __construct() {
+        parent::__construct();
         $this->koubeiModel = new KoubeiModel();
         $this->userModel = new UserModel();
         $this->emojiUtil = new EmojiUtil();
