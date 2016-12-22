@@ -72,14 +72,15 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         } else { //不登录情况下用户的唯一标识
             $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
         }
-        //转换客户端传来的格式
+        //转换客户端传来的格式，是为了兼容推荐服务端，推荐只识别subject
         $referIds = $this->changeType($headlineIds);
-        //$headlineIds 在init之外的其他情况也会传
+        //$headlineIds 在init之外的其他情况也会传，这种情况下舍弃
         if ($action != 'init' || $channelId != $this->headlineConfig['lockedChannel']['recommend']['id']) {
             $referIds = [];
         }
         $headLineData = $this->headlineRemote->headlineList($channelId, $action, $uniqueFlag, $count ,$referIds);
-        //4.9以下去除promote
+
+        //4.9以下去除promote和urecom
         $version = explode('_', $this->ext_params['version'], 3);
         array_shift($version);
         $version = intval(implode($version));
@@ -88,10 +89,15 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 if (strpos($headData, 'promotion') !== false) {
                     unset($headLineData[$key]);
                 }
+                if (strpos($headData, 'urecom') !== false) {
+                    unset($headLineData[$key]);
+                }
             }
             $headLineData = array_values($headLineData);
         }
+        //判断是否是拼的subject
         if ($referIds != [$headLineData[0], $headLineData[1]]) {
+            //拼装的,说明头两条数据需要我们加到最前面
             //格式化客户端上传的headlineIds
             $referIds = $this->_formatClientIds($referIds);
             //去重
@@ -105,7 +111,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             //获取运营数据
             $operationData = $this->headLineModel->getHeadLinesByChannel($channelId, $page);
         }
-        //推荐数据、运营数据去重
+        //推荐数据、运营数据去重，$headLineData是推荐返回的只有subject类型，所以得把运营的转换为相同类型，才能去重
         $headLineData = array_diff($headLineData, array_intersect($headLineData, $this->changeType(array_keys($operationData))));
         //获取格式化的头条输出数据
         if ($channelId == $this->headlineConfig['lockedChannel']['homepage']['id']) {
@@ -130,9 +136,6 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         }
         foreach ($idType as $v) {
             list($relation_id, $relation_type) = explode('_', $v, 2);
-            if ($relation_type == 'banner') {
-                $relation_type = 'promotion';
-            }
             if ($relation_type == 'album') {
                 $relation_type = 'subject';
             }
@@ -587,7 +590,10 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                 $topicIds[] = $relation_id;
             //推荐活动
             } elseif ($relation_type == 'promotion') {
-                $promotionIds[] = $relation_id;
+                $promotionIds[] = $relation_id."_promotion";
+            //用户数据
+            } elseif ($relation_type == 'urecom') {
+                $urecomIds[] = $relation_id . "_urecom";
             }
         }
 
@@ -596,11 +602,13 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $lives = $this->liveServer->getLiveRoomByIds($roomIds, array())['data'];
             $topics = $this->getHeadLineTopics($topicIds, array())['data'];
             $promotions = $this->headlineRemote->promotionList($promotionIds);
+            $urecoms = $this->headlineRemote->promotionList($urecomIds);
         } else { //列表信息
             $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
             $lives = $this->liveServer->getLiveRoomByIds($roomIds, array('user_info', 'live_info'))['data'];
             $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
             $promotions = $this->headlineRemote->promotionList($promotionIds);
+            $urecoms = $this->headlineRemote->promotionList($urecomIds);
         }
 
         //以row为key重新拼装opertionData
@@ -657,7 +665,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                         }
                     }
                     break;
-                case 'subject': //relation_type=subject 兼容推荐服务没有返回数据类型的问题
+                case 'subject': //relation_type=subject 兼容推荐服务，没有返回数据类型的问题
                     if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
                         $subject = $subjects[$relation_id];
                         if (!empty($subject['album_article'])) {
@@ -709,9 +717,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                     }
                     break;
                 case 'promotion':
-                    if (isset($promotions[$relation_id]) && !empty($promotions[$relation_id])) {
+                    if (isset($promotions[$relation_id."_promotion"]) && !empty($promotions[$relation_id."_promotion"])) {
                         $promotion = $promotions[$relation_id];
-                        $tmpData['id'] = $relation_id . '_banner';
+                        $tmpData['id'] = $relation_id . '_promotion';
                         $tmpData['type'] = 'banner';
                         $tmpData['type_name'] = '促销';
                         $tmpData['banner'] = array(
@@ -720,6 +728,21 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                             'content' => $promotion['title'],
                             'source' => $promotion['username'],
                             'view_num' => $promotion['read_num'],
+                        );
+                    }
+                    break;
+                case 'urecom':
+                    if (isset($urecoms[$relation_id."_urecom"]) && !empty($urecoms[$relation_id."_urecom"])) {
+                        $urecom = $urecoms[$relation_id];
+                        $tmpData['id'] = $relation_id . '_urecom';
+                        $tmpData['type'] = 'banner';
+                        $tmpData['type_name'] = '促销';
+                        $tmpData['banner'] = array(
+                            'pic' =>$urecom['pic'],
+                            'url' => $urecom['desc_url'],
+                            'content' => $urecom['title'],
+                            'source' => $urecom['username'],
+                            'view_num' => $urecom['read_num'],
                         );
                     }
                     break;
