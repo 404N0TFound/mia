@@ -125,7 +125,6 @@ class Solr
             }
             $method = 'select';
             $solrData = $this->httpGet($method, $params);
-
             if(empty($solrData) == false) {
                 $data = json_decode($solrData, true);
                 if(isset($data['responseHeader']['status']) == true && $data['responseHeader']['status'] == 0) {
@@ -286,6 +285,12 @@ class Solr
             'fl'        => $field,
             'sort'      => $order_by,
         ];
+        //如果没有查询条件，则默认查最近三个月的
+        if(empty($conditon)){
+            $defaultTime = strtotime(date('Y-m-d H:i:s', time() - 86400 * 90));
+            $solr_info['fq'][]   =  "created_time:[".$defaultTime ." TO *]";
+        }
+        
         if(intval($conditon['category_id']) > 0) { 
             //类目ID
             if (is_array($conditon['category_id'])) {
@@ -315,17 +320,60 @@ class Solr
             //所属仓库
             $solr_info['fq'][]   = 'warehouse_type:'. $conditon['warehouse_type'];
         }
-        if(!empty(intval($conditon['status']))){
+        if(isset($conditon['status']) && in_array($conditon['status'],array(0,1,2))){
             $solr_info['fq'][]   = 'status:'. $conditon['status'];
+            if($conditon['status'] == 2){
+                $solr_info['fq'][]   = 'subject_id:[0 TO *]';
+            }
         }
         if(!empty($conditon['score'])){
             $solr_info['fq'][]   = 'score:'. $conditon['score'];
         }
         if(!empty($conditon['item_id'])){
-            $solr_info['fq'][]   = $conditon['item_id'];
+            $solr_info['fq'][]   = 'item_id:'.$conditon['item_id'];
         }
         if(!empty($conditon['subject_id'])){
-            $solr_info['fq'][]   = $conditon['subject_id'];
+            $solr_info['fq'][]   = 'subject_id:'.$conditon['subject_id'];
+        }
+        //口碑类型（精品/非精品）
+        if(isset($conditon['rank']) && in_array($conditon['rank'],array(0,1))){
+            $solr_info['fq'][]   = 'rank:'. $conditon['rank'];
+        }
+        //机器评分
+        if(!empty(intval($conditon['machine_score']))){
+            $solr_info['fq'][]   = 'machine_score:'. $conditon['machine_score'];
+        }
+        //用户id
+        if(!empty(intval($conditon['user_id']))){
+            $solr_info['fq'][]   = 'user_id:'. $conditon['user_id'];
+        }
+        //口碑id
+        if(!empty(intval($conditon['id']))){
+            $solr_info['fq'][]   = 'id:'. $conditon['id'];
+        }
+        if (strtotime($conditon['start_time']) > 0) {
+            //起始时间
+            $solr_info['fq'][]   = "created_time:[".strtotime($conditon['start_time']) ." TO *]";
+        }
+        if (strtotime($conditon['end_time']) > 0) {
+            //结束时间
+            $solr_info['fq'][]   =  "created_time:[* TO ". strtotime($conditon['end_time']) ."]";
+        }
+        //商家id
+        if(!empty(intval($conditon['supplier_id']))){
+            $solr_info['fq'][]   = 'supplier_id:'. $conditon['supplier_id'];
+        }
+        //回复状态
+        if(isset($conditon['comment_status']) && in_array($conditon['comment_status'],array(0,1))){
+            $solr_info['fq'][]   = 'comment_status:'. $conditon['comment_status'];
+        }
+        if (strtotime($conditon['comment_start_time']) > 0) {
+            //回复起始时间
+            $solr_info['fq'][]   = "comment_time:[".strtotime($conditon['comment_start_time']) ." TO *]";
+        }
+        if (strtotime($conditon['comment_end_time']) > 0) {
+            //回复结束时间
+            $solr_info['fq'][]   =  "comment_time:[* TO ". strtotime($conditon['comment_end_time']) ."]";
         }
         // solr select
         $res = $this->select($solr_info);

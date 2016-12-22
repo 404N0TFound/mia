@@ -8,7 +8,7 @@ class Koubei extends \DB_Query {
     protected $dbResource = 'miagroupums';
     //口碑
     protected $tableKoubei = 'koubei';
-    protected $indexKoubei = array('id', 'item_id', 'user_id', 'rank_score', 'order_id', 'subject_id', 'create_time');
+    protected $indexKoubei = array('id', 'item_id', 'user_id', 'rank_score', 'order_id', 'subject_id', 'created_time','supplier_id');
     //口碑相关蜜芽贴
     protected $tableKoubeiSubjects = 'koubei_subjects';
     protected $tableKoubeiItem = 'group_subject_point_tags';
