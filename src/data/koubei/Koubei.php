@@ -26,7 +26,7 @@ class Koubei extends \DB_Query {
         $where[] = ['item_id', $itemIds];
         $where[] = ['status', 2];
         $where[] = [':gt','subject_id',0];
-        
+
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
         if (!empty($data)) {
