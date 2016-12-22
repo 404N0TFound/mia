@@ -1025,7 +1025,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $limit, $offset);
                     break;
                 case 3 ://好评
-                    $koubei_ids = $this->koubeiModel->getKoubeiPraisedList($item_ids, $limit, $offset);
+                    $koubei_ids = $this->koubeiModel->getKoubeiPraisedList($item_ids,[], $limit, $offset);
                     break;
             }
         }
