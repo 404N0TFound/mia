@@ -1070,6 +1070,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 case 1 ://全部
                     //通过商品id获取口碑id
                     $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset);
+                    break;
                 case 2 ://有图
                     //通过商品id获取口碑id
                     $condition = [];
@@ -1077,8 +1078,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $condition['score'] = array(4, 5);
                     $condition['machine_score'] = 3;
                     $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $limit, $offset);
+                    break;
                 case 3 ://好评
                     $koubei_ids = $this->koubeiModel->getKoubeiPraisedList($item_ids, $limit, $offset);
+                    break;
             }
         }
         //获取口碑信息
@@ -1095,8 +1098,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!empty($feedbackRate)){
             $koubei_res['feedback_rate'] = $feedbackRate."%";//好评率
         }
-
-
         $koubei_res['total_count'] = $koubei_nums;//口碑数量
 
         return $koubei_res;
