@@ -1113,14 +1113,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $totalNum = $this->koubeiModel->getItemKoubeiNums($item_ids);
             $picNum = $this->koubeiModel->getItemKoubeiNums($item_ids, 1);
             $praiseNum = $this->koubeiModel->getItemRecNums($item_ids);
-            if ($totalNum >= 3) {
+            if ($totalNum >= 1) {
                 $normalTags[] = ["type" => "normal", "tag_id" => "1", "tag_name" => "全部", "count" => intval($totalNum), 'positive' => 1];
             }
-            if ($picNum >= 3) {
-                $normalTags[] = ["type" => "normal", "tag_id" => "2", "tag_name" => "有图", "count" => intval($picNum), 'positive' => 1];
-            }
-            if ($praiseNum >= 3) {
+            if ($praiseNum >= 1) {
                 $normalTags[] = ["type" => "normal", "tag_id" => "3", "tag_name" => "好评", "count" => intval($praiseNum), 'positive' => 1];
+            }
+            if ($picNum >= 1) {
+                $normalTags[] = ["type" => "normal", "tag_id" => "2", "tag_name" => "晒图", "count" => intval($picNum), 'positive' => 1];
             }
         }
         $result = array_merge($normalTags,$tagList);
