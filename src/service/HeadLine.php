@@ -718,7 +718,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                     break;
                 case 'promotion':
                     if (isset($promotions[$relation_id."_promotion"]) && !empty($promotions[$relation_id."_promotion"])) {
-                        $promotion = $promotions[$relation_id];
+                        $promotion = $promotions[$relation_id."_promotion"];
                         $tmpData['id'] = $relation_id . '_promotion';
                         $tmpData['type'] = 'banner';
                         $tmpData['type_name'] = '促销';
@@ -733,7 +733,7 @@ class HeadLine extends \mia\miagroup\Lib\Service {
                     break;
                 case 'urecom':
                     if (isset($urecoms[$relation_id."_urecom"]) && !empty($urecoms[$relation_id."_urecom"])) {
-                        $urecom = $urecoms[$relation_id];
+                        $urecom = $urecoms[$relation_id."_urecom"];
                         $tmpData['id'] = $relation_id . '_urecom';
                         $tmpData['type'] = 'banner';
                         $tmpData['type_name'] = '促销';
