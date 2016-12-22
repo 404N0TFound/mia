@@ -131,13 +131,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');
-            $solrData = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
+            $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);
             if(!empty($solrData['list'])){
                 foreach ($solrData['list'] as $v) {
                     $koubeiIds[] = $v['id'];
                 }
                 $condition['id'] = $koubeiIds;
-                $data = $this->koubeiModel->getKoubeiData($condition);
+                $data = $this->koubeiModel->getKoubeiData($condition, 0, $limit, $orderBy);
                 $data['count'] = $solrData['count'];
             }
         }else{
