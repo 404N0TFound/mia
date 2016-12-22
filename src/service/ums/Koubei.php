@@ -387,7 +387,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $dealRate = 0;
             }
             
-            //$supplierKoubei['deal_rate'] = (round($dealRate, 2) * 100)."%";
             $supplierKoubei['appeal_nums'] = $koubeiStatistics['appeal'][$supplyId] ? $koubeiStatistics['appeal'][$supplyId] : 0;
             $supplierKoubei['pass_nums'] = $koubeiStatistics['pass'][$supplyId] ? $koubeiStatistics['pass'][$supplyId] : 0;
             $supplierKoubei['reject_nums'] = $koubeiStatistics['reject'][$supplyId] ? $koubeiStatistics['reject'][$supplyId] : 0;
