@@ -117,7 +117,7 @@ class Koubei {
         if(empty($itemIds)){
             return 0;
         }
-        $filed = ' count(*) as nums ';
+        $filed = ' count(distinct(koubei.id)) as nums ';
         $where = array();
         $where['item_id'] = $itemIds;
         $where['subject_id'] = 0;
