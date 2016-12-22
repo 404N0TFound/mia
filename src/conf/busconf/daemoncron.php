@@ -160,4 +160,13 @@ $cron_list['koubei_feedback_rate'] = array(
     'interval' => 86400
 );
 
+//计算商品得分
+$cron_list['item_multiple_rank'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=koubei --action=itemmackrelatekoubei",
+    'start_time' => '2016-12-23 02:00:00',
+    'interval' => 86400
+);
+
 

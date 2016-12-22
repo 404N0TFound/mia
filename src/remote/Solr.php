@@ -83,6 +83,9 @@ class Solr
             if(empty($data['hl.fl']) == false) {
                 $params['hl.fl'] = urlencode($data['hl.fl']);
             }
+            if(empty($data['facet.limit']) == false){
+                $params['facet.limit'] = $data['facet.limit'];
+            }
             if(empty($data['fq']) == false) {
                 $fieldStr = '';
                 foreach ($data['fq'] as $key => $field){
@@ -153,21 +156,50 @@ class Solr
     }
 
     public function httpGet($method, $parame){
-        $url = $this->solrserver . $this->core."/".$method;
-        $data = "";
-        $wt = 'json';
-        if(empty($parame['wt']) == false) {
-            $wt = $parame['wt'];
-            unset($parame['wt']);
+
+        try{
+            $url = $this->solrserver . $this->core."/".$method;
+            $data = "";
+            $wt = 'json';
+            if(empty($parame['wt']) == false) {
+                $wt = $parame['wt'];
+                unset($parame['wt']);
+            }
+            $url .= "?wt=".$wt;
+            foreach($parame as $key=>$value) {
+                $data .= "&". $key."=".$value;
+            }
+            $url .= $data;
+            //echo $url."\n";
+            $request_startTime = gettimeofday(true);
+            $result = file_get_contents($url);
+            $request_endTime = gettimeofday(true);
+            $res_log = json_decode($result,true);
+
+            $code = $res_log['responseHeader']['status'] === 0 ? $res_log['responseHeader']['status'] : -1;
+            // 日志记录
+            \F_Ice::$ins->mainApp->logger_remote->info(array(
+                'third_server'  =>  'solr',
+                'type'          =>  'INFO',
+                'request_param' =>  $data,
+                'response_code' =>  $code,
+                'response_msg'  =>  '',
+                'request_url'   =>  $url,
+                'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
+            ));
+            return $result;
+        }catch (\Exception $e){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'solr',
+                'type'          =>  'ERROR',
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ));
         }
-        $url .= "?wt=".$wt;
-        foreach($parame as $key=>$value) {
-            $data .= "&". $key."=".$value;
-        }
-        $url .= $data;
-        //echo $url."\n";
-        $result = file_get_contents($url);
-        return $result;
     }
 
     /**
@@ -214,7 +246,7 @@ class Solr
             'item_id' => '-(item_id:0)'
         );
 
-        $res = $this->getKoubeiList($conditon, $field, $page, $this->export_count, $sort);
+        $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
         if(!empty($res['list'])){
             //$sort_ids = $this->sortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
             $sort_ids = $this->anotherSortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
@@ -604,8 +636,9 @@ class Solr
     /*
      * 获取各项分数统计
      * */
-    public function getSupplierGoodsScore($supplier = 0, $search_time = ''){
+    public function getSupplierGoodsScore($screen = 'supplier_id', $screen_param = 0, $search_time = ''){
 
+        // solr facet维度：默认只支持100（查询总量不现实）
         $begin_time = strtotime("-3 months", $search_time);
         $solrInfo = [
             'q'           => '*:*',
@@ -614,12 +647,11 @@ class Solr
             'facet.pivot' => 'score',
             'facet.field' => array('score'),
         ];
-        $solrInfo['fq'][] = 'supplier_id:'.$supplier;
+        $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:2';
         $solrInfo['fq'][] = '-(item_id:0)';
         $solrInfo['fq'][] = '-(order_id:0)';
         $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
-
         $res = $this->select($solrInfo);
         $statis = array();
         $statis['count'] = [
@@ -631,9 +663,6 @@ class Solr
         ];
         $docs = $res['data']['response']['docs'];
         if(!empty($docs)) {
-            // 获取总order_ids
-            $order_ids = $this->getSupplierGoodsScoreOrderIds($supplier, $search_time);
-            $statis['order_ids'] = $order_ids;
             $facet_pivot = $res['data']['facet_counts']['facet_pivot']['score'];
            foreach($facet_pivot as $value){
                if($value['value'] == 5){
@@ -653,63 +682,34 @@ class Solr
                }
            }
         }
+        // 返回各项得分
         return $statis;
-    }
-
-
-    /*
-     * 获取当前商家下的所有有分值口碑order_id
-     * */
-    public function getSupplierGoodsScoreOrderIds($supplier = 0, $search_time = ''){
-
-        $begin_time = strtotime("-3 months", $search_time);
-        $solrInfo = [
-            'q'           => '*:*',
-            'fl'          => 'order_id',
-            'facet'       => 'true',
-            'facet.pivot' => 'order_id',
-            'facet.field' => array('order_id'),
-        ];
-        $solrInfo['fq'][] = 'supplier_id:'.$supplier;
-        $solrInfo['fq'][] = 'status:2';
-        $solrInfo['fq'][] = '-(item_id:0)';
-        $solrInfo['fq'][] = '-(order_id:0)';
-        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
-
-        $res = $this->select($solrInfo);
-        $facet_pivot = $res['data']['facet_counts']['facet_pivot']['order_id'];
-        if(!empty($facet_pivot)){
-            $order_ids = array_column($facet_pivot,'value');
-            return $order_ids;
-        }
-        return array();
     }
 
 
     /*
      * 获取默认5分好评
      * */
-    public function getDefaultScoreFive($supplier = 0, $search_time = ''){
+    public function getDefaultScoreFive($screen = 'supplier_id', $screen_param = 0, $search_time = ''){
 
         $begin_time = strtotime("-3 months", $search_time);
         $solrInfo = [
             'q'           => '*:*',
             'fl'          => 'order_id',
-            'facet'       => 'true',
-            'facet.pivot' => 'order_id',
-            'facet.field' => array('order_id'),
+            //'facet'       => 'true',
+            //'facet.pivot' => 'order_id',
+            //'facet.field' => array('order_id'),
         ];
-        $solrInfo['fq'][] = 'supplier_id:'.$supplier;
+        $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:5';
         $solrInfo['fq'][] = '-(item_id:0)';
         $solrInfo['fq'][] = '-(order_id:0)';
         $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO *]';
 
         $res = $this->select($solrInfo);
-        $facet_pivot = $res['data']['facet_counts']['facet_pivot']['order_id'];
-        if(!empty($facet_pivot)){
-            $order_ids = array_column($facet_pivot,'value');
-            return array('order_ids' => $order_ids, 'count' => $res['data']['response']['numFound']);
+        $docs = $res['data']['response']['docs'];
+        if(!empty($docs)){
+            return array( 'count' => $res['data']['response']['numFound']);
         }
         return array();
     }

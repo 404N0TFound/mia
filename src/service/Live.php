@@ -332,6 +332,10 @@ class Live extends \mia\miagroup\Lib\Service
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0)
     {
+        $roomInfos = $this->liveModel->getBatchLiveRoomByIds([$roomId]);
+        if($roomInfos[$roomId]['live_id'] > 0 && $roomInfos[$roomId]['live_id'] == $liveId) {
+            $liveId = 0;
+        }
         //获取房间信息
         if ($liveId == 0) {
             $liveIds = array();

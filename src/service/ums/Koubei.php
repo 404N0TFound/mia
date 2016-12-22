@@ -323,16 +323,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
     
         //获取所有自主商家id
         $supplyInfo= $this->userModel->getAllKoubeiSupplier();
-        if(!empty($supplyInfo)){
-            $supplierIds = array_keys($supplyInfo);
-            //如果无某商家查询，则默为所有自主商家
-            if (intval($params['supplier_id']) > 0) {
-                //商家ID
-                $condition['supplier_id'] = $params['supplier_id'];
-            }else{
-                //默认为所有的自主商家id
-                $condition['supplier_id'] = $supplierIds;
-            }
+        if(empty($supplyInfo)){
+            return $result;
+        }
+        
+        $supplierIds = array_keys($supplyInfo);
+        //如果无某商家查询，则默为所有自主商家
+        if (intval($params['supplier_id']) > 0) {
+            //商家ID
+            $condition['supplier_id'] = $params['supplier_id'];
+        }else{
+            //默认为所有的自主商家id
+            $condition['supplier_id'] = $supplierIds;
         }
 
         //起始时间
@@ -340,34 +342,52 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //结束时间
         $condition['end_time'] = $params['end_time'];
     
+        //查询商家的口碑信息，用来过滤掉无口碑的商家id ######start
         $data = $this->koubeiModel->getSupplierKoubeiData($condition, $orderBy);
         if (empty($data)) {
             return $this->succ($result);
         }
-        $koubeiIds = array();
         $supplyIds = array();
         $koubeiArr = array();
         foreach ($data as $v) {
-            $koubeiIds[] = $v['id'];
             $koubeiArr[$v['supplier_id']][] = $v['id'];
         }
     
+        //最终统计的是有口碑的自主商家的数据
         $supplyIds = array_keys($koubeiArr);
+        $condition['supplier_id'] = $supplyIds;
+        #####end
+        
         //根据口碑id获取各商家生成口碑数、差评数、机选差评数、被评论过的口碑数及评论比例
-        $koubeiStatistics = $this->koubeiModel->supplierKoubeiStatistics($koubeiIds);
+        $koubeiStatistics = $this->koubeiModel->supplierKoubeiStatistics($condition);
         //根据商家id获取仓库名
         $wearhouseName = $this->stockModel->getBatchNameBySupplyIds($supplyIds);
     
         //拼接商家各计数及商家名
         foreach ($supplyIds as $supplyId) {
             $supplierKoubei = array();
+            $dealLowscoreNums = $koubeiStatistics['deal_lowscore'][$supplyId] ? $koubeiStatistics['deal_lowscore'][$supplyId] : 0;
+            $dealMscoreNums = $koubeiStatistics['deal_mscore'][$supplyId] ? $koubeiStatistics['deal_mscore'][$supplyId] : 0;
             $supplierKoubei['supplier_id'] = $supplyId;
             $supplierKoubei['wearhouse_name'] = $wearhouseName[$supplyId][0];
             $supplierKoubei['koubei_nums'] = $koubeiStatistics['koubei'][$supplyId] ? $koubeiStatistics['koubei'][$supplyId] : 0;
             $supplierKoubei['lscore_nums'] = $koubeiStatistics['lowscore'][$supplyId] ? $koubeiStatistics['lowscore'][$supplyId] : 0;
             $supplierKoubei['mscore_nums'] = $koubeiStatistics['mscore'][$supplyId] ? $koubeiStatistics['mscore'][$supplyId] : 0;
-            $supplierKoubei['deal_nums'] = $koubeiStatistics['deal'][$supplyId] ? $koubeiStatistics['deal'][$supplyId] : 0;
-            $supplierKoubei['deal_rate'] = (round($koubeiStatistics['deal'][$supplyId] / $koubeiStatistics['koubei'][$supplyId], 2) * 100)."%";
+            //处理数（回复差评数+回复机选差评数）
+            $supplierKoubei['deal_nums'] = $dealLowscoreNums + $dealMscoreNums;
+            //总差评数（差评数+机选差评数）
+            $badFeedback = $supplierKoubei['lscore_nums'] + $supplierKoubei['mscore_nums'];
+            //分母不能为0，所以需要判断总差评是否为0，如果总差评数为0，则处理数，默认为0
+            if($badFeedback > 0){
+                //处理数为处理差评数/总差评数
+                $dealRate = $supplierKoubei['deal_nums'] /$badFeedback > 0  ? $supplierKoubei['deal_nums'] /$badFeedback : 0;
+                $supplierKoubei['deal_rate'] = (round($dealRate, 2) * 100)."%";
+            }else{
+                //如果没有总差评数，则处理差评数默认为0
+                $dealRate = 0;
+            }
+            
+            //$supplierKoubei['deal_rate'] = (round($dealRate, 2) * 100)."%";
             $supplierKoubei['appeal_nums'] = $koubeiStatistics['appeal'][$supplyId] ? $koubeiStatistics['appeal'][$supplyId] : 0;
             $supplierKoubei['pass_nums'] = $koubeiStatistics['pass'][$supplyId] ? $koubeiStatistics['pass'][$supplyId] : 0;
             $supplierKoubei['reject_nums'] = $koubeiStatistics['reject'][$supplyId] ? $koubeiStatistics['reject'][$supplyId] : 0;
