@@ -27,7 +27,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * ums口碑列表
      */
-    public function getKoubeiList($params) {
+    public function getKoubeiList($params, $isRealtime = true) {
+        
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
         $solrCond = array();
@@ -42,95 +43,93 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         if (intval($params['id']) > 0) {
             //口碑ID
-            $condition['id'] = $params['id'];
+            $solrCond['id'] = $params['id'];
         }
-        if (intval($params['user_id']) > 0 && intval($condition['id']) <= 0) {
+        if (intval($params['user_id']) > 0 && intval($solrCond['id']) <= 0) {
             //用户id
-            $condition['user_id'] = $params['user_id'];
+            $solrCond['user_id'] = $params['user_id'];
         }
-        if (intval($params['supplier_id']) > 0 && intval($condition['id']) <= 0) {
+        if (intval($params['supplier_id']) > 0 && intval($solrCond['id']) <= 0) {
             //供应商id
-            $condition['supplier_id'] = $params['supplier_id'];
+            $solrCond['supplier_id'] = $params['supplier_id'];
         }
-        if (!empty($params['user_name']) && intval($condition['user_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['user_name']) && intval($solrCond['user_id']) <= 0 && intval($solrCond['id']) <= 0) {
             //用户名
-            $condition['user_id'] = intval($this->userModel->getUidByUserName($params['user_name']));
+            $solrCond['user_id'] = intval($this->userModel->getUidByUserName($params['user_name']));
         }
-        if (!empty($params['nick_name']) && intval($condition['user_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['nick_name']) && intval($solrCond['user_id']) <= 0 && intval($solrCond['id']) <= 0) {
             //用户昵称
-            $condition['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
+            $solrCond['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
         }
-        if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, 2)) && intval($condition['id']) <= 0) {
+        if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, 2)) && intval($solrCond['id']) <= 0) {
             //口碑状态
-            $condition['status'] = $params['status'];
+            $solrCond['status'] = $params['status'];
         }
-        if ($params['comment_status'] !== null && $params['comment_status'] !== '' && in_array($params['comment_status'], array(0, 1)) && intval($condition['id']) <= 0) {
+        if ($params['comment_status'] !== null && $params['comment_status'] !== '' && in_array($params['comment_status'], array(0, 1)) && intval($solrCond['id']) <= 0) {
             //口碑回复状态
-            $condition['comment_status'] = $params['comment_status'];
+            $solrCond['comment_status'] = $params['comment_status'];
             $orderBy = 'comment_time desc';
         }
-        if ($params['rank'] !== null && $params['rank'] !== '' && in_array($params['rank'], array(0, 1)) && intval($condition['id']) <= 0) {
+        if ($params['rank'] !== null && $params['rank'] !== '' && in_array($params['rank'], array(0, 1)) && intval($solrCond['id']) <= 0) {
             //是否是精品
-            $condition['rank'] = $params['rank'];
+            $solrCond['rank'] = $params['rank'];
         }
-        if ((is_array($params['score']) || (!is_array($params['score']) && intval($params['score']) >= 0)) && intval($condition['id']) <= 0) {
+        if ((is_array($params['score']) || (!is_array($params['score']) && intval($params['score']) >= 0)) && intval($solrCond['id']) <= 0) {
             //用户评分
-            $condition['score'] = $params['score'];
+            $solrCond['score'] = $params['score'];
         }
-        if (($params['score'] == '机选差评' || (is_array($params['score']) && in_array('机选差评', $params['score'])))  && intval($condition['id']) <= 0) {
+        if (($params['score'] == '机选差评' || (is_array($params['score']) && in_array('机选差评', $params['score'])))  && intval($solrCond['id']) <= 0) {
             //机器评分
-            $condition['machine_score'] = 1;
+            $solrCond['machine_score'] = 1;
         }
-        if ($params['machine_score'] !== null && $params['machine_score'] !== '' && in_array($params['machine_score'], array(1, 2, 3)) && intval($condition['id']) <= 0) {
+        if ($params['machine_score'] !== null && $params['machine_score'] !== '' && in_array($params['machine_score'], array(1, 2, 3)) && intval($solrCond['id']) <= 0) {
             //机器评分
-            $condition['machine_score'] = $params['machine_score'];
+            $solrCond['machine_score'] = $params['machine_score'];
         }
-        if (intval($params['item_id']) > 0 && intval($condition['id']) <= 0) {
+        if (intval($params['item_id']) > 0 && intval($solrCond['id']) <= 0) {
             //商品ID
-            $condition['item_id'] = $params['item_id'];
+            $solrCond['item_id'] = $params['item_id'];
         }
-        if (!empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             $solrCond['brand_id'] = $params['brand'];
         }
-        if ($params['self_sale'] != -1 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if ($params['self_sale'] != -1 && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             //sku属性
             $solrCond['self_sale'] = $params['self_sale'];
         }
-        if (!empty($params['category_ids']) && intval($params['category_id']) <= 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['category_ids']) && intval($params['category_id']) <= 0 && empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             //只有一级类目的时候
             $solrCond['category_id'] = $params['category_ids'];
         }
         
-        if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             //类目ID
             $solrCond['category_id'] = $params['category_id'];
         }
-        if (!empty($params['warehouse_type']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['warehouse_type']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             //仓库类型
             $solrCond['warehouse_type'] = $params['warehouse_type'];
         }
-        if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
+        if (strtotime($params['start_time']) > 0 && intval($solrCond['id']) <= 0) {
             //起始时间
-            $condition['start_time'] = $params['start_time'];
+            $solrCond['start_time'] = $params['start_time'];
         }
-        if (strtotime($params['end_time']) > 0 && intval($condition['id']) <= 0) {
+        if (strtotime($params['end_time']) > 0 && intval($solrCond['id']) <= 0) {
             //结束时间
-            $condition['end_time'] = $params['end_time'];
+            $solrCond['end_time'] = $params['end_time'];
         }
-        if (strtotime($params['comment_start_time']) > 0 && intval($condition['id']) <= 0) {
+        if (strtotime($params['comment_start_time']) > 0 && intval($solrCond['id']) <= 0) {
             //回复起始时间
-            $condition['comment_start_time'] = $params['comment_start_time'];
+            $solrCond['comment_start_time'] = $params['comment_start_time'];
             $orderBy = 'comment_time desc';
         }
-        if (strtotime($params['comment_end_time']) > 0 && intval($condition['id']) <= 0) {
+        if (strtotime($params['comment_end_time']) > 0 && intval($solrCond['id']) <= 0) {
             //回复结束时间
-            $condition['comment_end_time'] = $params['comment_end_time'];
+            $solrCond['comment_end_time'] = $params['comment_end_time'];
             $orderBy = 'comment_time desc';
         }
-        
-        if(isset($solrCond['brand_id']) || isset($solrCond['self_sale']) ||
-            isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
-            $solr = new \mia\miagroup\Remote\Solr();
+        if($isRealtime == false){
+            $solr = new \mia\miagroup\Remote\Solr('koubei');
             $solrData = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
             if(!empty($solrData['list'])){
                 foreach ($solrData['list'] as $v) {
@@ -141,9 +140,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $data['count'] = $solrData['count'];
             }
         }else{
-            $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
+            $data = $this->koubeiModel->getKoubeiData($solrCond, $offset, $limit, $orderBy);
         }
-        
         
         if (empty($data['list'])) {
             return $this->succ($result);
@@ -155,6 +153,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiService = new KoubeiService();
         //获取口碑信息
         $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count', 'item', 'order_info'), array())['data'];
+        
         //获取口碑申诉信息
         $koubeiAppealInfos = $this->koubeiModel->getKoubeiAppealData(array('koubei_id' => $koubeiIds), 0, false)['list'];
         $appealStatus = array();
