@@ -44,6 +44,7 @@ $clientServerMapping = array(
 
 //推荐头条专家ID
 $expert = [
+    16041851,
     15857254,
     13864590,
     13864591,
@@ -62,5 +63,4 @@ $expert = [
  */
 $headLineSwitch = array(
     'default_switch' => 1, //默认开启
-
 );
