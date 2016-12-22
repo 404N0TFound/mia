@@ -90,4 +90,27 @@ class Item extends \DB_Query {
         return $itemArr;
     }
     
+    /**
+     * 获取待计算好评率的口碑商品
+     */
+    public function getListById($id = 0, $limit = 100) {
+        $where[] = ['status', [0, 1]];
+        if (intval($id) > 0) {
+            $where[] = [':gt','id', $id];
+        }
+        $data = $this->getRows($where, '*', $limit, 0, 'id asc');
+        return $data;
+    }
+    
+    /**
+     * 更新商品信息
+     */
+    public function updateItemInfoById($itemId, $itemInfo) {
+        if (empty($itemId) || empty($itemInfo)) {
+            return false;
+        }
+        $where[] = ['id', $itemId];
+        $data = $this->update($itemInfo, $where);
+        return $data;
+    }
 }

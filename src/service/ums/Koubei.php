@@ -17,6 +17,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     private $stockModel;
     
     public function __construct() {
+        parent::__construct();
         $this->koubeiModel = new KoubeiModel();
         $this->userModel = new UserModel();
         $this->emojiUtil = new EmojiUtil();
@@ -27,7 +28,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * ums口碑列表
      */
-    public function getKoubeiList($params) {
+    public function getKoubeiList($params, $isRealtime = true) {
+        
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
         $solrCond = array();
@@ -42,108 +44,105 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         if (intval($params['id']) > 0) {
             //口碑ID
-            $condition['id'] = $params['id'];
+            $solrCond['id'] = $params['id'];
         }
-        if (intval($params['user_id']) > 0 && intval($condition['id']) <= 0) {
+        if (intval($params['user_id']) > 0 && intval($solrCond['id']) <= 0) {
             //用户id
-            $condition['user_id'] = $params['user_id'];
+            $solrCond['user_id'] = $params['user_id'];
         }
-        if (intval($params['supplier_id']) > 0 && intval($condition['id']) <= 0) {
+        if (intval($params['supplier_id']) > 0 && intval($solrCond['id']) <= 0) {
             //供应商id
-            $condition['supplier_id'] = $params['supplier_id'];
+            $solrCond['supplier_id'] = $params['supplier_id'];
         }
-        if (!empty($params['user_name']) && intval($condition['user_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['user_name']) && intval($solrCond['user_id']) <= 0 && intval($solrCond['id']) <= 0) {
             //用户名
-            $condition['user_id'] = intval($this->userModel->getUidByUserName($params['user_name']));
+            $solrCond['user_id'] = intval($this->userModel->getUidByUserName($params['user_name']));
         }
-        if (!empty($params['nick_name']) && intval($condition['user_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['nick_name']) && intval($solrCond['user_id']) <= 0 && intval($solrCond['id']) <= 0) {
             //用户昵称
-            $condition['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
+            $solrCond['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
         }
-        if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, 2)) && intval($condition['id']) <= 0) {
+        if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, 2)) && intval($solrCond['id']) <= 0) {
             //口碑状态
-            $condition['status'] = $params['status'];
+            $solrCond['status'] = $params['status'];
         }
-        if ($params['comment_status'] !== null && $params['comment_status'] !== '' && in_array($params['comment_status'], array(0, 1)) && intval($condition['id']) <= 0) {
+        if ($params['comment_status'] !== null && $params['comment_status'] !== '' && in_array($params['comment_status'], array(0, 1)) && intval($solrCond['id']) <= 0) {
             //口碑回复状态
-            $condition['comment_status'] = $params['comment_status'];
+            $solrCond['comment_status'] = $params['comment_status'];
             $orderBy = 'comment_time desc';
         }
-        if ($params['rank'] !== null && $params['rank'] !== '' && in_array($params['rank'], array(0, 1)) && intval($condition['id']) <= 0) {
+        if ($params['rank'] !== null && $params['rank'] !== '' && in_array($params['rank'], array(0, 1)) && intval($solrCond['id']) <= 0) {
             //是否是精品
-            $condition['rank'] = $params['rank'];
+            $solrCond['rank'] = $params['rank'];
         }
-        if ((is_array($params['score']) || (!is_array($params['score']) && intval($params['score']) >= 0)) && intval($condition['id']) <= 0) {
+        if ((is_array($params['score']) || (!is_array($params['score']) && intval($params['score']) >= 0)) && intval($solrCond['id']) <= 0) {
             //用户评分
-            $condition['score'] = $params['score'];
+            $solrCond['score'] = $params['score'];
         }
-        if (($params['score'] == '机选差评' || (is_array($params['score']) && in_array('机选差评', $params['score'])))  && intval($condition['id']) <= 0) {
+        if (($params['score'] == '机选差评' || (is_array($params['score']) && in_array('机选差评', $params['score'])))  && intval($solrCond['id']) <= 0) {
             //机器评分
-            $condition['machine_score'] = 1;
+            $solrCond['machine_score'] = 1;
         }
-        if ($params['machine_score'] !== null && $params['machine_score'] !== '' && in_array($params['machine_score'], array(1, 2, 3)) && intval($condition['id']) <= 0) {
+        if ($params['machine_score'] !== null && $params['machine_score'] !== '' && in_array($params['machine_score'], array(1, 2, 3)) && intval($solrCond['id']) <= 0) {
             //机器评分
-            $condition['machine_score'] = $params['machine_score'];
+            $solrCond['machine_score'] = $params['machine_score'];
         }
-        if (intval($params['item_id']) > 0 && intval($condition['id']) <= 0) {
+        if (intval($params['item_id']) > 0 && intval($solrCond['id']) <= 0) {
             //商品ID
-            $condition['item_id'] = $params['item_id'];
+            $solrCond['item_id'] = $params['item_id'];
         }
-        if (!empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             $solrCond['brand_id'] = $params['brand'];
         }
-        if ($params['self_sale'] != -1 && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if ($params['self_sale'] != -1 && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             //sku属性
             $solrCond['self_sale'] = $params['self_sale'];
         }
-        if (!empty($params['category_ids']) && intval($params['category_id']) <= 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['category_ids']) && intval($params['category_id']) <= 0 && empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             //只有一级类目的时候
             $solrCond['category_id'] = $params['category_ids'];
         }
         
-        if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             //类目ID
             $solrCond['category_id'] = $params['category_id'];
         }
-        if (!empty($params['warehouse_type']) && intval($condition['item_id']) <= 0 && intval($condition['id']) <= 0) {
+        if (!empty($params['warehouse_type']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
             //仓库类型
             $solrCond['warehouse_type'] = $params['warehouse_type'];
         }
-        if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
+        if (strtotime($params['start_time']) > 0 && intval($solrCond['id']) <= 0) {
             //起始时间
-            $condition['start_time'] = $params['start_time'];
+            $solrCond['start_time'] = $params['start_time'];
         }
-        if (strtotime($params['end_time']) > 0 && intval($condition['id']) <= 0) {
+        if (strtotime($params['end_time']) > 0 && intval($solrCond['id']) <= 0) {
             //结束时间
-            $condition['end_time'] = $params['end_time'];
+            $solrCond['end_time'] = $params['end_time'];
         }
-        if (strtotime($params['comment_start_time']) > 0 && intval($condition['id']) <= 0) {
+        if (strtotime($params['comment_start_time']) > 0 && intval($solrCond['id']) <= 0) {
             //回复起始时间
-            $condition['comment_start_time'] = $params['comment_start_time'];
+            $solrCond['comment_start_time'] = $params['comment_start_time'];
             $orderBy = 'comment_time desc';
         }
-        if (strtotime($params['comment_end_time']) > 0 && intval($condition['id']) <= 0) {
+        if (strtotime($params['comment_end_time']) > 0 && intval($solrCond['id']) <= 0) {
             //回复结束时间
-            $condition['comment_end_time'] = $params['comment_end_time'];
+            $solrCond['comment_end_time'] = $params['comment_end_time'];
             $orderBy = 'comment_time desc';
         }
-        
-        if(isset($solrCond['brand_id']) || isset($solrCond['self_sale']) ||
-            isset($solrCond['warehouse_type']) || isset($solrCond['category_id'])){
-            $solr = new \mia\miagroup\Remote\Solr();
-            $solrData = $solr->getKoubeiList($solrCond, 'id', $offset, $limit,$orderBy);
+        if($isRealtime == false){
+            $solr = new \mia\miagroup\Remote\Solr('koubei');
+            $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);
             if(!empty($solrData['list'])){
                 foreach ($solrData['list'] as $v) {
                     $koubeiIds[] = $v['id'];
                 }
                 $condition['id'] = $koubeiIds;
-                $data = $this->koubeiModel->getKoubeiData($condition);
+                $data = $this->koubeiModel->getKoubeiData($condition, 0, $limit, $orderBy);
                 $data['count'] = $solrData['count'];
             }
         }else{
-            $data = $this->koubeiModel->getKoubeiData($condition, $offset, $limit, $orderBy);
+            $data = $this->koubeiModel->getKoubeiData($solrCond, $offset, $limit, $orderBy);
         }
-        
         
         if (empty($data['list'])) {
             return $this->succ($result);
@@ -155,6 +154,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiService = new KoubeiService();
         //获取口碑信息
         $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count', 'item', 'order_info'), array())['data'];
+        
         //获取口碑申诉信息
         $koubeiAppealInfos = $this->koubeiModel->getKoubeiAppealData(array('koubei_id' => $koubeiIds), 0, false)['list'];
         $appealStatus = array();
@@ -165,6 +165,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         foreach ($data['list'] as $v) {
             $tmp = $v;
+            if (empty($koubeiInfos[$v['id']])) {
+                continue;
+            }
             $tmp['subject'] = $koubeiInfos[$v['id']];
             if (isset($appealStatus[$v['id']])) {
                 $tmp['subject']['item_koubei']['appeal_status'] = $appealStatus[$v['id']]['status'];
@@ -321,16 +324,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
     
         //获取所有自主商家id
         $supplyInfo= $this->userModel->getAllKoubeiSupplier();
-        if(!empty($supplyInfo)){
-            $supplierIds = array_keys($supplyInfo);
-            //如果无某商家查询，则默为所有自主商家
-            if (intval($params['supplier_id']) > 0) {
-                //商家ID
-                $condition['supplier_id'] = $params['supplier_id'];
-            }else{
-                //默认为所有的自主商家id
-                $condition['supplier_id'] = $supplierIds;
-            }
+        if(empty($supplyInfo)){
+            return $result;
+        }
+        
+        $supplierIds = array_keys($supplyInfo);
+        //如果无某商家查询，则默为所有自主商家
+        if (intval($params['supplier_id']) > 0) {
+            //商家ID
+            $condition['supplier_id'] = $params['supplier_id'];
+        }else{
+            //默认为所有的自主商家id
+            $condition['supplier_id'] = $supplierIds;
         }
 
         //起始时间
@@ -338,34 +343,51 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //结束时间
         $condition['end_time'] = $params['end_time'];
     
+        //查询商家的口碑信息，用来过滤掉无口碑的商家id ######start
         $data = $this->koubeiModel->getSupplierKoubeiData($condition, $orderBy);
         if (empty($data)) {
             return $this->succ($result);
         }
-        $koubeiIds = array();
         $supplyIds = array();
         $koubeiArr = array();
         foreach ($data as $v) {
-            $koubeiIds[] = $v['id'];
             $koubeiArr[$v['supplier_id']][] = $v['id'];
         }
     
+        //最终统计的是有口碑的自主商家的数据
         $supplyIds = array_keys($koubeiArr);
+        $condition['supplier_id'] = $supplyIds;
+        #####end
+        
         //根据口碑id获取各商家生成口碑数、差评数、机选差评数、被评论过的口碑数及评论比例
-        $koubeiStatistics = $this->koubeiModel->supplierKoubeiStatistics($koubeiIds);
+        $koubeiStatistics = $this->koubeiModel->supplierKoubeiStatistics($condition);
         //根据商家id获取仓库名
         $wearhouseName = $this->stockModel->getBatchNameBySupplyIds($supplyIds);
     
         //拼接商家各计数及商家名
         foreach ($supplyIds as $supplyId) {
             $supplierKoubei = array();
+            $dealLowscoreNums = $koubeiStatistics['deal_lowscore'][$supplyId] ? $koubeiStatistics['deal_lowscore'][$supplyId] : 0;
+            $dealMscoreNums = $koubeiStatistics['deal_mscore'][$supplyId] ? $koubeiStatistics['deal_mscore'][$supplyId] : 0;
             $supplierKoubei['supplier_id'] = $supplyId;
             $supplierKoubei['wearhouse_name'] = $wearhouseName[$supplyId][0];
             $supplierKoubei['koubei_nums'] = $koubeiStatistics['koubei'][$supplyId] ? $koubeiStatistics['koubei'][$supplyId] : 0;
             $supplierKoubei['lscore_nums'] = $koubeiStatistics['lowscore'][$supplyId] ? $koubeiStatistics['lowscore'][$supplyId] : 0;
             $supplierKoubei['mscore_nums'] = $koubeiStatistics['mscore'][$supplyId] ? $koubeiStatistics['mscore'][$supplyId] : 0;
-            $supplierKoubei['deal_nums'] = $koubeiStatistics['deal'][$supplyId] ? $koubeiStatistics['deal'][$supplyId] : 0;
-            $supplierKoubei['deal_rate'] = (round($koubeiStatistics['deal'][$supplyId] / $koubeiStatistics['koubei'][$supplyId], 2) * 100)."%";
+            //处理数（回复差评数+回复机选差评数）
+            $supplierKoubei['deal_nums'] = $dealLowscoreNums + $dealMscoreNums;
+            //总差评数（差评数+机选差评数）
+            $badFeedback = $supplierKoubei['lscore_nums'] + $supplierKoubei['mscore_nums'];
+            //分母不能为0，所以需要判断总差评是否为0，如果总差评数为0，则处理数，默认为0
+            if($badFeedback > 0){
+                //处理数为处理差评数/总差评数
+                $dealRate = $supplierKoubei['deal_nums'] /$badFeedback > 0  ? $supplierKoubei['deal_nums'] /$badFeedback : 0;
+                $supplierKoubei['deal_rate'] = (round($dealRate, 2) * 100)."%";
+            }else{
+                //如果没有总差评数，则处理差评数默认为0
+                $dealRate = 0;
+            }
+            
             $supplierKoubei['appeal_nums'] = $koubeiStatistics['appeal'][$supplyId] ? $koubeiStatistics['appeal'][$supplyId] : 0;
             $supplierKoubei['pass_nums'] = $koubeiStatistics['pass'][$supplyId] ? $koubeiStatistics['pass'][$supplyId] : 0;
             $supplierKoubei['reject_nums'] = $koubeiStatistics['reject'][$supplyId] ? $koubeiStatistics['reject'][$supplyId] : 0;

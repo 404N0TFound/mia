@@ -7,7 +7,8 @@ class Solr
     public   $solrserver    = '';
     public   $export_count  = 2000;
 
-    public function __construct(){
+    public function __construct($core){
+        $this->setCore($core);
         $this->switchServer();
     }
 
@@ -29,7 +30,6 @@ class Solr
      * 封装数据
      */
     public function handleSolrUrlParams(){
-        $this->setCore($this->config['core']);
         $this->solrserver = 'http://'.$this->config['host'].':'.$this->config['port'].'/'.$this->config['path'].'/';
     }
 
@@ -83,6 +83,9 @@ class Solr
             if(empty($data['hl.fl']) == false) {
                 $params['hl.fl'] = urlencode($data['hl.fl']);
             }
+            if(empty($data['facet.limit']) == false){
+                $params['facet.limit'] = $data['facet.limit'];
+            }
             if(empty($data['fq']) == false) {
                 $fieldStr = '';
                 foreach ($data['fq'] as $key => $field){
@@ -107,6 +110,9 @@ class Solr
                 $params['facet'] = 'on';
                 $params['facet.field'] = $fieldStr;
             }
+            if(empty($data['facet.pivot']) == false){
+                $params['facet.pivot'] = $data['facet.pivot'];
+            }
             // Field Collapsing
             if(empty($data['group']) == false){
                 $params['group'] = $data['group'];
@@ -119,7 +125,6 @@ class Solr
             }
             $method = 'select';
             $solrData = $this->httpGet($method, $params);
-
             if(empty($solrData) == false) {
                 $data = json_decode($solrData, true);
                 if(isset($data['responseHeader']['status']) == true && $data['responseHeader']['status'] == 0) {
@@ -151,21 +156,50 @@ class Solr
     }
 
     public function httpGet($method, $parame){
-        $url = $this->solrserver . $this->core."/".$method;
-        $data = "";
-        $wt = 'json';
-        if(empty($parame['wt']) == false) {
-            $wt = $parame['wt'];
-            unset($parame['wt']);
+
+        try{
+            $url = $this->solrserver . $this->core."/".$method;
+            $data = "";
+            $wt = 'json';
+            if(empty($parame['wt']) == false) {
+                $wt = $parame['wt'];
+                unset($parame['wt']);
+            }
+            $url .= "?wt=".$wt;
+            foreach($parame as $key=>$value) {
+                $data .= "&". $key."=".$value;
+            }
+            $url .= $data;
+            //echo $url."\n";
+            $request_startTime = gettimeofday(true);
+            $result = file_get_contents($url);
+            $request_endTime = gettimeofday(true);
+            $res_log = json_decode($result,true);
+
+            $code = $res_log['responseHeader']['status'] === 0 ? $res_log['responseHeader']['status'] : -1;
+            // 日志记录
+            \F_Ice::$ins->mainApp->logger_remote->info(array(
+                'third_server'  =>  'solr',
+                'type'          =>  'INFO',
+                'request_param' =>  $data,
+                'response_code' =>  $code,
+                'response_msg'  =>  '',
+                'request_url'   =>  $url,
+                'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
+            ));
+            return $result;
+        }catch (\Exception $e){
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server'  =>  'solr',
+                'type'          =>  'ERROR',
+                'exception' => get_class($e),
+                'message'   => $e->getMessage(),
+                'code'      => $e->getCode(),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ));
         }
-        $url .= "?wt=".$wt;
-        foreach($parame as $key=>$value) {
-            $data .= "&". $key."=".$value;
-        }
-        $url .= $data;
-        //echo $url."\n";
-        $result = file_get_contents($url);
-        return $result;
     }
 
     /**
@@ -207,12 +241,10 @@ class Solr
             'status' => 2,
             'score' => '(4 OR 5)',
             'fl' => $field,
-            'sort' => $sort,
-            'subject_id' => '-(subject_id:0)',
-            'item_id' => '-(item_id:0)'
+            'sort' => $sort
         );
 
-        $res = $this->getKoubeiList($conditon, $field, $page, $this->export_count, $sort);
+        $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
         if(!empty($res['list'])){
             //$sort_ids = $this->sortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
             $sort_ids = $this->anotherSortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
@@ -263,7 +295,7 @@ class Solr
         if(intval($conditon['brand_id']) > 0) { 
             //品牌ID
             if (is_array($conditon['brand_id'])) {
-                $solr_info['fq'][]   = "brand_id:". implode(' OR ', $conditon['brand_id']);
+                $solr_info['fq'][]   = "brand_id:(". implode(' OR ', $conditon['brand_id']) . ")";
             } else {
                 $solr_info['fq'][]   = 'brand_id:'. $conditon['brand_id'];
             }
@@ -272,7 +304,7 @@ class Solr
             //是否带图
             $solr_info['fq'][]   = $conditon['koubei_with_pic'] === true ? 'local_url:*' : '-(local_url:*)';
         }
-        if (in_array($conditon['self_sale'],array(0,1))) {
+        if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
             //自营非自营
             $solr_info['fq'][]   = $conditon['self_sale'] == 1 ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
         }
@@ -280,17 +312,60 @@ class Solr
             //所属仓库
             $solr_info['fq'][]   = 'warehouse_type:'. $conditon['warehouse_type'];
         }
-        if(!empty(intval($conditon['status']))){
+        if(isset($conditon['status']) && in_array($conditon['status'],array(0,1,2))){
             $solr_info['fq'][]   = 'status:'. $conditon['status'];
+            if($conditon['status'] == 2){
+                $solr_info['fq'][]   = 'subject_id:[0 TO *]';
+            }
         }
         if(!empty($conditon['score'])){
             $solr_info['fq'][]   = 'score:'. $conditon['score'];
         }
         if(!empty($conditon['item_id'])){
-            $solr_info['fq'][]   = $conditon['item_id'];
+            $solr_info['fq'][]   = 'item_id:'.$conditon['item_id'];
         }
         if(!empty($conditon['subject_id'])){
-            $solr_info['fq'][]   = $conditon['subject_id'];
+            $solr_info['fq'][]   = 'subject_id:'.$conditon['subject_id'];
+        }
+        //口碑类型（精品/非精品）
+        if(isset($conditon['rank']) && in_array($conditon['rank'],array(0,1))){
+            $solr_info['fq'][]   = 'rank:'. $conditon['rank'];
+        }
+        //机器评分
+        if(!empty(intval($conditon['machine_score']))){
+            $solr_info['fq'][]   = 'machine_score:'. $conditon['machine_score'];
+        }
+        //用户id
+        if(!empty(intval($conditon['user_id']))){
+            $solr_info['fq'][]   = 'user_id:'. $conditon['user_id'];
+        }
+        //口碑id
+        if(!empty(intval($conditon['id']))){
+            $solr_info['fq'][]   = 'id:'. $conditon['id'];
+        }
+        if (strtotime($conditon['start_time']) > 0) {
+            //起始时间
+            $solr_info['fq'][]   = "created_time:[".strtotime($conditon['start_time']) ." TO *]";
+        }
+        if (strtotime($conditon['end_time']) > 0) {
+            //结束时间
+            $solr_info['fq'][]   =  "created_time:[* TO ". strtotime($conditon['end_time']) ."]";
+        }
+        //商家id
+        if(!empty(intval($conditon['supplier_id']))){
+            $solr_info['fq'][]   = 'supplier_id:'. $conditon['supplier_id'];
+        }
+        //回复状态
+        if(isset($conditon['comment_status']) && in_array($conditon['comment_status'],array(0,1))){
+            $solr_info['fq'][]   = 'comment_status:'. $conditon['comment_status'];
+        }
+        if (strtotime($conditon['comment_start_time']) > 0) {
+            //回复起始时间
+            $solr_info['fq'][]   = "comment_time:[".strtotime($conditon['comment_start_time']) ." TO *]";
+        }
+        if (strtotime($conditon['comment_end_time']) > 0) {
+            //回复结束时间
+            $solr_info['fq'][]   =  "comment_time:[* TO ". strtotime($conditon['comment_end_time']) ."]";
         }
         // solr select
         $res = $this->select($solr_info);
@@ -498,8 +573,6 @@ class Solr
         $solrInfo['fq'][] = 'local_url:*';
         $solrInfo['fq'][] = 'status:2';
         $solrInfo['fq'][] = 'score:(4 OR 5)';
-        $solrInfo['fq'][] = '-(subject_id:0)';
-        $solrInfo['fq'][] = '-(item_id:0)';
         // solr select
         $res = $this->select($solrInfo);
         if($res['success'] == 1){
@@ -532,8 +605,6 @@ class Solr
         $solrInfo['fq'][] = 'local_url:*';
         $solrInfo['fq'][] = 'status:2';
         $solrInfo['fq'][] = 'score:(4 OR 5)';
-        $solrInfo['fq'][] = '-(subject_id:0)';
-        $solrInfo['fq'][] = '-(item_id:0)';
         // solr select
         $res = $this->select($solrInfo);
         $new_brand_list = array();
@@ -544,6 +615,81 @@ class Solr
                 $new_brand_list[$k]['name'] = $v['name'];
             }
             return $new_brand_list;
+        }
+        return array();
+    }
+
+
+    /*
+     * 获取各项分数统计
+     * */
+    public function getSupplierGoodsScore($screen = 'supplier_id', $screen_param = 0, $search_time = ''){
+
+        // solr facet维度：默认只支持100（查询总量不现实）
+        $begin_time = strtotime("-3 months", $search_time);
+        $solrInfo = [
+            'q'           => '*:*',
+            'fl'          => 'order_id',
+            'facet'       => 'true',
+            'facet.pivot' => 'score',
+            'facet.field' => array('score'),
+        ];
+        $solrInfo['fq'][] = $screen .":".$screen_param;
+        $solrInfo['fq'][] = 'status:2';
+        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
+        $res = $this->select($solrInfo);
+        $statis = array();
+        $statis['count'] = [
+            'num_five'  => 0,
+            'num_four'  => 0,
+            'num_three' => 0,
+            'num_two'   => 0,
+            'num_one'   => 0,
+        ];
+        $docs = $res['data']['response']['docs'];
+        if(!empty($docs)) {
+            $facet_pivot = $res['data']['facet_counts']['facet_pivot']['score'];
+           foreach($facet_pivot as $value){
+               if($value['value'] == 5){
+                   $statis['count']['num_five'] = $value['count'];
+               }
+               if($value['value'] == 4){
+                   $statis['count']['num_four'] = $value['count'];
+               }
+               if($value['value'] == 3){
+                   $statis['count']['num_three'] = $value['count'];
+               }
+               if($value['value'] == 2){
+                   $statis['count']['num_two'] = $value['count'];
+               }
+               if($value['value'] == 1){
+                   $statis['count']['num_one'] = $value['count'];
+               }
+           }
+        }
+        // 返回各项得分
+        return $statis;
+    }
+
+
+    /*
+     * 获取默认5分好评
+     * */
+    public function getDefaultScoreFive($screen = 'supplier_id', $screen_param = 0, $search_time = ''){
+
+        $begin_time = strtotime("-3 months", $search_time);
+        $solrInfo = [
+            'q'           => '*:*',
+            'fl'          => 'order_id',
+        ];
+        $solrInfo['fq'][] = $screen .":".$screen_param;
+        $solrInfo['fq'][] = 'status:5';
+        $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO *]';
+
+        $res = $this->select($solrInfo);
+        $docs = $res['data']['response']['docs'];
+        if(!empty($docs)){
+            return array( 'count' => $res['data']['response']['numFound']);
         }
         return array();
     }

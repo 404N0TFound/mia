@@ -273,12 +273,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item' ,'order_info'), $status = array(2)) {
         if (empty($koubeiIds)) {
-            return array();
+            return $this->succ(array());
         }
         $koubeiInfo = array();
         $orderIds = array();
         //批量获取口碑信息
         $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status);
+        if (empty($koubeiArr)) {
+            return $this->succ();
+        }
         foreach($koubeiArr as $koubei){
             if(empty($koubei['subject_id'])) continue;
             //收集subjectids
@@ -713,7 +716,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function categorySearch($brand_id = 0, $category_id = 0, $count = 20, $page = 1,$userId = 0){
 
-        $solr        = new SolrRemote();
+        $solr        = new SolrRemote('koubei');
         $koubei      = array();
         $brand_list  = array();
         if(!empty($category_id) && empty($brand_id)){
@@ -775,29 +778,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public function itemBatchBestKoubei($itemIds = array()){
         // 获取口碑最优id
         //$itemIds = array('1005598','1003113');
-        if(empty($itemIds)){
-            return $this->error(500);
+        if(!is_array($itemIds) || empty($itemIds)){
+            return $this->succ(array());
         }
-        $rel_ids = array();
+        $transfer_koubei = array();
         $item_service = new ItemService();
         //通过商品id获取口碑id
         foreach ($itemIds as $value) {
             $item_ids = $item_service->getRelateItemById($value);
             if(!empty($item_ids)){
-               $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
-                $rel_ids[] = $koubei_ids[0];
+                $condition = array();
+                $condition['score'] = array(4, 5);
+                $condition['machine_score'] = 3;
+                $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, 20);
+                $res = $this->getBatchKoubeiByIds(array($koubei_ids[0]));
+                foreach($res['data'] as $v){
+                    $transfer_koubei[$value] = $v;
+                }
            }
         }
-        $res = $this->getBatchKoubeiByIds($rel_ids);
-        if(!empty($res)){
-            // 处理数组
-            $transfer = $res['data'];
-            foreach($transfer as $k => $v){
-                $transfer_arr[($v['item_koubei']['item_id'])] = $v;
-            }
-            $res['data'] = $transfer_arr;
-            return $this->succ($res['data']);
-        }
+        return $this->succ($transfer_koubei);
     }
     
     /**
@@ -813,4 +813,63 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId,$koubeUpData);
         return $this->succ($res);
     }
+
+
+    /*
+     * 批量获取供应商口碑评分数量
+     * */
+    public function getSupplierKoubeiScore($supplier = '',$search_time = ''){
+        if(empty($supplier) || empty($search_time)){
+            return $this->succ(array());
+        }
+        $supplier_list = array();
+        $solr = new SolrRemote('koubei');
+        $solr_supplier = new SolrRemote('supplier');
+        $supplier_info = $solr->getSupplierGoodsScore('supplier_id', $supplier, $search_time);
+        // 获取默认5分好评
+        $default_info = $solr_supplier->getDefaultScoreFive('supplier_id', $supplier, $search_time);
+        $koubei_sum_score = array_sum($supplier_info['count']);
+        $supplier_info['count']['num_default'] = 0;
+        if(!empty($default_info)){
+            $supplier_info['count']['num_default'] = $default_info['count'] - $koubei_sum_score;
+        }
+        // 统计今日得分
+        $numerator = (
+                5*$supplier_info['count']['num_five']+
+                4*$supplier_info['count']['num_four']+
+                3*$supplier_info['count']['num_three']+
+                2*$supplier_info['count']['num_two']+
+                1*$supplier_info['count']['num_one'])*100
+            +5*$supplier_info['count']['num_default'];
+        $denominator = $koubei_sum_score*100+$supplier_info['count']['num_default'];
+        $supplier_info['count']['score_today'] = 0;
+        if(!empty($denominator)){
+            $supplier_info['count']['score_today'] = round($numerator/$denominator, 3);
+        }
+        $supplier_list[$supplier] = $supplier_info['count'];
+
+        return $this->succ($supplier_list);
+    }
+
+
+    /**
+     * 根据商品ID获取口碑ID集合
+     */
+    public function getBatchKoubeiIdsByItemId($item_id)
+    {
+        if(empty($item_id)){
+            return $this->succ(array());
+        }
+        $solr = new SolrRemote('koubei');
+        $solr_supplier = new SolrRemote('supplier');
+        // 获取口碑各项得分
+        $item_info = $solr->getSupplierGoodsScore('item_id', $item_id, time());
+        $koubei_sum_score = array_sum($item_info['count']);
+        // 获取商品默认5分好评
+        $default_count = $solr_supplier->getDefaultScoreFive('item_id', $item_id, time());
+        $default_count_five = $default_count['count'] - $koubei_sum_score;
+        $item_score = array('each'=>$item_info['count'],'num_default'=>$default_count_five);
+        return $this->succ($item_score);
+    }
+
 }

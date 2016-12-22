@@ -12,6 +12,7 @@ class Comment extends \mia\miagroup\Lib\Service {
     public $userModel;
     
     public function __construct() {
+        parent::__construct();
         $this->commentModel = new CommentModel();
         $this->userModel = new UserModel();
     }

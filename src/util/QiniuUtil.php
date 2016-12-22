@@ -136,7 +136,7 @@ class QiniuUtil {
     /**
      * 获取直播快照
      */
-    public function getSnapShot($streamId, $size = 100, $name = null, $time = null){
+    public function getSnapShot($streamId, $width = 640, $height = 640, $time = null, $name = null){
         $returnValue = [];
         if(!$name){
             $time = time();
@@ -148,12 +148,11 @@ class QiniuUtil {
             $result = $stream->snapshot($name, $format, $time);
             if(isset($result['targetUrl'])){
                 $returnValue['origin'] = $result['targetUrl'];
-                $returnValue[$size] = "{$result['targetUrl']}?imageView2/2/w/{$size}/h/{$size}/q/85";
+                $returnValue['format'] = "{$result['targetUrl']}?imageView2/2/w/{$width}/h/{$height}/q/85";
             }
-//             throw new \Exception();
         } catch (\Exception $e) {
             $returnValue['origin'] = '';
-            $returnValue[$size] = '';
+            $returnValue['format'] = '';
         }
         
         return $returnValue;

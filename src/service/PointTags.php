@@ -10,6 +10,7 @@ class PointTags extends \mia\miagroup\Lib\Service {
     public $itemService;
     
     public function __construct() {
+        parent::__construct();
         $this->tagsModel = new TagsModel();
         $this->itemService = new ItemService();
     }
