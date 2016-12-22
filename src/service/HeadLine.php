@@ -601,14 +601,22 @@ class HeadLine extends \mia\miagroup\Lib\Service {
             $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds, 0, array('album'))['data'];
             $lives = $this->liveServer->getLiveRoomByIds($roomIds, array())['data'];
             $topics = $this->getHeadLineTopics($topicIds, array())['data'];
-            $promotions = $this->headlineRemote->promotionList($promotionIds);
-            $urecoms = $this->headlineRemote->promotionList($urecomIds);
+            if(!empty($promotionIds)){
+                $promotions = $this->headlineRemote->promotionList($promotionIds);
+            }
+            if(!empty($urecomIds)){
+                $urecoms = $this->headlineRemote->promotionList($urecomIds);
+            }
         } else { //列表信息
             $subjects = $this->subjectServer->getBatchSubjectInfos($subjectIds)['data'];
             $lives = $this->liveServer->getLiveRoomByIds($roomIds, array('user_info', 'live_info'))['data'];
             $topics = $this->getHeadLineTopics($topicIds, array('count'))['data'];
-            $promotions = $this->headlineRemote->promotionList($promotionIds);
-            $urecoms = $this->headlineRemote->promotionList($urecomIds);
+            if(!empty($promotionIds)){
+                $promotions = $this->headlineRemote->promotionList($promotionIds);
+            }
+            if(!empty($urecomIds)){
+                $urecoms = $this->headlineRemote->promotionList($urecomIds);
+            }
         }
 
         //以row为key重新拼装opertionData
