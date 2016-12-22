@@ -320,7 +320,7 @@ class Solr
             //所属仓库
             $solr_info['fq'][]   = 'warehouse_type:'. $conditon['warehouse_type'];
         }
-        if(!empty(intval($conditon['status']))){
+        if(isset($conditon['status']) && in_array($conditon['status'],array(0,1,2))){
             $solr_info['fq'][]   = 'status:'. $conditon['status'];
             if($conditon['status'] == 2){
                 $solr_info['fq'][]   = 'subject_id:[0 TO *]';
@@ -336,7 +336,7 @@ class Solr
             $solr_info['fq'][]   = 'subject_id:'.$conditon['subject_id'];
         }
         //口碑类型（精品/非精品）
-        if(!empty(intval($conditon['rank']))){
+        if(isset($conditon['rank']) && in_array($conditon['rank'],array(0,1))){
             $solr_info['fq'][]   = 'rank:'. $conditon['rank'];
         }
         //机器评分
@@ -364,7 +364,7 @@ class Solr
             $solr_info['fq'][]   = 'supplier_id:'. $conditon['supplier_id'];
         }
         //回复状态
-        if(!empty(intval($conditon['comment_status']))){
+        if(isset($conditon['comment_status']) && in_array($conditon['comment_status'],array(0,1))){
             $solr_info['fq'][]   = 'comment_status:'. $conditon['comment_status'];
         }
         if (strtotime($conditon['comment_start_time']) > 0) {
@@ -375,7 +375,6 @@ class Solr
             //回复结束时间
             $solr_info['fq'][]   =  "comment_time:[* TO ". strtotime($conditon['comment_end_time']) ."]";
         }
-        //print_r($solr_info);exit;
         // solr select
         $res = $this->select($solr_info);
         if($res['success'] == 1){
