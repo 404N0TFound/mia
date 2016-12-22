@@ -8,6 +8,7 @@ class Order extends \mia\miagroup\Lib\Service {
     public $orderModel;
     
     public function __construct() {
+        parent::__construct();
         $this->orderModel = new OrderModel();
     }
     
