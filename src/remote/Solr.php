@@ -241,9 +241,7 @@ class Solr
             'status' => 2,
             'score' => '(4 OR 5)',
             'fl' => $field,
-            'sort' => $sort,
-            'subject_id' => '-(subject_id:0)',
-            'item_id' => '-(item_id:0)'
+            'sort' => $sort
         );
 
         $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
@@ -581,8 +579,6 @@ class Solr
         $solrInfo['fq'][] = 'local_url:*';
         $solrInfo['fq'][] = 'status:2';
         $solrInfo['fq'][] = 'score:(4 OR 5)';
-        $solrInfo['fq'][] = '-(subject_id:0)';
-        $solrInfo['fq'][] = '-(item_id:0)';
         // solr select
         $res = $this->select($solrInfo);
         if($res['success'] == 1){
@@ -615,8 +611,6 @@ class Solr
         $solrInfo['fq'][] = 'local_url:*';
         $solrInfo['fq'][] = 'status:2';
         $solrInfo['fq'][] = 'score:(4 OR 5)';
-        $solrInfo['fq'][] = '-(subject_id:0)';
-        $solrInfo['fq'][] = '-(item_id:0)';
         // solr select
         $res = $this->select($solrInfo);
         $new_brand_list = array();
@@ -648,8 +642,6 @@ class Solr
         ];
         $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:2';
-        $solrInfo['fq'][] = '-(item_id:0)';
-        $solrInfo['fq'][] = '-(order_id:0)';
         $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
         $res = $this->select($solrInfo);
         $statis = array();
@@ -695,14 +687,9 @@ class Solr
         $solrInfo = [
             'q'           => '*:*',
             'fl'          => 'order_id',
-            //'facet'       => 'true',
-            //'facet.pivot' => 'order_id',
-            //'facet.field' => array('order_id'),
         ];
         $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:5';
-        $solrInfo['fq'][] = '-(item_id:0)';
-        $solrInfo['fq'][] = '-(order_id:0)';
         $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO *]';
 
         $res = $this->select($solrInfo);
