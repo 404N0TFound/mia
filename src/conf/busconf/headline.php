@@ -39,6 +39,7 @@ $clientServerMapping = array(
     'banner' => 'banner',
     'promotion' => 'promotion',
     'subject' => 'subject',
+    'urecom' => 'urecom'
 );
 
 //推荐头条专家ID
