@@ -142,9 +142,9 @@ class RecommendedHeadline
         \F_Ice::$ins->mainApp->logger_remote->info(array(
             'third_server' => 'headline',
             'type' => 'INFO',
-            'request_param' => $params,
+            'request_url' => $url,
+            'request_params'=>$params,
             'response_code' => $error_no,
-            'response_data' => $result,
             'response_msg' => $error_str,
             'resp_time' => $getCurlInfo['total_time'],
         ));
