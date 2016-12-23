@@ -828,9 +828,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $supplier_info = $solr->getSupplierGoodsScore('supplier_id', $supplier, $search_time);
         // 获取默认5分好评
         $default_info = $solr_supplier->getDefaultScoreFive('supplier_id', $supplier, $search_time);
+        $default_info['count'] = 0;
         $koubei_sum_score = array_sum($supplier_info['count']);
         $supplier_info['count']['num_default'] = 0;
-        if(!empty($default_info)){
+        if($default_info['count'] > 0){
             $supplier_info['count']['num_default'] = $default_info['count'] - $koubei_sum_score;
         }
         // 统计今日得分
@@ -868,7 +869,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         // 获取商品默认5分好评
         $default_count = $solr_supplier->getDefaultScoreFive('item_id', $item_id, time());
         $default_count_five = 0;
-        if(!empty($default_count['count'])){
+        if($default_count['count'] > 0){
             $default_count_five = $default_count['count'] - $koubei_sum_score;
         }
         $item_score = array('each'=>$item_info['count'],'num_default'=>$default_count_five);
