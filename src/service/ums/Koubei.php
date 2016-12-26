@@ -91,23 +91,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //商品ID
             $solrCond['item_id'] = $params['item_id'];
         }
-        if (!empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
+        if (!empty($params['brand']) && $isRealtime == false) {
             $solrCond['brand_id'] = $params['brand'];
         }
-        if ($params['self_sale'] != -1 && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
+        if ($params['self_sale'] != -1 && $isRealtime == false) {
             //sku属性
             $solrCond['self_sale'] = $params['self_sale'];
         }
-        if (!empty($params['category_ids']) && intval($params['category_id']) <= 0 && empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
+        if (!empty($params['category_ids']) && intval($params['category_id']) <= 0  && $isRealtime == false) {
             //只有一级类目的时候
             $solrCond['category_id'] = $params['category_ids'];
         }
         
-        if (intval($params['category_id']) > 0 && empty($params['brand']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
+        if (intval($params['category_id']) > 0 && $isRealtime == false) {
             //类目ID
             $solrCond['category_id'] = $params['category_id'];
         }
-        if (!empty($params['warehouse_type']) && intval($solrCond['item_id']) <= 0 && intval($solrCond['id']) <= 0 && $isRealtime == false) {
+        if (!empty($params['warehouse_type']) && $isRealtime == false) {
             //仓库类型
             $solrCond['warehouse_type'] = $params['warehouse_type'];
         }
