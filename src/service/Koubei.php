@@ -870,11 +870,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
     }
 
-
     /**
      * 导入印象标签父子关系
-     * @param $tagName
-     * @param $parentName
+     * @param $tagName  新定子标签
+     * @param $parentName   新定父标签
      */
     public function syncTagsRelation($tagName, $parentName)
     {
@@ -888,27 +887,85 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($childTagInfo) || empty($parentTagInfo)) {
             return $this->error(500, "标签不存在");
         }
-        //检查父类标签是否是以前是子标签,是的话则报错
-        if ($parentTagInfo['parent_id'] != 0) {
-            return $this->error(500, "父标签错误");
-        }
-        //检查子标签是否有子类，有的话不可以修改
-        $childArr = $this->koubeiModel->getChildTags($childTagInfo['id']);
-        if (!empty($childArr)) {
-            return $this->error(500, "子标签错误");
-        }
-        //更新子标签parent_id
+        //修改设置子标签的parent_id
         $SetData[] = ['parent_id', $parentTagInfo['id']];
         $res = $this->koubeiModel->updateTags($SetData, $childTagInfo['id']);
-        if (!$res) {
-            return $this->error(500, "添加失败");
-        } else {
-            return $this->succ($res);
+        unset($SetData);
+
+
+
+
+        //检查设置父类标签类型
+        if ($parentTagInfo['parent_id'] != 0) {
+            //设置父类标签原本是子标签，就相当于添加一个父标签
+            //把设置父标签的parent_id改为0
+            $SetData[] = ['parent_id', 0];
+            $res = $this->koubeiModel->updateTags($SetData, $parentTagInfo['id']);
+            unset($SetData);
+        }
+
+
+
+        //检查设置子标签类型
+        if ($childTagInfo['parent_id'] == 0) {
+            //设置子标签原本是父标签
+            //把之前设置子标签的子标签的parent_id都改为0
+            $SetData[] = ['parent_id', 0];
+            $res = $this->koubeiModel->updateTagsByparentId($SetData, $childTagInfo['id']);
+            unset($SetData);
+        }
+
+        if ($childTagInfo['parent_id'] != 0 && $parentTagInfo['parent_id'] == 0) {
+            //子（子）+ 父（父）
+            $SetData[] = ['tag_id_1', $parentTagInfo['id']];
+            $res = $this->koubeiModel->updateRealtionByChildId($SetData, $childTagInfo['id']);
+            unset($SetData);
+        }
+
+        if ($childTagInfo['parent_id'] == 0 && $parentTagInfo['parent_id'] == 0) {
+            //子（父）+ 父（父）
+            $SetData[] = ['tag_id_2', $childTagInfo['id']];
+            $res = $this->koubeiModel->updateRealtionByParentId($SetData, $parentTagInfo['id']);
+            unset($SetData);
+
+
+            $SetData[] = ['tag_id_1', 'tag_id_2'];
+            $SetData[] = ['tag_id_2', 0];
+            $res = $this->koubeiModel->updateRealtionByParentId($SetData, $childTagInfo['id']);
+            unset($SetData);
+        }
+
+        if ($childTagInfo['parent_id'] != 0 && $parentTagInfo['parent_id'] == 0) {
+            //子（子）+ 父（子）
+            $SetData[] = ['tag_id_1', $parentTagInfo['id']];
+            $res = $this->koubeiModel->updateRealtionByChildId($SetData, $childTagInfo['id']);
+            unset($SetData);
+
+
+            $SetData[] = ['tag_id_1', $parentTagInfo['id']];
+            $SetData[] = ['tag_id_2', 0];
+            $res = $this->koubeiModel->updateRealtionByChildId($SetData, $parentTagInfo['id']);
+            unset($SetData);
+        }
+
+        if ($childTagInfo['parent_id'] != 0 && $parentTagInfo['parent_id'] == 0) {
+            //子（父）+ 父（子）
+            $SetData[] = ['tag_id_1', 'tag_id_2'];
+            $SetData[] = ['tag_id_2', 0];
+            $res = $this->koubeiModel->updateRealtionByParentId($SetData, $childTagInfo['id']);
+            unset($SetData);
+
+            $SetData[] = ['tag_id_1', $parentTagInfo['id']];
+            $SetData[] = ['tag_id_2', 0];
+            $res = $this->koubeiModel->updateRealtionByChildId($SetData, $parentTagInfo['id']);
+            unset($SetData);
+
+
         }
     }
 
     /**
-     * 导入口碑和标签关系
+     * 导入口碑和标签关系（单个导入不删除之前的）
      * @param $relationInfo tag_name（子标签） koubei_id
      */
     public function syncKoubeiTags($relationInfo)
@@ -958,10 +1015,75 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
     }
 
+
+    /**
+     * 导入口碑和标签关系（批量导入，删除口碑之前所有标签）
+     * @param $relationInfo tag_names（子标签数组） koubei_id
+     */
+    public function syncKoubeiTagsRelation($relationInfo)
+    {
+        $tag_names = $relationInfo["tag_names"];
+        $koubei_id = $relationInfo["koubei_id"];
+
+        if (empty($tag_names) || empty($koubei_id)) {
+            return $this->error(500, "参数错误");
+        }
+
+        $item_id = $this->koubeiModel->getBatchKoubeiByIds([$koubei_id])[$koubei_id]['item_id'];
+        if(empty($item_id)){
+            return $this->error(500, "口碑不存在");
+        }
+
+        //查询口碑现有标签
+        $res = $this->koubeiModel->getItemTags([':eq', 'koubei_id', $koubei_id]);
+        $delIds = array_map(function ($v) {
+            return $v['id'];
+        }, $res);
+
+        foreach ($tag_names as $tag_name){
+            //根据标签名，检查标签是否存在
+            $tagInfo = $this->koubeiModel->getTagInfo($tag_name);
+            if (empty($tagInfo)) {
+                return $this->error(500, "标签'".$tag_name."'不存在");
+            }
+
+            //判断标签类型
+            if ($tagInfo['parent_id'] == 0) {
+                //父标签
+                $insertData["tag_id_1"] = $tagInfo['id'];
+                $insertData["tag_id_2"] = 0;
+            } else {
+                //子标签
+                $insertData["tag_id_1"] = $tagInfo['parent_id'];
+                $insertData["tag_id_2"] = $tagInfo['id'];
+            }
+            $insertData["koubei_id"] = $koubei_id;
+            $insertData["item_id"] = $item_id;
+            $insertArr[] = $insertData;
+        }
+
+
+        //关系数据入库
+        $result = array_map(function($v){return $this->koubeiModel->addTagsRelation($v);},$insertArr);
+
+
+        if (in_array(FALSE,$result)) {
+            return $this->error(500,"部分操作添加失败，请重新操作！");
+        } else {
+            //删除之前该口碑的所有标签
+            $this->koubeiModel->delTagsKoubeiRelation($delIds);
+            return $this->succ($result);
+        }
+    }
+
     /**
      * 获取指定商品，指定标签的口碑列表
      * @param $item_id
      * @param $tag_id（父标签）
+     * @param int $page
+     * @param int $limit
+     * @param int $userId
+     * @return array
      */
     public function getTagsKoubeiList($item_id, $tag_id, $page = 1, $limit = 20, $userId = 0)
     {

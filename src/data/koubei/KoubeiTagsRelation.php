@@ -65,4 +65,22 @@ class KoubeiTagsRelation extends \DB_Query {
         $result = $this->getRows($where, $fields, $limit, $offset, $orderBy, $join, $groupBy);
         return $result;
     }
+
+    public function delTagsKoubeiRelation($where)
+    {
+        $result = $this->delete($where);
+        return $result;
+    }
+
+    /**
+     * 更新
+     */
+    public function updateRealtion($setData, $where)
+    {
+        if (empty($setData) || empty($where)) {
+            return false;
+        }
+        $data = $this->update($setData, $where);
+        return $data;
+    }
 }

@@ -440,7 +440,36 @@ class Koubei {
      */
     public function updateTags($setData, $id)
     {
-        $res = $this->koubeiTagsData->updateTags($setData, $id);
+        $where[] = ['id', $id];
+        $res = $this->koubeiTagsData->updateTags($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 更新标签
+     */
+    public function updateTagsByparentId($setData, $parentId)
+    {
+        $where[] = ['parent_id', $parentId];
+        $res = $this->koubeiTagsData->updateTags($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 更新口碑标签关系表
+     * @param $setData
+     * @param $tag_id_2
+     * @return bool
+     */
+    public function updateRealtionByChildId($setData , $tag_id_2){
+        $where[] = ['tag_id_2', $tag_id_2];
+        $res = $this->koubeiTagsRelationData->updateRealtion($setData, $where);
+        return $res;
+    }
+
+    public function updateRealtionByParentId($setData , $tag_id_1){
+        $where[] = ['tag_id_1', $tag_id_1];
+        $res = $this->koubeiTagsRelationData->updateRealtion($setData, $where);
         return $res;
     }
 
@@ -529,4 +558,17 @@ class Koubei {
         $res = $this->koubeiTagsRelationData->getTags($where);
         return $res;
     }
+
+    /**
+     * 根据id删除记录
+     * @param $delIds
+     * @return mixed
+     */
+    public function delTagsKoubeiRelation($delIds)
+    {
+        $where[] = ["id",$delIds];
+        $res = $this->koubeiTagsRelationData->delTagsKoubeiRelation($where);
+        return $res;
+    }
+
 }

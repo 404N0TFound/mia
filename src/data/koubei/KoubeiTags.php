@@ -34,12 +34,11 @@ class KoubeiTags extends \DB_Query
     /**
      * 更新标签
      */
-    public function updateTags($setData, $id)
+    public function updateTags($setData, $where)
     {
-        if (empty($setData) || empty($id)) {
+        if (empty($setData) || empty($where)) {
             return false;
         }
-        $where[] = ['id', $id];
         $data = $this->update($setData, $where);
         return $data;
     }
