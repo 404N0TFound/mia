@@ -29,6 +29,10 @@ class Koubei extends \DB_Query {
         if (isset($condition["koubei_id"])) {
             $where[] = ['id', $condition["koubei_id"]];
         }
+
+        if (isset($condition["score"])) {
+            $where[] = [":ge",'score', $condition["score"]];
+        }
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
         if (!empty($data)) {

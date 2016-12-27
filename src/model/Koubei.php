@@ -84,7 +84,7 @@ class Koubei {
         $conditon['score'] = 4;
 
         $order_by = 'rank_score desc, created_time desc';
-        $koubei_data = $this->koubeiData->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $order_by, $condition);
+        $koubei_data = $this->koubeiData->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $order_by, $conditon);
         return $koubei_data;
     }
 
