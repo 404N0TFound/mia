@@ -1163,7 +1163,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $tagList[$k]['count'] = intval($v["count"]);
                     $tagList[$k]['positive'] = 1;
                     $good++;
-                } elseif ($v["count"] >= 2 && $v['positive'] == 2 && $bad < 1) {
+                } elseif ($v['positive'] == 2 && $bad < 1) {
                     $tagList[$k]['type'] = "collect";
                     $tagList[$k]['tag_id'] = $v["id"];
                     $tagList[$k]['tag_name'] = $v["tag_name"];
