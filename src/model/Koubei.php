@@ -56,7 +56,7 @@ class Koubei {
         if (empty($itemIds)) {
             return array();
         }
-        $orderBy = 'rank_score desc, created_time desc';
+        $orderBy = 'auto_evaluate asc, rank_score desc, created_time desc';
         $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy, $condition);
         return $koubeiData;
     }
@@ -68,7 +68,7 @@ class Koubei {
         if (empty($item_ids)) {
             return array();
         }
-        $order_by = 'rank_score desc, created_time desc';
+        $order_by = 'auto_evaluate asc, rank_score desc, created_time desc';
         $koubei_data = $this->koubeiData->getKoubeiByItemIdsAndCondition($item_ids, $conditon, $limit, $offset, $order_by);
         return $koubei_data;
     }
@@ -87,7 +87,7 @@ class Koubei {
         $conditon['score'] = 4;
 
         $order_by = 'rank_score desc, created_time desc';
-        $koubei_data = $this->koubeiData->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $order_by, $condition);
+        $koubei_data = $this->koubeiData->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $order_by, $conditon);
         return $koubei_data;
     }
 
@@ -172,7 +172,7 @@ class Koubei {
      * @param  $orderId
      * @param  $itemId
      */
-    public function getItemKoubeiInfo($orderId, $itemId)
+    public function getItemKoubeiInfo($orderId, $itemId, $itemSize = '')
     {
         if(intval($orderId) < 0 || intval($itemId) < 0){
             return array();
@@ -180,7 +180,7 @@ class Koubei {
         $orderId = intval($orderId);
         $itemId = intval($itemId);
         
-        $koubeiInfo = $this->koubeiData->getKoubeiByOrderItem($orderId, $itemId);
+        $koubeiInfo = $this->koubeiData->getKoubeiByOrderItem($orderId, $itemId, $itemSize);
         return $koubeiInfo;
     }
     

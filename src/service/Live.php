@@ -182,6 +182,7 @@ class Live extends \mia\miagroup\Lib\Service
             $streamInfo = $liveCloud->createStream($streamId);
             //新增直播记录
             $liveInfo['user_id'] = $userId;
+            $liveInfo['room_id'] = $roomInfo['id'];
             $liveInfo['stream_id'] = $streamInfo['id'];
             $liveInfo['chat_room_id'] = $chatId;
             $liveInfo['status'] = 1;//创建中
@@ -247,6 +248,19 @@ class Live extends \mia\miagroup\Lib\Service
             $setData[] = ['start_time', date('Y-m-d H:i:s')];
         }
         $data = $this->liveModel->updateLiveById($liveId, $setData);
+        
+        //写入头条视频推荐
+        $headLineService = new \mia\miagroup\Service\HeadLine();
+        $headLineInfo['channel_id'] = $this->koubeiConfig = \F_Ice::$ins->workApp->config->get('batchdiff.headline_video_channel_id');
+        $headLineInfo['relation_id'] = $live_info['room_id'];
+        $headLineInfo['relation_type'] = \F_Ice::$ins->workApp->config->get('busconf.headline.clientServerMapping.live');
+        $headLineInfo['page'] = 1;
+        $headLineInfo['row'] = 1;
+        $headLineInfo['begin_time'] = date('Y-m-d H:i:s');
+        $headLineInfo['end_time'] = date('Y-m-d H:i:s', time() + 3600);
+        $headLineInfo['create_time'] = date('Y-m-d H:i:s');
+        $headLineService->addOperateHeadLine($headLineInfo);
+        
         return $this->succ($data);
     }
 
@@ -290,7 +304,12 @@ class Live extends \mia\miagroup\Lib\Service
         $onlineCount = $this->liveModel->getLiveCountByIds(array($liveId));
         $onlineCount = $onlineCount[$liveId]['online_num'];
         $this->liveModel->setLiveCount($liveId, 'audience_top_num', $onlineCount);
-
+        //移除头条视频推荐
+        $headLineService = new \mia\miagroup\Service\HeadLine();
+        $headline = $headLineService->getOperateHeadlineByRelationID($roomId, \F_Ice::$ins->workApp->config->get('busconf.headline.clientServerMapping.live'))['data'];
+        if (!empty($headline['id'])) {
+            $headLineService->delOperateHeadLine($headline['id']);
+        }
         return $this->succ($setRoomRes);
     }
 
@@ -316,6 +335,10 @@ class Live extends \mia\miagroup\Lib\Service
      */
     public function getRoomLiveById($roomId, $currentUid, $liveId = 0)
     {
+        $roomInfos = $this->liveModel->getBatchLiveRoomByIds([$roomId]);
+        if($roomInfos[$roomId]['live_id'] > 0 && $roomInfos[$roomId]['live_id'] == $liveId) {
+            $liveId = 0;
+        }
         //获取房间信息
         if ($liveId == 0) {
             $liveIds = array();
@@ -543,6 +566,11 @@ class Live extends \mia\miagroup\Lib\Service
                 $sale_num_key = sprintf(NormalUtil::getConfig('busconf.rediskey.liveKey.live_sale_num.key'), $liveId);
                 $sale_num = $redis->get($sale_num_key);
                 $liveInfo['sale_num'] = $sale_num ?: '0';
+                //直播封面图
+                if (empty($liveInfo['pic'])) {
+                    $url = $liveCloud->getSnapShot($liveInfo['stream_id']);
+                    $liveInfo['pic'] = array('url' => $url['origin'], 'width' => 600, 'height' => 600);
+                }
             }
             //如果直播已结束，给回放地址
             if ($liveInfo['status'] == 4 || $liveInfo['status'] == 3) {

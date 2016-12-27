@@ -26,6 +26,10 @@ class Calrankscore extends \FD_Daemon {
             $endTime = date('Y-m-d', time() - (86400 * $i * 30));
             $datas = $this->koubeiData->getKoubeiListByTime($startTime, $endTime, 0, false);
             foreach ($datas as $data) {
+                //自动好评直接跳过
+                if ($data['auto_evaluate'] == 1) {
+                    continue;
+                }
                 $setData = null;
                 //时间分数修正
                 $data['rank_score'] -= 0.5;

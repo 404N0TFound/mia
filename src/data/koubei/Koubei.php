@@ -29,6 +29,10 @@ class Koubei extends \DB_Query {
         if (isset($condition["koubei_id"])) {
             $where[] = ['id', $condition["koubei_id"]];
         }
+
+        if (isset($condition["score"])) {
+            $where[] = [":ge",'score', $condition["score"]];
+        }
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
         if (!empty($data)) {
@@ -139,7 +143,7 @@ class Koubei extends \DB_Query {
      * @param  $orderId
      * @param  $itemId
      */
-    public function getKoubeiByOrderItem($orderId, $itemId)
+    public function getKoubeiByOrderItem($orderId, $itemId, $itemSize = '')
     {
         if(empty($orderId) || empty($itemId)){
             return array();
@@ -148,6 +152,7 @@ class Koubei extends \DB_Query {
         $where = array();
         $where[] = ['order_id', $orderId];
         $where[] = ['item_id', $itemId];
+        $where[] = ['item_size', $itemSize];
         
         $data = $this->getRow($where);
         return $data;
@@ -257,9 +262,14 @@ class Koubei extends \DB_Query {
      * 获取当天口碑帖子的星级信息
      */
     public function getTodayKoubeiItemId(){
-        $date = date('Y-m-d');
+        $date = date("Y-m-d",time()-86400);
+        //$date = '2016-12-08';
+        $startTime = $date . "00:00:00";
+        $endTime = $date . "23:59:59";
         $where[] = ['status', 2];
-        $where[] = [":literal","date(created_time) = '$date'"];
+        $where[] = [':ge','created_time', $startTime];
+        $where[] = [':le','created_time', $endTime];
+
         $groupBy = 'item_id';
         $field = "item_id";
         $data = $this->getRows($where,$field,false,0,false,false,$groupBy);

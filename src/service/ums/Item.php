@@ -8,6 +8,7 @@ class Item extends \mia\miagroup\Lib\Service {
     public $itemModel;
     
     public function __construct() {
+        parent::__construct();
         $this->itemModel = new ItemModel();
     }
     

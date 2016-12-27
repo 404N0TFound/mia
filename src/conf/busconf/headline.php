@@ -39,6 +39,7 @@ $clientServerMapping = array(
     'banner' => 'banner',
     'promotion' => 'promotion',
     'subject' => 'subject',
+    'urecom' => 'urecom'
 );
 
 //推荐头条专家ID
@@ -55,6 +56,7 @@ $expert = [
     13864597,
     13864598,
     13864599,
+    13704137
 ];
 
 /**

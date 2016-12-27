@@ -85,4 +85,22 @@ class HeadLineChannelContent extends \DB_Query {
         }
         return $data;
     }
+    
+    /**
+     * 根据relation_id/type查询头条
+     */
+    public function getHeadLineByRelationId($relation_id, $relation_type) {
+        if (intval($relation_id) <= 0) {
+            return false;
+        }
+        $where[] = [':eq','relation_id', $relation_id];
+        $where[] = [':eq','relation_type', $relation_type];
+        $data = $this->getRow($where);
+        if (!empty($data)) {
+            //http转https
+            $data['ext_info'] = str_replace('http:\/\/', 'https:\/\/', strval($data['ext_info']));
+            $data['ext_info'] = json_decode($data['ext_info'], true);
+        }
+        return $data;
+    }
 }

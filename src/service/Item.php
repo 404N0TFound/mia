@@ -7,6 +7,7 @@ use mia\miagroup\Model\Item as ItemModel;
 class Item extends \mia\miagroup\Lib\Service {
     public $itemModel;
     public function __construct() {
+        parent::__construct();
         $this->itemModel = new ItemModel();
     }
     

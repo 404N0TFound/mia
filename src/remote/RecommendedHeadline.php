@@ -28,11 +28,13 @@ class RecommendedHeadline
         $url = $this->config['remote'] . 'list/' . $action;
         $res = $this->_curlPost($url, $params);
         $data = [];
+        //4.9之前只返回ID
         if (!empty($res['list']) && strpos($res['list'][0], '_') === false) {
             foreach ($res['list'] as $v) {
                 $data[] = $v . '_subject';
             }
         }
+        //4.9之前只返回ID+类型
         if (!empty($res['list']) && strpos($res['list'][0], '_') !== false) {
 
             $data = $res['list'];
@@ -140,9 +142,9 @@ class RecommendedHeadline
         \F_Ice::$ins->mainApp->logger_remote->info(array(
             'third_server' => 'headline',
             'type' => 'INFO',
-            'request_param' => $params,
+            'request_url' => $url,
+            'request_params'=>$params,
             'response_code' => $error_no,
-            'response_data' => $result,
             'response_msg' => $error_str,
             'resp_time' => $getCurlInfo['total_time'],
         ));
