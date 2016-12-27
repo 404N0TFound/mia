@@ -79,8 +79,11 @@ class Live extends \mia\miagroup\Lib\Service
         $settings = json_decode($roomInfo['settings'], true);
         if (isset($settings['title']) && !empty($settings['title'])) {
             $liveTitle = $settings['title'];
+        } else {
+            $userService = new User();
+            $userInfo = $userService->getUserInfoByUids([$userId], $userId)['data'];
+            $liveTitle = $userInfo[$userId]['nickname'].date("Y-m-d");
         }
-
         //判断用户是否已经存在直播
         $makeLive = [];
         $checkLiveExist = $this->liveModel->getLiveInfoByUserId($userId, [1, 2, 3]);
