@@ -1291,7 +1291,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = [];
         if (!empty($tagInfos)) {
             foreach ($tagInfos as $v) {
-                $res[$v["tag_id_1"]] = $v["num"];
+                $res[$v["root"]] = $v["num"];
             }
         }
         return $res;

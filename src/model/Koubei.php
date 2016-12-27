@@ -501,13 +501,13 @@ class Koubei {
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
 
         if($count == 1){
-            $cols = 'root,count(root) as num';
+            $cols = 'root,count(*) as num';
         } else {
             $cols = 'root';
         }
 
         if (!empty($tag_ids)) {
-            $where[] = ['tag_id_1', $tag_ids];
+            $where[] = ['koubei_tags_layer.root', $tag_ids];
         }
 
         $where[] = ['koubei.status', 2];
