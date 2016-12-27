@@ -6,6 +6,7 @@ use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
 use \mia\miagroup\Data\Koubei\KoubeiSubject as KoubeiSubjectData;
 use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
 use mia\miagroup\Data\Koubei\KoubeiTags;
+use mia\miagroup\Data\Koubei\KoubeiTagsLayer;
 use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
 
 class Koubei {
@@ -14,6 +15,7 @@ class Koubei {
     private $koubeiPicData;
     private $koubeiAppealData;
     private $koubeiTagsData;
+    private $koubeiTagsLayerData;
     private $koubeiTagsRelationData;
     
     
@@ -22,6 +24,7 @@ class Koubei {
         $this->koubeiPicData = new KoubeiPicData();
         $this->koubeiAppealData = new KoubeiAppealData();
         $this->koubeiTagsData = new KoubeiTags();
+        $this->koubeiTagsLayerData = new KoubeiTagsLayer();
         $this->koubeiTagsRelationData = new KoubeiTagsRelation();
     }
     
@@ -568,6 +571,72 @@ class Koubei {
     {
         $where[] = ["id",$delIds];
         $res = $this->koubeiTagsRelationData->delTagsKoubeiRelation($where);
+        return $res;
+    }
+
+
+    /**
+     * @return KoubeiAppealData
+     */
+    public function addTagsLayer($setData)
+    {
+        $res = $this->koubeiTagsLayerData->addTagsLayer($setData);
+        return $res;
+    }
+
+    /**
+     * @return KoubeiAppealData
+     */
+    public function isRoot($tag_id)
+    {
+        $where[] = ["root",$tag_id];
+        $where[] = ["parent",$tag_id];
+        $where[] = ["tag_id",$tag_id];
+        $res = $this->koubeiTagsLayerData->getInfo($where);
+        return $res;
+    }
+
+    public function updateLayer($setData, $where)
+    {
+        $res = $this->koubeiTagsLayerData->updateLayer($setData, $where);
+        return $res;
+    }
+
+    public function getRoot($tag_id)
+    {
+        $where[] = ["tag_id",$tag_id];
+        $res = $this->koubeiTagsLayerData->getInfo($where);
+        return $res;
+    }
+
+    /**
+     * 递归求所有子
+     * @param $parentId
+     * @return array
+     */
+    public function getChildList($parentId)
+    {
+        $where[] = ['parent', $parentId];
+        $res = $this->koubeiTagsLayerData->getList($where);
+        if (!empty($res)) {
+            $return = [];
+            foreach ($res as $v) {
+                if ($v['tag_id'] == $parentId) {
+                    continue;
+                }
+                $list = $this->getChildList($v['tag_id']);
+                $return = array_merge($return, $list);
+            }
+            return array_merge($return, $res);
+        } else {
+            return $res;
+        }
+    }
+
+
+    public function showTrees()
+    {
+        $res = $this->koubeiTagsLayerData->showTrees();
         return $res;
     }
 

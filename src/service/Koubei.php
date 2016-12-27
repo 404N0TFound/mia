@@ -862,11 +862,21 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $insertData['positive'] = $positive;
 
         $tagId = $this->koubeiModel->addTag($insertData);
+        unset($insertData);
 
-        if (!$tagId) {
-            return $this->error(500,"添加失败");
-        } else {
+        //向关系表添加一条根信息
+        if ($tagId) {
+            $insertData['root'] = $tagId;
+            $insertData['parent'] = $tagId;
+            $insertData['tag_id'] = $tagId;
+            $resId = $this->koubeiModel->addTagsLayer($insertData);
+            unset($insertData);
+        }
+
+        if ($tagId && $resId) {
             return $this->succ($tagId);
+        } else {
+            return $this->error(500,"添加失败");
         }
     }
 
@@ -874,6 +884,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * 导入印象标签父子关系
      * @param $tagName  新定子标签
      * @param $parentName   新定父标签
+     *
+     * TODO：getRoot 方法在多根的情况下得修改，因为多根下无法得到某个标签的具体根
      */
     public function syncTagsRelation($tagName, $parentName)
     {
@@ -887,81 +899,106 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($childTagInfo) || empty($parentTagInfo)) {
             return $this->error(500, "标签不存在");
         }
-        //修改设置子标签的parent_id
-        $SetData[] = ['parent_id', $parentTagInfo['id']];
-        $res = $this->koubeiModel->updateTags($SetData, $childTagInfo['id']);
-        unset($SetData);
 
+        //修改关系
 
+        //两标签是否都是根标签
+        $is_root_1 = $this->koubeiModel->isRoot($parentTagInfo['id']);
+        $is_root_2 = $this->koubeiModel->isRoot($childTagInfo['id']);
+        if(!empty($is_root_1) && !empty($is_root_2)){
+            //都是根标签
+            //修改子标签的根和父
+            $updateData[] = ['root', $parentTagInfo['id']];
+            $updateData[] = ['parent', $parentTagInfo['id']];
+            $where[] = ['id', $is_root_2['id']];
+            $res = $this->koubeiModel->updateLayer($updateData,$where);
+        }
+        if(empty($is_root_1) && !empty($is_root_2))
+        {
+            //父是子标签，子是根标签
+            //查询父的根
+            $parentRoot = $this->koubeiModel->getRoot($parentTagInfo['id'])['root'];
+            //修改子标签的根和父
+            $updateData[] = ['root', $parentRoot];
+            $updateData[] = ['parent', $parentTagInfo['id']];
+            $where[] = ['id', $is_root_2['id']];
+            $res = $this->koubeiModel->updateLayer($updateData, $where);
+            unset($updateData);
+            unset($where);
 
+            //修改子标签下属子标签的根
+            $updateData[] = ['root', $parentRoot];
+            $where[] = ['root', $childTagInfo['id']];
+            $res = $this->koubeiModel->updateLayer($updateData,$where);
+            unset($updateData);
+            unset($where);
+        }
 
-        //检查设置父类标签类型
-        if ($parentTagInfo['parent_id'] != 0) {
-            //设置父类标签原本是子标签，就相当于添加一个父标签
-            //把设置父标签的parent_id改为0
-            $SetData[] = ['parent_id', 0];
-            $res = $this->koubeiModel->updateTags($SetData, $parentTagInfo['id']);
-            unset($SetData);
+        if(!empty($is_root_1) && empty($is_root_2))
+        {
+            //父是根标签，子是子标签
+
+            //查询子标签的根
+            $childRoot = $this->koubeiModel->getRoot($childTagInfo['id']);
+
+            //修改子标签的根和父
+            $updateData[] = ['root', $parentTagInfo['id']];
+            $updateData[] = ['parent', $parentTagInfo['id']];
+
+            $where[] = ['id', $childRoot['id']];
+            $res = $this->koubeiModel->updateLayer($updateData, $where);
+            unset($updateData);
+            unset($where);
+
+            //修改子标签下属子标签的根
+            $updateData[] = ['root', $parentTagInfo['id']];
+            $where[] = ['root', $childRoot['root']];
+            $res = $this->koubeiModel->updateLayer($updateData, $where);
+            unset($updateData);
+            unset($where);
         }
 
 
 
-        //检查设置子标签类型
-        if ($childTagInfo['parent_id'] == 0) {
-            //设置子标签原本是父标签
-            //把之前设置子标签的子标签的parent_id都改为0
-            $SetData[] = ['parent_id', 0];
-            $res = $this->koubeiModel->updateTagsByparentId($SetData, $childTagInfo['id']);
-            unset($SetData);
+        if(empty($is_root_1) && empty($is_root_2))
+        {
+            //都不是根标签
+            //查询两个标签的根
+            $parentRoot = $this->koubeiModel->getRoot($parentTagInfo['id']);
+            $childRoot = $this->koubeiModel->getRoot($childTagInfo['id']);
+
+            //修改子标签的根和父
+            $updateData[] = ['root', $parentRoot['root']];
+            $updateData[] = ['parent', $parentTagInfo['id']];
+
+            $where[] = ['id', $childRoot['id']];
+            $res = $this->koubeiModel->updateLayer($updateData, $where);
+            unset($updateData);
+            unset($where);
+
+            //修改子标签下属子标签的根
+            //查询子标签下属所有标签
+            $childList = $this->koubeiModel->getChildList($childTagInfo['id']);
+
+            foreach ($childList as $v) {
+                $updateData[] = ['root', $parentRoot['root']];
+                $where[] = ['id', $v['id']];
+                $res = $this->koubeiModel->updateLayer($updateData, $where);
+                unset($updateData);
+                unset($where);
+            }
         }
+        return $this->succ("ok");
+    }
 
-        if ($childTagInfo['parent_id'] != 0 && $parentTagInfo['parent_id'] == 0) {
-            //子（子）+ 父（父）
-            $SetData[] = ['tag_id_1', $parentTagInfo['id']];
-            $res = $this->koubeiModel->updateRealtionByChildId($SetData, $childTagInfo['id']);
-            unset($SetData);
-        }
-
-        if ($childTagInfo['parent_id'] == 0 && $parentTagInfo['parent_id'] == 0) {
-            //子（父）+ 父（父）
-            $SetData[] = ['tag_id_2', $childTagInfo['id']];
-            $res = $this->koubeiModel->updateRealtionByParentId($SetData, $parentTagInfo['id']);
-            unset($SetData);
-
-
-            $SetData[] = ['tag_id_1', 'tag_id_2'];
-            $SetData[] = ['tag_id_2', 0];
-            $res = $this->koubeiModel->updateRealtionByParentId($SetData, $childTagInfo['id']);
-            unset($SetData);
-        }
-
-        if ($childTagInfo['parent_id'] != 0 && $parentTagInfo['parent_id'] == 0) {
-            //子（子）+ 父（子）
-            $SetData[] = ['tag_id_1', $parentTagInfo['id']];
-            $res = $this->koubeiModel->updateRealtionByChildId($SetData, $childTagInfo['id']);
-            unset($SetData);
-
-
-            $SetData[] = ['tag_id_1', $parentTagInfo['id']];
-            $SetData[] = ['tag_id_2', 0];
-            $res = $this->koubeiModel->updateRealtionByChildId($SetData, $parentTagInfo['id']);
-            unset($SetData);
-        }
-
-        if ($childTagInfo['parent_id'] != 0 && $parentTagInfo['parent_id'] == 0) {
-            //子（父）+ 父（子）
-            $SetData[] = ['tag_id_1', 'tag_id_2'];
-            $SetData[] = ['tag_id_2', 0];
-            $res = $this->koubeiModel->updateRealtionByParentId($SetData, $childTagInfo['id']);
-            unset($SetData);
-
-            $SetData[] = ['tag_id_1', $parentTagInfo['id']];
-            $SetData[] = ['tag_id_2', 0];
-            $res = $this->koubeiModel->updateRealtionByChildId($SetData, $parentTagInfo['id']);
-            unset($SetData);
-
-
-        }
+    /**
+     * 递归获取整个树结构
+     * @return mixed
+     */
+    public function showTrees()
+    {
+        $res = $this->koubeiModel->showTrees();
+        return $this->succ($res);
     }
 
     /**
