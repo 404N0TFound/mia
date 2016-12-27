@@ -52,9 +52,8 @@ class User extends \mia\miagroup\Lib\Service {
             $albumService = new Album();
             $userFansCount = $userRelation->countBatchUserFanS($userIds)['data']; // 用户粉丝数
             $userAttenCount = $userRelation->countBatchUserAtten($userIds)['data']; // 用户关注数
-            $userSubjectsCount = $subjectService->getBatchUserSubjectCounts($userIds); // 用户发布数
+            $userSubjectsCount = $subjectService->getBatchUserSubjectCounts($userIds)['data']; // 用户发布数
             $userArticleCount = $albumService->getArticleNum($userIds)['data'];//用户文章数
-            $userSubjectsCount = $userSubjectsCount['data'];
         }
         // 批量获取专家信息
         $expertInfos = $this->getBatchExpertInfoByUids($userIds)['data'];

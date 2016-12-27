@@ -58,14 +58,14 @@ class Subject extends \DB_Query {
         
         $where[] = ['user_id', $userIds];
         $where[] = ['status', 1];
-        $groupBy = 'id';
-        $field = 'id, count(1) as num';
+        $groupBy = 'user_id';
+        $field = 'user_id, count(1) as num';
         
         $arrRes = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
         
         if (!empty($arrRes)) {
             foreach ($arrRes as $res) {
-                $result[$res['id']] = intval($res['num']);
+                $result[$res['user_id']] = intval($res['num']);
             }
         }
         return $result;
