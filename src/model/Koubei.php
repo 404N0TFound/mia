@@ -499,10 +499,11 @@ class Koubei {
             return [];
         }
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
+
         if($count == 1){
-            $cols = 'tag_id_1,count(tag_id_1) as num';
+            $cols = 'root,count(root) as num';
         } else {
-            $cols = 'tag_id_1';
+            $cols = 'root';
         }
 
         if (!empty($tag_ids)) {
@@ -512,13 +513,15 @@ class Koubei {
         $where[] = ['koubei.status', 2];
         $where[] = [':gt', 'koubei.subject_id', 0];
 
+        $conditions['join_1'] = 'koubei_tags_layer';
         $conditions['join'] = 'koubei';
-        $conditions['group_by'] = 'tag_id_1';
+
+        $conditions['group_by'] = 'koubei_tags_layer.root';
         $tags = $this->koubeiTagsRelationData->getTagsKoubei($where, $cols, $conditions);
         $res = [];
         if(!empty($tags)){
             foreach ($tags as $k=>$v){
-                $res[$v['tag_id_1']] = $v;
+                $res[$v['root']] = $v;
             }
         }
         return $res;
@@ -528,7 +531,7 @@ class Koubei {
      * 获取口碑IDs
      * 根据商品和标签
      * @param $item_ids
-     * @param $tag_id
+     * @param $tag_id  根标签id
      * @return array
      */
     public function getItemKoubeiIds($item_ids, $tag_id, $limit, $offset)
@@ -537,7 +540,14 @@ class Koubei {
             return [];
         }
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
-        $where[] = ['koubei_tags_relation.tag_id_1', $tag_id];
+
+
+        $res = $this->getChildList($tag_id);
+
+        foreach ($res as $v){
+            $childIdArr[] = $v['tag_id'];//根标签查询子类包括自己了
+        }
+        $where[] = ['koubei_tags_relation.tag_id_1', $childIdArr];
 
         $conditions['join'] = 'koubei';
         $conditions['limit'] = $limit;
@@ -555,6 +565,8 @@ class Koubei {
 
     /**
      * 查询标签,口碑关系
+     * @param $where
+     * @return array
      */
     public function getItemTags($where)
     {
@@ -576,6 +588,7 @@ class Koubei {
 
 
     /**
+     * 添加layer表记录
      * @return KoubeiAppealData
      */
     public function addTagsLayer($setData)
@@ -585,6 +598,7 @@ class Koubei {
     }
 
     /**
+     * 判断是否是根标签
      * @return KoubeiAppealData
      */
     public function isRoot($tag_id)
@@ -596,12 +610,23 @@ class Koubei {
         return $res;
     }
 
+    /**
+     * 更新layer表
+     * @param $setData
+     * @param $where
+     * @return bool
+     */
     public function updateLayer($setData, $where)
     {
         $res = $this->koubeiTagsLayerData->updateLayer($setData, $where);
         return $res;
     }
 
+    /**
+     * 获取标签的根标签，是适用于单根
+     * @param $tag_id
+     * @return mixed
+     */
     public function getRoot($tag_id)
     {
         $where[] = ["tag_id",$tag_id];
@@ -610,7 +635,7 @@ class Koubei {
     }
 
     /**
-     * 递归求所有子
+     * 递归求单个标签的所有子标签
      * @param $parentId
      * @return array
      */
@@ -634,6 +659,10 @@ class Koubei {
     }
 
 
+    /**
+     * 递归获取标签层级结构
+     * @return mixed
+     */
     public function showTrees()
     {
         $res = $this->koubeiTagsLayerData->showTrees();
