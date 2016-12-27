@@ -998,6 +998,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //修改子标签下属子标签的根
             $updateData[] = ['root', $parentTagInfo['id']];
             $where[] = ['root', $childTagInfo['id']];
+
+
             $res = $this->koubeiModel->updateLayer($updateData,$where);
             unset($updateData);
             unset($where);
@@ -1040,14 +1042,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
             unset($where);
 
             //修改子标签下属子标签的根
-            $updateData[] = ['root', $parentTagInfo['id']];
-            $where[] = ['root', $childRoot['root']];
-            $res = $this->koubeiModel->updateLayer($updateData, $where);
-            unset($updateData);
-            unset($where);
+            //查询子标签下属所有标签
+            $childList = $this->koubeiModel->getChildList($childTagInfo['id']);
+
+            foreach ($childList as $v) {
+                $updateData[] = ['root', $parentTagInfo['id']];
+                $where[] = ['id', $v['id']];
+                $res = $this->koubeiModel->updateLayer($updateData, $where);
+                unset($updateData);
+                unset($where);
+            }
         }
-
-
 
         if(empty($is_root_1) && empty($is_root_2))
         {
