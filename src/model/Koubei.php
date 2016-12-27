@@ -597,6 +597,7 @@ class Koubei {
         return $res;
     }
 
+
     /**
      * 判断是否是根标签
      * @return KoubeiAppealData

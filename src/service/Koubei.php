@@ -923,8 +923,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //检查标签是否存在
         $tagInfo = $this->koubeiModel->getTagInfo($tagName);
 
-        if(!empty($tagInfo)){
-            return $this->error(500,"标签存在");
+        if (!empty($tagInfo)) {
+            $tag_id = $tagInfo['id'];
+            $rootInfo = $this->koubeiModel->isRoot($tag_id);
+            if (empty($rootInfo)) {
+                $insertData['root'] = $tag_id;
+                $insertData['parent'] = $tag_id;
+                $insertData['tag_id'] = $tag_id;
+                $this->koubeiModel->addTagsLayer($insertData);
+                unset($insertData);
+            }
+            return $this->error(500, "标签存在");
         }
         //标签信息入库
         $insertData['tag_name'] = $tagName;
