@@ -40,7 +40,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 return $this->error(6102);
             }
             //获取口碑信息，验证是否该口碑已经发布过
-            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id']);
+            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id'], strval($koubeiData['item_size']));
             if(!empty($koubeiInfo)){
                 return $this->error(6103);
             }
@@ -182,10 +182,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * 默认好评
      */
     public function autoEvaluateKoubei($koubeiData) {
-        if (empty($koubeiData['order_code'])) {
-            return $this->error(500);
-        }
-        if (empty($koubeiData['item_id']) && empty($koubeiData['item_ids'])) {
+        if (empty($koubeiData['order_code']) || empty($koubeiData['items'])) {
             return $this->error(500);
         }
         //获取订单信息，验证是否可以发布口碑
@@ -194,18 +191,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($orderInfo) || $orderInfo['status'] != 5) {
             return $this->error(6102);
         }
-        $itemIds = array();
-        if (!empty($koubeiData['item_ids']) && is_array($koubeiData['item_ids'])) {
-            $itemIds = $koubeiData['item_ids'];
-        }
-        if (!empty($koubeiData['item_id'])) {
-            $itemIds[] = $koubeiData['item_id'];
-        }
-        $itemIds = array_unique($itemIds);
+        $items = $koubeiData['items'];
         
-        foreach ($itemIds as $itemId) {
+        foreach ($items as $item) {
+            $itemId = $item['item_id'];
+            $itemSize = $item['item_size'];
             //获取口碑信息，验证是否该口碑已经发布过
-            $koubeInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'], $itemId);
+            $koubeInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'], $itemId, $itemSize);
             if(!empty($koubeInfo)) {
                 continue;
             }
@@ -215,6 +207,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubeiSetData['auto_evaluate'] = 1;
             $koubeiSetData['score'] = 5;
             $koubeiSetData['item_id'] = $itemId;
+            $koubeiSetData['item_size'] = $itemSize;
             $koubeiSetData['user_id'] = $orderInfo['user_id'];
             $koubeiSetData['order_id'] = $orderInfo['id'];
             $koubeiSetData['created_time'] = date("Y-m-d H:i:s");

@@ -139,7 +139,7 @@ class Koubei extends \DB_Query {
      * @param  $orderId
      * @param  $itemId
      */
-    public function getKoubeiByOrderItem($orderId, $itemId)
+    public function getKoubeiByOrderItem($orderId, $itemId, $itemSize = '')
     {
         if(empty($orderId) || empty($itemId)){
             return array();
@@ -148,6 +148,7 @@ class Koubei extends \DB_Query {
         $where = array();
         $where[] = ['order_id', $orderId];
         $where[] = ['item_id', $itemId];
+        $where[] = ['item_size', $itemSize];
         
         $data = $this->getRow($where);
         return $data;
