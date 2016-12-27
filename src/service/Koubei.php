@@ -961,18 +961,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
     /**
      * 导入印象标签父子关系
-     * @param $tagName  新定子标签
-     * @param $parentName   新定父标签
+     * @param $tagName  新定父标签
+     * @param $parentName   新定子标签
      *
      * TODO getRoot 方法在多根的情况下得修改，因为多根下无法得到某个标签的具体根
      */
-    public function syncTagsRelation($tagName, $parentName)
+    public function syncTagsRelation($parentName, $childName)
     {
         if(empty($tagName) || empty($parentName)){
             return $this->error(500);
         }
         //检查父子标签名是否存在
-        $childTagInfo = $this->koubeiModel->getTagInfo($tagName);
+        $childTagInfo = $this->koubeiModel->getTagInfo($childName);
         $parentTagInfo = $this->koubeiModel->getTagInfo($parentName);
 
         if (empty($childTagInfo) || empty($parentTagInfo)) {
