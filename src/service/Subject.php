@@ -321,6 +321,10 @@ class Subject extends \mia\miagroup\Lib\Service {
      * 批量获取用户发布的帖子数
      */
     public function getBatchUserSubjectCounts($userIds) {
+        if (empty($userIds) || !is_array($userIds)) {
+            return $this->succ(array());
+        }
+        $userIds = array_diff($userIds, array(13704137));
         $data = $this->subjectModel->getBatchUserSubjectCounts($userIds);
         return $this->succ($data);
     }
