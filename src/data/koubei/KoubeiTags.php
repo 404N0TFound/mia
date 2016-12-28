@@ -27,7 +27,7 @@ class KoubeiTags extends \DB_Query
      */
     public function getTagInfo($where)
     {
-        $result = $this->getRow($where, 'id,tag_name,parent_id');
+        $result = $this->getRow($where, 'id,tag_name,parent_id,positive');
         return $result;
     }
 

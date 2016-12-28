@@ -975,12 +975,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $childTagInfo = $this->koubeiModel->getTagInfo($childName);
         $parentTagInfo = $this->koubeiModel->getTagInfo($parentName);
 
-        if (empty($childTagInfo) || empty($parentTagInfo)) {
+        if (empty($childTagInfo)) {
             return $this->error(500, "标签不存在");
         }
 
-        //修改关系
+        if (empty($parentTagInfo)) {
+            $positive = $childTagInfo['positive'];
+            $res = $this->syncTags($parentName, $positive);
+            if($res['code'] != 0){
+                return $this->error(500, "父标签插入失败");
+            }
+        }
 
+        //修改关系
         //两标签是否都是根标签
         $is_root_1 = $this->koubeiModel->isRoot($parentTagInfo['id']);
         $is_root_2 = $this->koubeiModel->isRoot($childTagInfo['id']);
