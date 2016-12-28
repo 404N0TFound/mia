@@ -37,11 +37,17 @@ class UserRelation extends \mia\miagroup\Lib\Service {
      * 批量获取粉丝数
      */
     public function countBatchUserFanS($userIds) {
-        if (!isset($userIds) || empty($userIds)) {
-            return $this->succ();
+        if (empty($userIds) || !is_array($userIds)) {
+            return $this->succ(array());
         }
-        
-        $relationInfos = $this->userRelationModel->getCountBatchUserFanS($userIds);
+        $largeFansCountUser = \F_Ice::$ins->workApp->config->get('busconf.user.largeFansCountUser');
+        $diffUserIds = array_diff($userIds, $largeFansCountUser);
+        $relationInfos = $this->userRelationModel->getCountBatchUserFanS($diffUserIds);
+        if (array_intersect($userIds, $largeFansCountUser)) {
+            foreach ($largeFansCountUser as $uid) {
+                $relationInfos[$uid] = 10000;
+            }
+        }
         return $this->succ($relationInfos);
     }
     

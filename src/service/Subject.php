@@ -324,8 +324,14 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (empty($userIds) || !is_array($userIds)) {
             return $this->succ(array());
         }
-        $userIds = array_diff($userIds, array(13704137));
-        $data = $this->subjectModel->getBatchUserSubjectCounts($userIds);
+        $largePublishCountUser = \F_Ice::$ins->workApp->config->get('busconf.user.largePublishCountUser');
+        $diffUserIds = array_diff($userIds, $largePublishCountUser);
+        $data = $this->subjectModel->getBatchUserSubjectCounts($diffUserIds);
+        if (array_intersect($userIds, $largePublishCountUser)) {
+            foreach ($largePublishCountUser as $uid) {
+                $data[$uid] = 10000;
+            }
+        }
         return $this->succ($data);
     }
 
