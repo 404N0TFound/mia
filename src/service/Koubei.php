@@ -968,7 +968,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      */
     public function syncTagsRelation($parentName, $childName)
     {
-        if(empty($tagName) || empty($parentName)){
+        if(empty($childName) || empty($parentName)){
             return $this->error(500);
         }
         //检查父子标签名是否存在
