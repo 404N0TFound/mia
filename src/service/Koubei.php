@@ -977,7 +977,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //检查父子标签名是否存在
         $childTagInfo = $this->koubeiModel->getTagInfo($childName);
         $parentTagInfo = $this->koubeiModel->getTagInfo($parentName);
-        
+
         if (empty($childTagInfo)) {
             return $this->error(500, "标签不存在");
         }
@@ -1266,8 +1266,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     //通过商品id获取口碑id
                     $condition = [];
                     $condition['with_pic'] = true;
-                    $condition['score'] = array(4, 5);
-                    $condition['machine_score'] = 3;
                     $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $limit, $offset);
                     break;
                 case 3 ://好评
