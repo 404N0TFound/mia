@@ -975,6 +975,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $childTagInfo = $this->koubeiModel->getTagInfo($childName);
         $parentTagInfo = $this->koubeiModel->getTagInfo($parentName);
 
+        if ($childTagInfo['tag_id'] == $parentTagInfo['tag_id']) {
+            return $this->error(500, "标签相同");
+        }
+
         if (empty($childTagInfo)) {
             return $this->error(500, "标签不存在");
         }
