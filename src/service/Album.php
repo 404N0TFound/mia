@@ -126,9 +126,10 @@ class Album extends \mia\miagroup\Lib\Service {
      * @return array() 用户文章个数
      */
     public function getArticleNum($userIds) {
-        if (empty($userIds)) {
-            return $this->succ(array()); 
+        if (empty($userIds) || !is_array($userIds)) {
+            return $this->succ(array());
         }
+        $userIds = array_diff($userIds, array(13704137));
         $res = $this->abumModel->getArticleNum($userIds);
         return $this->succ($res);
     }
