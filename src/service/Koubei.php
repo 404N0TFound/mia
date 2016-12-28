@@ -971,10 +971,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($childName) || empty($parentName)){
             return $this->error(500);
         }
+        if ($parentName == $childName) {
+            return $this->error(500, "标签相同");
+        }
         //检查父子标签名是否存在
         $childTagInfo = $this->koubeiModel->getTagInfo($childName);
         $parentTagInfo = $this->koubeiModel->getTagInfo($parentName);
-
+        
         if (empty($childTagInfo)) {
             return $this->error(500, "标签不存在");
         }
