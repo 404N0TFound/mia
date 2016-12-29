@@ -91,7 +91,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //机器评分
             $solrCond['machine_score'] = $params['machine_score'];
         }
-        if (intval($params['order_id']) > 0 && intval($solrCond['id']) <= 0) {
+        if (!empty($params['order_id']) && intval($solrCond['id']) <= 0) {
             //订单ID
             $solrCond['order_id'] = $params['order_id'];
         }
