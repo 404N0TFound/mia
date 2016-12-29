@@ -16,9 +16,16 @@ class Item extends \mia\miagroup\Lib\Service {
      */
     public function getRelateItemById($item_id)
     {
+        //是否配置了商品口碑口碑转换
+        $transfer_config = \F_Ice::$ins->workApp->config->get('busconf.koubei.itemKoubeiTransfer');
+        if (intval($transfer_config[$item_id]) > 0) {
+            return array($item_id, $transfer_config[$item_id]);
+        }
+        
+        //获取商品信息
         $item_info = $this->itemModel->getBatchItemByIds([$item_id])[$item_id];
         if (empty($item_info)) {
-            return $this->succ(array());
+            return array();
         }
         $item_ids = array();
         // 如果是单品，直接取商品口碑
