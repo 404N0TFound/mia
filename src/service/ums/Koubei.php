@@ -79,7 +79,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //是否是精品
             $solrCond['rank'] = $params['rank'];
         }
-        if ((is_array($params['score']) || (!is_array($params['score']) && intval($params['score']) >= 0)) && intval($solrCond['id']) <= 0) {
+        if ((is_array($params['score']) || (isset($params['score']) && !is_array($params['score']) && intval($params['score']) >= 0)) && intval($solrCond['id']) <= 0) {
             //用户评分
             $solrCond['score'] = $params['score'];
         }
