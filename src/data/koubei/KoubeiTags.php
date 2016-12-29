@@ -48,7 +48,14 @@ class KoubeiTags extends \DB_Query
      */
     public function getTagsInfo($where)
     {
-        $result = $this->getRows($where, 'id,tag_name,parent_id,positive');
-        return $result;
+        $result = $this->getRows($where, 'id,tag_name,show_name,parent_id,positive');
+        foreach ($result as $k=>&$v){
+            if(!empty($v['show_name'])){
+                $v['tag_name'] = $v['show_name'];
+            }
+            unset($v['show_name']);
+            $res[] = $v;
+        }
+        return $res;
     }
 }
