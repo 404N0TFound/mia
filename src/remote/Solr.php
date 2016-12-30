@@ -318,6 +318,11 @@ class Solr
                 $solr_info['fq'][]   = 'subject_id:[0 TO *]';
             }
         }
+        if(isset($conditon['auto_evaluate']) && in_array($conditon['auto_evaluate'],array(0,1))){
+            $solr_info['fq'][]   = 'auto_evaluate:'. $conditon['auto_evaluate'];
+        } else {
+            $solr_info['fq'][]   = 'auto_evaluate:0';
+        }
         if(!empty($conditon['score'])){
             $solr_info['fq'][]   = 'score:'. $conditon['score'];
         }
