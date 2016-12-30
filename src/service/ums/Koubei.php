@@ -69,6 +69,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if ($params['auto_evaluate'] !== null && $params['auto_evaluate'] !== '' && in_array($params['auto_evaluate'], array(0, 1)) && intval($solrCond['id']) <= 0) {
             //是否展示默认好评，默认不展示
             $solrCond['auto_evaluate'] = $params['auto_evaluate'] ? 1 : 0;
+        } else {
+            $solrCond['auto_evaluate'] = 0;
         }
         if ($params['comment_status'] !== null && $params['comment_status'] !== '' && in_array($params['comment_status'], array(0, 1)) && intval($solrCond['id']) <= 0) {
             //口碑回复状态
