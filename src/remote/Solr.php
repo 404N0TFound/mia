@@ -595,6 +595,9 @@ class Solr
         $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:2';
         $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
+        if($screen == 'item_id'){
+            $solrInfo['fq'][] = '-(auto_evaluate:1)';
+        }
         $res = $this->select($solrInfo);
         $statis = array();
         $statis['count'] = [
