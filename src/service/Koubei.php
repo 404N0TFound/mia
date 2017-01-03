@@ -370,13 +370,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubeiInfo = array();
         $orderIds = array();
+        $commentIds = array();
         //批量获取口碑信息
         $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status);
         if (empty($koubeiArr)) {
             return $this->succ();
         }
         foreach($koubeiArr as $koubei){
-            if(empty($koubei['subject_id'])) continue;
+            if(empty($koubei['subject_id'])) {
+                continue;
+            }            
             //收集subjectids
             $subjectId[] = $koubei['subject_id'];
             $itemKoubei[$koubei['subject_id']] = array(
@@ -387,27 +390,37 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'item_size' => $koubei['item_size'],
                 'status' => $koubei['status'],
                 'order_id' => $koubei['order_id'],
+                'comment_id' => $koubei['comment_id'],
             );
             //获取口碑订单id，用于获取订单编号(order_code)
             if(!empty($koubei['order_id'])){
                 $orderIds[] = $koubei['order_id'];
             }
+            if (intval($koubei['comment_id']) > 0) {
+                $commentIds[] = $koubei['comment_id'];
+            }
         }
-
-        if(in_array('order_info', $field) && !empty($orderIds)){
-            //获取订单信息，验证是否可以发布口碑（order service）
+        if (in_array('order_info', $field) && !empty($orderIds)){
+            //获取订单信息
             $orderService = new OrderService();
             $orderInfos = $orderService->getOrderInfoByIds($orderIds)['data'];
+        }
+        if (in_array('koubei_reply', $field)) {
+            //获取口碑官方回复信息
+            $commentService = new \mia\miagroup\Service\Comment();
+            $commentInfos = $commentService->getBatchComments($commentIds, array('user_info'))['data'];
         }
 
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field, array(1, 3));
         foreach ($itemKoubei as $key => $value) {
             if (!empty($subjectRes['data'][$key])) {
-                foreach ($subjectRes['data'][$key]['items'] as $item) {
-                    if ($item['item_id'] == $value['item_id']) {
-                        $value['item_info'] = $item;
-                        break;
+                if (!empty($subjectRes['data'][$key]['items'])) {
+                    foreach ($subjectRes['data'][$key]['items'] as $item) {
+                        if ($item['item_id'] == $value['item_id']) {
+                            $value['item_info'] = $item;
+                            break;
+                        }
                     }
                 }
                 if ($subjectRes['data'][$key]['status'] == 3) {
@@ -415,10 +428,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }
                 $subjectRes['data'][$key]['item_koubei'] = $value;
                 //把口碑的订单编号（order_code）拼到口碑信息中
-                if($value['order_id']){
+                if (in_array('order_info', $field) && intval($value['order_id']) > 0) {
                     $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
                 }
-                // 口碑信息拼装到帖子
+                //拼口碑官方回复信息
+                if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
+                    $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
+                }
+                //口碑信息拼装到帖子
                 $koubeiInfo[$value['id']] = $subjectRes['data'][$key];
             }
         }
@@ -713,6 +730,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $commentInfo['id'] = $commentService->addComment($commentInfo);
     
         //更新口碑表口碑回复状态
+        $koubeiInfo['comment_id'] = $commentInfo['id'];
         $koubeiInfo['reply'] = $comment;
         $koubeiInfo['comment_status'] = 1;
         $koubeiInfo['comment_supplier_id'] = $supplierId;
