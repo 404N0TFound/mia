@@ -311,6 +311,7 @@ class Koubei {
         $koubeiData = new KoubeiData();
         $setData = array();
         $setData[] = array('reply', $replyInfo['reply']);
+        $setData[] = array('comment_id', $replyInfo['comment_id']);
         $setData[] = array('comment_status', 1);
         $setData[] = array('comment_time', $replyInfo['comment_time']);
         $setData[] = array('comment_supplier_id', $replyInfo['comment_supplier_id']);
