@@ -477,7 +477,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $extInfo['image'][] = $imageInfo;
             }
         }
-        //$koubeiSetData['extr_info'] = json_encode($extInfo);
         $mKoubei = new KoubeiModel();
         $koubeiInsertId = $mKoubei->saveKoubei($koubeiSetData);
 
@@ -1510,7 +1509,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         
         //蜜芽兔
-        $userId = 3782852;
+        $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
         //如果有回复内容，则需要入评论表
         if(!empty($setData['comment']))
         {
