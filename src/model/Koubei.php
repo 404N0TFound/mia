@@ -244,6 +244,11 @@ class Koubei {
      */
     public function setKoubeiStatus($koubeiId, $koubeiInfo){
         $koubeiSetInfo = array();
+        $koubeiSetInfo[] = ['verify_time',$koubeiInfo['verify_time']];
+        $koubeiSetInfo[] = ['admin_id',$koubeiInfo['admin_id']];
+        $koubeiSetInfo[] = ['rank_score',$koubeiInfo['rank_score']];
+        $koubeiSetInfo[] = ['immutable_score',$koubeiInfo['immutable_score']];
+        $koubeiSetInfo[] = ['subject_id',$koubeiInfo['subject_id']];
         //口碑状态
         if(isset($koubeiInfo['status']) && in_array(($koubeiInfo['status']),array(0,1,2))){
             $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
