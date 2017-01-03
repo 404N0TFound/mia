@@ -730,6 +730,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $commentInfo['id'] = $commentService->addComment($commentInfo);
     
         //更新口碑表口碑回复状态
+        $koubeiInfo['comment_id'] = $commentInfo['id'];
         $koubeiInfo['reply'] = $comment;
         $koubeiInfo['comment_status'] = 1;
         $koubeiInfo['comment_supplier_id'] = $supplierId;
