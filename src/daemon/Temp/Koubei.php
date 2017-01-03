@@ -23,37 +23,6 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
-        ini_set('memory_limit', '256m');
-        set_time_limit(0);
-        $this->syncKoubeiCommentId();exit;
-        $data = file('/tmp/koubeidata');
-        $blackWord = \F_Ice::$ins->workApp->config->get('busconf.koubei.blackWord');
-        $blackWord = implode('|', $blackWord);
-        $i = 0;
-        $koubeiIds = array();
-        foreach ($data as $v) {
-            $v = trim($v);
-            list($id, $score, $rankScore, $content) = explode("\t", $v, 4);
-            preg_match_all("/".$blackWord."/i", $content, $match);
-            if (!empty($match[0])) {
-                if ($score >= 3 && $rankScore >= 6) {
-                    $i ++;
-                    $koubeiIds[] = $id;
-                    if ($i % 500 == 0) {
-                        $koubeiIds = implode(',', $koubeiIds);
-                        $koubeiIds = array();
-                    }
-                    
-                }
-                //var_dump($id, $score, $rankScore, $content);exit;
-                //echo $v . "\n";
-                //echo $id, "\n";
-            }
-        }
-        $koubeiIds = implode(',', $koubeiIds);
-        echo $koubeiIds . "\n";
-        exit;
-        
         $this->koubeiSync();
     }
 
@@ -216,8 +185,7 @@ class Koubei extends \FD_Daemon {
             $comment_id = reset($comment_id);
             $comment_id = $comment_id['id'];
             //update comment_id
-            $r = $this->koubeiData->updateKoubeiInfoById($v['id'], [['comment_id', $comment_id]]);
-            var_dump($v, $comment_id, $r);exit;
+            $this->koubeiData->updateKoubeiInfoById($v['id'], [['comment_id', $comment_id]]);
         }
     }
 }
