@@ -25,6 +25,7 @@ class Koubei extends \FD_Daemon {
     public function execute() {
         ini_set('memory_limit', '256m');
         set_time_limit(0);
+        $this->syncKoubeiCommentId();exit;
         $data = file('/tmp/koubeidata');
         $blackWord = \F_Ice::$ins->workApp->config->get('busconf.koubei.blackWord');
         $blackWord = implode('|', $blackWord);
@@ -186,9 +187,37 @@ class Koubei extends \FD_Daemon {
     }
     
     /**
-     * 差评内容降分
+     * 口碑关联comment_id导入
      */
-    private function badCommentReduceScore() {
+    public function syncKoubeiCommentId() {
+        //获取需要关联口碑
+        $where = array();
+        $where[] = [':gt', 'supplier_id', 0];
+        $where[] = [':gt', 'subject_id', 0];
+        $fields = ' id, subject_id, supplier_id ';
+        $data = $this->koubeiData->getRows($where, $fields);
         
+        $mappingData = new \mia\miagroup\Data\Item\UserSupplierMapping();
+        $commentData = new \mia\miagroup\Data\Comment\SubjectComment();
+        foreach ($data as $v) {
+            $mapping = $mappingData->getMappingBySupplierId($v['supplier_id']);
+            if (empty($mapping)) {
+                continue;
+            }
+            //获取待导入的comment_id
+            $user_id = $mapping['user_id'];
+            $cond = array();
+            $cond['subject_id'] = ['subject_id', $v['subject_id']];
+            $cond['user_id'] = ['user_id', $user_id];
+            $comment_id = $commentData->getCommentListByCond($cond, 0, 1, 'id desc');
+            if (empty($comment_id)) {
+                continue;
+            }
+            $comment_id = reset($comment_id);
+            $comment_id = $comment_id['id'];
+            //update comment_id
+            $r = $this->koubeiData->updateKoubeiInfoById($v['id'], [['comment_id', $comment_id]]);
+            var_dump($v, $comment_id, $r);exit;
+        }
     }
 }

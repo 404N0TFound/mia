@@ -163,7 +163,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubeiService = new KoubeiService();
         //获取口碑信息
-        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count', 'item', 'order_info'), array())['data'];
+        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count', 'item', 'order_info', 'koubei_reply'), array())['data'];
         
         //获取口碑申诉信息
         $koubeiAppealInfos = $this->koubeiModel->getKoubeiAppealData(array('koubei_id' => $koubeiIds), 0, false)['list'];
