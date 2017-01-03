@@ -56,7 +56,7 @@ class Koubei {
         if (empty($itemIds)) {
             return array();
         }
-        $orderBy = 'auto_evaluate asc, rank_score desc, created_time desc';
+        $orderBy = 'is_bottom asc, auto_evaluate asc, rank_score desc, created_time desc';
         $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy, $condition);
         return $koubeiData;
     }
@@ -68,7 +68,7 @@ class Koubei {
         if (empty($item_ids)) {
             return array();
         }
-        $order_by = 'auto_evaluate asc, rank_score desc, created_time desc';
+        $order_by = 'is_bottom asc, auto_evaluate asc, rank_score desc, created_time desc';
         $koubei_data = $this->koubeiData->getKoubeiByItemIdsAndCondition($item_ids, $conditon, $limit, $offset, $order_by);
         return $koubei_data;
     }
@@ -245,7 +245,7 @@ class Koubei {
     public function setKoubeiStatus($koubeiId, $koubeiInfo){
         $koubeiSetInfo = array();
         //口碑状态
-        if(isset($koubeiInfo['status'])){
+        if(isset($koubeiInfo['status']) && in_array(($koubeiInfo['status']),array(0,1,2))){
             $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
         }
         //口碑工单
@@ -253,6 +253,19 @@ class Koubei {
             $koubeiSetInfo[] = ['work_order',$koubeiInfo['work_order']];
         }
         
+        //更新口碑扩展字段
+        if(isset($koubeiInfo['extr_info'])){
+            $koubeiSetInfo[] = ['extr_info',$koubeiInfo['extr_info']];
+        }
+        
+        //更新口碑精品状态
+        if(isset($koubeiInfo['rank']) && in_array(($koubeiInfo['rank']),array(0,1))){
+            $koubeiSetInfo[] = ['rank',$koubeiInfo['rank']];
+        }
+        //更新口碑沉帖状态
+        if(isset($koubeiInfo['is_bottom']) && in_array(($koubeiInfo['is_bottom']),array(0,1))){
+            $koubeiSetInfo[] = ['is_bottom',$koubeiInfo['is_bottom']];
+        }
         $result = $this->koubeiData->updateKoubeiInfoById($koubeiId, $koubeiSetInfo);
     }
     

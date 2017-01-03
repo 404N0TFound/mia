@@ -477,13 +477,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $extInfo['image'][] = $imageInfo;
             }
         }
-        $koubeiSetData['extr_info'] = json_encode($extInfo);
         $mKoubei = new KoubeiModel();
         $koubeiInsertId = $mKoubei->saveKoubei($koubeiSetData);
 
         if (!$koubeiInsertId) {
             return $this->error(6101);
         }
+        
+        //更新口碑扩展字段
+        $this->setKoubeiExtr($koubeiInsertId, $extInfo);
 
         // 3、如果蜜芽贴图片不为空，则同步到口碑图片中
         if (!empty($subjectData['image_infos'])) {
@@ -1449,4 +1451,102 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_score = array('each'=>$item_info['count'],'num_default'=>$default_count_five);
         return $this->succ($item_score);
     }
+    
+    /**
+     * 更新口碑扩展字段
+     */
+    public function setKoubeiExtr($koubeiId, $extrInfo)
+    {
+        if(!is_numeric($koubeiId) || empty($extrInfo)){
+            return $this->error(500);
+        }
+
+        //先查出口碑信息，看是否存在扩展字段
+        $koubeInfo = $this->koubeiModel->getBatchKoubeiByIds(array($koubeiId), array())[$koubeiId];
+        $newExtInfo = array();
+        //如果存在，则在此基础上进行更新
+        if(!empty($koubeInfo['extr_info'])){
+            $extInfo = json_decode($koubeInfo['extr_info'],true);
+            $newExtInfo = array_merge($extInfo,$extrInfo);
+        }else{
+            $newExtInfo = $extrInfo;
+        }
+        $newExtInfo = json_encode($newExtInfo);
+        
+        //更新口碑扩展字段
+        $koubeUpData = array('extr_info'=>$newExtInfo);
+        $res = $this->koubeiModel->setKoubeiStatus($koubeiId, $koubeUpData);
+        
+        return $this->succ($res);
+    }
+    
+    /**
+     * 口碑信息更新操作
+     */
+    public function koubeiEditOperation($koubeiId, $setData)
+    {
+        if(!is_numeric($koubeiId) || empty($setData)){
+            return $this->error(500);
+        }
+        
+        $arrParams = array(
+            'verify_time' => date("Y-m-d H:i:s", time()),
+            'admin_id' => $setData['admin_id'],
+            'rank_score'=>$setData['score']['rank_score'],
+            'immutable_score'=>$setData['score']['immutable'],
+            'subject_id' => $setData['subject_id'],
+        );
+        
+        if(in_array($setData['status'],array(0,2))){
+            $arrParams['status'] = $setData['status'];
+        }
+        
+        if(in_array($setData['rank'],array(0,1))){
+            $arrParams['rank'] = $setData['rank'];
+        }
+        if(in_array($setData['is_bottom'],array(0,1))){
+            $arrParams['is_bottom'] = $setData['is_bottom'];
+        }
+        
+        //蜜芽兔
+        $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+        //如果有回复内容，则需要入评论表
+        if(!empty($setData['comment']))
+        {
+            $fid = 0;
+            if($setData['fid']){
+                $fid = $setData['fid'];
+            }
+            
+            $this->koubeiComment($setData['supplier_id'], $setData['subject_id'], $setData['comment'], $fid);
+        }
+        //如果为通过状态，发蜜豆
+        if ($arrParams['status'] == 2)
+        {
+            //发蜜豆
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['user_id'] = $userId;//蜜芽兔
+            $param['to_user_id'] = $setData['user_id'];
+            $param['relation_type'] = "send_koubei";
+            $param['relation_id'] = $koubeiId;
+            
+            //如果有图片，发10个蜜豆；如果没有，发5个
+            $param['mibean'] = 5;
+            if(!empty($setData['extr_info'])){
+                $extInfo = json_decode($setData['extr_info'],true);
+                $imageInfos = $extInfo['image'];
+                if(!empty($imageInfos)){
+                    $param['mibean'] = 10;
+                }
+            }
+            
+            $mibean->add($param);
+        }
+        
+        //更新口碑扩展字段
+        $res = $this->koubeiModel->setKoubeiStatus($koubeiId,$arrParams);
+        return $this->succ($res);
+    }
+    
+    
 }
