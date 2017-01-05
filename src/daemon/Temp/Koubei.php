@@ -23,6 +23,7 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
+        $this->syncKoubeiCommentId();exit;
         $this->koubeiSync();
     }
 
@@ -161,7 +162,7 @@ class Koubei extends \FD_Daemon {
     public function syncKoubeiCommentId() {
         //获取需要关联口碑
         $where = array();
-        $where[] = [':gt', 'supplier_id', 0];
+        $where[] = [':gt', 'comment_supplier_id', 0];
         $where[] = [':gt', 'subject_id', 0];
         $fields = ' id, subject_id, supplier_id ';
         $data = $this->koubeiData->getRows($where, $fields);

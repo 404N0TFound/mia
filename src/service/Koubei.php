@@ -727,8 +727,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $commentInfo['user_id'] = $userId;
         $commentInfo['fid'] = $fid;
         $commentInfo['is_expert'] = 1;
-        $commentInfo = $commentService->addComment($commentInfo);
-    
+        $commentInfo['id'] = $commentService->addComment($commentInfo)['id'];
+
         //更新口碑表口碑回复状态
         $koubeiInfo['comment_id'] = $commentInfo['id'];
         $koubeiInfo['reply'] = $comment;
