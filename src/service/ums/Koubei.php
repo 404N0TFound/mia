@@ -140,7 +140,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $orderBy = 'comment_time desc';
         }
         //回复方
-        if (intval($params['comment_style']) > 0 && in_array($params['comment_style'],array(0,1)) && intval($solrCond['id']) <= 0) {
+        if (in_array($params['comment_style'],array(0,1)) && intval($solrCond['id']) <= 0) {
             $solrCond['comment_style'] = intval($params['comment_style']);
         }
         //回复人(回复商家id)
