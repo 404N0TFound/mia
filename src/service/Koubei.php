@@ -727,7 +727,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $commentInfo['user_id'] = $userId;
         $commentInfo['fid'] = $fid;
         $commentInfo['is_expert'] = 1;
-        $commentInfo['id'] = $commentService->addComment($commentInfo);
+        $commentInfo = $commentService->addComment($commentInfo);
     
         //更新口碑表口碑回复状态
         $koubeiInfo['comment_id'] = $commentInfo['id'];
@@ -1493,6 +1493,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         //更新口碑扩展字段
         $koubeUpData = array('extr_info'=>$newExtInfo);
+        $koubeUpData['verify_time'] = date("Y-m-d H:i:s", time());
+        
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId, $koubeUpData);
         
         return $this->succ($res);
