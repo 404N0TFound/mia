@@ -38,6 +38,16 @@ class Koubei extends \DB_Query {
                             $where[] = [':ne','subject_id', 0];
                         }
                         break;
+                    case 'comment_style':
+                        if($v == 1){
+                            $where[] = [':ge','comment_id', $v];
+                            $where[] = [':ge','comment_supplier_id', $v];
+                            break;
+                        }else{
+                            $where[] = [':gt','comment_id', $v];
+                            $where[] = ['comment_supplier_id', $v];
+                            break;
+                        }
                     case 'start_time':
                         $where[] = [':ge','created_time', $v];
                         break;

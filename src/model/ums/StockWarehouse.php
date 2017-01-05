@@ -19,11 +19,12 @@ class StockWarehouse extends \DB_Query {
         }
         $where[] = ['supplier_id', $supplyIds];
         
-        $data = $this->getRows($where, 'name,supplier_id');
+        $data = $this->getRows($where, 'id,name,supplier_id');
         $result = array();
         if (!empty($data)) {
             foreach ($data as $v) {
-                $result[$v['supplier_id']][] = $v['name'];
+                $result[$v['supplier_id']]['id'] = $v['id'];
+                $result[$v['supplier_id']]['name'] = $v['name'];
             }
         }
         return $result;
