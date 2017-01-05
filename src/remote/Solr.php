@@ -306,7 +306,7 @@ class Solr
         }
         if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
             //自营非自营
-            $solr_info['fq'][]   = $conditon['self_sale'] == 1 ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
+            $solr_info['fq'][]   = $conditon['self_sale'] == 0 ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
         }
         if (!empty($conditon['warehouse_type'])) {
             //所属仓库
@@ -318,9 +318,9 @@ class Solr
                 $solr_info['fq'][]   = 'subject_id:[0 TO *]';
             }
         }
-//         if(isset($conditon['auto_evaluate']) && in_array($conditon['auto_evaluate'],array(0,1))){
-//             $solr_info['fq'][]   = 'auto_evaluate:'. $conditon['auto_evaluate'];
-//         }
+        if(isset($conditon['auto_evaluate']) && in_array($conditon['auto_evaluate'],array(0,1))){
+            $solr_info['fq'][]   = 'auto_evaluate:'. $conditon['auto_evaluate'];
+        }
         if(!empty($conditon['score'])){
             $solr_info['fq'][]   = 'score:'. $conditon['score'];
         }
@@ -369,6 +369,23 @@ class Solr
         if (strtotime($conditon['comment_end_time']) > 0) {
             //回复结束时间
             $solr_info['fq'][]   =  "comment_time:[* TO ". strtotime($conditon['comment_end_time']) ."]";
+        }
+        //回复方
+        if (isset($conditon['comment_style']) && in_array($conditon['comment_style'],array(0,1))) {
+            //商家
+            if($conditon['comment_style'] == 1){
+                $solr_info['fq'][]   = 'comment_supplier_id:[1 TO *]';
+                $solr_info['fq'][]   = 'comment_id:[1 TO *]';
+            }else{
+                //客服
+                $solr_info['fq'][]   = 'comment_supplier_id:0';
+                $solr_info['fq'][]   = 'comment_id:[1 TO *]';
+            }
+            
+        }
+        //回复人(回复商家id)
+        if (!empty($conditon['comment_supplier_id']) ) {
+            $solr_info['fq'][]   = 'comment_supplier_id:'. $conditon['comment_supplier_id'];
         }
         // solr select
         $res = $this->select($solr_info);
