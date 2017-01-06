@@ -7,6 +7,15 @@ use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Model\Koubei as KoubeiModel;
 use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
 
+/**
+ * 口碑相关-临时脚本
+ * 
+ * koubeiSync() 同步过审但没有发蜜芽圈的图片
+ * repairSubjectRelation() 修复没有关联蜜芽圈帖子的口碑数据
+ * syncKoubeiCommentId() 口碑关联comment_id导入
+ * koubeiItemTransfer() 口碑商品迁移
+ */
+ 
 class Koubei extends \FD_Daemon {
 
     private $koubeiModel;
@@ -23,7 +32,7 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
-        $this->syncKoubeiCommentId();exit;
+        $this->koubeiItemTransfer();exit;
         $this->koubeiSync();
     }
 
@@ -187,6 +196,25 @@ class Koubei extends \FD_Daemon {
             $comment_id = $comment_id['id'];
             //update comment_id
             $this->koubeiData->updateKoubeiInfoById($v['id'], [['comment_id', $comment_id]]);
+        }
+    }
+    
+    public function koubeiItemTransfer() {
+        //读取待迁移的itemlist
+        $data = file('/tmp/koubei_item_transfer');
+        $koubeiData = new KoubeiData();
+        $koubeiTagData = new \mia\miagroup\Data\Koubei\KoubeiTagsRelation();
+        $pointTagData = new \mia\miagroup\Data\PointTags\SubjectPointTags();
+        foreach ($data as $v) {
+            $v = trim($v);
+            list($origin_item_id, $new_item_id) = explode("\t", $v);
+            //更新koubei表
+            $koubeiData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id]]);
+            //更新koubei_tags_relation表
+            $koubeiTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id]]);
+            //更新group_subject_point_tags表
+            $pointTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id], ['type', 'sku']]);
+            exit;
         }
     }
 }
