@@ -29,7 +29,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * ums口碑列表
      */
     public function getKoubeiList($params, $isRealtime = true) {
-        
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
         $solrCond = array();
@@ -66,7 +65,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //口碑状态
             $solrCond['status'] = $params['status'];
         }
-        if ($params['auto_evaluate'] !== null && $params['auto_evaluate'] !== '' && in_array($params['auto_evaluate'], array(0, 1)) && intval($solrCond['id']) <= 0) {
+        if (isset($params['auto_evaluate']) && $params['auto_evaluate'] !== null && $params['auto_evaluate'] !== '' && in_array($params['auto_evaluate'], array(0, 1)) && intval($solrCond['id']) <= 0) {
             //是否展示默认好评，默认不展示
             $solrCond['auto_evaluate'] = $params['auto_evaluate'] ? 1 : 0;
         } else {
@@ -140,14 +139,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $orderBy = 'comment_time desc';
         }
         //回复方
-        if (in_array($params['comment_style'],array(0,1)) && intval($solrCond['id']) <= 0) {
+        if (isset($params['comment_style']) && in_array($params['comment_style'],array(0,1)) && intval($solrCond['id']) <= 0) {
             $solrCond['comment_style'] = intval($params['comment_style']);
         }
         //回复人(回复商家id)
         if (intval($params['comment_supplier_id']) && intval($solrCond['id']) <= 0) {
             $solrCond['comment_supplier_id'] = intval($params['comment_supplier_id']);
         }
-        
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');
             $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);
