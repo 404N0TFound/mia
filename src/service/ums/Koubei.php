@@ -162,17 +162,29 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubeiIds[] = $v['id'];
         }
         $koubeiService = new KoubeiService();
-        //获取口碑信息
-        $koubeiInfos = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, array('user_info', 'count', 'item', 'order_info', 'koubei_reply'), array())['data'];
-        
-        //获取口碑申诉信息
-        $koubeiAppealInfos = $this->koubeiModel->getKoubeiAppealData(array('koubei_id' => $koubeiIds), 0, false)['list'];
+        $maxKoubeiCount = 10000;
+        $pieceCount = 100;
+        $koubeiIds = count($koubeiIds) > $maxKoubeiCount ? array_splice($koubeiIds, 0, $maxKoubeiCount) : $koubeiIds;
+        $koubeiInfos = array();
         $appealStatus = array();
-        if (!empty($koubeiAppealInfos)) {
-            foreach ($koubeiAppealInfos as $appeal) {
-                $appealStatus[$appeal['koubei_id']] = array('appeal_id' => $appeal['id'], 'status' => $appeal['status']);
+        do {
+            $pieceIds = count($koubeiIds) > $pieceCount ? array_splice($koubeiIds, 0, $pieceCount) : array_splice($koubeiIds, 0, count($koubeiIds));
+            //获取口碑信息
+            $tmpKoubeiInfos = $koubeiService->getBatchKoubeiByIds($pieceIds, 0, array('user_info', 'count', 'item', 'order_info', 'koubei_reply'), array())['data'];
+            if (!empty($tmpKoubeiInfos)) {
+                foreach ($tmpKoubeiInfos as $koubeiId => $koubei) {
+                    $koubeiInfos[$koubeiId] = $koubei;
+                }
             }
-        }
+            //获取口碑申诉信息
+            $koubeiAppealInfos = $this->koubeiModel->getKoubeiAppealData(array('koubei_id' => $pieceIds), 0, false)['list'];
+            if (!empty($koubeiAppealInfos)) {
+                foreach ($koubeiAppealInfos as $appeal) {
+                    $appealStatus[$appeal['koubei_id']] = array('appeal_id' => $appeal['id'], 'status' => $appeal['status']);
+                }
+            }
+        } while (!empty($koubeiIds));
+        
         foreach ($data['list'] as $v) {
             $tmp = $v;
             if(!empty($koubeiInfos[$v['id']])){
