@@ -29,7 +29,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * ums口碑列表
      */
     public function getKoubeiList($params, $isRealtime = true) {
-        
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
         $solrCond = array();
@@ -66,7 +65,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //口碑状态
             $solrCond['status'] = $params['status'];
         }
-        if ($params['auto_evaluate'] !== null && $params['auto_evaluate'] !== '' && in_array($params['auto_evaluate'], array(0, 1)) && intval($solrCond['id']) <= 0) {
+        if (isset($params['auto_evaluate']) && $params['auto_evaluate'] !== null && $params['auto_evaluate'] !== '' && in_array($params['auto_evaluate'], array(0, 1)) && intval($solrCond['id']) <= 0) {
             //是否展示默认好评，默认不展示
             $solrCond['auto_evaluate'] = $params['auto_evaluate'] ? 1 : 0;
         } else {
@@ -139,6 +138,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $solrCond['comment_end_time'] = $params['comment_end_time'];
             $orderBy = 'comment_time desc';
         }
+        //回复方
+        if (isset($params['comment_style']) && in_array($params['comment_style'],array(0,1)) && intval($solrCond['id']) <= 0) {
+            $solrCond['comment_style'] = intval($params['comment_style']);
+        }
+        //回复人(回复商家id)
+        if (intval($params['comment_supplier_id']) && intval($solrCond['id']) <= 0) {
+            $solrCond['comment_supplier_id'] = intval($params['comment_supplier_id']);
+        }
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');
             $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);
@@ -153,14 +160,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }else{
             $data = $this->koubeiModel->getKoubeiData($solrCond, $offset, $limit, $orderBy);
         }
-        
         if (empty($data['list'])) {
             return $this->succ($result);
         }
         $koubeiIds = array();
+        $supplierIds = array();
         foreach ($data['list'] as $v) {
             $koubeiIds[] = $v['id'];
+            if($v['supplier_id'] > 0){
+                $supplierIds[] = $v['supplier_id'];
+            }
         }
+        //根据商家id获取仓库名
+        $wearhouseInfo = $this->stockModel->getBatchNameBySupplyIds($supplierIds);
+        
         $koubeiService = new KoubeiService();
         $maxKoubeiCount = 10000;
         $pieceCount = 100;
@@ -192,6 +205,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 if (isset($appealStatus[$v['id']])) {
                     $tmp['subject']['item_koubei']['appeal_status'] = $appealStatus[$v['id']]['status'];
                     $tmp['subject']['item_koubei']['appeal_id'] = $appealStatus[$v['id']]['appeal_id'];
+                }
+                if($v['supplier_id'] > 0){
+                    //获取仓库信息
+                    if(!empty($wearhouseInfo[$v['supplier_id']]['id'])){
+                        $tmp['subject']['item_koubei']['wearhouse'] = $wearhouseInfo[$v['supplier_id']];
+                    }
                 }
             }
             $result['list'][] = $tmp;
@@ -383,15 +402,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //根据口碑id获取各商家生成口碑数、差评数、机选差评数、被评论过的口碑数及评论比例
         $koubeiStatistics = $this->koubeiModel->supplierKoubeiStatistics($condition);
         //根据商家id获取仓库名
-        $wearhouseName = $this->stockModel->getBatchNameBySupplyIds($supplyIds);
-    
+        $wearhouseInfo = $this->stockModel->getBatchNameBySupplyIds($supplyIds);
         //拼接商家各计数及商家名
         foreach ($supplyIds as $supplyId) {
             $supplierKoubei = array();
             $dealLowscoreNums = $koubeiStatistics['deal_lowscore'][$supplyId] ? $koubeiStatistics['deal_lowscore'][$supplyId] : 0;
             $dealMscoreNums = $koubeiStatistics['deal_mscore'][$supplyId] ? $koubeiStatistics['deal_mscore'][$supplyId] : 0;
             $supplierKoubei['supplier_id'] = $supplyId;
-            $supplierKoubei['wearhouse_name'] = $wearhouseName[$supplyId][0];
+            $supplierKoubei['wearhouse_name'] = $wearhouseInfo[$supplyId]['name'];
             $supplierKoubei['koubei_nums'] = $koubeiStatistics['koubei'][$supplyId] ? $koubeiStatistics['koubei'][$supplyId] : 0;
             $supplierKoubei['lscore_nums'] = $koubeiStatistics['lowscore'][$supplyId] ? $koubeiStatistics['lowscore'][$supplyId] : 0;
             $supplierKoubei['mscore_nums'] = $koubeiStatistics['mscore'][$supplyId] ? $koubeiStatistics['mscore'][$supplyId] : 0;

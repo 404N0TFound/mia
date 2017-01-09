@@ -71,7 +71,7 @@ class Item extends \DB_Query {
         }
         $itemsIds = implode(',', $itemsIds);
     
-        $sql = "select i.id as item_id, i.name as item_name, i.sale_price, i.brand_id, i.feedback_rate as feedback_rate,b.name as brand_name
+        $sql = "select i.id as item_id, i.name as item_name, i.sale_price, i.brand_id, i.feedback_rate as feedback_rate,i.category_id as category_id,b.name as brand_name
         from {$this->tableName} as i
         left join `item_brand` as b
         on i.brand_id = b.id
