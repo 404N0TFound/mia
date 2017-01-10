@@ -338,7 +338,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //通过商品id获取口碑id
         $condition = array();
         $condition['with_pic'] = true;
-        $condition['score'] = array(4, 5);
+        $condition['score'] = array(0, 4, 5);
         $condition['machine_score'] = 3;
         $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
         if (count($koubei_ids) < $count) {
