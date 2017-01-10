@@ -462,6 +462,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //如果没有同步过，则同步为口碑贴
         $koubeiSetData = array();
         $koubeiSetData['status'] = 2;
+        $koubeiSetData['machine_score'] = 3;
         $koubeiSetData['title'] = (isset($subjectData['title'])) ? trim($subjectData['title']) : "";
         $koubeiSetData['content'] = trim($this->emojiUtil->emoji_unified_to_html($subjectData['text']));
         $koubeiSetData['item_id'] = $itemId;
