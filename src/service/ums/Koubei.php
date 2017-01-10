@@ -180,6 +180,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiIds = count($koubeiIds) > $maxKoubeiCount ? array_splice($koubeiIds, 0, $maxKoubeiCount) : $koubeiIds;
         $koubeiInfos = array();
         $appealStatus = array();
+        ini_set('memory_limit', '1024M');
         do {
             $pieceIds = count($koubeiIds) > $pieceCount ? array_splice($koubeiIds, 0, $pieceCount) : array_splice($koubeiIds, 0, count($koubeiIds));
             //获取口碑信息
