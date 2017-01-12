@@ -1076,8 +1076,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         if ($type == "collect") {
             //聚合印象
+            //tag_id 是根标签，查询所有子标签
+            $tag_ids = $this->koubeiModel->getChildTags($tag_id);
+            $tag_ids[] = $tag_id;
+
             //查询口碑id列表
-            $koubei_ids = $this->koubeiModel->getItemKoubeiIds($item_ids, $tag_id, $limit, $offset);
+            $koubei_ids = $this->koubeiModel->getItemKoubeiIds($item_ids, $tag_ids, $limit, $offset);
 
             //通过商品id获取口碑id
             //$cond['koubei_id'] = $koubeiIds;

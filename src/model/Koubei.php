@@ -499,7 +499,7 @@ class Koubei {
      * @param $tag_id
      * @return array
      */
-    public function getItemKoubeiIds($item_ids, $tag_id, $limit, $offset)
+    public function getItemKoubeiIds($item_ids, $tag_ids, $limit, $offset)
     {
         if (empty($item_ids) || empty($tag_id)) {
             return [];
