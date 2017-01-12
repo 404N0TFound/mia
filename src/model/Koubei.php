@@ -563,19 +563,19 @@ class Koubei {
      * @param $tag_id  根标签id
      * @return array
      */
-    public function getItemKoubeiIds($item_ids, $tag_ids, $limit, $offset)
+    public function getItemKoubeiIds($item_ids, $tag_id, $limit, $offset)
     {
         if (empty($item_ids) || empty($tag_id)) {
             return [];
         }
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
 
-
         $res = $this->getChildList($tag_id);
 
         foreach ($res as $v){
-            $childIdArr[] = $v['tag_id'];//根标签查询子类包括自己了
+            $childIdArr[] = $v['tag_id'];//根标签查询子类不包括自己
         }
+        $childIdArr[] = $tag_id;
         $where[] = ['koubei_tags_relation.tag_id_1', $childIdArr];
 
         $conditions['join'] = 'koubei';
