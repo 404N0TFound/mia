@@ -6,6 +6,7 @@ use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
 use \mia\miagroup\Data\Koubei\KoubeiSubject as KoubeiSubjectData;
 use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
 use mia\miagroup\Data\Koubei\KoubeiTags;
+use mia\miagroup\Data\Koubei\KoubeiTagsLayer;
 use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
 
 class Koubei {
@@ -14,6 +15,7 @@ class Koubei {
     private $koubeiPicData;
     private $koubeiAppealData;
     private $koubeiTagsData;
+    private $koubeiTagsLayerData;
     private $koubeiTagsRelationData;
     
     
@@ -22,6 +24,7 @@ class Koubei {
         $this->koubeiPicData = new KoubeiPicData();
         $this->koubeiAppealData = new KoubeiAppealData();
         $this->koubeiTagsData = new KoubeiTags();
+        $this->koubeiTagsLayerData = new KoubeiTagsLayer();
         $this->koubeiTagsRelationData = new KoubeiTagsRelation();
     }
     
@@ -53,7 +56,7 @@ class Koubei {
         if (empty($itemIds)) {
             return array();
         }
-        $orderBy = 'auto_evaluate asc, rank_score desc, created_time desc';
+        $orderBy = 'is_bottom asc, auto_evaluate asc, rank_score desc, created_time desc';
         $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy, $condition);
         return $koubeiData;
     }
@@ -65,7 +68,7 @@ class Koubei {
         if (empty($item_ids)) {
             return array();
         }
-        $order_by = 'auto_evaluate asc, rank_score desc, created_time desc';
+        $order_by = 'is_bottom asc, auto_evaluate asc, rank_score desc, created_time desc';
         $koubei_data = $this->koubeiData->getKoubeiByItemIdsAndCondition($item_ids, $conditon, $limit, $offset, $order_by);
         return $koubei_data;
     }
@@ -84,7 +87,7 @@ class Koubei {
         $conditon['score'] = 4;
 
         $order_by = 'rank_score desc, created_time desc';
-        $koubei_data = $this->koubeiData->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $order_by, $condition);
+        $koubei_data = $this->koubeiData->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $order_by, $conditon);
         return $koubei_data;
     }
 
@@ -169,7 +172,7 @@ class Koubei {
      * @param  $orderId
      * @param  $itemId
      */
-    public function getItemKoubeiInfo($orderId, $itemId)
+    public function getItemKoubeiInfo($orderId, $itemId, $itemSize = '')
     {
         if(intval($orderId) < 0 || intval($itemId) < 0){
             return array();
@@ -177,7 +180,7 @@ class Koubei {
         $orderId = intval($orderId);
         $itemId = intval($itemId);
         
-        $koubeiInfo = $this->koubeiData->getKoubeiByOrderItem($orderId, $itemId);
+        $koubeiInfo = $this->koubeiData->getKoubeiByOrderItem($orderId, $itemId, $itemSize);
         return $koubeiInfo;
     }
     
@@ -241,8 +244,23 @@ class Koubei {
      */
     public function setKoubeiStatus($koubeiId, $koubeiInfo){
         $koubeiSetInfo = array();
+        if(isset($koubeiInfo['verify_time'])){
+            $koubeiSetInfo[] = ['verify_time',$koubeiInfo['verify_time']];
+        }
+        if(isset($koubeiInfo['admin_id'])){
+            $koubeiSetInfo[] = ['admin_id',$koubeiInfo['admin_id']];
+        }
+        if(isset($koubeiInfo['rank_score'])){
+            $koubeiSetInfo[] = ['rank_score',$koubeiInfo['rank_score']];
+        }
+        if(isset($koubeiInfo['immutable_score'])){
+            $koubeiSetInfo[] = ['immutable_score',$koubeiInfo['immutable_score']];
+        }
+        if(isset($koubeiInfo['subject_id'])){
+            $koubeiSetInfo[] = ['subject_id',$koubeiInfo['subject_id']];
+        }
         //口碑状态
-        if(isset($koubeiInfo['status'])){
+        if(isset($koubeiInfo['status']) && in_array(($koubeiInfo['status']),array(0,1,2))){
             $koubeiSetInfo[] = ['status',$koubeiInfo['status']];
         }
         //口碑工单
@@ -250,6 +268,19 @@ class Koubei {
             $koubeiSetInfo[] = ['work_order',$koubeiInfo['work_order']];
         }
         
+        //更新口碑扩展字段
+        if(isset($koubeiInfo['extr_info'])){
+            $koubeiSetInfo[] = ['extr_info',$koubeiInfo['extr_info']];
+        }
+        
+        //更新口碑精品状态
+        if(isset($koubeiInfo['rank']) && in_array(($koubeiInfo['rank']),array(0,1))){
+            $koubeiSetInfo[] = ['rank',$koubeiInfo['rank']];
+        }
+        //更新口碑沉帖状态
+        if(isset($koubeiInfo['is_bottom']) && in_array(($koubeiInfo['is_bottom']),array(0,1))){
+            $koubeiSetInfo[] = ['is_bottom',$koubeiInfo['is_bottom']];
+        }
         $result = $this->koubeiData->updateKoubeiInfoById($koubeiId, $koubeiSetInfo);
     }
     
@@ -290,6 +321,7 @@ class Koubei {
         $koubeiData = new KoubeiData();
         $setData = array();
         $setData[] = array('reply', $replyInfo['reply']);
+        $setData[] = array('comment_id', $replyInfo['comment_id']);
         $setData[] = array('comment_status', 1);
         $setData[] = array('comment_time', $replyInfo['comment_time']);
         $setData[] = array('comment_supplier_id', $replyInfo['comment_supplier_id']);
@@ -440,7 +472,36 @@ class Koubei {
      */
     public function updateTags($setData, $id)
     {
-        $res = $this->koubeiTagsData->updateTags($setData, $id);
+        $where[] = ['id', $id];
+        $res = $this->koubeiTagsData->updateTags($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 更新标签
+     */
+    public function updateTagsByparentId($setData, $parentId)
+    {
+        $where[] = ['parent_id', $parentId];
+        $res = $this->koubeiTagsData->updateTags($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 更新口碑标签关系表
+     * @param $setData
+     * @param $tag_id_2
+     * @return bool
+     */
+    public function updateRealtionByChildId($setData , $tag_id_2){
+        $where[] = ['tag_id_2', $tag_id_2];
+        $res = $this->koubeiTagsRelationData->updateRealtion($setData, $where);
+        return $res;
+    }
+
+    public function updateRealtionByParentId($setData , $tag_id_1){
+        $where[] = ['tag_id_1', $tag_id_1];
+        $res = $this->koubeiTagsRelationData->updateRealtion($setData, $where);
         return $res;
     }
 
@@ -467,26 +528,29 @@ class Koubei {
             return [];
         }
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
+
         if($count == 1){
-            $cols = 'tag_id_1,count(tag_id_1) as num';
+            $cols = 'root,count(*) as num';
         } else {
-            $cols = 'tag_id_1';
+            $cols = 'root';
         }
 
         if (!empty($tag_ids)) {
-            $where[] = ['tag_id_1', $tag_ids];
+            $where[] = ['koubei_tags_layer.root', $tag_ids];
         }
 
         $where[] = ['koubei.status', 2];
         $where[] = [':gt', 'koubei.subject_id', 0];
 
+        $conditions['join_1'] = 'koubei_tags_layer';
         $conditions['join'] = 'koubei';
-        $conditions['group_by'] = 'tag_id_1';
+
+        $conditions['group_by'] = 'koubei_tags_layer.root';
         $tags = $this->koubeiTagsRelationData->getTagsKoubei($where, $cols, $conditions);
         $res = [];
         if(!empty($tags)){
             foreach ($tags as $k=>$v){
-                $res[$v['tag_id_1']] = $v;
+                $res[$v['root']] = $v;
             }
         }
         return $res;
@@ -496,7 +560,7 @@ class Koubei {
      * 获取口碑IDs
      * 根据商品和标签
      * @param $item_ids
-     * @param $tag_id
+     * @param $tag_id  根标签id
      * @return array
      */
     public function getItemKoubeiIds($item_ids, $tag_ids, $limit, $offset)
@@ -505,7 +569,14 @@ class Koubei {
             return [];
         }
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
-        $where[] = ['koubei_tags_relation.tag_id_1', $tag_id];
+
+
+        $res = $this->getChildList($tag_id);
+
+        foreach ($res as $v){
+            $childIdArr[] = $v['tag_id'];//根标签查询子类包括自己了
+        }
+        $where[] = ['koubei_tags_relation.tag_id_1', $childIdArr];
 
         $conditions['join'] = 'koubei';
         $conditions['limit'] = $limit;
@@ -523,10 +594,109 @@ class Koubei {
 
     /**
      * 查询标签,口碑关系
+     * @param $where
+     * @return array
      */
     public function getItemTags($where)
     {
         $res = $this->koubeiTagsRelationData->getTags($where);
         return $res;
     }
+
+    /**
+     * 根据id删除记录
+     * @param $delIds
+     * @return mixed
+     */
+    public function delTagsKoubeiRelation($delIds)
+    {
+        $where[] = ["id",$delIds];
+        $res = $this->koubeiTagsRelationData->delTagsKoubeiRelation($where);
+        return $res;
+    }
+
+
+    /**
+     * 添加layer表记录
+     * @return KoubeiAppealData
+     */
+    public function addTagsLayer($setData)
+    {
+        $res = $this->koubeiTagsLayerData->addTagsLayer($setData);
+        return $res;
+    }
+
+
+    /**
+     * 判断是否是根标签
+     * @return KoubeiAppealData
+     */
+    public function isRoot($tag_id)
+    {
+        $where[] = ["root",$tag_id];
+        $where[] = ["parent",$tag_id];
+        $where[] = ["tag_id",$tag_id];
+        $res = $this->koubeiTagsLayerData->getInfo($where);
+        return $res;
+    }
+
+    /**
+     * 更新layer表
+     * @param $setData
+     * @param $where
+     * @return bool
+     */
+    public function updateLayer($setData, $where)
+    {
+        $res = $this->koubeiTagsLayerData->updateLayer($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 获取标签的根标签，是适用于单根
+     * @param $tag_id
+     * @return mixed
+     */
+    public function getRoot($tag_id)
+    {
+        $where[] = ["tag_id",$tag_id];
+        $res = $this->koubeiTagsLayerData->getInfo($where);
+        return $res;
+    }
+
+    /**
+     * 递归求单个标签的所有子标签
+     * @param $parentId
+     * @return array
+     */
+    public function getChildList($parentId)
+    {
+        $where[] = ['parent', $parentId];
+        $res = $this->koubeiTagsLayerData->getList($where);
+        if (!empty($res)) {
+            $return = [];
+            foreach ($res as $v) {
+                if ($v['tag_id'] == $parentId) {
+                    continue;
+                }
+                $list = $this->getChildList($v['tag_id']);
+                $return = array_merge($return, $list);
+            }
+            return array_merge($return, $res);
+        } else {
+            return $res;
+        }
+    }
+
+
+    /**
+     * 递归获取标签层级结构
+     * @return mixed
+     */
+    public function showTrees()
+    {
+        $res = $this->koubeiTagsLayerData->showTrees();
+        return $res;
+    }
+
 }

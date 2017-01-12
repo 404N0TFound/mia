@@ -321,7 +321,17 @@ class Subject extends \mia\miagroup\Lib\Service {
      * 批量获取用户发布的帖子数
      */
     public function getBatchUserSubjectCounts($userIds) {
-        $data = $this->subjectModel->getBatchUserSubjectCounts($userIds);
+        if (empty($userIds) || !is_array($userIds)) {
+            return $this->succ(array());
+        }
+        $largePublishCountUser = \F_Ice::$ins->workApp->config->get('busconf.user.largePublishCountUser');
+        $diffUserIds = array_diff($userIds, $largePublishCountUser);
+        $data = $this->subjectModel->getBatchUserSubjectCounts($diffUserIds);
+        if (array_intersect($userIds, $largePublishCountUser)) {
+            foreach ($largePublishCountUser as $uid) {
+                $data[$uid] = 10000;
+            }
+        }
         return $this->succ($data);
     }
 

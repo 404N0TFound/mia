@@ -7,6 +7,15 @@ use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Model\Koubei as KoubeiModel;
 use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
 
+/**
+ * 口碑相关-临时脚本
+ * 
+ * koubeiSync() 同步过审但没有发蜜芽圈的图片
+ * repairSubjectRelation() 修复没有关联蜜芽圈帖子的口碑数据
+ * syncKoubeiCommentId() 口碑关联comment_id导入
+ * koubeiItemTransfer() 口碑商品迁移
+ */
+ 
 class Koubei extends \FD_Daemon {
 
     private $koubeiModel;
@@ -23,36 +32,7 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
-        ini_set('memory_limit', '256m');
-        set_time_limit(0);
-        $data = file('/tmp/koubeidata');
-        $blackWord = \F_Ice::$ins->workApp->config->get('busconf.koubei.blackWord');
-        $blackWord = implode('|', $blackWord);
-        $i = 0;
-        $koubeiIds = array();
-        foreach ($data as $v) {
-            $v = trim($v);
-            list($id, $score, $rankScore, $content) = explode("\t", $v, 4);
-            preg_match_all("/".$blackWord."/i", $content, $match);
-            if (!empty($match[0])) {
-                if ($score >= 3 && $rankScore >= 6) {
-                    $i ++;
-                    $koubeiIds[] = $id;
-                    if ($i % 500 == 0) {
-                        $koubeiIds = implode(',', $koubeiIds);
-                        $koubeiIds = array();
-                    }
-                    
-                }
-                //var_dump($id, $score, $rankScore, $content);exit;
-                //echo $v . "\n";
-                //echo $id, "\n";
-            }
-        }
-        $koubeiIds = implode(',', $koubeiIds);
-        echo $koubeiIds . "\n";
-        exit;
-        
+        $this->koubeiItemTransfer();exit;
         $this->koubeiSync();
     }
 
@@ -186,9 +166,55 @@ class Koubei extends \FD_Daemon {
     }
     
     /**
-     * 差评内容降分
+     * 口碑关联comment_id导入
      */
-    private function badCommentReduceScore() {
+    public function syncKoubeiCommentId() {
+        //获取需要关联口碑
+        $where = array();
+        $where[] = [':gt', 'comment_supplier_id', 0];
+        $where[] = [':gt', 'subject_id', 0];
+        $fields = ' id, subject_id, supplier_id ';
+        $data = $this->koubeiData->getRows($where, $fields);
         
+        $mappingData = new \mia\miagroup\Data\Item\UserSupplierMapping();
+        $commentData = new \mia\miagroup\Data\Comment\SubjectComment();
+        foreach ($data as $v) {
+            $mapping = $mappingData->getMappingBySupplierId($v['supplier_id']);
+            if (empty($mapping)) {
+                continue;
+            }
+            //获取待导入的comment_id
+            $user_id = $mapping['user_id'];
+            $cond = array();
+            $cond['subject_id'] = ['subject_id', $v['subject_id']];
+            $cond['user_id'] = ['user_id', $user_id];
+            $comment_id = $commentData->getCommentListByCond($cond, 0, 1, 'id desc');
+            if (empty($comment_id)) {
+                continue;
+            }
+            $comment_id = reset($comment_id);
+            $comment_id = $comment_id['id'];
+            //update comment_id
+            $this->koubeiData->updateKoubeiInfoById($v['id'], [['comment_id', $comment_id]]);
+        }
+    }
+    
+    public function koubeiItemTransfer() {
+        //读取待迁移的itemlist
+        $data = file('/tmp/koubei_item_transfer');
+        $koubeiData = new KoubeiData();
+        $koubeiTagData = new \mia\miagroup\Data\Koubei\KoubeiTagsRelation();
+        $pointTagData = new \mia\miagroup\Data\PointTags\SubjectPointTags();
+        foreach ($data as $v) {
+            $v = trim($v);
+            list($origin_item_id, $new_item_id) = explode("\t", $v);
+            //更新koubei表
+            $koubeiData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id]]);
+            //更新koubei_tags_relation表
+            $koubeiTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id]]);
+            //更新group_subject_point_tags表
+            $pointTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id], ['type', 'sku']]);
+            exit;
+        }
     }
 }

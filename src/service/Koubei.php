@@ -40,7 +40,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 return $this->error(6102);
             }
             //获取口碑信息，验证是否该口碑已经发布过
-            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id']);
+            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id'], strval($koubeiData['item_size']));
             if(!empty($koubeiInfo)){
                 return $this->error(6103);
             }
@@ -182,10 +182,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * 默认好评
      */
     public function autoEvaluateKoubei($koubeiData) {
-        if (empty($koubeiData['order_code'])) {
-            return $this->error(500);
-        }
-        if (empty($koubeiData['item_id']) && empty($koubeiData['item_ids'])) {
+        if (empty($koubeiData['order_code']) || empty($koubeiData['items'])) {
             return $this->error(500);
         }
         //获取订单信息，验证是否可以发布口碑
@@ -194,18 +191,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($orderInfo) || $orderInfo['status'] != 5) {
             return $this->error(6102);
         }
-        $itemIds = array();
-        if (!empty($koubeiData['item_ids']) && is_array($koubeiData['item_ids'])) {
-            $itemIds = $koubeiData['item_ids'];
-        }
-        if (!empty($koubeiData['item_id'])) {
-            $itemIds[] = $koubeiData['item_id'];
-        }
-        $itemIds = array_unique($itemIds);
+        $items = $koubeiData['items'];
         
-        foreach ($itemIds as $itemId) {
+        foreach ($items as $item) {
+            $itemId = $item['item_id'];
+            $itemSize = $item['item_size'];
             //获取口碑信息，验证是否该口碑已经发布过
-            $koubeInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'], $itemId);
+            $koubeInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'], $itemId, $itemSize);
             if(!empty($koubeInfo)) {
                 continue;
             }
@@ -215,6 +207,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubeiSetData['auto_evaluate'] = 1;
             $koubeiSetData['score'] = 5;
             $koubeiSetData['item_id'] = $itemId;
+            $koubeiSetData['item_size'] = $itemSize;
             $koubeiSetData['user_id'] = $orderInfo['user_id'];
             $koubeiSetData['order_id'] = $orderInfo['id'];
             $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
@@ -345,7 +338,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //通过商品id获取口碑id
         $condition = array();
         $condition['with_pic'] = true;
-        $condition['score'] = array(4, 5);
+        $condition['score'] = array(0, 4, 5);
         $condition['machine_score'] = 3;
         $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
         if (count($koubei_ids) < $count) {
@@ -377,13 +370,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubeiInfo = array();
         $orderIds = array();
+        $commentIds = array();
         //批量获取口碑信息
         $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,$status);
         if (empty($koubeiArr)) {
             return $this->succ();
         }
         foreach($koubeiArr as $koubei){
-            if(empty($koubei['subject_id'])) continue;
+            if(empty($koubei['subject_id'])) {
+                continue;
+            }            
             //收集subjectids
             $subjectId[] = $koubei['subject_id'];
             $itemKoubei[$koubei['subject_id']] = array(
@@ -394,25 +390,37 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'item_size' => $koubei['item_size'],
                 'status' => $koubei['status'],
                 'order_id' => $koubei['order_id'],
+                'comment_id' => $koubei['comment_id'],
             );
             //获取口碑订单id，用于获取订单编号(order_code)
             if(!empty($koubei['order_id'])){
                 $orderIds[] = $koubei['order_id'];
             }
+            if (intval($koubei['comment_id']) > 0) {
+                $commentIds[] = $koubei['comment_id'];
+            }
         }
-        if(in_array('order_info', $field) && !empty($orderIds)){
-            //获取订单信息，验证是否可以发布口碑（order service）
+        if (in_array('order_info', $field) && !empty($orderIds)){
+            //获取订单信息
             $orderService = new OrderService();
             $orderInfos = $orderService->getOrderInfoByIds($orderIds)['data'];
         }
+        if (in_array('koubei_reply', $field)) {
+            //获取口碑官方回复信息
+            $commentService = new \mia\miagroup\Service\Comment();
+            $commentInfos = $commentService->getBatchComments($commentIds, array('user_info'))['data'];
+        }
+
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field, array(1, 3));
         foreach ($itemKoubei as $key => $value) {
             if (!empty($subjectRes['data'][$key])) {
-                foreach ($subjectRes['data'][$key]['items'] as $item) {
-                    if ($item['item_id'] == $value['item_id']) {
-                        $value['item_info'] = $item;
-                        break;
+                if (!empty($subjectRes['data'][$key]['items'])) {
+                    foreach ($subjectRes['data'][$key]['items'] as $item) {
+                        if ($item['item_id'] == $value['item_id']) {
+                            $value['item_info'] = $item;
+                            break;
+                        }
                     }
                 }
                 if ($subjectRes['data'][$key]['status'] == 3) {
@@ -420,10 +428,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }
                 $subjectRes['data'][$key]['item_koubei'] = $value;
                 //把口碑的订单编号（order_code）拼到口碑信息中
-                if($value['order_id']){
+                if (in_array('order_info', $field) && intval($value['order_id']) > 0) {
                     $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
                 }
-                // 口碑信息拼装到帖子
+                //拼口碑官方回复信息
+                if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
+                    $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
+                }
+                //口碑信息拼装到帖子
                 $koubeiInfo[$value['id']] = $subjectRes['data'][$key];
             }
         }
@@ -450,6 +462,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //如果没有同步过，则同步为口碑贴
         $koubeiSetData = array();
         $koubeiSetData['status'] = 2;
+        $koubeiSetData['machine_score'] = 3;
         $koubeiSetData['title'] = (isset($subjectData['title'])) ? trim($subjectData['title']) : "";
         $koubeiSetData['content'] = trim($this->emojiUtil->emoji_unified_to_html($subjectData['text']));
         $koubeiSetData['item_id'] = $itemId;
@@ -482,13 +495,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $extInfo['image'][] = $imageInfo;
             }
         }
-        $koubeiSetData['extr_info'] = json_encode($extInfo);
         $mKoubei = new KoubeiModel();
         $koubeiInsertId = $mKoubei->saveKoubei($koubeiSetData);
 
         if (!$koubeiInsertId) {
             return $this->error(6101);
         }
+        
+        //更新口碑扩展字段
+        $this->setKoubeiExtr($koubeiInsertId, $extInfo);
 
         // 3、如果蜜芽贴图片不为空，则同步到口碑图片中
         if (!empty($subjectData['image_infos'])) {
@@ -713,9 +728,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $commentInfo['user_id'] = $userId;
         $commentInfo['fid'] = $fid;
         $commentInfo['is_expert'] = 1;
-        $commentInfo['id'] = $commentService->addComment($commentInfo);
-    
+        $commentInfo['id'] = $commentService->addComment($commentInfo)['id'];
+
         //更新口碑表口碑回复状态
+        $koubeiInfo['comment_id'] = $commentInfo['id'];
         $koubeiInfo['reply'] = $comment;
         $koubeiInfo['comment_status'] = 1;
         $koubeiInfo['comment_supplier_id'] = $supplierId;
@@ -928,8 +944,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //检查标签是否存在
         $tagInfo = $this->koubeiModel->getTagInfo($tagName);
 
-        if(!empty($tagInfo)){
-            return $this->error(500,"标签存在");
+        if (!empty($tagInfo)) {
+            $tag_id = $tagInfo['id'];
+            $rootInfo = $this->koubeiModel->isRoot($tag_id);
+            if (empty($rootInfo)) {
+                $insertData['root'] = $tag_id;
+                $insertData['parent'] = $tag_id;
+                $insertData['tag_id'] = $tag_id;
+                $this->koubeiModel->addTagsLayer($insertData);
+                unset($insertData);
+            }
+            return $this->error(500, "标签存在");
         }
         //标签信息入库
         $insertData['tag_name'] = $tagName;
@@ -937,53 +962,172 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $insertData['positive'] = $positive;
 
         $tagId = $this->koubeiModel->addTag($insertData);
+        unset($insertData);
 
-        if (!$tagId) {
-            return $this->error(500,"添加失败");
-        } else {
+        //向关系表添加一条根信息
+        if ($tagId) {
+            $insertData['root'] = $tagId;
+            $insertData['parent'] = $tagId;
+            $insertData['tag_id'] = $tagId;
+            $resId = $this->koubeiModel->addTagsLayer($insertData);
+            unset($insertData);
+        }
+
+        if ($tagId && $resId) {
             return $this->succ($tagId);
+        } else {
+            return $this->error(500,"添加失败");
         }
     }
-
 
     /**
      * 导入印象标签父子关系
-     * @param $tagName
-     * @param $parentName
+     * @param $tagName  新定父标签
+     * @param $parentName   新定子标签
+     *
+     * TODO getRoot 方法在多根的情况下得修改，因为多根下无法得到某个标签的具体根
      */
-    public function syncTagsRelation($tagName, $parentName)
+    public function syncTagsRelation($parentName, $childName)
     {
-        if(empty($tagName) || empty($parentName)){
+        if(empty($childName) || empty($parentName)){
             return $this->error(500);
         }
+        if ($parentName == $childName) {
+            return $this->error(500, "标签相同");
+        }
         //检查父子标签名是否存在
-        $childTagInfo = $this->koubeiModel->getTagInfo($tagName);
+        $childTagInfo = $this->koubeiModel->getTagInfo($childName);
         $parentTagInfo = $this->koubeiModel->getTagInfo($parentName);
 
-        if (empty($childTagInfo) || empty($parentTagInfo)) {
+        if (empty($childTagInfo)) {
             return $this->error(500, "标签不存在");
         }
-        //检查父类标签是否是以前是子标签,是的话则报错
-        if ($parentTagInfo['parent_id'] != 0) {
-            return $this->error(500, "父标签错误");
+
+        if (empty($parentTagInfo)) {
+            $positive = $childTagInfo['positive'];
+            $res = $this->syncTags($parentName, $positive);
+            if($res['code'] != 0){
+                return $this->error(500, "父标签插入失败");
+            }
         }
-        //检查子标签是否有子类，有的话不可以修改
-        $childArr = $this->koubeiModel->getChildTags($childTagInfo['id']);
-        if (!empty($childArr)) {
-            return $this->error(500, "子标签错误");
+
+        //修改关系
+        //两标签是否都是根标签
+        $is_root_1 = $this->koubeiModel->isRoot($parentTagInfo['id']);
+        $is_root_2 = $this->koubeiModel->isRoot($childTagInfo['id']);
+        if(!empty($is_root_1) && !empty($is_root_2)){
+            //都是根标签
+            //修改子标签的根和父
+            $updateData[] = ['root', $parentTagInfo['id']];
+            $updateData[] = ['parent', $parentTagInfo['id']];
+            $where[] = ['id', $is_root_2['id']];
+            $res = $this->koubeiModel->updateLayer($updateData,$where);
+            unset($updateData);
+            unset($where);
+
+
+            //修改子标签下属子标签的根
+            $updateData[] = ['root', $parentTagInfo['id']];
+            $where[] = ['root', $childTagInfo['id']];
+
+
+            $res = $this->koubeiModel->updateLayer($updateData,$where);
+            unset($updateData);
+            unset($where);
         }
-        //更新子标签parent_id
-        $SetData[] = ['parent_id', $parentTagInfo['id']];
-        $res = $this->koubeiModel->updateTags($SetData, $childTagInfo['id']);
-        if (!$res) {
-            return $this->error(500, "添加失败");
-        } else {
-            return $this->succ($res);
+        if(empty($is_root_1) && !empty($is_root_2))
+        {
+            //父是子标签，子是根标签
+            //查询父的根
+            $parentRoot = $this->koubeiModel->getRoot($parentTagInfo['id'])['root'];
+            //修改子标签的根和父
+            $updateData[] = ['root', $parentRoot];
+            $updateData[] = ['parent', $parentTagInfo['id']];
+            $where[] = ['id', $is_root_2['id']];
+            $res = $this->koubeiModel->updateLayer($updateData, $where);
+            unset($updateData);
+            unset($where);
+
+            //修改子标签下属子标签的根
+            $updateData[] = ['root', $parentRoot];
+            $where[] = ['root', $childTagInfo['id']];
+            $res = $this->koubeiModel->updateLayer($updateData,$where);
+            unset($updateData);
+            unset($where);
         }
+
+        if(!empty($is_root_1) && empty($is_root_2))
+        {
+            //父是根标签，子是子标签
+
+            //查询子标签的根
+            $childRoot = $this->koubeiModel->getRoot($childTagInfo['id']);
+
+            //修改子标签的根和父
+            $updateData[] = ['root', $parentTagInfo['id']];
+            $updateData[] = ['parent', $parentTagInfo['id']];
+
+            $where[] = ['id', $childRoot['id']];
+            $res = $this->koubeiModel->updateLayer($updateData, $where);
+            unset($updateData);
+            unset($where);
+
+            //修改子标签下属子标签的根
+            //查询子标签下属所有标签
+            $childList = $this->koubeiModel->getChildList($childTagInfo['id']);
+
+            foreach ($childList as $v) {
+                $updateData[] = ['root', $parentTagInfo['id']];
+                $where[] = ['id', $v['id']];
+                $res = $this->koubeiModel->updateLayer($updateData, $where);
+                unset($updateData);
+                unset($where);
+            }
+        }
+
+        if(empty($is_root_1) && empty($is_root_2))
+        {
+            //都不是根标签
+            //查询两个标签的根
+            $parentRoot = $this->koubeiModel->getRoot($parentTagInfo['id']);
+            $childRoot = $this->koubeiModel->getRoot($childTagInfo['id']);
+
+            //修改子标签的根和父
+            $updateData[] = ['root', $parentRoot['root']];
+            $updateData[] = ['parent', $parentTagInfo['id']];
+
+            $where[] = ['id', $childRoot['id']];
+            $res = $this->koubeiModel->updateLayer($updateData, $where);
+            unset($updateData);
+            unset($where);
+
+            //修改子标签下属子标签的根
+            //查询子标签下属所有标签
+            $childList = $this->koubeiModel->getChildList($childTagInfo['id']);
+
+            foreach ($childList as $v) {
+                $updateData[] = ['root', $parentRoot['root']];
+                $where[] = ['id', $v['id']];
+                $res = $this->koubeiModel->updateLayer($updateData, $where);
+                unset($updateData);
+                unset($where);
+            }
+        }
+        return $this->succ("ok");
     }
 
     /**
-     * 导入口碑和标签关系
+     * 递归获取整个树结构
+     * @return mixed
+     */
+    public function showTrees()
+    {
+        $res = $this->koubeiModel->showTrees();
+        return $this->succ($res);
+    }
+
+    /**
+     * 导入口碑和标签关系（单个导入不删除之前的）
      * @param $relationInfo tag_name（子标签） koubei_id
      */
     public function syncKoubeiTags($relationInfo)
@@ -1033,10 +1177,64 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
     }
 
+
+    /**
+     * 导入口碑和标签关系（批量导入，删除口碑之前所有标签）
+     * @param $relationInfo tag_names（子标签数组） koubei_id
+     */
+    public function syncKoubeiTagsRelation($relationInfo)
+    {
+        $tag_names = $relationInfo["tag_names"];
+        $koubei_id = $relationInfo["koubei_id"];
+
+        if (empty($tag_names) || empty($koubei_id)) {
+            return $this->error(500, "参数错误");
+        }
+
+        $item_id = $this->koubeiModel->getBatchKoubeiByIds([$koubei_id])[$koubei_id]['item_id'];
+        if(empty($item_id)){
+            return $this->error(500, "口碑不存在");
+        }
+
+        //查询口碑现有标签
+        $res = $this->koubeiModel->getItemTags([':eq', 'koubei_id', $koubei_id]);
+        $delIds = array_map(function ($v) {
+            return $v['id'];
+        }, $res);
+
+        foreach ($tag_names as $tag_name){
+            //根据标签名，检查标签是否存在
+            $tagInfo = $this->koubeiModel->getTagInfo($tag_name);
+            if (empty($tagInfo)) {
+                return $this->error(500, "标签'".$tag_name."'不存在");
+            }
+
+            $insertData["tag_id_1"] = $tagInfo['id'];
+            $insertData["koubei_id"] = $koubei_id;
+            $insertData["item_id"] = $item_id;
+            $insertArr[] = $insertData;
+        }
+
+        //关系数据入库
+        $result = array_map(function($v){return $this->koubeiModel->addTagsRelation($v);},$insertArr);
+
+        if (in_array(FALSE,$result)) {
+            return $this->error(500,"部分操作添加失败，请重新操作！");
+        } else {
+            //删除之前该口碑的所有标签
+            $this->koubeiModel->delTagsKoubeiRelation($delIds);
+            return $this->succ($result);
+        }
+    }
+
     /**
      * 获取指定商品，指定标签的口碑列表
      * @param $item_id
      * @param $tag_id（父标签）
+     * @param int $page
+     * @param int $limit
+     * @param int $userId
+     * @return array
      */
     public function getTagsKoubeiList($item_id, $tag_id, $page = 1, $limit = 20, $userId = 0)
     {
@@ -1055,7 +1253,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //获取商品的关联商品或者套装单品
         $item_service = new ItemService();
         $item_ids = $item_service->getRelateItemById($item_id);
-        $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
 
         $koubei_res = array("koubei_info" => array());
 
@@ -1066,14 +1263,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubei_res['total_count'] = $koubei_nums;//口碑数量
         //好评率
+        $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
         $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
-
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
         //获取蜜粉推荐
         $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
-        $offset = $page > 1 ? ($page - 1) * $limit : 0;
 
+        $offset = $page > 1 ? ($page - 1) * $limit : 0;
         if ($type == "collect") {
             //聚合印象
             //tag_id 是根标签，查询所有子标签
@@ -1082,11 +1279,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
             //查询口碑id列表
             $koubei_ids = $this->koubeiModel->getItemKoubeiIds($item_ids, $tag_ids, $limit, $offset);
-
-            //通过商品id获取口碑id
-            //$cond['koubei_id'] = $koubeiIds;
-            //$koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $cond);
-
         }
         if ($type == "normal") {
             //普通印象
@@ -1099,8 +1291,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     //通过商品id获取口碑id
                     $condition = [];
                     $condition['with_pic'] = true;
-                    $condition['score'] = array(4, 5);
-                    $condition['machine_score'] = 3;
                     $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $limit, $offset);
                     break;
                 case 3 ://好评
@@ -1123,7 +1313,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['feedback_rate'] = $feedbackRate."%";//好评率
         }
         $koubei_res['total_count'] = $koubei_nums;//口碑数量
-
         return $koubei_res;
     }
 
@@ -1145,6 +1334,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //获取商品的关联商品或者套装单品
         $item_service = new ItemService();
         $item_ids = $item_service->getRelateItemById($item_id);
+
         $tagList = [];
         $normalTags = [];
         //聚合印象，内容数量小于3则不显示
@@ -1155,9 +1345,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //查询标签信息
             $tagInfos = $this->koubeiModel->getTags(array_keys($tagsIds));
 
-            //根据商品id查询个标签数量
+            //根据商品id查询每个标签数量
             $tagCount = $this->getTagsCount($item_ids, array_keys($tagsIds));
-
             foreach ($tagInfos as &$tag) {
                 if (array_key_exists($tag['id'], $tagCount)) {
                     $tag["count"] = $tagCount[$tag['id']];
@@ -1174,7 +1363,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $tagList[$k]['count'] = intval($v["count"]);
                     $tagList[$k]['positive'] = 1;
                     $good++;
-                } elseif ($v["count"] >= 2 && $v['positive'] == 2 && $bad < 1) {
+                } elseif ($v['positive'] == 2 && $bad < 1) {
                     $tagList[$k]['type'] = "collect";
                     $tagList[$k]['tag_id'] = $v["id"];
                     $tagList[$k]['tag_name'] = $v["tag_name"];
@@ -1220,7 +1409,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = [];
         if (!empty($tagInfos)) {
             foreach ($tagInfos as $v) {
-                $res[$v["tag_id_1"]] = $v["num"];
+                $res[$v["root"]] = $v["num"];
             }
         }
         return $res;
@@ -1285,4 +1474,104 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_score = array('each'=>$item_info['count'],'num_default'=>$default_count_five);
         return $this->succ($item_score);
     }
+    
+    /**
+     * 更新口碑扩展字段
+     */
+    public function setKoubeiExtr($koubeiId, $extrInfo)
+    {
+        if(!is_numeric($koubeiId) || empty($extrInfo)){
+            return $this->error(500);
+        }
+
+        //先查出口碑信息，看是否存在扩展字段
+        $koubeInfo = $this->koubeiModel->getBatchKoubeiByIds(array($koubeiId), array())[$koubeiId];
+        $newExtInfo = array();
+        //如果存在，则在此基础上进行更新
+        if(!empty($koubeInfo['extr_info'])){
+            $extInfo = json_decode($koubeInfo['extr_info'],true);
+            $newExtInfo = array_merge($extInfo,$extrInfo);
+        }else{
+            $newExtInfo = $extrInfo;
+        }
+        $newExtInfo = json_encode($newExtInfo);
+        
+        //更新口碑扩展字段
+        $koubeUpData = array('extr_info'=>$newExtInfo);
+        $koubeUpData['verify_time'] = date("Y-m-d H:i:s", time());
+        
+        $res = $this->koubeiModel->setKoubeiStatus($koubeiId, $koubeUpData);
+        
+        return $this->succ($res);
+    }
+    
+    /**
+     * 口碑信息更新操作
+     */
+    public function koubeiEditOperation($koubeiId, $setData)
+    {
+        if(!is_numeric($koubeiId) || empty($setData)){
+            return $this->error(500);
+        }
+        
+        $arrParams = array(
+            'verify_time' => date("Y-m-d H:i:s", time()),
+            'admin_id' => $setData['admin_id'],
+            'rank_score'=>$setData['score']['rank_score'],
+            'immutable_score'=>$setData['score']['immutable'],
+            'subject_id' => $setData['subject_id'],
+        );
+        
+        if(in_array($setData['status'],array(0,2))){
+            $arrParams['status'] = $setData['status'];
+        }
+        
+        if(in_array($setData['rank'],array(0,1))){
+            $arrParams['rank'] = $setData['rank'];
+        }
+        if(in_array($setData['is_bottom'],array(0,1))){
+            $arrParams['is_bottom'] = $setData['is_bottom'];
+        }
+        
+        //蜜芽兔
+        $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+        //如果有回复内容，则需要入评论表
+        if(!empty($setData['comment']))
+        {
+            $fid = 0;
+            if($setData['fid']){
+                $fid = $setData['fid'];
+            }
+            
+            $this->koubeiComment($setData['supplier_id'], $setData['subject_id'], $setData['comment'], $fid);
+        }
+        //如果为通过状态，发蜜豆
+        if ($arrParams['status'] == 2)
+        {
+            //发蜜豆
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['user_id'] = $userId;//蜜芽兔
+            $param['to_user_id'] = $setData['user_id'];
+            $param['relation_type'] = "send_koubei";
+            $param['relation_id'] = $koubeiId;
+            
+            //如果有图片，发10个蜜豆；如果没有，发5个
+            $param['mibean'] = 5;
+            if(!empty($setData['extr_info'])){
+                $extInfo = json_decode($setData['extr_info'],true);
+                $imageInfos = $extInfo['image'];
+                if(!empty($imageInfos)){
+                    $param['mibean'] = 10;
+                }
+            }
+            
+            $mibean->add($param);
+        }
+        
+        //更新口碑扩展字段
+        $res = $this->koubeiModel->setKoubeiStatus($koubeiId,$arrParams);
+        return $this->succ($res);
+    }
+    
+    
 }

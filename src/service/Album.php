@@ -126,10 +126,17 @@ class Album extends \mia\miagroup\Lib\Service {
      * @return array() 用户文章个数
      */
     public function getArticleNum($userIds) {
-        if (empty($userIds)) {
-            return $this->succ(array()); 
+        if (empty($userIds) || !is_array($userIds)) {
+            return $this->succ(array());
         }
-        $res = $this->abumModel->getArticleNum($userIds);
+        $largePublishCountUser = \F_Ice::$ins->workApp->config->get('busconf.user.largePublishCountUser');
+        $diffUserIds = array_diff($userIds, $largePublishCountUser);
+        $res = $this->abumModel->getArticleNum($diffUserIds);
+        if (array_intersect($userIds, $largePublishCountUser)) {
+            foreach ($largePublishCountUser as $uid) {
+                $res[$uid] = 10000;
+            }
+        }
         return $this->succ($res);
     }
     
