@@ -530,7 +530,7 @@ class Koubei {
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
 
         if($count == 1){
-            $cols = 'root,count(*) as num';
+            $cols = 'root,count(distinct(koubei_tags_relation.koubei_id)) as num';
         } else {
             $cols = 'root';
         }
