@@ -254,7 +254,7 @@ class Koubei extends \DB_Query {
     public function getKoubeiBySubjectId($subjectId){
         $where = array();
         $where[] = ['subject_id', $subjectId];
-        $result = $this->getRows($where);
+        $result = $this->getRow($where);
         return $result;
     }
     
