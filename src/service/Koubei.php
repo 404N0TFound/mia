@@ -455,6 +455,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $subjectService = new SubjectService();
         $subjectData = $subjectService->getSingleSubjectById($subjectId, 0 , array('group_labels', 'album'))['data'];
+        if (empty($subjectData)) {
+            return $this->error(500, '帖子不存在或者已被删除');
+        }
         if (!empty($subjectData['album_article']) || !empty($subjectData['video_info'])) {
             //如果是专栏或者视频贴
             return $this->error(500, '该类型贴不能同步到口碑');
