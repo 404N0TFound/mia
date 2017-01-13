@@ -530,7 +530,7 @@ class Koubei {
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
 
         if($count == 1){
-            $cols = 'root,count(*) as num';
+            $cols = 'root,count(distinct(koubei_tags_relation.koubei_id)) as num';
         } else {
             $cols = 'root';
         }
@@ -571,14 +571,13 @@ class Koubei {
         $where[] = ['koubei_tags_relation.item_id', $item_ids];
 
 
-        $res = $this->getChildList($tag_id);
-
-        foreach ($res as $v){
-            $childIdArr[] = $v['tag_id'];//根标签查询子类包括自己了
-        }
-        $where[] = ['koubei_tags_relation.tag_id_1', $childIdArr];
+        $where[] = ['koubei_tags_layer.root', $tag_id];
+        $where[] = ['koubei.status', 2];
+        $where[] = [':gt', 'koubei.subject_id', 0];
 
         $conditions['join'] = 'koubei';
+        $conditions['join_1'] = 'koubei_tags_layer';
+
         $conditions['limit'] = $limit;
         $conditions['offset'] = $offset;
         $conditions['order_by'] = 'koubei.rank_score desc, koubei.created_time desc';
