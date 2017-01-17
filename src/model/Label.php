@@ -337,6 +337,15 @@ class Label {
     }
     
     /**
+     * 给标签下的帖子  置顶
+     * @param int $user_id 操作人id
+     */
+    public function setLabelRelationTop($subject_id, $label_id, $top, $user_id){
+        $affect = $this->labelRelation->setLabelRelationTop($subject_id, $label_id, $top, $user_id);
+        return $affect;
+    }
+    
+    /**
      * @todo 删除图片和标签的对应关系
      * @param label_id, subject_id
      * @return 返回影响的行数
