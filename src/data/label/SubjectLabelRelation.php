@@ -141,11 +141,35 @@ class SubjectLabelRelation extends \DB_Query {
      * @param int $user_id 操作人id
      */
     public function setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+        if($recommend == 1){
+            $date = date('Y-m-d H:i:s',time());
+        }else{
+            $date = "0000-00-00 00:00:00";
+        }
         $where[] = ['subject_id',$subject_id];
         $where[] = ['label_id',$label_id];
         $setData[] = ['is_recommend',$recommend];
         $setData[] = ['operator',$user_id];
-        $setData[] = ['recom_time','now()'];
+        $setData[] = ['recom_time',$date];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
+    
+    /**
+     * 给标签下的帖子  置顶
+     * @param int $user_id 操作人id
+     */
+    public function setLabelRelationTop($subject_id, $label_id, $top, $user_id){
+        if($top == 1){
+            $date = date('Y-m-d H:i:s',time());
+        }else{
+            $date = "0000-00-00 00:00:00";
+        }
+        $where[] = ['subject_id',$subject_id];
+        $where[] = ['label_id',$label_id];
+        $setData[] = ['is_top',$top];
+        $setData[] = ['operator',$user_id];
+        $setData[] = ['top_time',$date];
         $affect = $this->update($setData,$where);
         return $affect;
     }
