@@ -140,7 +140,7 @@ class SubjectLabelRelation extends \DB_Query {
      * 给标签下的帖子  加精
      * @param int $user_id 操作人id
      */
-    public function setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+    public function setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id = 0){
         if($recommend == 1){
             $date = date('Y-m-d H:i:s',time());
         }else{
@@ -159,7 +159,7 @@ class SubjectLabelRelation extends \DB_Query {
      * 给标签下的帖子  置顶
      * @param int $user_id 操作人id
      */
-    public function setLabelRelationTop($subject_id, $label_id, $top, $user_id){
+    public function setLabelRelationTop($subject_id, $label_id, $top, $user_id = 0){
         if($top == 1){
             $date = date('Y-m-d H:i:s',time());
         }else{

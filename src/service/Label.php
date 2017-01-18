@@ -340,7 +340,7 @@ class Label extends \mia\miagroup\Lib\Service {
      * UMS
      * 给标签下的帖子加精
      */
-    public function changeLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+    public function changeLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id = 0){
         if(isset($recommend) && $recommend > 0){
             $recommend = 1;
         }else{
@@ -354,7 +354,7 @@ class Label extends \mia\miagroup\Lib\Service {
      * UMS
      * 给标签下的帖子置顶
      */
-    public function changeLabelRelationTop($subject_id, $label_id, $top, $user_id){
+    public function changeLabelRelationTop($subject_id, $label_id, $top, $user_id = 0){
         if(isset($top) && $top > 0){
             $top = 1;
         }else{
