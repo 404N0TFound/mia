@@ -6,7 +6,7 @@ $address = array(
         ),
     ),
     'api' => array(
-        'host' => '172.16.104.185',
+        'host' => '172.16.96.38',
         'port' => 81,
         'service_name' => 'coupon_api_service',
         'recv_timeout' => 20000
