@@ -340,8 +340,27 @@ class Label extends \mia\miagroup\Lib\Service {
      * UMS
      * 给标签下的帖子加精
      */
-    public function changeLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+    public function changeLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id = 0){
+        if(isset($recommend) && $recommend > 0){
+            $recommend = 1;
+        }else{
+            $recommend = 0;
+        }
         $affect = $this->labelModel->setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id);
+        return $this->succ($affect);
+    }
+    
+    /**
+     * UMS
+     * 给标签下的帖子置顶
+     */
+    public function changeLabelRelationTop($subject_id, $label_id, $top, $user_id = 0){
+        if(isset($top) && $top > 0){
+            $top = 1;
+        }else{
+            $top = 0;
+        }
+        $affect = $this->labelModel->setLabelRelationTop($subject_id, $label_id, $top, $user_id);
         return $this->succ($affect);
     }
     
@@ -360,4 +379,15 @@ class Label extends \mia\miagroup\Lib\Service {
         return $this->succ($affect);
     }
     
+    /**
+     * UMS
+     * 根据标签名获取标签信息
+     */
+    public function getLabelInfoByTitle($labelTitle){
+        if(empty($labelTitle)){
+            return $this->succ(array());
+        }
+        $labelInfo = $this->labelModel->checkIsExistByLabelTitle($labelTitle);
+        return $this->succ($labelInfo);
+    }
 }

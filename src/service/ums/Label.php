@@ -3,6 +3,8 @@ namespace mia\miagroup\Service\Ums;
 
 use mia\miagroup\Lib\Service;
 use mia\miagroup\Model\Ums\Label as LabelModel;
+use mia\miagroup\Service\Label as LabelService;
+use mia\miagroup\Service\Subject as SubjectService;
 
 class Label extends Service{
     
@@ -44,6 +46,55 @@ class Label extends Service{
         }
         
         return $this->succ($data);
+    }
+    
+    /**
+     * ums标签下帖子列表
+     */
+    public function getLabelPicList($params) {
+        $result = array('list' => array(), 'count' => 0);
+        $condition = array();
+        //初始化入参
+        $orderBy = 'top_time DESC, recom_time DESC, create_time DESC';
+        $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 20;
+        $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
+    
+        if (intval($params['label_id']) > 0) {
+            //标签ID
+            $condition['label_id'] = $params['label_id'];
+        }
+        
+        if ($params['is_recommend'] !== null && $params['is_recommend'] !== '' && in_array($params['is_recommend'], array(0, 1)) && intval($condition['label_id']) <= 0) {
+            //标签贴是否加精
+            $condition['is_recommend'] = $params['is_recommend'];
+        }
+        if ($params['is_top'] !== null && $params['is_top'] !== '' && in_array($params['is_top'], array(0, 1)) && intval($condition['label_id']) <= 0) {
+            //标签贴是否置顶
+            $condition['is_top'] = $params['is_top'];
+        }
+        
+        if(empty($condition)){
+            $condition['label_id'] = $params['id'];
+        }
+        
+        $data = $this->labelModel->getLabelPicData($condition, $offset, $limit, $orderBy);
+        if (empty($data['list'])) {
+            return $this->succ($result);
+        }
+        $subjectIds = array();
+        foreach ($data['list'] as $v) {
+            $subjectIds[] = $v['subject_id'];
+        }
+        $subjectService = new SubjectService();
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info','group_labels','item'), array())['data'];
+        foreach ($data['list'] as $v) {
+            $tmp = $v;
+            $tmp['subject'] = $subjectInfos[$v['subject_id']];
+            $result['list'][] = $tmp;
+        }
+        
+        $result['count'] = $data['count'];
+        return $this->succ($result);
     }
 
     

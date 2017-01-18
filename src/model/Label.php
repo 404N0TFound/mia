@@ -331,8 +331,17 @@ class Label {
      * 给标签下的帖子  加精
      * @param int $user_id 操作人id
      */
-    public function setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id){
+    public function setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id = 0){
         $affect = $this->labelRelation->setLabelRelationRecommend($subject_id, $label_id, $recommend, $user_id);
+        return $affect;
+    }
+    
+    /**
+     * 给标签下的帖子  置顶
+     * @param int $user_id 操作人id
+     */
+    public function setLabelRelationTop($subject_id, $label_id, $top, $user_id = 0){
+        $affect = $this->labelRelation->setLabelRelationTop($subject_id, $label_id, $top, $user_id);
         return $affect;
     }
     

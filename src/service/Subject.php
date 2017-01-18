@@ -122,6 +122,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectRes[$subjectInfo['id']]['title'] = $subjectInfo['title'];
             $subjectRes[$subjectInfo['id']]['text'] = $subjectInfo['text'];
             $subjectRes[$subjectInfo['id']]['status'] = $subjectInfo['status'];
+            $subjectRes[$subjectInfo['id']]['source'] = $subjectInfo['source'];
             $subjectRes[$subjectInfo['id']]['is_top'] = $subjectInfo['is_top'];
             $subjectRes[$subjectInfo['id']]['user_id'] = $subjectInfo['user_id'];
             $subjectRes[$subjectInfo['id']]['is_fine'] = $subjectInfo['is_fine'];
