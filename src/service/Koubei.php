@@ -888,7 +888,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
             return $this->succ($shouping_Info);
         }
-        return $this->succ(array());
+        return $this->error(500);
     }
 
     /**
