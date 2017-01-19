@@ -32,6 +32,8 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
+        $this->firstKoubeiSendCoupons();
+        exit;
         $this->koubeiItemTransfer();exit;
         $this->koubeiSync();
     }
@@ -199,6 +201,9 @@ class Koubei extends \FD_Daemon {
         }
     }
     
+    /**
+     * 商品口碑迁移
+     */
     public function koubeiItemTransfer() {
         //读取待迁移的itemlist
         $data = file('/tmp/koubei_item_transfer');
@@ -215,6 +220,51 @@ class Koubei extends \FD_Daemon {
             //更新group_subject_point_tags表
             $pointTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id], ['type', 'sku']]);
             exit;
+        }
+    }
+    
+    /**
+     * 口碑首评，代金券补发
+     */
+    public function firstKoubeiSendCoupons() {
+        $data = file('/home/hanxiang/coupon_users');
+        $couponRemote = new \mia\miagroup\Remote\Coupon();
+        $batch_code = 'sign_reward-20161223-5';
+        $i = 1;
+        set_time_limit(0);
+        foreach ($data as $v) {
+            $v = trim($v);
+            list($user_id, $count) = explode("\t", $v);
+            if ($i % 100 == 0) {
+                sleep(1);
+            }
+            $i ++;
+            for ($j = 0; $j < $count; $j ++) {
+                echo $user_id, "\n";
+                $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
+                if (!$bindCouponRes) {
+                    echo 'error:', $user_id, "\n";
+                    $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
+                } else {
+                    echo 'success:', $user_id, "\n";
+                }
+            }
+            
+//             $bindInfos = $couponRemote->queryUserCouponByBatchCode($user_id, array($batch_code), 1, 10);
+//             if ($bindInfos['coupon_info_list'] && count($bindInfos['coupon_info_list']) >= $count) {
+//                 echo 'exist:', $user_id, "\n";
+//             } else {
+//                 if ($i % 100 == 0) {
+//                     sleep(1);
+//                 }
+//                 $i ++;
+//                 echo $user_id, "\n";
+//                 $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
+//                 if (!$bindCouponRes) {
+//                     echo 'error:', $user_id, "\n";
+//                     $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
+//                 }
+//             }
         }
     }
 }

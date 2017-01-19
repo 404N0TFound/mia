@@ -234,6 +234,7 @@ class Solr
         $field = 'id,item_id';
         $sort = 'score desc,id desc,rank_score desc';
         // 处理brand_id
+        // 说明:group field 必须是solr索引
         $conditon = array(
             'category_id'=>$category_id,
             'brand_id' => $brand_id,
@@ -242,6 +243,9 @@ class Solr
             'score' => '(4 OR 5)',
             'fl' => $field,
             'sort' => $sort
+            /*'group'       => 'true',
+            'group.main'  => 'true',
+            'group.field' => 'order_id'*/
         );
 
         $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
