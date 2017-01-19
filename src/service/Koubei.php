@@ -98,13 +98,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $param['relation_id'] = $koubeiInsertId;
 
         //首评奖励(绑定代金券)
-        if((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])){
-            $couponRemote = new CouponRemote();
-            $batch_code = $this->koubeiConfig['batch_code']['test'];
-            if(!empty($batch_code)){
-                $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
-                if(is_array($bindCouponRes)){
-                    $this->error(500);
+        if(!empty($koubeiData['issue_reward'])) {
+            if ((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])) {
+                $couponRemote = new CouponRemote();
+                $batch_code = $this->koubeiConfig['batch_code']['test'];
+                if (!empty($batch_code)) {
+                    $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+                    if (!$bindCouponRes) {
+                        $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+                    }
                 }
             }
         }
@@ -886,6 +888,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
             return $this->succ($shouping_Info);
         }
+        return $this->succ(array());
     }
 
     /**
