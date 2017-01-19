@@ -242,10 +242,10 @@ class Solr
             'status' => 2,
             'score' => '(4 OR 5)',
             'fl' => $field,
-            'sort' => $sort,
-            'group'       => 'true',
+            'sort' => $sort
+            /*'group'       => 'true',
             'group.main'  => 'true',
-            'group.field' => 'order_id'
+            'group.field' => 'order_id'*/
         );
 
         $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
