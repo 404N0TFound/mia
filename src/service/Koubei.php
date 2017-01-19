@@ -104,7 +104,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $batch_code = $this->koubeiConfig['batch_code']['test'];
                 if (!empty($batch_code)) {
                     $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
-                    if (is_array($bindCouponRes)) {
+                    if (!$bindCouponRes) {
                         $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
                     }
                 }
