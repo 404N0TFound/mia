@@ -528,7 +528,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if ($koubeiInsertId > 0 && $subjectData['id'] > 0) {
             $subjectService = new SubjectService();
             $subjectInfo['ext_info']['koubei']['id'] = $koubeiInsertId;
-            $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
             $subjectService->updateSubject($subjectData['id'], $subjectInfo);
         }
 
