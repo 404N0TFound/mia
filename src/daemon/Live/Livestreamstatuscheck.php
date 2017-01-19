@@ -146,7 +146,7 @@ class Livestreamstatuscheck extends \FD_Daemon {
                     }
                 }
                 if(!empty($audioStatusCount)){
-                    $surplusTimeAudio = $redis->ttl($audioStatusCount);
+                    $surplusTimeAudio = $redis->ttl($audioStatusKey);
                     if($surplusTimeAudio < 0){
                         $redis->expire($audioStatusKey,\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_audio_status.expire_time'));
                     }
