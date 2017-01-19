@@ -37,6 +37,8 @@ class Livestreamstatuscheck extends \FD_Daemon {
 
             $framekey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame.key'),$live['chat_room_id']);
             $frameStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame_status.key'),$live['chat_room_id']);
+            $audiokey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_audio.key'), $live['chat_room_id']);
+            $audioStatusKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_audio_status.key'),$live['chat_room_id']);
             if($live['source']==1) {
                 //七牛
                 $streamStatusInfo = $qiniu->getRawStatus($live['stream_id']);
@@ -76,9 +78,10 @@ class Livestreamstatuscheck extends \FD_Daemon {
             $streamInfo['create_time'] = date('Y-m-d H:i:s');
             $res = $streamData->addStreamInfo($streamInfo);
 
-
             $frameNum = $redis->zCard($framekey);
-            $redis->zadd($framekey,$frameNum,$frame_rate);
+            $redis->zadd($framekey, $frameNum, $frame_rate);
+            $redis->zadd($audiokey, $frameNum, $bw_in_audio);
+
             if($frameNum >= 5){
                 $frameData = $redis->zRange($framekey,0,-1);
                 for($i=0;$i<count($frameData);$i++){
@@ -90,8 +93,17 @@ class Livestreamstatuscheck extends \FD_Daemon {
                         $redis->incr($frameStatusKey);
                     }                   
                 }
+                $audioData = $redis->zRange($audiokey, 0, -1);
+                for ($i = 0; $i < count($audioData); $i++) {
+                    if ($audioData[$i] == 0) {
+                        $redis->incr($audioStatusKey);
+                        continue;
+                    }
+                }
+
                 //判断是否超过3次不稳定
                 $frameStatusCount = $redis->get($frameStatusKey);
+                $audioStatusCount = $redis->get($audioStatusKey);
                 if($frameStatusCount > 1){
                     if($frameStatusCount == 2){
                         $tipsText = '您的网络不稳定！请切换更好的网络!';
@@ -111,14 +123,37 @@ class Livestreamstatuscheck extends \FD_Daemon {
                         $rong_api->messagePublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $rongCloudUid, \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectNameHigh'), $content);
                     }
                 }
+
+                if ($audioStatusCount > 1) {
+                    $tipsTextAudio = '系统检测到直播没有声音，请在后台杀掉蜜芽APP后，重新开启直播';
+                    $contentAudio = NormalUtil::getMessageBody(2, $live['chat_room_id'], NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $tipsTextAudio);
+                    // 判断是否是主播
+                    $liveModel = new LiveModel();
+                    $rongCloudUid = $liveModel->getRongHostUserId($live['user_id']);
+                    if (!$rongCloudUid) {
+                        //获取主播uid失败
+                        continue;
+                    }
+                    //发送3遍
+                    for ($r = 0; $r <= 3; $r++) {
+                        $rong_api->messagePublish(NormalUtil::getConfig('busconf.rongcloud.fromUserId'), $rongCloudUid, \F_Ice::$ins->workApp->config->get('busconf.rongcloud.objectNameHigh'), $contentAudio);
+                    }
+                }
                 if(!empty($frameStatusCount)){
                     $surplusTime = $redis->ttl($frameStatusKey);
                     if($surplusTime < 0){
                         $redis->expire($frameStatusKey,\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_frame_status.expire_time'));
                     }
                 }
+                if(!empty($audioStatusCount)){
+                    $surplusTimeAudio = $redis->ttl($audioStatusKey);
+                    if($surplusTimeAudio < 0){
+                        $redis->expire($audioStatusKey,\F_Ice::$ins->workApp->config->get('busconf.rediskey.liveKey.live_stream_audio_status.expire_time'));
+                    }
+                }
                 //清空数据
                 $redis->zremrangebyrank($framekey,0,-1);
+                $redis->zremrangebyrank($audiokey,0,-1);
             }
           
         }

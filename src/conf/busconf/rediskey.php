@@ -51,6 +51,10 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'live_stream_frame_%s',
         'expire_time' => 60,
     ],
+    'live_stream_audio'=>[
+        'key' => $liveServicePrefix . 'live_stream_audio_%s',
+        'expire_time' => 60,
+    ],
     //主播用户
     'live_rong_cloud_user_id' => [ //使用String数据结构
         'key' => $liveServicePrefix . 'rong_cloud_user_id_%s',
@@ -76,7 +80,10 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'stream_frame_status_%s',
         'expire_time' => 300,  
     ],
-
+    'live_stream_audio_status'=>[
+        'key' => $liveServicePrefix . 'stream_audio_status_%s',
+        'expire_time' => 300,
+    ],
 );
 
 /**

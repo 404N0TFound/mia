@@ -212,7 +212,7 @@ $pool = array(
         'miagroup'=>array(
             'default'=>array(
                 array(
-                    'host'=>'172.16.104.236',
+                    'host'=>'172.16.96.82',
                     'port'=>6379,
                 ),
             ),
@@ -232,7 +232,7 @@ $pool = array(
         'push' => array(
             'default' => array(
                 array(
-                    'host' => '172.16.104.236',
+                    'host' => '172.16.96.82',
                     'port' => 6379,
                 ),
             ),
