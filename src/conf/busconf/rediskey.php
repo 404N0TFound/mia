@@ -80,10 +80,6 @@ $liveKey = array(
         'key' => $liveServicePrefix . 'stream_frame_status_%s',
         'expire_time' => 300,  
     ],
-    'live_stream_frame_status'=>[
-        'key' => $liveServicePrefix . 'stream_frame_status_%s',
-        'expire_time' => 300,
-    ],
     'live_stream_audio_status'=>[
         'key' => $liveServicePrefix . 'stream_audio_status_%s',
         'expire_time' => 300,

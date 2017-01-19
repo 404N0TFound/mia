@@ -79,7 +79,6 @@ class Livestreamstatuscheck extends \FD_Daemon {
             $res = $streamData->addStreamInfo($streamInfo);
 
             $frameNum = $redis->zCard($framekey);
-
             $redis->zadd($framekey, $frameNum, $frame_rate);
             $redis->zadd($audiokey, $frameNum, $bw_in_audio);
 
@@ -96,7 +95,7 @@ class Livestreamstatuscheck extends \FD_Daemon {
                 }
                 $audioData = $redis->zRange($audiokey, 0, -1);
                 for ($i = 0; $i < count($audioData); $i++) {
-                    if ($audioData[$i] == 0 && $audioData[$i + 1] == 0) {
+                    if ($audioData[$i] == 0) {
                         $redis->incr($audioStatusKey);
                         continue;
                     }
