@@ -64,11 +64,11 @@ class Label extends Service{
             $condition['label_id'] = $params['label_id'];
         }
         
-        if ($params['is_recommend'] !== null && $params['is_recommend'] !== '' && in_array($params['is_recommend'], array(0, 1)) && intval($condition['label_id']) <= 0) {
+        if ($params['is_recommend'] !== null && $params['is_recommend'] !== '' && in_array($params['is_recommend'], array(0, 1)) ) {
             //标签贴是否加精
             $condition['is_recommend'] = $params['is_recommend'];
         }
-        if ($params['is_top'] !== null && $params['is_top'] !== '' && in_array($params['is_top'], array(0, 1)) && intval($condition['label_id']) <= 0) {
+        if ($params['is_top'] !== null && $params['is_top'] !== '' && in_array($params['is_top'], array(0, 1)) ) {
             //标签贴是否置顶
             $condition['is_top'] = $params['is_top'];
         }
