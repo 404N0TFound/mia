@@ -97,19 +97,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $param['relation_type'] = "send_koubei";
         $param['relation_id'] = $koubeiInsertId;
 
-        //首评奖励(绑定代金券)
-        if(!empty($koubeiData['issue_reward'])) {
-            if ((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])) {
-                $couponRemote = new CouponRemote();
-                $batch_code = $this->koubeiConfig['batch_code']['test'];
-                if (!empty($batch_code)) {
-                    $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
-                    if (!$bindCouponRes) {
-                        $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
-                    }
-                }
-            }
-        }
+//因客户端问题，首评代金券暂时由daemon程序控制发放
+//         //首评奖励(绑定代金券)
+//         if(!empty($koubeiData['issue_reward'])) {
+//             if ((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])) {
+//                 $couponRemote = new CouponRemote();
+//                 $batch_code = $this->koubeiConfig['batch_code']['test'];
+//                 if (!empty($batch_code)) {
+//                     $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+//                     if (!$bindCouponRes) {
+//                         $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+//                     }
+//                 }
+//             }
+//         }
 
         //保存口碑相关图片信息
         if(!empty($koubeiData['image_infos'])){
