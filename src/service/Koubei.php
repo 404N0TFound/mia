@@ -879,7 +879,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         }*/
         $res = array('koubei_list' => $koubei, 'brand_list' => $brand_list);
-        echo '<pre>';print_r($res);exit;
         return $this->succ($res);
     }
 
