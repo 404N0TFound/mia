@@ -14,11 +14,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public $koubeiModel;
     public $subjectService;
     public $koubeiConfig;
+    public $version;
 
     public function __construct() {
+        parent::__construct();
         $this->koubeiModel = new KoubeiModel();
         $this->subjectService = new SubjectService();
         $this->emojiUtil = new EmojiUtil();
+        $this->version = $this->ext_params['version'];
         $this->koubeiConfig = \F_Ice::$ins->workApp->config->get('batchdiff.koubeibatch');
     }
 
@@ -840,13 +843,24 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $solr        = new SolrRemote('koubei');
         $koubei      = array();
         $brand_list  = array();
+
+        // 5.1 版本控制
+        $category_name = "category_id";
+        $version = explode('_', $this->ext_params['version'], 3);
+        array_shift($version);
+        $version = intval(implode($version));
+        //$version = 51;
+        if ($version >= 51) {
+            $category_name = "category_id_ng";
+        }
+
         if(!empty($category_id) && empty($brand_id)){
             // 类目下口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page);
-            $brand_list  = $solr->brandList($category_id);
+            $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page, $category_name);
+            $brand_list  = $solr->brandList($category_id, $category_name);
         }else{
             // 品牌口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByBrandId($category_id, $brand_id, $page);
+            $koubei_info = $solr->getHighQualityKoubeiByBrandId($category_id, $brand_id, $page, $category_name);
         }
         if(!empty($koubei_info)){
             $koubei['count'] = $koubei_info['count'];
@@ -865,6 +879,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         }*/
         $res = array('koubei_list' => $koubei, 'brand_list' => $brand_list);
+        echo '<pre>';print_r($res);exit;
         return $this->succ($res);
     }
 
