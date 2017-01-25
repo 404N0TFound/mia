@@ -219,12 +219,14 @@ class Koubei extends \FD_Daemon {
             $koubeiTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id]]);
             //更新group_subject_point_tags表
             $pointTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id], ['type', 'sku']]);
-            exit;
+            sleep(1);
         }
     }
     
     /**
      * 口碑首评，代金券补发
+     * /opt/mysql/bin/mysql -h 10.1.3.210 -uapi_read -papir8erxa8fr mia_group -e "select user_id, count(item_id) from koubei where id in (select min(id) from koubei where id> 2356040 and item_id not in (select distinct(item_id) from koubei where id<=2356040 ) group by item_id) and auto_evaluate=0 and item_id > 1000000 and id > 2356040 group by user_id" > /home/hanxiang/coupon_users
+     * sed -i '1d' /home/hanxiang/coupon_users
      */
     public function firstKoubeiSendCoupons() {
         $data = file('/home/hanxiang/coupon_users');
@@ -265,6 +267,32 @@ class Koubei extends \FD_Daemon {
 //                     $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
 //                 }
 //             }
+        }
+    }
+    
+    /**
+     * 修复口碑商家评论数据
+     * 商家口碑回复 select c.subject_id, mp.supplier_id, c.id, c.create_time, c.comment from group_subject_comment as c left join user_supplier_mapping as mp on mp.user_id = c.user_id where c.status=1 and mp.supplier_id is not null and c.fid=0 and c.subject_id not in (select subject_id from koubei where comment_id >0);
+     * 客服口碑回复 select k.subject_id, 0, c.id, c.create_time, c.comment from group_subject_comment as c left join koubei as k on c.subject_id = k.subject_id left join group_subjects as s on k.subject_id = s.id  where c.status=1 and c.user_id = 3782852 and k.subject_id is not null and s.source=2 and k.comment_id = 0;
+     */
+    public function repairKoubeiComment() {
+        $data = file('/home/hanxiang/supplier_comment');
+        $i = 1;
+        set_time_limit(0);
+        foreach ($data as $v) {
+            $v = trim($v);
+            list($subject_id, $supplier_id, $comment_id, $comment_time, $comment_content) = explode("\t", $v, 5);
+            $where[] = ['subject_id', $subject_id];
+            $koubeiSetInfo = array();
+            $koubeiSetInfo[] = ['reply', $comment_content];
+            $koubeiSetInfo[] = ['comment_status', 1];
+            $koubeiSetInfo[] = ['comment_supplier_id', $supplier_id];
+            $koubeiSetInfo[] = ['comment_id', $comment_id];
+            $koubeiSetInfo[] = ['comment_time', $comment_time];
+            $this->koubeiData->update($koubeiSetInfo, $where);
+            if ($i % 1000 == 0) {
+                sleep(1);
+            }
         }
     }
 }

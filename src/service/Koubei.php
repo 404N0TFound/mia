@@ -367,7 +367,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 根据口碑ID获取口碑信息
      */
-    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'item' ,'order_info'), $status = array(2)) {
+    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'koubei_reply', 'group_labels', 'praise_info', 'item' ,'order_info'), $status = array(2)) {
         if (empty($koubeiIds)) {
             return $this->succ(array());
         }
@@ -437,6 +437,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 //拼口碑官方回复信息
                 if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
                     $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
+                    $subjectRes['data'][$key]['comment_info'] = array($commentInfos[$value['comment_id']]);
                 }
                 //口碑信息拼装到帖子
                 $koubeiInfo[$value['id']] = $subjectRes['data'][$key];
