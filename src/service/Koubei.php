@@ -437,7 +437,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 //拼口碑官方回复信息
                 if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
                     $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
-                    $subjectRes['data'][$key]['comment_info'] = array($commentInfos[$value['comment_id']]);
+                    if (!empty($commentInfos[$value['comment_id']])) {
+                        $subjectRes['data'][$key]['comment_info'] = array($commentInfos[$value['comment_id']]);
+                    }
                 }
                 //口碑信息拼装到帖子
                 $koubeiInfo[$value['id']] = $subjectRes['data'][$key];

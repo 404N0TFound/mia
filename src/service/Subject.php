@@ -166,7 +166,9 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
             $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
-            $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos[0];
+            if (!empty($smallImageInfos[0])) {
+                $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos[0];
+            }
             if (!empty($subjectInfo['ext_info']['koubei']) || !empty($subjectInfo['ext_info']['koubei_id'])) {
                 if (!empty($subjectInfo['ext_info']['koubei'])) {
                     $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei']['id'];
