@@ -50,7 +50,7 @@ class Issuereward extends \FD_Daemon {
         
         //拉取新发布的5星口碑
         $where = [];
-        $where[] = [':ge','id', $lastId];
+        $where[] = [':gt','id', $lastId];
         $where[] = ['auto_evaluate', 0];
         $where[] = ['score', 5];
         $where[] = ['status', 2];
