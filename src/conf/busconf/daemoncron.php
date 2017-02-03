@@ -118,6 +118,14 @@ $cron_list['view_num_sync'] = array(
     'start_time' => '2016-08-11 00:00:00',
     'interval' => 10
 );
+//帖子数据导出
+$cron_list['subject_data_dump'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=subjectdump",
+    'start_time' => '2017-02-03 00:00:00',
+    'interval' => 1
+);
 /*************
  * 帖子相关结束
  *************/
