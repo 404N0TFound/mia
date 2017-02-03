@@ -50,7 +50,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //组装插入口碑信息  ####start
         $koubeiSetData = array();
         $koubeiSetData['status'] = (isset($koubeiData['status'])) ? intval($koubeiData['status']) : 2;
-        $koubeiSetData['title'] = (isset($koubeiData['title']) ) ? intval($koubeiData['title']) : "";
+        $koubeiSetData['title'] = (isset($koubeiData['title']) ) ? trim($this->emojiUtil->emoji_unified_to_html($koubeiData['title'])) : "";
         $koubeiSetData['content'] = trim($this->emojiUtil->emoji_unified_to_html($koubeiData['text']));
         $koubeiSetData['score'] = $koubeiData['score'];
         $koubeiSetData['item_id'] = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
@@ -892,7 +892,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
             return $this->succ($shouping_Info);
         }
-        return $this->succ(array());
+        return $this->error(1126);
     }
 
     /**
