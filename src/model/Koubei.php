@@ -145,6 +145,7 @@ class Koubei {
         $where['item_id'] = $itemIds;
         $where['subject_id'] = 0;
         $where['status'] = 2;
+        $where['score'] = 1;
         $scoreNums = $this->koubeiData->getItemInvolveNums($filed, $where);
         return $scoreNums;
     }
