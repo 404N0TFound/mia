@@ -45,21 +45,35 @@ class Subjectdump extends \FD_Daemon {
         $where[] = [':gt','id', $lastId];
         $where[] = ['source', [1, 2]];
         $where[] = ['status', 1];
-        $data = $subjectData->getRows($where, 'id, user_id', 1000);
+        $data = $subjectData->getRows($where, 'id, user_id, ext_info', 1000);
         if (empty($data)) {
             return ;
         }
+        //收集帖子ID、用户ID、口碑ID
         $subjectIds = array();
         $userIds = array();
+        $koubeiIds = array();
         foreach ($data as $value) {
-            if (!empty($value)) {
-                $subjectIds[] = $value['id'];
-                $userIds[] = $value['user_id'];
+            $subjectIds[] = $value['id'];
+            $userIds[] = $value['user_id'];
+            $extInfo = json_decode($value['ext_info'], true);
+            if (intval($extInfo['koubei']['id']) > 0) {
+                $koubeiIds[] = $extInfo['koubei']['id'];
             }
         }
+        //获取帖子信息
         $subjectService = new \mia\miagroup\Service\Subject();
-        $userService = new \mia\miagroup\Service\User();
         $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('count', 'group_labels', 'item', 'album'))['data'];
+        //获取口碑信息
+        $koubeiData = new \mia\miagroup\Data\Koubei\Koubei();
+        $koubeiDatas = $koubeiData->getBatchKoubeiByIds($koubeiIds);
+        $koubeiInfos = array();
+        if (!empty($koubeiDatas)) {
+            foreach ($koubeiDatas as $koubei) {
+                $koubeiInfos[$koubei['subject_id']] = $koubei;
+            }
+        }
+        //获取帖子作者
         $where = [];
         $where[] = [':le','id', $lastId];
         $where[] = ['source', [1, 2]];
@@ -68,6 +82,7 @@ class Subjectdump extends \FD_Daemon {
         $existUids = $subjectData->getRows($where, 'distinct(user_id)');
         $existUids = array_column($existUids, 'user_id');
         $userIds = array_diff($userIds, $existUids);
+        $userService = new \mia\miagroup\Service\User();
         $userInfos = $userService->getUserInfoByUids($userIds, 0, array('count'))['data'];
         foreach ($data as $value) {
             if (isset($maxId)) { //获取最大event_id
@@ -76,6 +91,10 @@ class Subjectdump extends \FD_Daemon {
                 $maxId = $value['id'];
             }
             if (!isset($subjectInfos[$value['id']])) {
+                continue;
+            }
+            //专栏或者视频过滤掉
+            if (!empty($subject['album_article']) || !empty($subject['video_info'])) {
                 continue;
             }
             $subject = $subjectInfos[$value['id']];
@@ -131,6 +150,12 @@ class Subjectdump extends \FD_Daemon {
             $dumpdata['title'] = !empty(trim($subject['title'])) ? $subject['title'] : 'NULL';
             //帖子文本
             $dumpdata['text'] = !empty(trim($subject['text'])) ? $subject['text'] : 'NULL';
+            //帖子是否被推荐
+            $dumpdata['is_fine'] = intval($subject['is_fine']);
+            //口碑用户评分
+            $dumpdata['koubei_score'] = !empty($koubeiInfos[$value['id']]) ? $koubeiInfos[$value['id']]['score'] : 'NULL';
+            //机器评分
+            $dumpdata['machine_score'] = !empty($koubeiInfos[$value['id']]) ? $koubeiInfos[$value['id']]['machine_score'] : 'NULL';
             //写入文本
             $put_content = implode("\t", $dumpdata);
             file_put_contents($this->dumpSubjectFile, $put_content . "\n", FILE_APPEND);
