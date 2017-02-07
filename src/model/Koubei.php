@@ -223,9 +223,11 @@ class Koubei {
     /**
      * 加精口碑
      */
-    public function setKoubeiRank($koubeiIds, $rank){
+    public function setKoubeiRank($koubeiIds, $rank, $adminId){
         $koubeiSetInfo = array();
         $koubeiSetInfo[] = ['rank',$rank];
+        $koubeiSetInfo[] = ['admin_id',$adminId];
+        
         $result = $this->koubeiData->updateKoubeiInfoById($koubeiIds, $koubeiSetInfo);
         //修改口碑的相关分数
         if($rank == 1){

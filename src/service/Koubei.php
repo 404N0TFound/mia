@@ -616,7 +616,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 口碑加精
      */
-    public function setKoubeiRank($koubeiIds, $rank)
+    public function setKoubeiRank($koubeiIds, $rank, $adminId)
     {
         if (empty($koubeiIds) || !in_array($rank, array(0, 1))) {
             return $this->error(500);
@@ -624,20 +624,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (is_string($koubeiIds)) {
             $koubeiIds = array($koubeiIds);
         }
-        $res = $this->koubeiModel->setKoubeiRank($koubeiIds, $rank);
+        $res = $this->koubeiModel->setKoubeiRank($koubeiIds, $rank, $adminId);
         return $this->succ($res);
     }
 
     /**
      * 修改口碑审核通过状态
      */
-    public function setKoubeiStatus($koubeiId, $status)
+    public function setKoubeiStatus($koubeiId, $status, $adminId)
     {
         if(!is_numeric($koubeiId) || intval($koubeiId) <= 0){
             return $this->error(500);
         }
         //更新口碑状态
-        $koubeUpData = array('status'=>$status);
+        $koubeUpData = array('status'=>$status,'admin_id'=>$adminId);
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId, $koubeUpData);
         //如果是修改为不通过，不需要同步蜜芽圈
         if($status== 0){
