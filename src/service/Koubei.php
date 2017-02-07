@@ -637,7 +637,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         //更新口碑状态
-        $koubeUpData = array('status'=>$status,'admin_id'=>$adminId);
+        $koubeUpData = array('status'=>$status,'admin_id'=>$adminId,'verify_time'=>date('Y-m-d H:i:s'));
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId, $koubeUpData);
         //如果是修改为不通过，不需要同步蜜芽圈
         if($status== 0){
