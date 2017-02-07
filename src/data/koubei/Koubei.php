@@ -264,8 +264,8 @@ class Koubei extends \DB_Query {
     public function getTodayKoubeiItemId(){
         $date = date("Y-m-d",time()-86400);
         //$date = '2016-12-08';
-        $startTime = $date . "00:00:00";
-        $endTime = $date . "23:59:59";
+        $startTime = $date . " 00:00:00";
+        $endTime = $date . " 23:59:59";
         $where[] = ['status', 2];
         $where[] = [':ge','created_time', $startTime];
         $where[] = [':le','created_time', $endTime];
