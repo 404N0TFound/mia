@@ -3,23 +3,60 @@ namespace mia\miagroup\Daemon\Subject;
 
 /**
  * 导出帖子数据
+ * 全量导出：每天一次，每天0点重建数据文件夹，生成新的全量数据文件
+ * 增量导出：每10分钟一次
  */
 class Subjectdump extends \FD_Daemon {
 
     private $lastIdFile;
     private $dumpSubjectFile;
     private $dumpUserFile;
+    private $mode;
 
     public function __construct() {
-        //加载定时脚本临时文件存放地址
-        $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
-        $tempFilePath = $runFilePath . '/subject/';
-        $this->lastIdFile = $tempFilePath . 'subject_dump_last_id';
-        $this->dumpSubjectFile = $tempFilePath . 'dump_subject_file_do_not_delete';
-        $this->dumpUserFile = $tempFilePath . 'dump_user_file_do_not_delete';
     }
 
     public function execute() {
+        //加载定时脚本临时文件存放地址
+        $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
+        $tempFilePath = $runFilePath . '/subject/';
+        $mode = $this->request->argv[0];
+        if (empty($mode)) {
+            return ;
+        }
+        $this->mode = $mode;
+        switch ($this->mode) {
+            case 'full_dump':
+                $folderName = date('Ymd');
+                $folderPath = $tempFilePath . $folderName . '/';
+                $this->mk_dir($folderPath);
+                $this->lastIdFile = $folderPath . 'subject_dump_last_id';
+                $this->dumpSubjectFile = $folderPath . 'dump_subject_file_do_not_delete';
+                $this->dumpUserFile = $folderPath . 'dump_user_file_do_not_delete';
+                $this->dump_data();
+                break;
+            case 'incremental_dump':
+                $folderName = date('YmdHi');
+                $folderPath = $tempFilePath . $folderName . '/';
+                $this->mk_dir($folderPath);
+                $this->lastIdFile = $tempFilePath . 'subject_dump_incr_id';
+                $this->dumpSubjectFile = $folderPath . 'dump_subject_file_do_not_delete';
+                $this->dumpUserFile = $folderPath . 'dump_user_file_do_not_delete';
+                $this->dump_data();
+                if ($this->mode == 'incremental_dump') { //增量导出数据后，记录时间戳
+                    if (!file_exists($this->dumpSubjectFile) || filesize($this->dumpSubjectFile) <=0) {
+                        rmdir($folderPath);
+                    } else {
+                        file_put_contents($folderPath . 'done', date('Y-m-d H:i:s'));
+                    }
+                
+                }
+                break;
+        }
+        
+    }
+    
+    private function dump_data() {
         //读取上一次处理的id
         if (!file_exists($this->lastIdFile)) { //打开文件
             $lastId = 0;
@@ -36,6 +73,22 @@ class Subjectdump extends \FD_Daemon {
             $lastId = intval($lastId);
         }
         if ($lastId <= 0) {
+            switch ($this->mode) {
+                case 'full_dump': //全量导出数据，lastid初始为1
+                    fseek($fpLastIdFile, 0, SEEK_SET);
+                    ftruncate($fpLastIdFile, 0);
+                    fwrite($fpLastIdFile, 1);
+                    break;
+                case 'incremental_dump': //增量导出数据，lastid初始为最大subjectid
+                    $subjectData = new \mia\miagroup\Data\Subject\Subject();
+                    $initId = $subjectData->getRow(array(), 'max(id)');
+                    fseek($fpLastIdFile, 0, SEEK_SET);
+                    ftruncate($fpLastIdFile, 0);
+                    fwrite($fpLastIdFile, $initId);
+                    break;
+            }
+            flock($fpLastIdFile, LOCK_UN);
+            fclose($fpLastIdFile);
             return ;
         }
         
@@ -98,7 +151,7 @@ class Subjectdump extends \FD_Daemon {
                 continue;
             }
             $subject = $subjectInfos[$value['id']];
-            
+        
             $dumpdata = array();
             //帖子ID
             $dumpdata['id'] = $subject['id'];
@@ -196,5 +249,21 @@ class Subjectdump extends \FD_Daemon {
         }
         flock($fpLastIdFile, LOCK_UN);
         fclose($fpLastIdFile);
+    }
+    
+    /**
+     * 检测路径是否存在并自动生成不存在的文件夹
+     */
+    private function mk_dir($path) {
+        if(is_dir($path)) return true;
+        if(empty($path)) return false;
+        $path = rtrim($path, '/');
+        $bpath = dirname($path);
+        if(!is_dir($bpath)) {
+            if(!$this->mk_dir($bpath)) return false;
+        }
+        if(!@chdir($bpath)) return false;
+        if(!@mkdir(basename($path))) return false;
+        return true;
     }
 }
