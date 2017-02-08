@@ -226,8 +226,10 @@ class Koubei {
     public function setKoubeiRank($koubeiIds, $rank, $adminId){
         $koubeiSetInfo = array();
         $koubeiSetInfo[] = ['rank',$rank];
-        $koubeiSetInfo[] = ['admin_id',$adminId];
-        $koubeiSetInfo[] = ['verify_time',date('Y-m-d H:i:s')];
+        if(isset($adminId) && $adminId> 0){
+            $koubeiSetInfo[] = ['admin_id',$adminId];
+            $koubeiSetInfo[] = ['verify_time',date('Y-m-d H:i:s')];
+        }
         
         $result = $this->koubeiData->updateKoubeiInfoById($koubeiIds, $koubeiSetInfo);
         //修改口碑的相关分数
