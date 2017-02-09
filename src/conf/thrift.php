@@ -42,5 +42,6 @@ $address = array(
         'remote' => 'http://172.16.96.75:8983/solr/toutiao/select',
     ],
 
+    'subject_sync' => 'root@10.1.15.14:/opt/article_in_mia/',
 );
     
