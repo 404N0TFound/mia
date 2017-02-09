@@ -616,7 +616,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 口碑加精
      */
-    public function setKoubeiRank($koubeiIds, $rank, $adminId)
+    public function setKoubeiRank($koubeiIds, $rank, $adminId=0)
     {
         if (empty($koubeiIds) || !in_array($rank, array(0, 1))) {
             return $this->error(500);
