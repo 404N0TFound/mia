@@ -113,5 +113,48 @@ $album = array(
          ),
      ),
  );
- 
- 
+
+$group_fixed_tab_first = [
+    [
+        'name' => '发现',
+        'url' => '',
+        'type' => 'miagroup',
+        'extend_id' => 1,
+    ],
+    [
+        'name' => '发现',
+        'url' => '',
+        'type' => 'miagroup',
+        'extend_id' => 2,
+    ]
+];
+
+$group_fixed_tab_last = [
+    [
+        'name' => '育儿',
+        'url' => '',
+        'type' => 'miagroup',
+        'extend_id' => 3,
+    ]
+];
+
+$group_index_operation_tab = [
+    [
+        'name' => '纸尿裤',
+        'url' => '',
+        'type' => 'miagroup',
+        'extend_id' => 10,
+    ],
+    [
+        'name' => '家居用品',
+        'url' => '',
+        'type' => 'miagroup',
+        'extend_id' => 11,
+    ],
+    [
+        'name' => '女神专区',
+        'url' => '',
+        'type' => 'miagroup',
+        'extend_id' => 12,
+    ]
+];

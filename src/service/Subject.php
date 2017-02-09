@@ -2,6 +2,7 @@
 namespace mia\miagroup\Service;
 
 use \F_Ice;
+use mia\miagroup\Remote\RecommendNote;
 use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Model\Subject as SubjectModel;
 use mia\miagroup\Service\Label as LabelService;
@@ -24,6 +25,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     public $albumService = null;
 	public $tagsService = null;
     private $headlineRemote;
+    private $config;
 
     public function __construct() {
         parent::__construct();
@@ -34,7 +36,90 @@ class Subject extends \mia\miagroup\Lib\Service {
         $this->albumService = new AlbumService();
 		$this->tagsService = new PointTagsService();
         $this->headlineRemote = new HeadlineRemote();
+        $this->noteRemote = new RecommendNote();
+        $this->config = \F_Ice::$ins->workApp->config->get('busconf.subject');
     }
+
+    /**
+     * 首页导航分类标签
+     * @param $userId
+     * @return mixed
+     */
+    public function indexTabList($userId)
+    {
+        //起始固定位，“发现”，“关注”
+        $beginning_tabs = $this->config['group_fixed_tab_first'];
+        //配置位3个
+        $operation_tabs = $this->config['group_index_operation_tab'];
+        //个性化推荐位6个
+        $userTabIds = $this->noteRemote->getRecommendTabList($userId);
+        $user_tabs = $this->getBatchTabInfos($userTabIds);
+        //最后固定位，“育儿”
+        $last_tabs = $this->config['group_fixed_tab_last'];
+
+        $tab_list = array_merge($beginning_tabs, $operation_tabs, $user_tabs, $last_tabs);
+        return $this->succ($tab_list);
+    }
+
+    /**批量获取导航分类标签信息
+     * @param $tabIds
+     * @return array
+     */
+    public function getBatchTabInfos($tabIds)
+    {
+        if (!is_array($tabIds) || empty($tabIds)) {
+            return [];
+        }
+        $tab_infos = $this->subjectModel->getBatchTabInfos($tabIds);
+        if (empty($tab_infos)) {
+            return [];
+        }
+        foreach ($tab_infos as $v) {
+            $res[] = [
+                'name' => $v['tab_name'],
+                'url' => '',
+                'type' => 'miagroup',
+                'extend_id' => $v['id'],
+            ];
+        }
+        return $res;
+    }
+
+    /**
+     * 每个分类下，笔记瀑布流列表
+     * @param $userId
+     * @param $tabId
+     * @param $action
+     * @param $count
+     * @param $page
+     * @return mixed
+     */
+    public function noteList($tabId, $action, $page, $count, $userId = 0)
+    {
+        //普通列表
+        $userNoteListData = $this->noteRemote->getRecommendNoteList($tabId, $action, $page, $count, $userId);
+        //发现列表，增加运营广告位
+        if ($tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
+            $operationNoteData = $this->subjectModel->getOperationNoteData();
+        }
+        //育儿频道不同处理
+        if ($tabId == $this->config['group_fixed_tab_last'][0]['extend_id']) {
+
+        }
+        return $this->succ();
+    }
+
+    /**
+     * 合并数据
+     * @param $noteList
+     * @param $opeartionData
+     * @return array
+     */
+    public function combineOperationData($noteList, $opeartionData)
+    {
+
+    }
+
 
     /**
      * 批量获取帖子信息

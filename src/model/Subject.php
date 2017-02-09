@@ -3,18 +3,42 @@ namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Subject\Video as VideoData;
+use mia\miagroup\Data\Subject\Tab as TabData;
 use mia\miagroup\Data\Subject\GroupSubjectRecommendPool;
 use mia\miagroup\Lib\Redis;
 
 class Subject {
 
     protected $subjectData = null;
-
     protected $videoData = null;
+    protected $tabData = null;
 
     public function __construct() {
         $this->subjectData = new SubjectData();
         $this->videoData = new VideoData();
+        $this->tabData = new TabData();
+    }
+
+    /**
+     * 获取首页，推荐栏目，运营数据
+     * @return array
+     */
+    public function getOperationNoteData()
+    {
+
+    }
+
+    /**
+     * 批量获取导航分类标签信息
+     */
+    public function getBatchTabInfos($tabIds)
+    {
+        if(!is_array($tabIds) || empty($tabIds)){
+            return [];
+        }
+        $conditions['id'] = $tabIds;
+        $tabInfos = $this->tabData->getBatchSubjects($conditions);
+        return $tabInfos;
     }
 
     /**
