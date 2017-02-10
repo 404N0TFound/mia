@@ -73,7 +73,7 @@ class NormalUtil {
     /**
      * 加密UID
      * @param int $uid
-     * @return
+     * @return str
      */
     public static function encode_uid($uid) {
         $newcookie = array();
@@ -88,7 +88,7 @@ class NormalUtil {
     /**
      * 解密UID
      * @param str $val  加密后的UID
-     * @return
+     * @return str
      */
     public static function decode_uid($val) {
         $oldcookie = substr(base64_decode($val), 0, -2);
@@ -268,5 +268,53 @@ class NormalUtil {
                 }
         }
         return ['url'=>$url,'width'=>$real_width,'height'=>$real_height];
+    }
+
+    /**
+     * curl post 第三方服务请求方法，并记录日志
+     * @param $third_server
+     * @param $url
+     * @param $params
+     * @param array $headers
+     * @return mixed|null|string
+     */
+    public function curlPost($third_server, $url, $params, $headers = [])
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+
+        if ($headers) {
+            curl_setopt($ch, CURLOPT_HEADER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        } else {
+            curl_setopt($ch, CURLOPT_HEADER, false);
+        }
+        curl_setopt($ch, CURLOPT_NOBODY, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($ch, CURLOPT_SSLVERSION, 1);
+
+        $result = curl_exec($ch);
+        $error_no = curl_errno($ch);
+        $error_str = curl_error($ch);
+        $getCurlInfo = curl_getinfo($ch);
+
+        $result = json_decode($result, true);
+        curl_close($ch);
+
+        //记录日志
+        \F_Ice::$ins->mainApp->logger_remote->info(array(
+            'third_server' => $third_server,
+            'type' => 'INFO',
+            'request_url' => $url,
+            'request_params' => $params,
+            'response_code' => $error_no,
+            'response_msg' => $error_str,
+            'resp_time' => $getCurlInfo['total_time'],
+        ));
+        return $result;
     }
 }
