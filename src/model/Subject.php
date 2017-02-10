@@ -346,5 +346,12 @@ class Subject {
         $affect = $this->subjectData->cacelSubjectIsFine($subjectId);
         return $affect;
     }
+    
+    /**
+     * 获取活动的帖子（全部/精华）
+     */
+    public function getSubjectInfoByActiveId($activeId, $type, $currentId = 0, $page = 1, $count = 20){
+        
+    }
 
 }

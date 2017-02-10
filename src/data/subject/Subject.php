@@ -286,5 +286,21 @@ class Subject extends \DB_Query {
         return $affect;
     }
     
+    /**
+     * 获取蜜芽圈活动下的帖子（全部/精华）
+     */
+    public function getSubjectsByActiveid($activeId, $type='all'){
+        if (empty($activeId) ||empty($type)) {
+            return array();
+        }
+        $where = array();
+        $where[] = ['active_id',$activeId];
+        if($type == 'recommend'){
+            $where[] = ['is_fine',1];
+        }
+        $where[] = ['status',1];
+        $result = $this->getRows($where);
+        return $result;
+    }
     
 }

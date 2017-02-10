@@ -1166,5 +1166,11 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($affect);
     }
     
+    //获取某活动下的所有/精华帖子
+    public function getActiveSubjects($activeId, $type, $userId, $page, $count){
+        
+    }
+    
+    
 }
 
