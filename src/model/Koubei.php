@@ -8,6 +8,7 @@ use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
 use mia\miagroup\Data\Koubei\KoubeiTags;
 use mia\miagroup\Data\Koubei\KoubeiTagsLayer;
 use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
+use mia\miagroup\Data\Koubei\KoubeiCateRelation;
 
 class Koubei {
     
@@ -17,7 +18,8 @@ class Koubei {
     private $koubeiTagsData;
     private $koubeiTagsLayerData;
     private $koubeiTagsRelationData;
-    
+    private $koubeiCateRelationData;
+
     
     public function __construct() {
         $this->koubeiData = new KoubeiData();
@@ -26,6 +28,7 @@ class Koubei {
         $this->koubeiTagsData = new KoubeiTags();
         $this->koubeiTagsLayerData = new KoubeiTagsLayer();
         $this->koubeiTagsRelationData = new KoubeiTagsRelation();
+        $this->koubeiCateRelationData = new koubeiCateRelation();
     }
     
     /**
@@ -696,6 +699,12 @@ class Koubei {
     public function showTrees()
     {
         $res = $this->koubeiTagsLayerData->showTrees();
+        return $res;
+    }
+
+    public function getFourCategoryList($three_cate)
+    {
+        $res = $this->koubeiCateRelationData->fourCategoryList($three_cate);
         return $res;
     }
 

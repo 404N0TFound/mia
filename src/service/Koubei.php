@@ -855,12 +855,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
 
         if(!empty($category_id) && empty($brand_id)){
+
+            // 5.1 新增逻辑，查询映射表中的cate,传入的为3级cate,查询出所有的4级cate
+            $relation_category = $this->koubeiModel->getFourCategoryList($category_id);
+
             // 类目下口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page, $category_name);
-            $brand_list  = $solr->brandList($category_id, $category_name);
+            $koubei_info = $solr->getHighQualityKoubeiByCategoryId($relation_category, $page, $category_name);
+            $brand_list  = $solr->brandList($relation_category, $category_name);
         }else{
             // 品牌口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByBrandId($category_id, $brand_id, $page, $category_name);
+            $koubei_info = $solr->getHighQualityKoubeiByBrandId($relation_category, $brand_id, $page, $category_name);
         }
         if(!empty($koubei_info)){
             $koubei['count'] = $koubei_info['count'];
@@ -1436,6 +1440,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * 批量获取供应商口碑评分数量
      * */
     public function getSupplierKoubeiScore($supplier = '',$search_time = ''){
+
         if(empty($supplier) || empty($search_time)){
             return $this->succ(array());
         }
