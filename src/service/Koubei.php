@@ -477,9 +477,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['item_id'] = $itemId;
         $koubeiSetData['user_id'] = $subjectData['user_id'];
         $koubeiSetData['subject_id'] = (isset($subjectData['id'])) ? trim($subjectData['id']) : '';
-        $koubeiSetData['created_time'] = date('Y-m-d H:i:s', time());
+        $koubeiSetData['created_time'] = $subjectData['created'];
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($subjectData);
-        $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
+        $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + $this->calTimeScore($subjectData['created']);
         //供应商ID获取
         $itemService = new ItemService();
         $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
@@ -585,7 +585,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         return $immutable_score;
     }
-
+    
+    /**
+     * 计算时间加权分，每月递减0.5分
+     */
+    private function calTimeScore($createdDate) {
+        $timeScore = (12 - (time() - strtotime($createdDate)) / 86400 / 30) * 0.5; //时间加权分
+        $timeScore = $timeScore > 0 ? number_format($timeScore, 1) : 0;
+        return $timeScore;
+    }
+    
     /**
      * 删除口碑
      */
