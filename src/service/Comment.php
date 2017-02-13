@@ -153,6 +153,8 @@ class Comment extends \mia\miagroup\Lib\Service {
         if ($commentInfo['comment'] == "") {
             return $this->error(500);
         }
+        //过滤xss、过滤html标签
+        $commentInfo['comment'] = strip_tags($commentInfo['comment'], '<span><p>');
         $user_id = $commentInfo['user_id'];
         //判断登录用户是否是被屏蔽用户
         $audit = new \mia\miagroup\Service\Audit();
