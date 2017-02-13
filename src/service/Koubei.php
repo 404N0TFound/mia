@@ -51,7 +51,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData = array();
         $koubeiSetData['status'] = (isset($koubeiData['status'])) ? intval($koubeiData['status']) : 2;
         $koubeiSetData['title'] = (isset($koubeiData['title']) ) ? trim($this->emojiUtil->emoji_unified_to_html($koubeiData['title'])) : "";
+        $koubeiSetData['title'] = strip_tags($koubeiSetData['title'], '<span><p>');
         $koubeiSetData['content'] = trim($this->emojiUtil->emoji_unified_to_html($koubeiData['text']));
+        $koubeiSetData['content'] = strip_tags($koubeiSetData['content'], '<span><p>');
         $koubeiSetData['score'] = $koubeiData['score'];
         $koubeiSetData['item_id'] = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
         $koubeiSetData['item_size'] = $koubeiData['item_size'];
