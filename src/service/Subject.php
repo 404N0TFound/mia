@@ -366,6 +366,8 @@ class Subject extends \mia\miagroup\Lib\Service {
             if(!empty($sensitive_res['sensitive_words'])){
                 return $this->error(1112);
             }
+            //过滤xss、过滤html标签
+            $subjectInfo['title'] = strip_tags($subjectInfo['title'], '<span><p><textarea>');
         }
         if(!empty($subjectInfo['text'])){
             //过滤敏感词
@@ -373,6 +375,8 @@ class Subject extends \mia\miagroup\Lib\Service {
             if(!empty($sensitive_res['sensitive_words'])){
                 return $this->error(1112);
             }
+            //过滤脚本
+            $subjectInfo['text'] = strip_tags($subjectInfo['text'], '<span><p><textarea>');
         }
         //蜜芽圈标签
         if (!empty($labelInfos)) {
