@@ -32,8 +32,7 @@ class Subjectsync extends \FD_Daemon {
                 break;
             case 'incremental_dump':
                 $folderName = date('Ymd');
-                $folderPath = $this->tempFilePath . $folderName . '/';
-                $cmd = 'rsync -avz --exclude="' . $folderName . '" ' . $folderName . '* ' . $this->remote ;
+                $cmd = 'rsync -avz --exclude="' . $folderName . '" ' . $this->tempFilePath . $folderName . '* ' . $this->remote ;
                 exec($cmd);
                 break;
         }
