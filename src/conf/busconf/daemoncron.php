@@ -138,7 +138,7 @@ $cron_list['subject_data_incremental_dump'] = array(
 $cron_list['subject_data_sync'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=subject --action=subjectdump full_dump",
+    'cli_args' => "--class=subject --action=subjectsync full_dump",
     'start_time' => '2017-02-10 00:10:00',
     'interval' => 86400
 );
@@ -146,7 +146,7 @@ $cron_list['subject_data_sync'] = array(
 $cron_list['subject_data_incremental_sync'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=subject --action=subjectdump incremental_dump",
+    'cli_args' => "--class=subject --action=subjectsync incremental_dump",
     'start_time' => '2017-02-10 00:15:00',
     'interval' => 600
 );
