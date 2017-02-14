@@ -81,7 +81,8 @@ class Subjectdump extends \FD_Daemon {
                     break;
                 case 'incremental_dump': //增量导出数据，lastid初始为最大subjectid
                     $subjectData = new \mia\miagroup\Data\Subject\Subject();
-                    $initId = $subjectData->getRow(array(), 'max(id)');
+                    $initId = $subjectData->getRow(array(), 'max(id) as maxid');
+                    $initId = intval($initId['maxid']);
                     fseek($fpLastIdFile, 0, SEEK_SET);
                     ftruncate($fpLastIdFile, 0);
                     fwrite($fpLastIdFile, $initId);
