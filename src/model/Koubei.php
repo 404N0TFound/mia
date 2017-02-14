@@ -8,6 +8,8 @@ use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
 use mia\miagroup\Data\Koubei\KoubeiTags;
 use mia\miagroup\Data\Koubei\KoubeiTagsLayer;
 use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
+use \mia\miagroup\Data\Koubei\SearchWords as SearchWordsData;
+
 
 class Koubei {
     
@@ -17,6 +19,7 @@ class Koubei {
     private $koubeiTagsData;
     private $koubeiTagsLayerData;
     private $koubeiTagsRelationData;
+    private $koubeiSearchWordsData;
     
     
     public function __construct() {
@@ -26,6 +29,7 @@ class Koubei {
         $this->koubeiTagsData = new KoubeiTags();
         $this->koubeiTagsLayerData = new KoubeiTagsLayer();
         $this->koubeiTagsRelationData = new KoubeiTagsRelation();
+        $this->koubeiSearchWordsData = new SearchWordsData();
     }
     
     /**
@@ -702,6 +706,15 @@ class Koubei {
     {
         $res = $this->koubeiTagsLayerData->showTrees();
         return $res;
+    }
+
+    /*
+     * 查询通用的search_key
+     */
+    public function getNoteSearchKey()
+    {
+        $searchKeys = $this->koubeiSearchWordsData->getNoteSearchKey();
+        return $searchKeys;
     }
 
 }

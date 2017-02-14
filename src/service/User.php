@@ -107,7 +107,6 @@ class User extends \mia\miagroup\Lib\Service {
             }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
         }
-        
         return $this->succ($userArr);
     }
     

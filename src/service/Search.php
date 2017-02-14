@@ -2,8 +2,13 @@
 namespace mia\miagroup\Service;
 
 use \mia\miagroup\Lib\Service;
+use mia\miagroup\Model\Album as AlbumModel;
+use mia\miagroup\Model\Koubei as KoubeiModel;
+use mia\miagroup\Service\User as UserService;
+use mia\miagroup\Remote\Search as SearchRemote;
 
-/** 蜜芽圈搜索服务类
+/**
+ * 蜜芽圈搜索服务类
  * Class Search
  * @package mia\miagroup\Service
  */
@@ -11,32 +16,77 @@ class Search extends Service
 {
     public function __construct()
     {
+        $this->abumModel = new AlbumModel();
+        $this->userService = new UserService();
+        $this->subjectService = new Subject();
+        $this->koubeiModel = new KoubeiModel();
+        $this->searchRemote = new SearchRemote();
         parent::__construct();
     }
 
     /**
-     * 搜索
+     * 笔记搜索
      * @param $keyWords
-     * @param $type 1.笔记搜索。2.用户搜索。3.商品搜索。
+     * @param $page
+     * @param $count
      * @return mixed
      */
-    public function search($keyWords, $type)
+    public function noteSearch($keyWords, $page = 1, $count = 20)
     {
-        return $this->succ();
+        $noteIds = $this->searchRemote->noteSearch($keyWords, $page, $count);
+        $noteInfos = $this->subjectService->getBatchSubjectInfos($noteIds)['data'];
+        return $this->succ(array_values($noteInfos));
     }
 
+    /**
+     * 用户搜索
+     * @param $keyWords
+     * @param $page
+     * @param $count
+     * @return mixed
+     */
+    public function userSearch($keyWords, $page = 1, $count = 20)
+    {
+        $userIds = $this->searchRemote->userSearch($keyWords, $page, $count);
+        $userList = $this->userService->getUserInfoByUids($userIds)['data'];
+        return $this->succ(array_values($userList));
+    }
+
+    public function itemSearch($keyWords, $page, $count)
+    {
+        //复用商品的，在结果列表里添加额外信息
+    }
+
+
+    /**
+     * 笔记搜索，推荐热词列表
+     */
     public function noteHotWordsList()
     {
-        //可以不过服务直接在api里写
+        $searchKeys['hot_words'] = $this->koubeiModel->getNoteSearchKey();
+        return $this->succ($searchKeys);
     }
 
-    public function userHotList()
+    /**
+     * 获取推荐用户列表，最新的10个
+     * @param int $count
+     * @return mixed
+     */
+    public function userHotList($count = 10)
     {
-        //推荐池里选
+        //推荐池数据
+        $userIdRes = $this->abumModel->getGroupDoozerList();
+        $userIds = array_slice($userIdRes, 0, $count);
+        echo json_encode($userIds);
+        $userList = $this->userService->getUserInfoByUids($userIds)['data'];
+        return $this->succ(array_values($userList));
     }
 
+    /**
+     * 商品搜索，推荐热词列表
+     */
     public function itemHotWordsList()
     {
-        //可以不过服务直接在api里写
+        //复用商品的，完全一样的接口
     }
 }
