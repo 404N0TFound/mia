@@ -14,9 +14,11 @@ use mia\miagroup\Service\Koubei as KoubeiService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
+use mia\miagroup\Service\HeadLine as HeadLineServer;
 
-class Subject extends \mia\miagroup\Lib\Service {
 
+class Subject extends \mia\miagroup\Lib\Service
+{
     public $subjectModel = null;
     public $labelService = null;
     public $userService = null;
@@ -89,34 +91,119 @@ class Subject extends \mia\miagroup\Lib\Service {
      * 每个分类下，笔记瀑布流列表
      * @param $userId
      * @param $tabId
-     * @param $action
+     * @param $action [init,refresh,next]
      * @param $count
      * @param $page
      * @return mixed
      */
-    public function noteList($tabId, $action, $page, $count, $userId = 0)
+    public function noteList($tabId, $action, $page = 1, $count = 20, $userId = 0)
     {
-        //普通列表
-        $userNoteListData = $this->noteRemote->getRecommendNoteList($tabId, $action, $page, $count, $userId);
-        //发现列表，增加运营广告位
-        if ($tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
-            $operationNoteData = $this->subjectModel->getOperationNoteData();
-        }
         //育儿频道不同处理
         if ($tabId == $this->config['group_fixed_tab_last'][0]['extend_id']) {
-
+            //获取推荐标签
+            $labelList = $this->labelService->getRecommendLabels();
+            $res['label_list'] = $labelList;
         }
-        return $this->succ();
+        //普通列表
+        $userNoteListIds = $this->noteRemote->getRecommendNoteList($tabId, $action, $page, $count, $userId);
+
+        //发现列表，增加运营广告位
+        $operationNoteData = [];
+        if ($action = "init" && $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
+            $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
+            //运营数据和普通数据去重
+            $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
+        }
+        //合并数据
+        $combineIds = $this->combineOperationIds($userNoteListIds, $operationNoteData);
+
+        $res = $this->formatNoteData($combineIds,$operationNoteData);
+
+        return $this->succ($res);
     }
 
     /**
-     * 合并数据
-     * @param $noteList
-     * @param $opeartionData
+     * 合并Id
+     * @param $userNoteListIds
+     * @param $operationNoteData
      * @return array
      */
-    public function combineOperationData($noteList, $opeartionData)
+    public function combineOperationIds(array $userNoteListIds, array $operationNoteData = [])
     {
+        //按row，从小到大排序
+        uasort($operationNoteData, function ($left, $right) {
+            return $left['row'] > $right['row'];
+        });
+        //把运营数据插入到指定位置
+        foreach ($operationNoteData as $noteId => $operationInfo) {
+            $offset = $operationInfo['row'] - 1;
+            $replacement = $noteId;
+            array_splice($userNoteListIds, $offset, 0, $replacement);
+        }
+        return $userNoteListIds;
+    }
+
+    /**
+     * 根据展示id，运营数据，拼凑出数据
+     * @param array $ids
+     * @param array $operationNoteData
+     * @return array
+     */
+    public function formatNoteData(array $ids, $operationNoteData = [])
+    {
+        foreach ($ids as $key => $value) {
+            list($relation_id, $relation_type) = explode('_', $value, 2);
+            //帖子
+            if ($relation_type == 'album' || $relation_type == 'note') {
+                $subjectIds[] = $relation_id;
+                //专题
+            } elseif ($relation_type == 'topic') {
+                $topicIds[] = $relation_id;
+            }
+        }
+        //批量获取帖子信息
+        $subjects = $this->getBatchSubjectInfos($subjectIds)['data'];
+        //专题信息
+        if (!empty($topicIds)) {
+            $headlineServer = new HeadLineServer();
+            $topics = $headlineServer->getHeadLineTopics($topicIds, array('count'))['data'];
+        }
+        $return = [];
+        foreach ($ids as $value) {
+            list($relation_id, $relation_type) = explode('_', $value, 2);
+            //使用运营配置信息
+            if (array_key_exists($value, $operationNoteData)) {
+                $relation_id = $operationNoteData[$value]['relation_id'];
+                $relation_type = $operationNoteData[$value]['relation_type'];
+                $relation_title = $operationNoteData[$value]['ext_info']['title'];
+                $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'];
+            }
+            switch ($relation_type) {
+                case 'note':
+                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        $subject = $subjects[$relation_id];
+                        $tmpData[$relation_type] = $subject;
+                    }
+                    break;
+                case 'album':
+                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        $subject = $subjects[$relation_id];
+                        $tmpData[$relation_type] = $subject;
+                    }
+                    break;
+                case 'topic':
+                    if (isset($topics[$relation_id]) && !empty($topics[$relation_id])) {
+                        $topic = $topics[$relation_id];
+                        $tmpData[$relation_type] = $topic;
+                    }
+                    break;
+            }
+            if (!empty($tmpData)) {
+                $return[] = $tmpData;
+            }
+            unset($tmpData);
+        }
+        return $return;
 
     }
 

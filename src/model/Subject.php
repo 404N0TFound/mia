@@ -2,6 +2,7 @@
 namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
+use mia\miagroup\Data\Subject\TabNoteOperation;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\Tab as TabData;
 use mia\miagroup\Data\Subject\GroupSubjectRecommendPool;
@@ -12,28 +13,53 @@ class Subject {
     protected $subjectData = null;
     protected $videoData = null;
     protected $tabData = null;
-
+    protected $tabOpeationData = null;
     public function __construct() {
         $this->subjectData = new SubjectData();
         $this->videoData = new VideoData();
         $this->tabData = new TabData();
+        $this->tabOpeationData = new TabNoteOperation();
     }
 
     /**
      * 获取首页，推荐栏目，运营数据
+     * @param $tabId
+     * @param $page
      * @return array
      */
-    public function getOperationNoteData()
+    public function getOperationNoteData($tabId, $page)
     {
-
+        if (empty($tabId)) {
+            return [];
+        }
+        $conditions['tab_id'] = $tabId;
+        $conditions['page'] = $page;
+        $operationInfos = $this->tabOpeationData->getBatchOperationInfos($conditions);
+        //按位置分组
+        foreach ($operationInfos as $k => $v) {
+            $result[$v['row']][$k] = $v;
+        }
+        //同位置有重复的，随机取一个
+        foreach ($result as $val) {
+            shuffle($val);
+            $return[] = array_pop($val);
+        }
+        //返回的键名保留格式
+        foreach ($return as $detail) {
+            $key = $detail['relation_id'] . '_' . $detail['relation_type'];
+            $data[$key] = $detail;
+        }
+        return $data;
     }
 
     /**
+     * @param $tabIds
+     * @return array
      * 批量获取导航分类标签信息
      */
     public function getBatchTabInfos($tabIds)
     {
-        if(!is_array($tabIds) || empty($tabIds)){
+        if (!is_array($tabIds) || empty($tabIds)) {
             return [];
         }
         $conditions['id'] = $tabIds;
