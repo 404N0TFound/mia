@@ -78,7 +78,7 @@ class Search extends Service
         $userIdRes = $this->abumModel->getGroupDoozerList();
         $userIds = array_slice($userIdRes, 0, $count);
         $userList = $this->userService->getUserInfoByUids($userIds)['data'];
-        return $this->succ(array_values($userList));
+        return $this->succ(['user_list'=>array_values($userList)]);
     }
 
     /**

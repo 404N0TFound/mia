@@ -165,7 +165,6 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         //批量获取帖子信息
         $subjects = $this->getBatchSubjectInfos($subjectIds)['data'];
-
         $doozerInfo = $this->userService->getUserInfoByUids($doozerIds)['data'];
 
         $return = [];
@@ -202,8 +201,9 @@ class Subject extends \mia\miagroup\Lib\Service
                         $tmpData['id'] = $user['user_id'] . '_doozer';
                         $tmpData['type'] = 'doozer';
                         $tmpData['type_name'] = '达人';
+                        //配置了用配置的title，否则用group_doozer里的intro
                         if(!empty($relation_title)){
-                            $user['doozer_intro'] = $relation_title ? $relation_title : '';
+                            $user['doozer_intro'] = $relation_title ? $relation_title : $doozerInfo[$relation_id]['intro'];
                         }
                         if(!empty($relation_cover_image)){
                             $user['doozer_recimage'] = $relation_cover_image;
