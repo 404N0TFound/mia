@@ -721,4 +721,44 @@ class Solr
         return array();
     }
 
+
+    /*
+     * 漂漂羽毛項目
+     * */
+    public function getpiaopiaoSolrIds(){
+        // 查询符合条件总条数
+        $result = array();
+        $solrInfo = $this->getpiaopiaoSolrParams();
+        $res = $this->select($solrInfo);
+        $totalCount = $res['data']['response']['numFound'];
+        if(empty($totalCount)){
+            return $result;
+        }
+        $solrInfo = $this->getpiaopiaoSolrParams($totalCount);
+        $res = $this->select($solrInfo);
+        $result = array_column($res['data']['response']['docs'],'id');
+        return $result;
+    }
+
+
+    public function getpiaopiaoSolrParams($totalCount = 0){
+        // 查詢两种数据格式
+        $begin_time = '1486656000';
+        $end_time = '1487087999';
+        $brand_id = 6004;
+        $solrInfo = [
+            'q'         => '*:*',
+            'fl'        => 'id',
+        ];
+        if(!empty($totalCount)){
+            $solrInfo['pageSize'] = $totalCount;
+        }
+        //$solrInfo['fq'][] = 'local_url:*';
+        $solrInfo['fq'][] = 'status:2';
+        $solrInfo['fq'][] = 'score:5';
+        $solrInfo['fq'][] = 'brand_id:'.$brand_id;
+        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO '.$end_time.']';
+        return $solrInfo;
+    }
+
 }

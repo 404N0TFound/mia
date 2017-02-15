@@ -6,6 +6,7 @@ use mia\miagroup\Data\Koubei\Koubei as KoubeiData;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Model\Koubei as KoubeiModel;
 use mia\miagroup\Data\Koubei\KoubeiPic as KoubeiPicData;
+use mia\miagroup\Remote\Solr as SolrRemote;
 
 /**
  * 口碑相关-临时脚本
@@ -32,6 +33,7 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
+        $this->piaopiaoSendCoupons();exit;
         $this->firstKoubeiSendCoupons();
         exit;
         $this->koubeiItemTransfer();exit;
@@ -294,5 +296,76 @@ class Koubei extends \FD_Daemon {
                 sleep(1);
             }
         }
+    }
+
+
+    /*
+     * 漂漂羽毛晒单好评返券活动
+     * */
+    public function piaopiaoSendCoupons(){
+
+        $i = 1;
+        $requires = array('picNum' => 3, 'contentLen' => 15);
+        $couponRemote = new \mia\miagroup\Remote\Coupon();
+        $batch_code = '908853';
+        $solr = new SolrRemote('koubei');
+        $koubeiIds = $solr->getpiaopiaoSolrIds();
+
+        // 过滤少于3张图片及文件少于15字
+        if(!empty($koubeiIds)){
+            foreach($koubeiIds as $v){
+                //$v = 28863;
+                $koubeiIds = array($v);
+                $singleKoubeiInfo = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,array(2));
+                if(!empty($singleKoubeiInfo)){
+                    $flag = $this->SatisfyKoubei($singleKoubeiInfo[$v], $requires);
+                    if($flag == true){
+                        // 匹配发代金券
+                        if ($i % 100 == 0) {
+                            sleep(1);
+                        }
+                        $i ++;
+
+                        $user_id = $singleKoubeiInfo[$v]['user_id'];
+                        $lastIdFile = '/tmp/user_id';
+                        $fp = fopen($lastIdFile, 'a+');
+                        $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
+                        if (!$bindCouponRes) {
+                            echo 'error:', $user_id, "\n";
+                            // 重发一次
+                            $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
+                            if($bindCouponRes){
+                                // 记录日志
+                                fwrite($fp, $user_id."\n");
+
+                            }
+                        } else {
+                            echo 'success:', $user_id, "\n";
+                            // 记录日志
+                            fwrite($fp, $user_id."\n");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * 满足条件的口碑
+     * */
+    public function SatisfyKoubei($koubeiInfo = array(), $requires = array()){
+
+        $len = mb_strlen($koubeiInfo['content']);
+        // 判断文字长度
+        if($len >= $requires['contentLen']){
+            // 判断图片数量
+            $extr_info = json_decode($koubeiInfo['extr_info'],true);
+            if(isset($extr_info['image']) && !empty($extr_info['image'])){
+                if(count($extr_info['image']) >= $requires['picNum']){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
