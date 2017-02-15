@@ -60,29 +60,25 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['user_id'] = $koubeiData['user_id'];
         $koubeiSetData['order_id'] = isset($orderInfo['id']) ? $orderInfo['id'] : 0;
         $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
+        $labels = array();
+        $labels['label'] = array();
+        $labels['image'] = array();
+        if(!empty($koubeiData['labels'])) {
+            foreach($koubeiData['labels'] as $label) {
+                $labels['label'][] = $label['title'];
+            }
+        }
+        if(!empty($koubeiData['image_infos'])) {
+            foreach($koubeiData['image_infos'] as $image) {
+                $labels['image'][] = $image;
+            }
+        }
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
         //供应商ID获取
         $itemService = new ItemService();
         $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
         $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
-        $labels = array();
-        $labels['label'] = array();
-        $labels['image'] = array();
-        if(!empty($koubeiData['labels']))
-        {
-            foreach($koubeiData['labels'] as $label)
-            {
-                $labels['label'][] = $label['title'];
-            }
-        }
-        if(!empty($koubeiData['image_infos']))
-        {
-            foreach($koubeiData['image_infos'] as $image)
-            {
-                $labels['image'][] = $image;
-            }
-        }
         $koubeiSetData['extr_info'] = json_encode($labels);
         //####end
         $koubeiInsertId = $this->koubeiModel->saveKoubei($koubeiSetData);
