@@ -59,7 +59,7 @@ class Subject extends \mia\miagroup\Lib\Service
         //最后固定位，“育儿”
         $last_tabs = $this->config['group_fixed_tab_last'];
 
-        $tab_list = array_merge($beginning_tabs, $operation_tabs, $user_tabs, $last_tabs);
+        $tab_list['navList'] = array_merge($beginning_tabs, $operation_tabs, $user_tabs, $last_tabs);
         return $this->succ($tab_list);
     }
 
@@ -114,10 +114,10 @@ class Subject extends \mia\miagroup\Lib\Service
             //运营数据和普通数据去重
             $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
         }
-        //合并数据
+        //合并数据Ids
         $combineIds = $this->combineOperationIds($userNoteListIds, $operationNoteData);
 
-        $res = $this->formatNoteData($combineIds,$operationNoteData);
+        $res['content_lists'] = $this->formatNoteData($combineIds,$operationNoteData);
 
         return $this->succ($res);
     }
@@ -154,57 +154,89 @@ class Subject extends \mia\miagroup\Lib\Service
         foreach ($ids as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
             //帖子
-            if ($relation_type == 'album' || $relation_type == 'note') {
+            if ($relation_type == 'subject') {
                 $subjectIds[] = $relation_id;
                 //专题
-            } elseif ($relation_type == 'topic') {
-                $topicIds[] = $relation_id;
+            } elseif ($relation_type == 'doozer') {
+                $doozerIds[] = $relation_id;
+            } elseif ($relation_type == 'link') {
+
             }
         }
         //批量获取帖子信息
         $subjects = $this->getBatchSubjectInfos($subjectIds)['data'];
-        //专题信息
-        if (!empty($topicIds)) {
-            $headlineServer = new HeadLineServer();
-            $topics = $headlineServer->getHeadLineTopics($topicIds, array('count'))['data'];
-        }
+
+        $doozerInfo = $this->userService->getUserInfoByUids($doozerIds)['data'];
+
         $return = [];
         foreach ($ids as $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
             //使用运营配置信息
+            $is_opearation = 0;
             if (array_key_exists($value, $operationNoteData)) {
                 $relation_id = $operationNoteData[$value]['relation_id'];
                 $relation_type = $operationNoteData[$value]['relation_type'];
                 $relation_title = $operationNoteData[$value]['ext_info']['title'];
                 $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'];
+                $is_opearation = 1;
             }
             switch ($relation_type) {
-                case 'note':
+                //目前只有口碑帖子，蜜芽圈帖子。
+                case 'subject':
                     if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        //有无视频不区分，video_info有值代表有视频
                         $subject = $subjects[$relation_id];
-                        $tmpData[$relation_type] = $subject;
+                        $tmpData['id'] = $subject['id'] . '_subject';
+                        $tmpData['type'] = 'subject';
+                        $tmpData['type_name'] = '笔记';
+                        $subject['title'] = $relation_title ? $relation_title : $subject['title'];
+                        if(!empty($relation_cover_image)){
+                            $subject['cover_image'] = $relation_cover_image;
+                        }
+                        $tmpData['subject'] = $subject;
                     }
                     break;
-                case 'album':
-                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
-                        $subject = $subjects[$relation_id];
-                        $tmpData[$relation_type] = $subject;
+                case 'doozer':
+                    if (isset($doozerInfo[$relation_id]) && !empty($doozerInfo[$relation_id])) {
+                        $user = $doozerInfo[$relation_id];
+                        $tmpData['id'] = $user['user_id'] . '_doozer';
+                        $tmpData['type'] = 'doozer';
+                        $tmpData['type_name'] = '达人';
+                        if(!empty($relation_title)){
+                            $user['doozer_intro'] = $relation_title ? $relation_title : '';
+                        }
+                        if(!empty($relation_cover_image)){
+                            $user['doozer_recimage'] = $relation_cover_image;
+                        }
+                        $tmpData['doozer'] = $user;
                     }
                     break;
-                case 'topic':
-                    if (isset($topics[$relation_id]) && !empty($topics[$relation_id])) {
-                        $topic = $topics[$relation_id];
-                        $tmpData[$relation_type] = $topic;
-                    }
+                case 'link':
+                        //链接跳转，只是运营配置的
+                        $linkInfo = $operationNoteData[$relation_id.'_'.$relation_type];
+                        $tmpData['id'] = $relation_id;
+                        $tmpData['type'] = 'link';
+                        $tmpData['type_name'] = '链接';
+
+                        $link['title'] = $relation_title ? $relation_title : '';
+                        $link['id'] = $relation_id;
+                        if(!empty($relation_cover_image)){
+                            $link['image'] = $relation_cover_image;
+                        }
+                        $link['url'] = $linkInfo['ext_info']['url'];
+                        $tmpData['link'] = $link;
                     break;
             }
+            $tmpData['is_opearation'] = $is_opearation;
             if (!empty($tmpData)) {
                 $return[] = $tmpData;
             }
+            unset($subject);
             unset($tmpData);
+            unset($relation_title);
+            unset($relation_cover_image);
         }
         return $return;
-
     }
 
 

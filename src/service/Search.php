@@ -77,7 +77,6 @@ class Search extends Service
         //推荐池数据
         $userIdRes = $this->abumModel->getGroupDoozerList();
         $userIds = array_slice($userIdRes, 0, $count);
-        echo json_encode($userIds);
         $userList = $this->userService->getUserInfoByUids($userIds)['data'];
         return $this->succ(array_values($userList));
     }
