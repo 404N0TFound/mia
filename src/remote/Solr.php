@@ -170,7 +170,7 @@ class Solr
                 $data .= "&". $key."=".$value;
             }
             $url .= $data;
-            //echo $url."\n";
+            echo $url."\n";
             $request_startTime = gettimeofday(true);
             $result = file_get_contents($url);
             $request_endTime = gettimeofday(true);
@@ -297,6 +297,7 @@ class Solr
      */
     public function getKoubeiList($conditon, $field = 'id', $page = 1, $count = 20, $order_by = 'rank_score desc')
     {
+
         $solr_info = [
             'q'         => '*:*',
             'fq'        => array(),
@@ -313,6 +314,15 @@ class Solr
                 $solr_info['fq'][]   = 'category_id:'. $conditon['category_id'];
             }
             
+        }
+        if(intval($conditon['category_id_ng']) > 0) {
+            //类目ID
+            if (is_array($conditon['category_id_ng'])) {
+                $solr_info['fq'][]   = "category_id_ng:(". implode(' OR ', $conditon['category_id_ng']) . ")";
+            } else {
+                $solr_info['fq'][]   = 'category_id_ng:'. $conditon['category_id_ng'];
+            }
+
         }
         if(intval($conditon['brand_id']) > 0) { 
             //品牌ID
