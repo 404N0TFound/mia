@@ -702,10 +702,15 @@ class Koubei {
         return $res;
     }
 
-    public function getFourCategoryList($three_cate)
+    public function getFourList($three_cate, $flag)
     {
-        $res = $this->koubeiCateRelationData->fourCategoryList($three_cate);
+        $res = $this->koubeiCateRelationData->fourList($three_cate,$flag);
         return $res;
+    }
+
+    public function getIdType($id){
+        $type = $this->koubeiCateRelationData->idType($id);
+        return $type;
     }
 
 }

@@ -257,6 +257,15 @@ class Solr
             }
         }
 
+        if(!empty($brand_id)){
+            $brand_arr = explode(",", $brand_id);
+            if(count($brand_arr) > 1){
+                $conditon['brand_id'] = $brand_arr;
+            }else{
+                $conditon['brand_id']    = $brand_id;
+            }
+        }
+
         $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
         if(!empty($res['list'])){
             //$sort_ids = $this->sortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
