@@ -205,7 +205,9 @@ class Subjectdump extends \FD_Daemon {
             //帖子标题
             $dumpdata['title'] = !empty(trim($subject['title'])) ? $subject['title'] : 'NULL';
             //帖子文本
-            $dumpdata['text'] = !empty(trim($subject['text'])) ? str_replace("\r\n", ' ', $subject['text']) : 'NULL';
+            $subject['text'] = str_replace("\r\n", ' ', $subject['text']);
+            $subject['text'] = str_replace("\n", ' ', $subject['text']);
+            $dumpdata['text'] = !empty(trim($subject['text'])) ? $subject['text'] : 'NULL';
             //帖子是否被推荐
             $dumpdata['is_fine'] = intval($subject['is_fine']);
             //口碑用户评分
