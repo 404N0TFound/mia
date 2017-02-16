@@ -14,6 +14,7 @@ use mia\miagroup\Service\Koubei as KoubeiService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
+use mia\miagroup\Service\Active as ActiveService;
 
 class Subject extends \mia\miagroup\Lib\Service {
 
@@ -481,6 +482,31 @@ class Subject extends \mia\miagroup\Lib\Service {
         } else {
             $subjectSetInfo['created'] = date("Y-m-d H:i:s", time());
         }
+        $activeService = new ActiveService();
+        //如果参加活动，检查活动是否有效、帖子所打标签是否有存在于参加活动的标签中
+        if (intval($subjectInfo['active_id']) > 0 && !empty($labelInfos)) {
+            //获取活动信息
+            $activeInfo = $activeService->getSingleActiveById($subjectInfo['active_id'])['data'];
+            $currentTime = date("Y-m-d H:i:s",time());
+            //取帖子标签中参加活动的标签
+            if(!empty($activeInfo['ext_info'])){
+                $activeExtInfos = json_decode($activeInfo['ext_info'],true);
+                if(!empty($activeExtInfos['labels'])){
+                    $activeLabelTitles = array_column($activeExtInfos['labels'], 'title');
+                    $labelTitles = array_column($labelInfos, 'title');
+                    $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
+                }
+            }
+            //当活动有效，且帖子标签存在于参加活动的标签中，则认为帖子参加了活动
+            if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time'] && !empty($attendLabels)){
+                $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
+            }else{
+                $subjectSetInfo['active_id'] = 0;
+            }
+        }else{
+            $subjectSetInfo['active_id'] = 0;
+        }
+        
         // 添加视频
         if ($subjectInfo['video_url']) {
             $videoInfo['user_id'] = $subjectInfo['user_info']['user_id'];
@@ -552,7 +578,6 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $subjectSetInfo['small_image_url'][] = NormalUtil::buildImgUrl($image['url'], 'small')['url'];
             }
         }
-        
         // 赠送用户蜜豆
         $mibean = new \mia\miagroup\Remote\MiBean();
         $param['user_id'] = $subjectSetInfo['user_id'];
@@ -1167,8 +1192,15 @@ class Subject extends \mia\miagroup\Lib\Service {
     }
     
     //获取某活动下的所有/精华帖子
-    public function getActiveSubjects($activeId, $type, $userId, $page, $count){
-        
+    public function getActiveSubjects($activeId, $type='all', $currentId = 0, $page=1, $limit=20){
+        $data = array('subject_lists'=>array());
+        $subjectIds = $this->subjectModel->getSubjectIdsByActiveId($activeId, $type, $page, $limit);
+
+        if(!empty($subjectIds)) {
+            $subjects = $this->getBatchSubjectInfos($subjectIds,$currentId)['data'];
+            $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
+        }
+        return $this->succ($data);
     }
     
     

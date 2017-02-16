@@ -350,8 +350,9 @@ class Subject {
     /**
      * 获取活动的帖子（全部/精华）
      */
-    public function getSubjectInfoByActiveId($activeId, $type, $currentId = 0, $page = 1, $count = 20){
-        
+    public function getSubjectIdsByActiveId($activeId, $type, $page = 1, $limit = 20){
+        $subjectIds = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page = 1, $limit = 20);
+        return $subjectIds;
     }
 
 }

@@ -289,18 +289,18 @@ class Subject extends \DB_Query {
     /**
      * 获取蜜芽圈活动下的帖子（全部/精华）
      */
-    public function getSubjectsByActiveid($activeId, $type='all'){
-        if (empty($activeId) ||empty($type)) {
-            return array();
-        }
-        $where = array();
+    public function getSubjectIdsByActiveid($activeId, $type = 'all', $page = 1, $limit = 20){
+        $offsetLimit = $page > 1 ? $limit * ($page - 1) : 0;    
         $where[] = ['active_id',$activeId];
+        $where[] = ['status',1];
+        $orderBy = 'created desc';
         if($type == 'recommend'){
             $where[] = ['is_fine',1];
+            $orderBy = 'top_time desc, update_time desc';
         }
-        $where[] = ['status',1];
-        $result = $this->getRows($where);
-        return $result;
+        
+        $subjectsArrs = $this->getRows($where,'id',$limit,$offsetLimit,$orderBy);
+        return array_column($subjectsArrs, 'id');
     }
     
 }
