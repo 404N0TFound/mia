@@ -122,7 +122,7 @@ $group_fixed_tab_first = [
         'extend_id' => 1,
     ],
     [
-        'name' => '发现',
+        'name' => '关注',
         'url' => '',
         'type' => 'miagroup',
         'extend_id' => 2,

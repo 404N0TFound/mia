@@ -23,10 +23,10 @@ class RecommendNote
      * 获取个性化笔记列表
      * @param $userId
      * @param $tabId
-     * @return array
+     * @return array [sujectId_subject]  口碑帖子
      */
     public function getRecommendNoteList($userId, $tabId)
     {
-        return [];
+        return ['266898_subject','267343_subject','267342_subject','267341_subject','267339_subject','267338_subject','267337_subject'];
     }
 }

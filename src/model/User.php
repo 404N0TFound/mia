@@ -6,6 +6,7 @@ use mia\miagroup\Data\User\GroupSubjectUserExperts;
 use mia\miagroup\Data\User\AppDeviceToken as AppDeviceTokenData;
 use mia\miagroup\Data\User\HeadLineUserCategory as HeadLineUserCategoryData;
 use mia\miagroup\Data\User\GroupSubjectVideoPermission;
+use mia\miagroup\Data\User\GroupDoozer;
 
 class User {
 
@@ -157,5 +158,21 @@ class User {
         $expertData = new GroupSubjectUserExperts();
         $result = $expertData->updateExpertInfoByUid($userId, $setData);
         return $result;
+    }
+
+    /**
+     * 获取达人推荐理由
+     * @param $userIds
+     * @return array
+     */
+    public function getUserRecommendInfo($userIds)
+    {
+        $doozerData = new GroupDoozer();
+        $conditions['user_id'] = $userIds;
+        $recommendInfos = $doozerData->getBatchOperationInfos($conditions);
+        foreach ($recommendInfos as $v) {
+            $res[$v['user_id']] = $v;
+        }
+        return $res;
     }
 }
