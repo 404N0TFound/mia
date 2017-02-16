@@ -743,8 +743,14 @@ class Solr
 
     public function getpiaopiaoSolrParams($totalCount = 0){
         // 查詢两种数据格式
-        $begin_time = '1486656000';
-        $end_time = '1487087999';
+        //$begin_time = '1486656000';
+        //$end_time = '1487087999';
+
+        // 执行前一天的时间戳
+        date_default_timezone_set('PRC');
+        $end_time = strtotime(date("Y-m-d"),time());
+        $begin_time = $end_time - 24*60*60;
+
         $brand_id = 6004;
         $solrInfo = [
             'q'         => '*:*',
