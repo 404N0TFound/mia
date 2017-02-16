@@ -34,10 +34,10 @@ class Active extends \mia\miagroup\Lib\Service {
      * 获取单条活动信息
      */
     public function getSingleActiveById($activeId) {
-        $activeIds = array($activeId);
+        $condition = array('active_ids' => array($activeId));
         $activeRes = array();
         // 获取活动基本信息
-        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 1, array(1), $activeIds);
+        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 1, array(1), $condition);
         if (empty($activeInfos[$activeId])) {
             return $this->succ(array());
         }
@@ -50,6 +50,33 @@ class Active extends \mia\miagroup\Lib\Service {
                 $activeRes['label_titles'] = implode(',',array_column($activeRes['labels'], 'title'));
             }
         }
+        return $this->succ($activeRes);
+    }
+    
+    /**
+     * 获取当前在线活动
+     */
+    public function getCurrentActive() {
+        $condition = array('current_time' => date('Y-m-d H:i:s',time()));
+        $activeRes = array();
+        // 获取活动基本信息
+        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 1, array(1), $condition);
+        if (empty($activeInfos)) {
+            return $this->succ(array());
+        }
+        if(!empty($activeInfos)){
+            foreach($activeInfos as $activeInfo){
+                $tmp = $activeInfo;
+                if(!empty($activeInfo['ext_info'])){
+                    $extInfo = json_decode($activeInfo['ext_info'],true);
+                    if(!empty($extInfo['labels'])){
+                        $tmp['labels'] = $extInfo['labels'];
+                    }
+                }
+                $activeRes[] = $tmp;
+            }
+        }
+
         return $this->succ($activeRes);
     }
     

@@ -13,9 +13,9 @@ class Active {
     /**
      * 获取活动列表
     */
-    public function getActiveByActiveIds($page, $limit, $status = array(1), $activeIds = array()) {
+    public function getActiveByActiveIds($page, $limit, $status = array(1), $condition = array()) {
         //获取活动的基本信息
-        $actives = $this->activeData->getBatchActiveInfos($page, $limit, $status, $activeIds);
+        $actives = $this->activeData->getBatchActiveInfos($page, $limit, $status, $condition);
         $activesArr = array();
         if(!empty($actives)){
             foreach($actives as $active){
