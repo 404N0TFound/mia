@@ -659,6 +659,29 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectSetInfo['ext_info']['image'] = $imageInfo;
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
+        
+        //如果为普通发帖，检查标签中是否有参加在线活动的
+        if(!empty($labelInfos) && intval($subjectInfo['active_id']) == 0){
+            //获取在线的蜜芽圈活动
+            $activeInfos = $activeService->getCurrentActive()['data'];
+            foreach($activeInfos as $key=>$activeInfo){
+                //取帖子标签中参加活动的标签
+                if(!empty($activeInfo['ext_info'])){
+                    $activeExtInfos = json_decode($activeInfo['ext_info'],true);
+                    if(!empty($activeExtInfos['labels'])){
+                        $activeLabelTitles = array_column($activeExtInfos['labels'], 'title');
+                        $labelTitles = array_column($labelInfos, 'title');
+                        $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
+                        //活动id为在线活动的索引(key)，如果标签中有参加活动的，则保存活动id
+                        if(!empty($attendLabels)){
+                            $subjectSetInfo['active_id'] = $key;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
         $insertSubjectRes = $this->subjectModel->addSubject($subjectSetInfo);
         unset($subjectSetInfo['image_url']);
         unset($subjectSetInfo['ext_info']);
@@ -695,28 +718,6 @@ class Subject extends \mia\miagroup\Lib\Service
         // 添加蜜芽圈标签
         if (!empty($labelInfos)) {
             $labelArr = array();
-            //如果为普通发帖，检查标签中是否有参加在线活动的
-            if(intval($subjectInfo['active_id']) == 0){
-                //获取在线的蜜芽圈活动
-                $activeInfos = $activeService->getCurrentActive()['data'];
-                foreach($activeInfos as $key=>$activeInfo){
-                    //取帖子标签中参加活动的标签
-                    if(!empty($activeInfo['ext_info'])){
-                        $activeExtInfos = json_decode($activeInfo['ext_info'],true);
-                        if(!empty($activeExtInfos['labels'])){
-                            $activeLabelTitles = array_column($activeExtInfos['labels'], 'title');
-                            $labelTitles = array_column($labelInfos, 'title');
-                            $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
-                            //活动id为在线活动的索引(key)，如果标签中有参加活动的，则保存活动id
-                            if(!empty($attendLabels)){
-                                $subjectSetInfo['active_id'] = $key;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            
             foreach ($labelInfos as $key => $labelInfo) {
                 $labelRelationSetInfo = array("subject_id" => $subjectId, "label_id" => 0, "create_time" => $subjectSetInfo['created'], "user_id" => $subjectInfo['user_info']['user_id']);
                 if (isset($labelInfo['id']) && $labelInfo['id'] > 0) {

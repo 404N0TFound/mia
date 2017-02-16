@@ -60,12 +60,12 @@ class Active extends \mia\miagroup\Lib\Service {
         $condition = array('current_time' => date('Y-m-d H:i:s',time()));
         $activeRes = array();
         // 获取活动基本信息
-        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 1, array(1), $condition);
+        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 20, array(1), $condition);
         if (empty($activeInfos)) {
             return $this->succ(array());
         }
         if(!empty($activeInfos)){
-            foreach($activeInfos as $activeInfo){
+            foreach($activeInfos as $key=>$activeInfo){
                 $tmp = $activeInfo;
                 if(!empty($activeInfo['ext_info'])){
                     $extInfo = json_decode($activeInfo['ext_info'],true);
@@ -73,7 +73,7 @@ class Active extends \mia\miagroup\Lib\Service {
                         $tmp['labels'] = $extInfo['labels'];
                     }
                 }
-                $activeRes[] = $tmp;
+                $activeRes[$key] = $tmp;
             }
         }
 
