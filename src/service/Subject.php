@@ -602,26 +602,33 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectSetInfo['created'] = date("Y-m-d H:i:s", time());
         }
         $activeService = new ActiveService();
-        //如果参加活动，检查活动是否有效、帖子所打标签是否有存在于参加活动的标签中
-        if (intval($subjectInfo['active_id']) > 0 && !empty($labelInfos)) {
+        //如果参加活动，检查活动是否有效
+        if (intval($subjectInfo['active_id']) > 0) {
             //获取活动信息
             $activeInfo = $activeService->getSingleActiveById($subjectInfo['active_id'])['data'];
             $currentTime = date("Y-m-d H:i:s",time());
-            //取帖子标签中参加活动的标签
-            if(!empty($activeInfo['ext_info'])){
-                $activeExtInfos = json_decode($activeInfo['ext_info'],true);
-                if(!empty($activeExtInfos['labels'])){
-                    $activeLabelTitles = array_column($activeExtInfos['labels'], 'title');
-                    $labelTitles = array_column($labelInfos, 'title');
-                    $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
-                }
-            }
-            //当活动有效，且帖子标签存在于参加活动的标签中，则认为帖子参加了活动
-            if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time'] && !empty($attendLabels)){
+            if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time']){
                 $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
-            }else{
-                $subjectSetInfo['active_id'] = 0;
             }
+//         if (!empty($labelInfos)) {
+//             //获取活动信息
+//             $activeInfo = $activeService->getSingleActiveById($subjectInfo['active_id'])['data'];
+//             $currentTime = date("Y-m-d H:i:s",time());
+//             //取帖子标签中参加活动的标签
+//             if(!empty($activeInfo['ext_info'])){
+//                 $activeExtInfos = json_decode($activeInfo['ext_info'],true);
+//                 if(!empty($activeExtInfos['labels'])){
+//                     $activeLabelTitles = array_column($activeExtInfos['labels'], 'title');
+//                     $labelTitles = array_column($labelInfos, 'title');
+//                     $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
+//                 }
+//             }
+//             //当活动有效，且帖子标签存在于参加活动的标签中，则认为帖子参加了活动
+//             if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time'] && !empty($attendLabels)){
+//                 $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
+//             }else{
+//                 $subjectSetInfo['active_id'] = 0;
+//             }
         }else{
             $subjectSetInfo['active_id'] = 0;
         }
