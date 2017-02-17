@@ -65,13 +65,16 @@ class User extends \mia\miagroup\Lib\Service {
         $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
         // 批量获取发视频权限
         $videoPermissions = $this->userModel->getVideoPermissionByUids($userIds);
-        
+        //批量获取推荐信息
+        $recommendInfos = $this->userModel->getUserRecommendInfo($userIds);
+
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
             $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; // 用户是否是供应商
             $userInfo['is_have_permission'] = !empty($videoPermissions[$userInfo['id']]) ? 1 : 0; // 用户是否有发视频权限
+            $userInfo['doozer_intro'] = !empty($recommendInfos[$userInfo['id']]) ? $recommendInfos[$userInfo['id']]['intro'] : '';
             if ($expertInfos[$userInfo['id']]) {
                 $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();
                 if (!empty(trim($expertInfos[$userInfo['id']]['label'], "#"))) {
@@ -107,7 +110,6 @@ class User extends \mia\miagroup\Lib\Service {
             }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
         }
-        
         return $this->succ($userArr);
     }
     

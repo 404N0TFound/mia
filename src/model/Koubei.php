@@ -8,6 +8,8 @@ use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
 use mia\miagroup\Data\Koubei\KoubeiTags;
 use mia\miagroup\Data\Koubei\KoubeiTagsLayer;
 use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
+use \mia\miagroup\Data\Koubei\SearchWords as SearchWordsData;
+
 
 class Koubei {
     
@@ -17,6 +19,7 @@ class Koubei {
     private $koubeiTagsData;
     private $koubeiTagsLayerData;
     private $koubeiTagsRelationData;
+    private $koubeiSearchWordsData;
     
     
     public function __construct() {
@@ -26,6 +29,7 @@ class Koubei {
         $this->koubeiTagsData = new KoubeiTags();
         $this->koubeiTagsLayerData = new KoubeiTagsLayer();
         $this->koubeiTagsRelationData = new KoubeiTagsRelation();
+        $this->koubeiSearchWordsData = new SearchWordsData();
     }
     
     /**
@@ -131,7 +135,25 @@ class Koubei {
         $koubeiNums = $this->koubeiData->getItemInvolveNums($filed, $where);
         return $koubeiNums;    
     }
-    
+
+    /**
+     * 获取发布口碑的用户数量
+     * @param $itemIds 商品id
+     * @return int
+     */
+    public function getItemKoubeiUserNums($itemIds, $withPic = 0){
+        if(empty($itemIds)){
+            return 0;
+        }
+        $filed = ' count(distinct(koubei.user_id)) as nums ';
+        $where = array();
+        $where['item_id'] = $itemIds;
+        $where['subject_id'] = 0;
+        $where['status'] = 2;
+        $koubeiUserNums = $this->koubeiData->getItemInvolveNums($filed, $where);
+        return $koubeiUserNums;
+    }
+
     /**
      * 获取商品的用户评分
      * @param $itemIds int 商品id
@@ -151,8 +173,9 @@ class Koubei {
     }
     
     /**
-     * 获取商品的蜜粉推荐(含关联商品)
+     * 获取商品的蜜粉推荐(含关联商品),评分大于等于4
      * @param $itemIds int 商品id
+     * @return array
      */
     public function getItemRecNums($itemIds){
         if(empty($itemIds)){
@@ -554,9 +577,11 @@ class Koubei {
         $conditions['group_by'] = 'koubei_tags_layer.root';
         $tags = $this->koubeiTagsRelationData->getTagsKoubei($where, $cols, $conditions);
         $res = [];
-        if(!empty($tags)){
-            foreach ($tags as $k=>$v){
-                $res[$v['root']] = $v;
+        if (!empty($tags)) {
+            foreach ($tags as $k => $v) {
+                if (!empty($v['root'])) {
+                    $res[$v['root']] = $v;
+                }
             }
         }
         return $res;
@@ -702,6 +727,15 @@ class Koubei {
     {
         $res = $this->koubeiTagsLayerData->showTrees();
         return $res;
+    }
+
+    /*
+     * 查询通用的search_key
+     */
+    public function getNoteSearchKey()
+    {
+        $searchKeys = $this->koubeiSearchWordsData->getNoteSearchKey();
+        return $searchKeys;
     }
 
 }
