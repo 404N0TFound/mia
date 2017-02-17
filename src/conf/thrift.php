@@ -42,5 +42,9 @@ $address = array(
         'remote' => 'http://172.16.96.75:8983/solr/toutiao/select',
     ],
 
+    'itemSearch' => [
+        'remote' => '172.16.96.75:18008/miase_wangpan/api.php?',
+        //'remote' => 'http://search.mia.com/miase/api.php?',
+    ],
 );
     

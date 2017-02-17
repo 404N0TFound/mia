@@ -6,6 +6,8 @@ use mia\miagroup\Model\Album as AlbumModel;
 use mia\miagroup\Model\Koubei as KoubeiModel;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Remote\Search as SearchRemote;
+use mia\miagroup\Service\Item as ItemService;
+use mia\miagroup\Service\Koubei as KoubeiService;
 
 /**
  * 蜜芽圈搜索服务类
@@ -21,6 +23,8 @@ class Search extends Service
         $this->subjectService = new Subject();
         $this->koubeiModel = new KoubeiModel();
         $this->searchRemote = new SearchRemote();
+        $this->itemService = new ItemService();
+        $this->koubeiService = new KoubeiService();
         parent::__construct();
     }
 
@@ -52,11 +56,219 @@ class Search extends Service
         return $this->succ(array_values($userList));
     }
 
-    public function itemSearch($keyWords, $page, $count)
+    public function itemSearch($param)
     {
-        //复用商品的，在结果列表里添加额外信息
-    }
+        //复用api的逻辑，参照4.9 api接口说明
+        //接收参数
+        $keyword = $param['key'];
+        $page = isset($param['page']) ? $param['page'] : 0;
+        $count = isset($param['count']) ? $param['count'] : 10;
+        $order = isset($param['order']) ? $param['order'] : 'normal';
+        $status = isset($param['so']) ? $param['so'] : 0;
+        $brandId = isset($param['brand_id']) ? $param['brand_id'] : 0;
+        $categoryId = isset($param['category_id']) ? $param['category_id'] : 0;
+        $minPrice = isset($param['min_price']) ? $param['min_price'] : 0;
+        $maxPrice = isset($param['max_price']) ? $param['max_price'] : 0;
+        $propertyIds = isset($param['propertyIds']) ? $param['propertyIds'] : '';//4.0有结构体
 
+        $sort = isset($param['sort']) ? $param['sort'] : 'desc';
+        //筛选器格式化
+        if ($param['so'] == 8) {
+            $status = 4;//过滤规则
+        } elseif ($param['so'] == 16) {
+            $status = 8;
+        } elseif ($param['so'] == 24) {
+            $status = 4 | 8;
+        }
+
+        $items = [];
+        if (!$keyword) {
+            return $this->succ($items);
+        }
+        if (!in_array($sort, array('desc', 'asc'))) {
+            return $this->succ($items);
+        }
+        if (!in_array($order, array('normal', 'sales', 'price', 'newGoods'))) {
+            return $this->succ($items);
+        }
+
+        switch ($order) {
+            case 'normal':
+                $sort_by_field = 0;
+                break;
+            case 'price':
+                $sort_by_field = 2;
+                break;
+            case 'sales':
+                $sort_by_field = 3;
+                break;
+            case 'newGoods':
+                $sort_by_field = 4;
+                break;
+            default:
+                $sort_by_field = 0;
+                break;
+        }
+
+        $searchArr["query"] = $keyword;//搜索query，需要做urlencode
+        $searchArr["rn"] = $count;//搜索结果每页的结果数
+        $searchArr["pn"] = $page - 1;//搜索结果的翻页数
+        $searchArr["sort_by_field"] = $sort_by_field;//排序，默认是0；2价格排序；3销售量排序；4按新品排序
+        $searchArr["sort_field_style"] = strtolower($sort) == "asc" ? 0 : 1;//排序方式，1降序，0升序
+        $searchArr["filter_by_field"] = $status;//过滤规则
+        $searchArr["search_type"] = 0x10 | 0x20;//0x10 ：获取结果 0x20：获取筛选器。两个条件可做位或操作
+        $searchArr["session"] = $param['session'];
+        $searchArr["device_token"] = $param['device_token'];
+        $searchArr["dvc_id"] = $param['dvc_id'];
+        $searchArr["user_id"] = $param['user_id'];
+        $searchArr["bi_session_id"] = $param['bi_session_id'];
+        $searchArr["cluster_type"] = 1;//0不做任何聚合，1进行默认方法聚合
+        $searchArr["version"] = 1;//api版本,不传为老接口，传1为新接口
+
+        if ($brandId) {
+            $searchArr["filter_brand_ids"] = $brandId;//筛选指定品牌id列表，以逗号分隔：2,3,5
+        }
+        if ($categoryId) {
+            $searchArr["filter_category_ids"] = $categoryId;//筛选指定的分类id列表，以逗号分隔：2,3,5
+        }
+        if (($minPrice >= 0) && $maxPrice) {
+            $searchArr["min_price"] = $minPrice;
+            $searchArr["max_price"] = $maxPrice;
+        }
+
+        if ($propertyIds) {
+            $propertyIdsStr = "";
+            $attrId = 0;
+            $attr_v_array = [];
+            foreach ($propertyIds as $value) {
+                foreach ($value as $key => $propertyValue) {
+                    if ($key == 'attr_id') {//属性Id
+                        $attrId = $propertyValue;
+                    }
+
+                    if ($key == 'attr_v_array') {
+                        $attr_v_array = [];
+                        foreach ($propertyValue as $k => $v) {
+                            $attr_v_array[] = $v['attr_v_id'];//属性中具体属性id
+                        }
+                    }
+                }
+
+                if ($attrId > 0 && !empty($attr_v_array)) {
+                    $propertyIdsStr .= $attrId . ":" . implode(",", $attr_v_array) . "||";
+                    continue;
+                }
+            }
+
+            if ($propertyIdsStr) {
+                $propertyIdsStr = substr($propertyIdsStr, 0, -2);
+                $searchArr["attr_ids"] = $propertyIdsStr;//attr_id:attr_value_id1,attr_value_id2||.....(每个筛选属性组合以||分割)
+            }
+        }
+
+        $result = ['matches' => [], 'total' => 0];
+        $searchArr["query_source"] = 2;//查询来源2.APP
+
+        $datas = $this->searchRemote->itemSearch($searchArr);
+
+        if (!$datas) {
+            unset($result['matches']);
+        } else {
+            if (isset($datas['disp_num']) && $datas['disp_num'] > 0) {
+                $result['total'] = $datas['disp_num'];//搜索返回的预估总结果数
+                foreach ($datas['data'] as $key => $value) {
+                    $result['matches'][] = $value;
+                }
+            } else {
+                unset($result['matches']);
+            }
+
+            //获取筛选器
+            $items['price_condition'] = [];
+            $items['category_condition'] = [];
+            $items['brand_condition'] = [];
+            $items['property_condition'] = [];
+            $items['search_info'] = [];
+            $items['rs'] = [];
+            //筛选格式化搜索筛选器
+            $type = 'getSearchItems';
+            $format_filter_rank = $this->format_filter_rank($datas['search_filter']['filter_rank'], $type);
+
+            $items['filter_rank'] = $format_filter_rank['filter_rank'];
+            //是否配置筛选器图标
+            if (isset($format_filter_rank['filter_rank_extend'])) {
+                $items['filter_rank_extend'] = $format_filter_rank['filter_rank_extend'];
+            }
+
+            if (isset($datas['search_filter']['price_array']) && !empty($datas['search_filter']['price_array'])) {
+                $items['price_condition'] = $datas['search_filter']['price_array'];
+            }
+
+            if (isset($datas['search_filter']['c_array']) && !empty($datas['search_filter']['c_array'])) {
+                $items['category_condition'] = $datas['search_filter']['c_array'];
+            }
+
+            if (isset($datas['search_filter']['b_array']) && !empty($datas['search_filter']['b_array'])) {
+                $items['brand_condition'] = $datas['search_filter']['b_array'];
+            }
+
+            if (isset($datas['search_filter']['attr_array']) && !empty($datas['search_filter']['attr_array'])) {
+                $items['property_condition'] = $datas['search_filter']['attr_array'];
+            }
+
+            if (isset($datas['search_info']) && !empty($datas['search_info'])) {
+                $items['search_info'] = $datas['search_info'];
+            }
+
+            if (isset($datas['rs']) && !empty($datas['rs'])) {
+                $items['rs'] = $datas['rs'];
+            }
+        }
+
+        $items['total'] = is_null($result['total']) ? 0 : $result['total'];
+        $ids = [];
+        $rank = [];
+        $item_cluster = [];
+        if ($items['total'] > 0) {
+            foreach ($result['matches'] as $key => $row) {
+                if ($row['type'] == 0) {
+                    $ids[] = $row['id'];
+                    if (!empty($row['cluster_ids'])) {
+                        $item_cluster[$row['id']] = $row['cluster_ids'];
+                    }
+                } else {
+                    $rank[$row['id']]['type'] = $row['type'];
+                    $rank[$row['id']]['index'] = $key;
+                }
+            }
+            $items['item_ids'] = $ids;
+            $items['rank'] = $rank;
+            $items['item_cluster'] = $item_cluster;
+        }
+
+        $itemInfos = $this->itemService->getBatchItemBrandByIds($items['item_ids'])['data'];
+
+        foreach ($items['item_ids'] as $v) {
+            $ext_info = $this->koubeiService->getItemTagList($itemInfos[$v]['item_id'], ['collect'], 1)['data'];
+            if($ext_info['user_unm'] == 0|| $ext_info['item_rec_nums'] == 0){
+                $recommend_desc = '';
+            } else {
+                $recommend_desc = $ext_info['user_unm'] . '位妈妈发表了' . $ext_info['item_rec_nums'] . '篇笔记';
+            }
+            $items['showdata_list'][] = [
+                'type' => 1,
+                'item_info' => [
+                    'id' => $itemInfos[$v]['item_id'],
+                    'name' => $itemInfos[$v]['item_name'],
+                    'sale_price' => $itemInfos[$v]['sale_price'],
+                    'pic' => [$itemInfos[$v]['item_img']],
+                    'recommend_desc' => $recommend_desc,
+                    'koubei_tag_lists' => $ext_info['tag_list']
+                ]
+            ];
+        }
+        return $this->succ($items);
+    }
 
     /**
      * 笔记搜索，推荐热词列表
@@ -78,7 +290,7 @@ class Search extends Service
         $userIdRes = $this->abumModel->getGroupDoozerList();
         $userIds = array_slice($userIdRes, 0, $count);
         $userList = $this->userService->getUserInfoByUids($userIds)['data'];
-        return $this->succ(['user_list'=>array_values($userList)]);
+        return $this->succ(['user_list' => array_values($userList)]);
     }
 
     /**
@@ -87,5 +299,71 @@ class Search extends Service
     public function itemHotWordsList()
     {
         //复用商品的，完全一样的接口
+    }
+
+
+    /**
+     * 筛选器格式化
+     * @param array $filter_rank 筛选器
+     * @param array $type 筛选页面标识
+     * @return  array 筛选格式化后的筛选器
+     */
+    public function format_filter_rank($filter_rank, $type)
+    {
+        if (!is_array($filter_rank) || empty($filter_rank) || empty($type)) {
+            return false;
+        }
+        //getSearchItems    搜索（搜索结果）
+        //getSearchStoreItems   店铺商品搜索（店铺分类，店铺）
+        //filterOrder   分类列表
+        //items 品牌页
+        //getoutletitems    特卖页
+        //activityItemList  凑单活动页
+        //大促筛选器显示列表
+        $dcFilter = array(
+            'getSearchItems',//搜索结果页
+            'filterOrder',//分类页
+            'items',//品牌页
+            'getSearchStoreItems',//店铺页
+        );
+        //自营显示列表
+        $zyFilter = array(
+            'getSearchItems',//搜索结果页
+            'filterOrder',//分类页
+            'items',//品牌页
+//            'getoutletitems',//特卖
+            'activityItemList',//凑单活动
+        );
+        $format = [];
+        $itemConfig = \F_Ice::$ins->workApp->config->get('busconf.item');
+
+        $filter_rank_extend_list = $itemConfig['filter_rank_extend_list'];
+        $format_rank = array();
+        foreach ($filter_rank as $k => $v) {
+            //过滤大促筛选器
+            $time = time();
+            if ($v == 5) {
+                if (!in_array($type, $dcFilter)) {
+                    unset($filter_rank[$k]);
+                }
+                //不在大促期间不显示
+                if ($time < strtotime($itemConfig['promote_start_time']) || $time > $itemConfig['promote_end_time']) {
+                    unset($filter_rank[$k]);
+                }
+            }
+            //过滤自营筛选器
+            if (!in_array($type, $zyFilter) && $v == 4) {
+                unset($filter_rank[$k]);
+            }
+            if (isset($filter_rank[$k])) {
+                $format_rank[] = $filter_rank[$k];
+                //筛选器图标配置,筛选器存在切被配置
+                if (isset($filter_rank_extend_list[$v])) {
+                    $format['filter_rank_extend'][] = $filter_rank_extend_list[$v];
+                }
+            }
+        }
+        $format['filter_rank'] = $format_rank;
+        return $format;
     }
 }
