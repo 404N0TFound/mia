@@ -136,18 +136,18 @@ $cron_list['subject_data_incremental_dump'] = array(
 );
 //帖子全量数据同步
 $cron_list['subject_data_sync'] = array(
-    'enable' => false,
+    'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=subject --action=subjectdump full_dump",
-    'start_time' => '2017-02-09 00:00:00',
-    'interval' => 1
+    'cli_args' => "--class=subject --action=subjectsync full_dump",
+    'start_time' => '2017-02-10 00:10:00',
+    'interval' => 86400
 );
 //帖子增量数据同步
 $cron_list['subject_data_incremental_sync'] = array(
-    'enable' => false,
+    'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=subject --action=subjectdump incremental_dump",
-    'start_time' => '2017-02-08 19:15:00',
+    'cli_args' => "--class=subject --action=subjectsync incremental_dump",
+    'start_time' => '2017-02-10 00:15:00',
     'interval' => 600
 );
 /*************

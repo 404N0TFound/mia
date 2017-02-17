@@ -34,4 +34,25 @@ class Subject extends \FD_Daemon {
             }
         }
     }
+    
+    /**
+     * 帖子关联商品，并同步口碑
+     */
+    public function subject_relate_item() {
+        $file_path = '/home/hanxiang/being_related_subjects';
+        $data = file($file_path);
+        $i = 0;
+        $pointService = new \mia\miagroup\Service\PointTags();
+        $koubeiService = new \mia\miagroup\Service\Koubei();
+        foreach ($data as $v) {
+            $i ++;
+            $v = trim($v);
+            list($subject_id, $item_id) = explode("\t", $v);
+            $pointService->saveSubjectTags($subject_id, array('item_id' => $item_id));
+            $koubeiService->setSubjectToKoubei($subject_id, $item_id);
+            if ($i % 200 == 0) {
+                sleep(1);
+            }
+        }
+    }
 }

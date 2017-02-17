@@ -34,7 +34,7 @@ class Cronmonitor extends \FD_Daemon {
             }
             switch ($cron['engine']) {
                 case "php" :
-                    $cmd = "{$this->php_bin} {$this->php_cli} .  -f {$cron['cli_args']} > /dev/null &";
+                    $cmd = "{$this->php_bin} {$this->php_cli} -f {$cron['cli_args']} > /dev/null &";
                     $handle = popen($cmd, "r");
                     break;
                 case "bash" :

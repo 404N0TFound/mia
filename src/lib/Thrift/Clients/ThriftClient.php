@@ -134,7 +134,9 @@ class ThriftClient
             $address_map = array();
             foreach(self::$config as $key => $item)
             {
-                $address_map[$key] = $item['addresses'];
+                if (isset($item['addresses'])) {
+                    $address_map[$key] = $item['addresses'];
+                }
             }
             AddressManager::config($address_map);
         }

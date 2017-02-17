@@ -51,36 +51,34 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData = array();
         $koubeiSetData['status'] = (isset($koubeiData['status'])) ? intval($koubeiData['status']) : 2;
         $koubeiSetData['title'] = (isset($koubeiData['title']) ) ? trim($this->emojiUtil->emoji_unified_to_html($koubeiData['title'])) : "";
+        $koubeiSetData['title'] = strip_tags($koubeiSetData['title'], '<span><p>');
         $koubeiSetData['content'] = trim($this->emojiUtil->emoji_unified_to_html($koubeiData['text']));
+        $koubeiSetData['content'] = strip_tags($koubeiSetData['content'], '<span><p>');
         $koubeiSetData['score'] = $koubeiData['score'];
         $koubeiSetData['item_id'] = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
         $koubeiSetData['item_size'] = $koubeiData['item_size'];
         $koubeiSetData['user_id'] = $koubeiData['user_id'];
         $koubeiSetData['order_id'] = isset($orderInfo['id']) ? $orderInfo['id'] : 0;
         $koubeiSetData['created_time'] = date("Y-m-d H:i:s");
+        $labels = array();
+        $labels['label'] = array();
+        $labels['image'] = array();
+        if(!empty($koubeiData['labels'])) {
+            foreach($koubeiData['labels'] as $label) {
+                $labels['label'][] = $label['title'];
+            }
+        }
+        if(!empty($koubeiData['image_infos'])) {
+            foreach($koubeiData['image_infos'] as $image) {
+                $labels['image'][] = $image;
+            }
+        }
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
         //供应商ID获取
         $itemService = new ItemService();
         $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
         $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
-        $labels = array();
-        $labels['label'] = array();
-        $labels['image'] = array();
-        if(!empty($koubeiData['labels']))
-        {
-            foreach($koubeiData['labels'] as $label)
-            {
-                $labels['label'][] = $label['title'];
-            }
-        }
-        if(!empty($koubeiData['image_infos']))
-        {
-            foreach($koubeiData['image_infos'] as $image)
-            {
-                $labels['image'][] = $image;
-            }
-        }
         $koubeiSetData['extr_info'] = json_encode($labels);
         //####end
         $koubeiInsertId = $this->koubeiModel->saveKoubei($koubeiSetData);
@@ -477,9 +475,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['item_id'] = $itemId;
         $koubeiSetData['user_id'] = $subjectData['user_id'];
         $koubeiSetData['subject_id'] = (isset($subjectData['id'])) ? trim($subjectData['id']) : '';
-        $koubeiSetData['created_time'] = date('Y-m-d H:i:s', time());
+        $koubeiSetData['created_time'] = $subjectData['created'];
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($subjectData);
-        $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
+        $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + $this->calTimeScore($subjectData['created']);
         //供应商ID获取
         $itemService = new ItemService();
         $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
@@ -585,7 +583,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         return $immutable_score;
     }
-
+    
+    /**
+     * 计算时间加权分，每月递减0.5分
+     */
+    private function calTimeScore($createdDate) {
+        $timeScore = (12 - (time() - strtotime($createdDate)) / 86400 / 30) * 0.5; //时间加权分
+        $timeScore = $timeScore > 0 ? number_format($timeScore, 1) : 0;
+        return $timeScore;
+    }
+    
     /**
      * 删除口碑
      */
@@ -1441,10 +1448,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         // 获取默认5分好评
         $default_info = $solr_supplier->getDefaultScoreFive('supplier_id', $supplier, $search_time);
         $koubei_sum_score = array_sum($supplier_info['count']);
+
         $supplier_info['count']['num_default'] = 0;
-        if($default_info['count'] > 0){
-            $supplier_info['count']['num_default'] = $default_info['count'] - $koubei_sum_score;
+        $default_count = $default_info['count'] - $koubei_sum_score;
+        if($default_info['count'] > 0 && $default_count > 0){
+            $supplier_info['count']['num_default'] = $default_count;
         }
+
         // 统计今日得分
         $numerator = (
                 5*$supplier_info['count']['num_five']+
