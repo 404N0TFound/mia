@@ -29,4 +29,8 @@ class RecommendNote
     {
         return ['266898_subject','267343_subject','267342_subject','267341_subject','267339_subject','267338_subject','267337_subject'];
     }
+    
+    public function getRelatedNote($subjectId, $page = 1, $limit = 1) {
+        return [267343, 266996, 266933, 266931, 266930, 266927];
+    }
 }
