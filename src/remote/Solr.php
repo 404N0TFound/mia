@@ -258,34 +258,30 @@ class Solr
             // 处理brand_id
             // 说明:group field 必须是solr索引
             $conditon = array(
-                'brand_id' => $brand_id,
                 'koubei_with_pic' => true,
                 'status' => 2,
                 'score' => '(4 OR 5)',
                 'fl' => $field,
                 'sort' => $sort
-                /*'group'       => 'true',
-                'group.main'  => 'true',
-                'group.field' => 'order_id'*/
             );
 
             // 5.1 需求变更
             if (!empty($category_id)) {
-                $cate_arr = explode(",", $category_id);
-                if (count($cate_arr) > 1) {
-                    $conditon[$category_name] = $cate_arr;
-                } else {
-                    $conditon[$category_name] = $category_id;
+                if(!is_array($category_id)){
+                    $cate_arr = explode(",", $category_id);
+                }else {
+                    $cate_arr = $category_id;
                 }
+                $conditon[$category_name] = $cate_arr;
             }
 
             if (!empty($brand_id)) {
-                $brand_arr = explode(",", $brand_id);
-                if (count($brand_arr) > 1) {
-                    $conditon['brand_id'] = $brand_arr;
-                } else {
-                    $conditon['brand_id'] = $brand_id;
+                if(!is_array($brand_id)){
+                    $brand_arr = explode(",", $brand_id);
+                }else{
+                    $brand_arr = $brand_id;
                 }
+                $conditon['brand_id'] = $brand_arr;
             }
 
             $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
@@ -307,10 +303,9 @@ class Solr
     {
         $brand_ids = $this->brandList($category_id, $category_name);
         if(!empty($brand_ids)){
-            $brand_ids = array_column($brand_ids, 'id');
-            $brand_ids_str = implode(",",$brand_ids);
             // 通过品牌获取口碑列表
-            $result = $this->getHighQualityKoubeiByBrandId($category_id, $brand_ids_str, $page, $category_name);
+            $brand_ids = array_column($brand_ids, 'id');
+            $result = $this->getHighQualityKoubeiByBrandId($category_id, $brand_ids, $page, $category_name);
             return $result;
         }
         return array();
