@@ -47,6 +47,9 @@ class HeadLine extends \mia\miagroup\Lib\Service {
         if(empty($channelId)){
             return $this->succ(array());
         }
+        if ($this->getHeadLineSwitchFlag()['data'] == 0) { //头条降级开启
+            return $this->succ(array());
+        }
         //获取用户关注专家的内容
         if($channelId == $this->headlineConfig['lockedChannel']['attention']['id']) {
             $feedData = $this->feedServer->getExpertFeedSubject($currentUid, $currentUid, $page, $count)['data'];

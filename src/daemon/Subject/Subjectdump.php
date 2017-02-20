@@ -81,7 +81,8 @@ class Subjectdump extends \FD_Daemon {
                     break;
                 case 'incremental_dump': //增量导出数据，lastid初始为最大subjectid
                     $subjectData = new \mia\miagroup\Data\Subject\Subject();
-                    $initId = $subjectData->getRow(array(), 'max(id)');
+                    $initId = $subjectData->getRow(array(), 'max(id) as maxid');
+                    $initId = intval($initId['maxid']);
                     fseek($fpLastIdFile, 0, SEEK_SET);
                     ftruncate($fpLastIdFile, 0);
                     fwrite($fpLastIdFile, $initId);
@@ -182,7 +183,9 @@ class Subjectdump extends \FD_Daemon {
             //帖子标签
             if (!empty($subject['group_labels'])) {
                 $dumpdata['labels'] = array();
+                $labelIds = array();
                 foreach ($subject['group_labels'] as $label) {
+                    $labelIds[] = $label['id'];
                     $dumpdata['labels'][] = $label['title'];
                 }
                 $dumpdata['labels'] = implode(',', $dumpdata['labels']);
@@ -202,6 +205,8 @@ class Subjectdump extends \FD_Daemon {
             //帖子标题
             $dumpdata['title'] = !empty(trim($subject['title'])) ? $subject['title'] : 'NULL';
             //帖子文本
+            $subject['text'] = str_replace("\r\n", ' ', $subject['text']);
+            $subject['text'] = str_replace("\n", ' ', $subject['text']);
             $dumpdata['text'] = !empty(trim($subject['text'])) ? $subject['text'] : 'NULL';
             //帖子是否被推荐
             $dumpdata['is_fine'] = intval($subject['is_fine']);
@@ -209,6 +214,8 @@ class Subjectdump extends \FD_Daemon {
             $dumpdata['koubei_score'] = !empty($koubeiInfos[$value['id']]) ? $koubeiInfos[$value['id']]['score'] : 'NULL';
             //机器评分
             $dumpdata['machine_score'] = !empty($koubeiInfos[$value['id']]) ? $koubeiInfos[$value['id']]['machine_score'] : 'NULL';
+            //关联标签ID
+            $dumpdata['label_ids'] = !empty($labelIds) ? implode(',', $labelIds) : 'NULL';
             //写入文本
             $put_content = implode("\t", $dumpdata);
             file_put_contents($this->dumpSubjectFile, $put_content . "\n", FILE_APPEND);

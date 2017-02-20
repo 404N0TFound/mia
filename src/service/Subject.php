@@ -17,7 +17,6 @@ use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Service\HeadLine as HeadLineServer;
 
-
 class Subject extends \mia\miagroup\Lib\Service
 {
     public $subjectModel = null;
@@ -309,6 +308,7 @@ class Subject extends \mia\miagroup\Lib\Service
             foreach ($subjectItemIds as $subjectId => $subjectItem) {
                 foreach ($subjectItem as $itemId) {
                     if (!empty($subjectItemInfos[$itemId])) {
+                        $subjectItemInfos[$itemId]['is_recommend'] = 1; //作者推荐
                         $itemInfoById[$subjectId][$itemId] = $subjectItemInfos[$itemId];
                     }
                 }
@@ -470,20 +470,51 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 获取单条帖子信息
      */
-    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
+    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('count', 'group_labels', 'item', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
         $subjectInfo = $this->getBatchSubjectInfos(array($subjectId), $currentUid, $field, $status);
         $subjectInfo = $subjectInfo['data'][$subjectId];
-
         if (empty($subjectInfo)) {
             return $this->succ(array());
         }
-
-        //如果是专栏，获取作者的其他专栏
+        
+        //作者信息
+        $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
+        $subjectInfo['user_info'] = $userInfo;
+        /*蜜芽帖、口碑贴相关逻辑开始*/
+        if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
+            //获取商品推荐
+            if (in_array('item', $field)) {
+                $itemRecommendService = new \mia\miagroup\Remote\RecommendItem($this->ext_params);
+                if (!empty($subjectInfo['items'])) {
+                    $relateItemIds = array();
+                    foreach ($subjectInfo['items'] as $item) {
+                        $relateItemIds[] = $item['item_id'];
+                    }
+                    $itemIds = $itemRecommendService->getRecommedItemList('cart', 9 - count($relateItemIds), $relateItemIds);
+                } else {
+                    $itemIds = $itemRecommendService->getRecommedItemList('home', 9);
+                }
+                $itemService = new \mia\miagroup\Service\Item();
+                $ItemInfos = $itemService->getBatchItemBrandByIds($itemIds)['data'];
+                $subjectInfo['items'] = array_merge($subjectInfo['items'], $ItemInfos);
+            }
+            //获取相关帖子
+            $noteRecommendService = new \mia\miagroup\Remote\RecommendNote();
+            $relatedIds = $noteRecommendService->getRelatedNote($subjectId);
+            $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
+            if (!empty($relatedSubjects)) {
+                $subjectInfo['related_subject'] = array_values($relatedSubjects);
+            }
+        }
+        /*蜜芽帖、口碑贴相关逻辑结束*/
+        
+        /*专栏、头条相关逻辑开始*/
         if (!empty($subjectInfo['album_article'])) { 
             $con = [
                 'user_id'   => $subjectInfo['user_id'],
                 'iPageSize' => 5,
             ];
+            //如果是专栏，获取作者的其他专栏
             $albumServiceData = $this->albumService->getArticleList($con);
             $albumServiceData = $albumServiceData['data'];
             $albumArticleList = array();
@@ -499,33 +530,46 @@ class Subject extends \mia\miagroup\Lib\Service
                 //最多显示3条，输出4条给客户端显示全部
                 $subjectInfo['recent_article'] = count($albumArticleList) > 4 ? array_slice($albumArticleList, 0, 4) : $albumArticleList;
             }
+            if (!empty($dmSync['refer_channel_id'])) {
+                $dmSync['refer_subject_id'] = $subjectId;
+                $headlineRemote = new HeadlineRemote();
+                //阅读告知
+                if (intval($currentUid) > 0) {
+                    $uniqueFlag = $currentUid;
+                } else { //不登录情况下用户的唯一标识
+                    $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
+                }
+                $headlineRemote->headlineRead($dmSync['refer_channel_id'], $subjectId, $uniqueFlag);
+                //相关帖子
+                $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
+                $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
+                $recommendArticle = array_values($recommendArticle);
+                $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
+            }
         }
-
+        /*专栏、头条相关逻辑结束*/
+        
+        //阅读量计数
         if (in_array('view_num_record', $field)) {
-            //阅读量计数
             $this->subjectModel->viewNumRecord($subjectId);
         }
-        if (!empty($dmSync['refer_channel_id'])) {
-                $dmSync['refer_subject_id'] = $subjectId;
-            $headlineRemote = new HeadlineRemote();
-            //阅读告知
-            if (intval($currentUid) > 0) {
-                $uniqueFlag = $currentUid;
-            } else { //不登录情况下用户的唯一标识
-                $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
-            }
-            $headlineRemote->headlineRead($dmSync['refer_channel_id'], $subjectId, $uniqueFlag);
-            //相关帖子
-            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
-            $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
-            $recommendArticle = array_values($recommendArticle);
-            $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
-        }
-        $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
-        $subjectInfo['user_info'] = $userInfo;
         return $this->succ($subjectInfo);
     }
     
+    /**
+     * 分页获取笔记的相关笔记
+     */
+    public function getRelatedNoteList($subjectId, $page = 1, $count = 10) {
+        //获取相关帖子
+        $noteRecommendService = new \mia\miagroup\Remote\RecommendNote();
+        $relatedIds = $noteRecommendService->getRelatedNote($subjectId, $page, $count);
+        $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
+        if (!empty($relatedSubjects)) {
+            return $this->succ(array_values($relatedSubjects));
+        } else {
+            return $this->succ();
+        }
+    }
     
     /**
      * 批量获取用户发布的帖子数
@@ -571,6 +615,8 @@ class Subject extends \mia\miagroup\Lib\Service
             if(!empty($sensitive_res['sensitive_words'])){
                 return $this->error(1112);
             }
+            //过滤xss、过滤html标签
+            $subjectInfo['title'] = strip_tags($subjectInfo['title'], '<span><p>');
         }
         if(!empty($subjectInfo['text'])){
             //过滤敏感词
@@ -578,6 +624,8 @@ class Subject extends \mia\miagroup\Lib\Service
             if(!empty($sensitive_res['sensitive_words'])){
                 return $this->error(1112);
             }
+            //过滤脚本
+            $subjectInfo['text'] = strip_tags($subjectInfo['text'], '<span><p>');
         }
         //蜜芽圈标签
         if (!empty($labelInfos)) {

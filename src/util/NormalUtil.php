@@ -278,7 +278,7 @@ class NormalUtil {
      * @param array $headers
      * @return mixed|null|string
      */
-    public function curlPost($third_server, $url, $params, $headers = [])
+    public static function curlPost($third_server, $url, $params, $headers = [])
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -315,6 +315,49 @@ class NormalUtil {
             'response_msg' => $error_str,
             'resp_time' => $getCurlInfo['total_time'],
         ));
+        return $result;
+    }
+
+    /**
+     * 以get方式提交到对应的接口url
+     * @param string $url
+     * @param int $second   url执行超时时间，默认30s
+     * @throws WxPayException
+     * @return array
+     */
+    public static function getCurl($third_server, $url, $second = 30)
+    {
+        $ch = curl_init();
+        //设置超时
+        curl_setopt($ch, CURLOPT_TIMEOUT, $second);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);//严格校验
+        //设置header
+        curl_setopt($ch, CURLOPT_HEADER, FALSE);
+        //要求结果为字符串且输出到屏幕上
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+
+        //运行curl
+        $result = curl_exec($ch);
+        $error_no = curl_errno($ch);
+        $error_str = curl_error($ch);
+        $getCurlInfo = curl_getinfo($ch);
+
+        $result = json_decode($result, true);
+        //记录日志
+        \F_Ice::$ins->mainApp->logger_remote->info(array(
+            'third_server' => $third_server,
+            'type' => 'INFO',
+            'request_url' => $url,
+            'get_url' => $url,
+            'response_code' => $error_no,
+            'response_msg' => $error_str,
+            'resp_time' => $getCurlInfo['total_time'],
+        ));
+
+        //返回结果
         return $result;
     }
 }

@@ -28,34 +28,34 @@ class Item extends \mia\miagroup\Lib\Service {
             return array();
         }
         $item_ids = array();
-        // 如果是单品，直接取商品口碑
-//         if ($item_info['is_spu'] == 0) {
-            if (!empty($item_info['relate_flag'])) {
-                $related_items = $this->itemModel->getBatchItemByFlags([$item_info['relate_flag']]);
-                if (!empty($related_items)) {
-                    foreach ($related_items as $v) {
-                        $item_ids[] = $v['id'];
+        // 如果有设置关联款，取关联商品ID
+        if (!empty($item_info['relate_flag'])) {
+            $related_items = $this->itemModel->getBatchItemByFlags([$item_info['relate_flag']]);
+            if (!empty($related_items)) {
+                foreach ($related_items as $v) {
+                    $item_ids[] = $v['id'];
+                }
+            }
+        }
+        //如果没有设置关联快，且是单品套装的情况
+        if (empty($item_ids) && $item_info['is_spu'] == 1 && $item_info['spu_type'] == 1) {
+            // 根据套装id获取套装的商品
+            $spu_item_ids = $this->itemModel->getItemBySpuId($item_id);
+            // 根据套装的商品，获取商品的所有套装，实现套装和套装的互通
+            $item_id_array = $this->itemModel->getSpuByItemId($spu_item_ids[0]);
+            // 如果该商品还有其他套装
+            if (count($item_id_array) > 1) {
+                // 过滤掉其他套装中为多品套装的
+                $items = $this->itemModel->getBatchItemByIds($item_id_array);
+                foreach ($items as $item) {
+                    if ($item['is_spu'] == 1 && $item['spu_type'] == 1) {
+                        $item_ids[] = $item['id'];
                     }
                 }
             }
-//         } elseif ($item_info['is_spu'] == 1 && $item_info['spu_type'] == 1) { // 是单品套装的情况
-//             // 根据套装id获取套装的商品
-//             $spu_item_ids = $this->itemModel->getItemBySpuId($item_id);
-//             // 根据套装的商品，获取商品的所有套装，实现套装和套装的互通
-//             $item_id_array = $this->itemModel->getSpuByItemId($spu_item_ids[0]);
-//             // 如果该商品还有其他套装
-//             if (count($item_id_array) > 1) {
-//                 // 过滤掉其他套装中为多品套装的
-//                 $items = $this->itemModel->getBatchItemByIds($item_id_array);
-//                 foreach ($items as $item) {
-//                     if ($item['is_spu'] == 1 && $item['spu_type'] == 1) {
-//                         $item_ids[] = $item['id'];
-//                     }
-//                 }
-//             }
-//             // 将套装的商品id和所有套装id拼在一起，实现单品和套装互通
-//             array_push($item_ids, $spu_item_ids[0]);
-//         }
+            // 将套装的商品id和所有套装id拼在一起，实现单品和套装互通
+            array_push($item_ids, $spu_item_ids[0]);
+        }
         $item_ids[] = $item_id;
         return $item_ids;
     }
