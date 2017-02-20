@@ -295,7 +295,7 @@ class Solr
                 $result = array('list' => $sort_ids, 'count' => $res['count']);
             }
             // 缓存
-            $redis->setex($koubeiListKey, $result, 300);
+            $redis->setex($koubeiListKey, $result, 20*60);
         }
         return $result;
     }
@@ -708,7 +708,7 @@ class Solr
                 }
             }
             // 缓存
-            $redis->setex($brandListkey, $new_brand_list, 300);
+            $redis->setex($brandListkey, $new_brand_list, 20*60);
         }
         return $new_brand_list;
     }
