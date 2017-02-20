@@ -26,6 +26,17 @@ class Active extends \mia\miagroup\Lib\Service {
         if (empty($activeInfos)) {
             return $this->succ(array());
         }
+        foreach($activeInfos as $activeInfo){
+            $tmp = $activeInfo;
+            $topImg = array();
+            $size= getimagesize("http://img.miyabaobei.com/".$activeInfo['top_img']);
+            $topImg['url'] = $activeInfo['top_img'];
+            $topImg['width'] = $size[0];
+            $topImg['height'] = $size[1];
+            $tmp['top_img'] = $topImg;
+            
+            $activeRes[] = $tmp;
+        }
         return $this->succ($activeRes);
     }
     
@@ -50,6 +61,14 @@ class Active extends \mia\miagroup\Lib\Service {
                 $activeRes['label_titles'] = implode(',',array_column($activeRes['labels'], 'title'));
             }
         }
+        
+        $topImg = array();
+        $size= getimagesize("http://img.miyabaobei.com/".$activeInfos[$activeId]['top_img']);
+        $topImg['url'] = $activeInfos[$activeId]['top_img'];
+        $topImg['width'] = $size[0];
+        $topImg['height'] = $size[1];
+        $activeRes['top_img'] = $topImg;
+        
         return $this->succ($activeRes);
     }
     
