@@ -306,9 +306,9 @@ class Solr
             // 通过品牌获取口碑列表
             if(is_array($brand_ids)){
                 $brand_ids = array_column($brand_ids, 'id');
+                $result = $this->getHighQualityKoubeiByBrandId($category_id, $brand_ids, $page, $category_name);
+                return $result;
             }
-            $result = $this->getHighQualityKoubeiByBrandId($category_id, $brand_ids, $page, $category_name);
-            return $result;
         }
         return array();
     }
