@@ -52,7 +52,6 @@ class Issuereward extends \FD_Daemon {
         $where = [];
         $where[] = [':gt','id', $lastId];
         $where[] = ['auto_evaluate', 0];
-        $where[] = ['score', 5];
         $where[] = ['status', 2];
         $data = $this->koubeiData->getRows($where, 'id, item_id, subject_id, score', 1000);
         if (empty($data)) {
