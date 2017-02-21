@@ -59,7 +59,7 @@ class KoubeiCateRelation extends \DB_Query {
             return array();
         }
         $itemsIds = implode(',', $ids);
-        $sql = "select id , if(chinese_name != '',chinese_name,english_name) as name from item_brand where id in ({$itemsIds})";
+        $sql = "select id , if(chinese_name != '',chinese_name,name) as name from item_brand where id in ({$itemsIds})";
         $res = $this->query($sql);
         if(!empty($res)){
             return $res;
