@@ -29,9 +29,8 @@ class KoubeiCateRelation extends \DB_Query {
         if(empty($result)){
             return '';
         }
-        $cateList = array_column($result,$flag);
-        $cateString = implode(",",$cateList);
-        return $cateString;
+        $list = array_column($result,$flag);
+        return $list;
     }
 
     /*
@@ -50,6 +49,22 @@ class KoubeiCateRelation extends \DB_Query {
             return '';
         }
         return $result[0]['type'];
+    }
+
+    /*
+     * 获取品牌名称
+     * */
+    public function brandName($ids){
+        if (empty($ids) && !is_array($ids)) {
+            return array();
+        }
+        $itemsIds = implode(',', $ids);
+        $sql = "select id , if(chinese_name != '',chinese_name,name) as name from item_brand where id in ({$itemsIds})";
+        $res = $this->query($sql);
+        if(!empty($res)){
+            return $res;
+        }
+        return array();
     }
 
 }

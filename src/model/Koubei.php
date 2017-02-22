@@ -718,4 +718,9 @@ class Koubei {
         return $type;
     }
 
+    public function getBrandName($ids){
+        $list = $this->koubeiCateRelationData->brandName($ids);
+        return $list;
+    }
+
 }
