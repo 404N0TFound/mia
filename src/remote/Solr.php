@@ -28,24 +28,18 @@ class Solr
             $this->handleSolrUrlParams();
         }*/
 
-        /*$solrConfigList = \F_Ice::$ins->workApp->config->get('thrift.address.solr_switch');
+        $solrConfigList = \F_Ice::$ins->workApp->config->get('thrift.address.solr_switch');
         $ipCount = count($solrConfigList);
         $master_num = rand(0,$ipCount-1);
-        $this->config = $solrConfigList['online'.$master_num];*/
-        $this->config =  array(
-            'host' => '10.1.106.15',
-            'port' => 8983,
-            'path' => 'solr',
-            'core' => 'koubei'
-        );
+        $this->config = $solrConfigList['online'.$master_num];
         $this->handleSolrUrlParams();
-        /*if($this->ping() == false){
+        if($this->ping() == false){
             unset($solrConfigList[$master_num]);
             $ipCount = count($solrConfigList);
             $slave_num = rand(0,$ipCount-1);
             $this->config = $solrConfigList['online'.$slave_num];
             $this->handleSolrUrlParams();
-        }*/
+        }
     }
 
     /**
