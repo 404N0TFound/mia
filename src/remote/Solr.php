@@ -375,7 +375,7 @@ class Solr
         if(isset($conditon['status']) && in_array($conditon['status'],array(0,1,2))){
             $solr_info['fq'][]   = 'status:'. $conditon['status'];
             if($conditon['status'] == 2){
-                $solr_info['fq'][]   = 'subject_id:[0 TO *]';
+                $solr_info['fq'][]   = 'subject_id:[1 TO *]';
             }
         }
         if(isset($conditon['auto_evaluate']) && in_array($conditon['auto_evaluate'],array(0,1))){
