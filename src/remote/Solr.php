@@ -186,7 +186,7 @@ class Solr
                 $data .= "&". $key."=".$value;
             }
             $url .= $data;
-            echo $url."\n";
+            //echo $url."\n";
             $request_startTime = gettimeofday(true);
             $result = file_get_contents($url);
             $request_endTime = gettimeofday(true);
