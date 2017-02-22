@@ -375,13 +375,13 @@ class Solr
         if(isset($conditon['status']) && in_array($conditon['status'],array(0,1,2))){
             $solr_info['fq'][]   = 'status:'. $conditon['status'];
             if($conditon['status'] == 2){
-                $solr_info['fq'][]   = 'subject_id:[0 TO *]';
+                $solr_info['fq'][]   = 'subject_id:[1 TO *]';
             }
         }
         if(isset($conditon['auto_evaluate']) && in_array($conditon['auto_evaluate'],array(0,1))){
             $solr_info['fq'][]   = 'auto_evaluate:'. $conditon['auto_evaluate'];
         }
-        if(!empty($conditon['score'])){
+        if(isset($conditon['score']) && $conditon['score'] >= 0){
             $solr_info['fq'][]   = 'score:'. $conditon['score'];
         }
         if(!empty($conditon['item_id'])){
@@ -720,21 +720,26 @@ class Solr
 
         // solr facet维度：默认只支持100（查询总量不现实）
         $begin_time = strtotime("-3 months", $search_time);
+
         $solrInfo = [
             'q'           => '*:*',
-            'fl'          => 'order_id',
             'facet'       => 'true',
             'facet.pivot' => 'score',
             'facet.field' => array('score'),
         ];
+
         $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:2';
-        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
+
+        if(!empty($begin_time)){
+            $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO ' . $search_time.']';
+        }
         if($screen == 'item_id'){
             $solrInfo['fq'][] = '-(auto_evaluate:1)';
         }
+
         $res = $this->select($solrInfo);
-        $statis = array();
+
         $statis['count'] = [
             'num_five'  => 0,
             'num_four'  => 0,
@@ -742,28 +747,31 @@ class Solr
             'num_two'   => 0,
             'num_one'   => 0,
         ];
-        $docs = $res['data']['response']['docs'];
-        if(!empty($docs)) {
-            $facet_pivot = $res['data']['facet_counts']['facet_pivot']['score'];
-           foreach($facet_pivot as $value){
-               if($value['value'] == 5){
-                   $statis['count']['num_five'] = $value['count'];
-               }
-               if($value['value'] == 4){
-                   $statis['count']['num_four'] = $value['count'];
-               }
-               if($value['value'] == 3){
-                   $statis['count']['num_three'] = $value['count'];
-               }
-               if($value['value'] == 2){
-                   $statis['count']['num_two'] = $value['count'];
-               }
-               if($value['value'] == 1){
-                   $statis['count']['num_one'] = $value['count'];
-               }
-           }
+
+        if($res['success'] == 1){
+
+            $facet_score = $res['data']['facet_counts']['facet_pivot']['score'];
+            if(!empty($facet_score) && is_array($facet_score)) {
+
+                foreach($facet_score as $value){
+                    if($value['value'] == 5){
+                        $statis['count']['num_five'] = $value['count'];
+                    }
+                    if($value['value'] == 4){
+                        $statis['count']['num_four'] = $value['count'];
+                    }
+                    if($value['value'] == 3){
+                        $statis['count']['num_three'] = $value['count'];
+                    }
+                    if($value['value'] == 2){
+                        $statis['count']['num_two'] = $value['count'];
+                    }
+                    if($value['value'] == 1){
+                        $statis['count']['num_one'] = $value['count'];
+                    }
+                }
+            }
         }
-        // 返回各项得分
         return $statis;
     }
 
@@ -780,11 +788,16 @@ class Solr
         ];
         $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:5';
-        $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO *]';
+
+        if(!empty($begin_time)){
+            $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO ' . $search_time.']';
+        }
 
         $res = $this->select($solrInfo);
+
         $docs = $res['data']['response']['docs'];
-        if(!empty($docs)){
+
+        if(!empty($docs) && is_array($docs)){
             return array( 'count' => $res['data']['response']['numFound']);
         }
         return array();
