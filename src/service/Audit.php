@@ -194,8 +194,7 @@ class Audit extends \mia\miagroup\Lib\Service {
      * 获取屏蔽原因
      */
     public function getShieldReason() {
-        $auditConfig = \F_Ice::$ins->workApp->config->get('busconf.audit');
-        $shieldReason = $auditConfig['shieldReason'];
+        $shieldReason = \F_Ice::$ins->workApp->config->get('busconf.audit.shieldReason');
         return $this->succ($shieldReason);
     }
     
@@ -214,6 +213,38 @@ class Audit extends \mia\miagroup\Lib\Service {
         //解除敏感词匹配个数限制
         ini_set('pcre.backtrack_limit', -1);
         
+        $matchList = array();
+        if (is_string($textArray)) { //兼容单条
+            preg_match_all("/".$sensitiveWord."/i", $textArray, $match);
+            if (isset($match[0]) && !empty($match[0])) {
+                $matchList = $match[0];
+            }
+        } else if (is_array($textArray)) {
+            foreach ($textArray as $text) {
+                $key = md5($text);
+                preg_match_all("/".$sensitiveWord."/i", $text, $match);
+                if (isset($match[0]) && !empty($match[0])) {
+                    $matchList[$key] = $match[0];
+                }
+            }
+        }
+        //单条返回一维数组，多条返回二维数组
+        return $this->succ(array('sensitive_words' => $matchList));
+    }
+    
+    /**
+     * 检查口碑相关敏感词
+     */
+    public function checkKoubeiSensitiveWords($textArray) {
+        //获取敏感词
+        $sensitiveWord = \F_Ice::$ins->workApp->config->get('busconf.audit.koubeiBlackWord');
+        if (empty($sensitiveWord) || !is_array($sensitiveWord)) {
+            return $this->succ(array('sensitive_words' => array()));
+        }
+        $sensitiveWord = implode('|', $sensitiveWord);
+        //解除敏感词匹配个数限制
+        ini_set('pcre.backtrack_limit', -1);
+    
         $matchList = array();
         if (is_string($textArray)) { //兼容单条
             preg_match_all("/".$sensitiveWord."/i", $textArray, $match);

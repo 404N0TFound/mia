@@ -36,21 +36,6 @@ class SubjectComment extends \DB_Query {
     }
     
     /**
-     * 获取评论列表
-     */
-    public function getCommentListByCond($cond, $offset = 0, $limit = 20, $orderBy = false) {
-        if (intval($cond['subject_id']) <= 0 && intval($cond['user_id']) <= 0) {
-            return array();
-        }
-        $where = [];
-        foreach ($cond as $k => $v) {
-            $where[] = $v;
-        }
-        $data = $this->getRows($where, '*', $limit, $offset, $orderBy);
-        return $data;
-    }
-
-    /**
      * 根据subjectids批量分组获取帖子的评论
      */
     public function getBatchCommentList($subjectIds, $count = 3) {
@@ -169,7 +154,6 @@ class SubjectComment extends \DB_Query {
     
     //获取选题评论列表
     public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
-        
         if ($commentId > 0) {
             $where[] = [':>','id',$commentId];
         }
@@ -177,7 +161,7 @@ class SubjectComment extends \DB_Query {
             $where[] = ['is_expert',1];
         }
         $where[] = ['subject_id',$subjectId];
-        $where[] = ['status',1];
+        $where[] = ['status',[1,2]];
         $orderBy = 'id asc';
         $commentInfo = $this->getRows($where,'id',$pageSize,0,$orderBy);
         $commentIds = array_column($commentInfo, 'id');

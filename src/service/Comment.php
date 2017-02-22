@@ -69,6 +69,7 @@ class Comment extends \mia\miagroup\Lib\Service {
             }
             $commentInfo = null;
             $commentInfo['id'] = $commentInfos[$commentId]['id'];
+            $commentInfo['user_id'] = $commentInfos[$commentId]['user_id'];
             $commentInfo['subject_id'] = $commentInfos[$commentId]['subject_id'];
             $commentInfo['comment'] = $commentInfos[$commentId]['comment'];
             $commentInfo['created'] = $commentInfos[$commentId]['create_time'];
@@ -119,19 +120,6 @@ class Comment extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 获取帖子的评论列表
-     */
-    public function getCommentListBySubjectId($subjectId, $user_type = 0, $page = 1, $limit = 20) {
-        $commentIds = $this->commentModel->getCommentListBySubjectId($subjectId, $user_type, $page, $limit);
-        if (empty($commentIds)) {
-            return $this->succ(array());
-        }
-        $commentList = $this->getBatchComments($commentIds);
-        return $this->succ($commentList);
-    }
-    
-
-    /**
      * 批量查评论数
      */
     public function getBatchCommentNums($subjectIds) {
@@ -176,6 +164,17 @@ class Comment extends \mia\miagroup\Lib\Service {
             }
         }
         
+        $subjectService = new SubjectService();
+        $subjectInfoData = $subjectService->getBatchSubjectInfos(array($subjectId), 0, array())['data'];
+        $subjectInfo = $subjectInfoData[$subjectId];
+        //如果评论的是口碑贴，对评论内容进行校验
+        if (intval($subjectInfo['koubei_id']) > 0) {
+            $sensitive_res = $audit->checkKoubeiSensitiveWords($commentInfo['comment'])['data'];
+            if(!empty($sensitive_res['sensitive_words'])){
+                $commentInfo['status'] = 2; //评论仅自己可见
+            }
+        }
+        
         //判断是否有父评论
         if (intval($commentInfo['fid']) > 0) {
             $parentInfo = $this->getBatchComments([$commentInfo['fid']])['data'][$commentInfo['fid']];
@@ -202,15 +201,15 @@ class Comment extends \mia\miagroup\Lib\Service {
         
         // 获取入库的评论,查主库
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
-        $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'))['data'];
+        $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'), array(1, 2))['data'];
         \DB_Query::switchCluster($preNode);
         
         if (!empty($comment[$commentInfo['id']])) {
             $commentInfo = $comment[$commentInfo['id']];
         }
-        $subjectService = new SubjectService();
-        $subjectInfoData = $subjectService->getBatchSubjectInfos(array($subjectId), 0, array())['data'];
-        $subjectInfo = $subjectInfoData[$subjectId];
+        if ($commentInfo['status'] == 2) {
+            return $this->succ($commentInfo);
+        }
         $sendFromUserId = $user_id; // 当前登录人id
         $toUserId = $subjectInfo['user_id'];
         // 如果直接评论图片，自己评论自己的图片，不发送消息/push
@@ -297,9 +296,15 @@ class Comment extends \mia\miagroup\Lib\Service {
     public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
         $commentArrs = array();
         $commentIds = $this->commentModel->getCommentBySubjectId($subjectId, $user_type, $pageSize, $commentId);
-        $comments = $this->getBatchComments($commentIds, array('user_info', 'parent_comment'))['data'];
-        if(!empty($comments) && is_array($comments)){
-            $commentArrs = array_values($comments);
+        $comments = $this->getBatchComments($commentIds, array('user_info', 'parent_comment'), array(1, 2))['data'];
+        foreach ($comments as $comment) {
+            //处理仅自己可见的评论
+            if ($comment['status'] == 2) {
+                if ($this->ext_params['current_uid'] != $comment['user_id']) {
+                    continue;
+                } 
+            }
+            $commentArrs[] = $comment;
         }
         return $this->succ($commentArrs);
     }
