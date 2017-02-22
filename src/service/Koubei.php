@@ -1460,15 +1460,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * */
     public function getSupplierKoubeiScore($supplier = '',$search_time = ''){
 
-        if(empty($supplier) || empty($search_time)){
+        if(empty($supplier) || mb_strlen($search_time) != 10){
             return $this->succ(array());
         }
+
+        $search_time = !empty($search_time) ? $search_time : time();
+
+        $param_name = 'supplier_id';
         $supplier_list = array();
         $solr = new SolrRemote('koubei');
         $solr_supplier = new SolrRemote('supplier');
-        $supplier_info = $solr->getSupplierGoodsScore('supplier_id', $supplier, $search_time);
+        // 获取商家口碑信息
+        $supplier_info = $solr->getSupplierGoodsScore($param_name, $supplier, $search_time);
         // 获取默认5分好评
-        $default_info = $solr_supplier->getDefaultScoreFive('supplier_id', $supplier, $search_time);
+        $default_info = $solr_supplier->getDefaultScoreFive($param_name, $supplier, $search_time);
         $koubei_sum_score = array_sum($supplier_info['count']);
 
         $supplier_info['count']['num_default'] = 0;
