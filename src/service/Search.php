@@ -249,7 +249,9 @@ class Search extends Service
         $itemInfos = $this->itemService->getBatchItemBrandByIds($items['item_ids'])['data'];
 
         foreach ($items['item_ids'] as $v) {
-            $ext_info = $this->koubeiService->getItemTagList($itemInfos[$v]['item_id'], ['collect'], 1)['data'];
+            //口碑印象列表不需要了
+            //$ext_info = $this->koubeiService->getItemTagList($itemInfos[$v]['item_id'], ['collect'], 1)['data'];
+            $ext_info = $this->koubeiService->getKoubeiNums($itemInfos[$v]['item_id'])['data'];
             if($ext_info['user_unm'] == 0|| $ext_info['item_rec_nums'] == 0){
                 $recommend_desc = '';
             } else {
@@ -263,7 +265,7 @@ class Search extends Service
                     'sale_price' => $itemInfos[$v]['sale_price'],
                     'pic' => [$itemInfos[$v]['item_img']],
                     'recommend_desc' => $recommend_desc,
-                    'koubei_tag_lists' => $ext_info['tag_list']
+                    //'koubei_tag_lists' => $ext_info['tag_list']
                 ]
             ];
         }

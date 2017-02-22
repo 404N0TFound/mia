@@ -1407,7 +1407,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $normalTags[] = ["type" => "normal", "tag_id" => "2", "tag_name" => "晒图", "count" => intval($picNum), 'positive' => 1];
             }
         }
-        $result['tag_list'] = array_merge($normalTags,$tagList);
+        $result = array_merge($normalTags,$tagList);
         if($ext_info == 1) {
             $result['user_unm'] = $this->koubeiModel->getItemKoubeiUserNums($item_ids);
             $result['item_rec_nums'] = $this->koubeiModel->getItemKoubeiNums($item_ids);
@@ -1415,6 +1415,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $this->succ($result);
     }
 
+    /**
+     * 获取口碑发布人数，口碑数
+     * @param $item_id
+     * @return mixed
+     */
+    public function getKoubeiNums($item_id)
+    {
+        //获取商品的关联商品或者套装单品
+        $item_service = new ItemService();
+        $item_ids = $item_service->getRelateItemById($item_id);
+        if (empty($item_ids)) {
+            $this->succ([]);
+        }
+        $result['user_unm'] = $this->koubeiModel->getItemKoubeiUserNums($item_ids);
+        $result['item_rec_nums'] = $this->koubeiModel->getItemKoubeiNums($item_ids);
+        return $this->succ($result);
+    }
 
     /**
      * 批量获取商品的标签，总数
