@@ -754,7 +754,6 @@ class Solr
         }
 
         $res = $this->select($solrInfo);
-        echo '<pre>';print_r($res);exit;
 
         $statis['count'] = [
             'num_five'  => 0,
