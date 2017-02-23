@@ -297,14 +297,16 @@ class Comment extends \mia\miagroup\Lib\Service {
         $commentArrs = array();
         $commentIds = $this->commentModel->getCommentBySubjectId($subjectId, $user_type, $pageSize, $commentId);
         $comments = $this->getBatchComments($commentIds, array('user_info', 'parent_comment'), array(1, 2))['data'];
-        foreach ($comments as $comment) {
-            //处理仅自己可见的评论
-            if ($comment['status'] == 2) {
-                if ($this->ext_params['current_uid'] != $comment['user_id']) {
-                    continue;
-                } 
+        if (!empty($comments)) {
+            foreach ($comments as $comment) {
+                //处理仅自己可见的评论
+                if ($comment['status'] == 2) {
+                    if ($this->ext_params['current_uid'] != $comment['user_id']) {
+                        continue;
+                    }
+                }
+                $commentArrs[] = $comment;
             }
-            $commentArrs[] = $comment;
         }
         return $this->succ($commentArrs);
     }
