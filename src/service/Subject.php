@@ -63,7 +63,8 @@ class Subject extends \mia\miagroup\Lib\Service
         return $this->succ($tab_list);
     }
 
-    /**批量获取导航分类标签信息
+    /**
+     * 批量获取导航分类标签信息
      * @param $tabIds
      * @return array
      */
