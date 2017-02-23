@@ -169,6 +169,21 @@ class SubjectComment extends \DB_Query {
     }
     
     /**
+     * 获取评论列表
+     */
+    public function getCommentListByCond($cond, $offset = 0, $limit = 20, $orderBy = false) {
+        if (intval($cond['subject_id']) <= 0 && intval($cond['user_id']) <= 0) {
+            return array();
+        }
+        $where = [];
+        foreach ($cond as $k => $v) {
+            $where[] = $v;
+        }
+        $data = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        return $data;
+    }
+    
+    /**
      * 根据评论id查询帖子
      * @param array $commentIds
      */

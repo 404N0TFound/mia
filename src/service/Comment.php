@@ -311,6 +311,18 @@ class Comment extends \mia\miagroup\Lib\Service {
         return $this->succ($commentArrs);
     }
     
+    /**
+     * 获取帖子的评论列表
+     */
+    public function getCommentListBySubjectId($subjectId, $user_type = 0, $page = 1, $limit = 20) {
+        $commentIds = $this->commentModel->getCommentListBySubjectId($subjectId, $user_type, $page, $limit);
+        if (empty($commentIds)) {
+            return $this->succ(array());
+        }
+        $commentList = $this->getBatchComments($commentIds);
+        return $this->succ($commentList);
+    }
+    
     //查出某用户的所有评论
     public function getComments($userId){
         if(!is_numeric($userId) || intval($userId) <= 0){
