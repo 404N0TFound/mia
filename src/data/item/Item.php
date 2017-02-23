@@ -14,9 +14,12 @@ class Item extends \DB_Query {
 
     /**
      * 批量获取商品信息
-     * @param int $itemIds
+     * @param array $itemIds
+     * @param array $status
+     * @return array
      */
-    public function getBatchItemInfoByIds($itemIds, $status = array()){
+    public function getBatchItemInfoByIds($itemIds, $status = [])
+    {
         if (empty($itemIds)) {
             return array();
         }
@@ -25,7 +28,6 @@ class Item extends \DB_Query {
         if(!empty($status)){
             $where[] = ['status', $status];
         }
-        
         $data = $this->getRows($where);
         $result = array();
         if (!empty($data)) {
@@ -62,15 +64,19 @@ class Item extends \DB_Query {
         }
         return $result;
     }
-    
-    //批量获取商品信息
+
+    /**
+     * 批量获取商品信息
+     * @param $itemsIds
+     * @return array
+     */
     public function getBatchItemBrandByIds($itemsIds)
     {
         if(empty($itemsIds)){
             return array();
         }
         $itemsIds = implode(',', $itemsIds);
-    
+
         $sql = "select i.id as item_id, i.name as item_name, i.sale_price, i.brand_id, i.feedback_rate as feedback_rate,i.category_id as category_id,b.name as brand_name
         from {$this->tableName} as i
         left join `item_brand` as b
@@ -86,10 +92,45 @@ class Item extends \DB_Query {
                 $itemArr[$value['item_id']] = $value;
             }
         }
-    
+
         return $itemArr;
     }
-    
+
+    /**
+     * 获取九个妈妈国家信息
+     * @param $itemIdArr
+     * @return array|bool
+     */
+    public function getNineMomCountryInfo($itemIdArr)
+    {
+        if (empty($itemIdArr) || !is_array($itemIdArr)) {
+            return false;
+        }
+
+        $itemsIds = implode(',', $itemIdArr);
+        if (!$itemsIds) {
+            return false;
+        }
+        $sql = "SELECT i.id, c.chinese_name
+                FROM item AS i
+                INNER JOIN customer_supplier AS cs ON i.supplier_id = cs.id
+                INNER JOIN country c ON i.country_id = c.id
+                WHERE i.supplier_id > 0
+                AND cs.is_c2c IN (1, 2)
+                AND i.id IN ({$itemsIds})";
+        $itemResult = $this->query($sql);
+        if (!empty($itemResult)) {
+            $result_arr = array();
+            foreach ($itemResult as $val) {
+                $result_arr[$val['id']] = $val;
+            }
+            return $result_arr;
+        } else {
+            return false;
+        }
+    }
+
+
     /**
      * 获取待计算好评率的口碑商品
      */

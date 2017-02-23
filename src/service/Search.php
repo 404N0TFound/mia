@@ -242,22 +242,20 @@ class Search extends Service
                 }
             }
             $items['item_ids'] = $ids;
-            $items['rank'] = $rank;
-            $items['item_cluster'] = $item_cluster;
+            $items['rank'] = $rank;//type 1 为榜单
+            $items['item_cluster'] = $item_cluster;//类聚
         }
-
         $itemInfos = $this->itemService->getBatchItemBrandByIds($items['item_ids'])['data'];
 
         foreach ($items['item_ids'] as $v) {
             //口碑印象列表不需要了
-            //$ext_info = $this->koubeiService->getItemTagList($itemInfos[$v]['item_id'], ['collect'], 1)['data'];
             $ext_info = $this->koubeiService->getKoubeiNums($itemInfos[$v]['item_id'])['data'];
             if($ext_info['user_unm'] == 0|| $ext_info['item_rec_nums'] == 0){
                 $recommend_desc = '';
             } else {
                 $recommend_desc = $ext_info['user_unm'] . '位妈妈发表了' . $ext_info['item_rec_nums'] . '篇笔记';
             }
-            $items['showdata_list'][] = [
+            $items['showdata_list'][] = array_merge($itemInfos[$v], [
                 'type' => 1,
                 'item_info' => [
                     'id' => $itemInfos[$v]['item_id'],
@@ -266,8 +264,7 @@ class Search extends Service
                     'pic' => [$itemInfos[$v]['item_img']],
                     'recommend_desc' => $recommend_desc,
                     //'koubei_tag_lists' => $ext_info['tag_list']
-                ]
-            ];
+                ]]);
         }
         return $this->succ($items);
     }
