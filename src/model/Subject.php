@@ -399,4 +399,50 @@ class Subject {
         return $subjectIds;
     }
 
+    /**
+     * 新增运营笔记
+     */
+    public function addOperateNote($noteInfo)
+    {
+        if (is_array($noteInfo['ext_info']) && !empty($noteInfo['ext_info'])) {
+            $noteInfo['ext_info'] = json_encode($noteInfo['ext_info']);
+        }
+        $data = $this->headLineChannelContentData->addOperateHeadLine($noteInfo);
+        return $data;
+    }
+    
+    /**
+     * 编辑运营笔记
+     */
+    public function editOperateNote($noteId, $noteInfo)
+    {
+        $data = $this->headLineChannelContentData->updateHeadlineById($id,$noteInfo);
+        return $data;
+    }
+    
+    /**
+     * 根据ID查询运营笔记
+     */
+    public function getNoteInfoById($noteId) {
+        $data = $this->headLineChannelContentData->getHeadLineById($id);
+        return $data;
+    }
+    
+    /**
+     * 删除运营笔记
+     */
+    public function delOperateNote($noteId)
+    {
+        $data = $this->headLineChannelContentData->delHeadlineById($id);
+        return $data;
+    }
+    
+    /**
+     * 通过relation_id/type获取运营笔记
+     */
+    public function getOperateNoteByRelationId($relation_id, $relation_type)
+    {
+        $data = $this->headLineChannelContentData->getHeadLineByRelationId($relation_id, $relation_type);
+        return $data;
+    }
 }
