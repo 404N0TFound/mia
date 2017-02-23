@@ -4,6 +4,7 @@ namespace mia\miagroup\Model;
 use mia\miagroup\Data\Item\Item as ItemData;
 use mia\miagroup\Data\Item\ItemPic as ItemPicData;
 use mia\miagroup\Data\Item\ItemSpu as ItemSpuData;
+use mia\miagroup\Data\Item\ItemCateRelation as ItemCateRelationData;
 use mia\miagroup\Data\Item\UserSupplierMapping as UserSupplierMappingData;
 
 class Item {
@@ -12,11 +13,13 @@ class Item {
     private $itemPicData;
     private $itemSpuData;
     private $userSupplierData;
-    
+    private $itemCateRelationData;
+
     public function __construct() {
         $this->itemData = new ItemData();
         $this->itemPicData = new ItemPicData();
         $this->itemSpuData = new ItemSpuData();
+        $this->itemCateRelationData = new ItemCateRelationData();
         $this->userSupplierData = new UserSupplierMappingData();
     }
     
@@ -105,5 +108,24 @@ class Item {
                 return $data['id'];
             }
         }
+    }
+
+
+    /*
+     * 获取类目四级关联列表
+     * */
+    public function getCategoryFourList($three_cate, $flag)
+    {
+        $res = $this->itemCateRelationData->cateFourList($three_cate,$flag);
+        return $res;
+    }
+
+    /*
+     * 获取品牌名称列表
+     * */
+    public function getRelationBrandNameList($brand_ids)
+    {
+        $res = $this->itemCateRelationData->brandNameList($brand_ids);
+        return $res;
     }
 }
