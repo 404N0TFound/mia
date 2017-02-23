@@ -158,3 +158,18 @@ $group_index_operation_tab = [
         'extend_id' => 12,
     ]
 ];
+
+$operate_note_fields = array(
+    'subject',
+    'doozer',
+    'link',
+);
+
+$operate_note_ext_fields = array(
+    'title',
+    'desc',
+    'cover_image',
+    'url',
+);
+
+
