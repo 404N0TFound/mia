@@ -146,19 +146,22 @@ $group_index_operation_tab = [
         'extend_id' => 10,
     ],
     [
-        'name' => '家居用品',
+        'name' => '宝宝湿巾',
         'url' => '',
         'type' => 'miagroup',
         'extend_id' => 11,
     ],
     [
-        'name' => '女神专区',
+        'name' => '连身衣/爬服',
         'url' => '',
         'type' => 'miagroup',
         'extend_id' => 12,
     ]
 ];
 
+$recommendSubjectKey = "hot_article_all";
+$recommendCateKey = "top_cate_hot";
+$recommendCateSubjectKey = "hot_article_cate_%s";
 $operate_note_fields = array(
     'subject',
     'doozer',

@@ -23,3 +23,10 @@ $item_recommend = array(
     'method' => 'get',
     'result_format' => false
 );
+
+//首页分类标签个性化推荐
+$index_cate_recommend = array(
+    'url' => 'http://10.1.106.28:1872',
+    'method' => 'get',
+    'result_format' => false
+);

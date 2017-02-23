@@ -14,6 +14,9 @@ class Tab extends \DB_Query
      */
     public function getBatchSubjects($conditions)
     {
+        if (isset($conditions['name_md5'])) {
+            $where[] = ['name_md5', $conditions['name_md5']];
+        }
         if (isset($conditions['id'])) {
             $where[] = ['id', $conditions['id']];
         }

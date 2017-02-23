@@ -14,9 +14,7 @@ class Subject {
     protected $videoData = null;
     protected $tabData = null;
     protected $tabOpeationData = null;
-
     public function __construct() {
-
         $this->subjectData = new SubjectData();
         $this->videoData = new VideoData();
         $this->tabData = new TabData();
@@ -55,11 +53,29 @@ class Subject {
     }
 
     /**
-     * @param $tabIds
+     * @param $tabNames
      * @return array
      * 批量获取导航分类标签信息
      */
-    public function getBatchTabInfos($tabIds)
+    public function getBatchTabInfos($tabNames)
+    {
+        if (!is_array($tabNames) || empty($tabNames)) {
+            return [];
+        }
+        $tabNames = array_map(function ($v) {
+            return md5($v);
+        }, $tabNames);
+        $conditions['name_md5'] = $tabNames;
+        $tabInfos = $this->tabData->getBatchSubjects($conditions);
+        return $tabInfos;
+    }
+
+    /**
+     * @param $tabNames
+     * @return array
+     * 获取导航分类标签信息
+     */
+    public function getTabInfos($tabIds)
     {
         if (!is_array($tabIds) || empty($tabIds)) {
             return [];
@@ -432,5 +448,4 @@ class Subject {
         $data = $this->tabOpeationData->getNoteByRelationId($relation_id, $relation_type);
         return $data;
     }
-
 }

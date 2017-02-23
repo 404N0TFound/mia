@@ -237,6 +237,14 @@ $pool = array(
                 ),
             ),
         ),
+        'recommend' => array(
+            'default' => array(
+                array(
+                    'host' => '10.1.60.190',
+                    'port' => 6379,
+                ),
+            ),
+        )
     ),
     'rabbitmq'=>array(
         'miagroup'=>array(
