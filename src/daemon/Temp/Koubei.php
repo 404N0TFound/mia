@@ -192,7 +192,7 @@ class Koubei extends \FD_Daemon {
             $cond = array();
             $cond['subject_id'] = ['subject_id', $v['subject_id']];
             $cond['user_id'] = ['user_id', $user_id];
-            $comment_id = $commentData->getCommentListByCond($cond, 0, 1, 'id desc');
+            $comment_id = $commentData->getRows($cond, '*', 1, 0, 'id desc');
             if (empty($comment_id)) {
                 continue;
             }
