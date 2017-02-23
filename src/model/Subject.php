@@ -53,11 +53,29 @@ class Subject {
     }
 
     /**
-     * @param $tabIds
+     * @param $tabNames
      * @return array
      * 批量获取导航分类标签信息
      */
-    public function getBatchTabInfos($tabIds)
+    public function getBatchTabInfos($tabNames)
+    {
+        if (!is_array($tabNames) || empty($tabNames)) {
+            return [];
+        }
+        $tabNames = array_map(function ($v) {
+            return md5($v);
+        }, $tabNames);
+        $conditions['name_md5'] = $tabNames;
+        $tabInfos = $this->tabData->getBatchSubjects($conditions);
+        return $tabInfos;
+    }
+
+    /**
+     * @param $tabNames
+     * @return array
+     * 获取导航分类标签信息
+     */
+    public function getTabInfos($tabIds)
     {
         if (!is_array($tabIds) || empty($tabIds)) {
             return [];
@@ -380,7 +398,7 @@ class Subject {
         $subjectIds = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page = 1, $limit = 20);
         return $subjectIds;
     }
-    
+
     /**
      * 新增运营笔记
      */
@@ -427,5 +445,4 @@ class Subject {
         $data = $this->headLineChannelContentData->getHeadLineByRelationId($relation_id, $relation_type);
         return $data;
     }
-
 }
