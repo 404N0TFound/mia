@@ -1380,6 +1380,123 @@ class Subject extends \mia\miagroup\Lib\Service
         return $this->succ($data);
     }
     
+    /**
+     * 新增运营笔记
+     */
+    public function addOperateNote($noteInfo)
+    {
+        if(empty($noteInfo) || !is_array($noteInfo)){
+            return $this->error(500);
+        }
+        //relation_type校验
+        if(!in_array($noteInfo['relation_type'], array('subject','doozer','link'))){
+            return $this->error(500);
+        }
+        $setData = array();
+        $setData['channel_id'] = $noteInfo['channel_id'];
+        $setData['relation_id'] = $noteInfo['relation_id'];
+        $setData['relation_type'] = $noteInfo['relation_type'];
+        $setData['page'] = $noteInfo['page'];
+        $setData['row'] = $noteInfo['row'];
+        $setData['begin_time'] = $noteInfo['begin_time'];
+        $setData['end_time'] = $noteInfo['end_time'];
+        $setData['create_time'] = $noteInfo['create_time'];
+        if (!empty($noteInfo['title'])) {
+            $setData['ext_info']['title'] = $noteInfo['title'];
+        }
+        if (!empty($noteInfo['text'])) {
+            $setData['ext_info']['text'] = $noteInfo['text'];
+        }
+        if (!empty($noteInfo['cover_image'])) {
+            $setData['ext_info']['cover_image'] = $noteInfo['cover_image'];
+        }
+        $data = $this->subjectMode->addOperateNote($setData);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 编辑运营笔记
+     */
+    public function editOperateNote($id, $noteInfo) {
+        if (empty($id)) {
+            return $this->error(500);
+        }
+        $headline = $this->headLineModel->getHeadLineById($id);
+        if (empty($headline)) {
+            return $this->error(500);
+        }
+    
+        if (!empty($headLineInfo['relation_id'])) {
+            $setData[] = ['relation_id',$headLineInfo['relation_id']];
+        }
+        if (!empty($headLineInfo['relation_type'])) {
+            $setData[] = ['relation_type',$headLineInfo['relation_type']];
+        }
+        if (!empty($headLineInfo['page'])) {
+            $setData[] = ['page',$headLineInfo['page']];
+        }
+        if (!empty($headLineInfo['row'])) {
+            $setData[] = ['row',$headLineInfo['row']];
+        }
+        if (!empty($headLineInfo['begin_time'])) {
+            $setData[] = ['begin_time',$headLineInfo['begin_time']];
+        }
+        if (!empty($headLineInfo['end_time'])) {
+            $setData[] = ['end_time',$headLineInfo['end_time']];
+        }
+        if (isset($headLineInfo['title'])) {
+            $headLineInfo['ext_info']['title'] = $headLineInfo['title'];
+        }
+        //         if (isset($headLineInfo['text'])) {
+        //             $setData['ext_info']['text'] = $headLineInfo['text'];
+        //         }
+        if (isset($headLineInfo['cover_image'])) {
+            $headLineInfo['ext_info']['cover_image'] = $headLineInfo['cover_image'];
+        }
+        if (is_array($headLineInfo['ext_info']) && !empty($headLineInfo['ext_info'])) {
+            $setData[] = ['ext_info',json_encode($headLineInfo['ext_info'])];
+        }
+        $data = $this->headLineModel->editOperateHeadLine($id, $setData);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 删除运营笔记
+     */
+    public function delOperateHeadLine($id) {
+        if(empty($id)){
+            return $this->error(500);
+        }
+        $data = $this->headLineModel->delOperateHeadLine($id);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 通过relation_id/type获取运营笔记
+     */
+    public function getOperateHeadlineByRelationID($relation_id, $relation_type) {
+        if (empty($relation_id) || !in_array($relation_type, $this->headlineConfig['clientServerMapping'])) {
+            return false;
+        }
+        $data = $this->headLineModel->getOperateHeadlineByRelationId($relation_id, $relation_type);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 获取蜜芽圈笔记推广位列表
+     * @param $tabId
+     * @param $page
+     */
+    public function getOperationNoteList($tabId=1, $page = 1)
+    {
+        //发现列表，增加运营广告位
+        $res = array();
+        $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
+        $operationNoteIds = array_keys($operationNoteData);
+        $res['content_lists'] = $this->formatNoteData($operationNoteIds,$operationNoteData);
+        return $this->succ($res);
+    }
+    
     
 }
 
