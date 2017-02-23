@@ -1,5 +1,8 @@
 <?php
 namespace mia\miagroup\Remote;
+
+use mia\miagroup\Lib\Redis;
+
 class Solr
 {
     private  $core          = '';
@@ -18,10 +21,23 @@ class Solr
      * */
     public function switchServer(){
 
-        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
+        /*$this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
         $this->handleSolrUrlParams();
         if($this->ping() == false){
             $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
+            $this->handleSolrUrlParams();
+        }*/
+
+        $solrConfigList = \F_Ice::$ins->workApp->config->get('thrift.address.solr_switch');
+        $ipCount = count($solrConfigList);
+        $master_num = rand(0,$ipCount-1);
+        $this->config = $solrConfigList['online'.$master_num];
+        $this->handleSolrUrlParams();
+        if($this->ping() == false){
+            unset($solrConfigList[$master_num]);
+            $ipCount = count($solrConfigList);
+            $slave_num = rand(0,$ipCount-1);
+            $this->config = $solrConfigList['online'.$slave_num];
             $this->handleSolrUrlParams();
         }
     }
@@ -229,46 +245,86 @@ class Solr
     /**
      * 通过品牌id获取优质口碑
      */
-    public function getHighQualityKoubeiByBrandId($category_id, $brand_id = 0, $page = 1)
+    public function getHighQualityKoubeiByBrandId($category_id, $brand_id = 0, $page = 1, $category_name)
     {
-        $field = 'id,item_id';
-        $sort = 'score desc,id desc,rank_score desc';
-        // 处理brand_id
-        // 说明:group field 必须是solr索引
-        $conditon = array(
-            'category_id'=>$category_id,
-            'brand_id' => $brand_id,
-            'koubei_with_pic' => true,
-            'status' => 2,
-            'score' => '(4 OR 5)',
-            'fl' => $field,
-            'sort' => $sort
-            /*'group'       => 'true',
-            'group.main'  => 'true',
-            'group.field' => 'order_id'*/
-        );
 
-        $res = $this->getKoubeiList($conditon, $field, 1, $this->export_count, $sort);
-        if(!empty($res['list'])){
-            //$sort_ids = $this->sortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
-            $sort_ids = $this->anotherSortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
-            $result = array('list' => $sort_ids, 'count' => $res['count']);
-            return $result;
+        if(is_array($category_id)){
+            $category_str = implode(",",$category_id);
+        }else{
+            $category_str = $category_id;
         }
-        return array();
+        if(is_array($brand_id)){
+            $brand_str = implode(",",$brand_id);
+        }else{
+            $brand_str = $brand_id;
+        }
+        $koubeiListKey = md5($category_str.$brand_str.$page);
+        $redis = new Redis();
+        //$result = $redis->get($koubeiListKey);
+
+        //if(empty($result)) {
+
+            $field = 'id,item_id';
+            $sort = 'score desc,id desc,rank_score desc';
+
+            $solrInfo = [
+                'q'         => '*:*',
+                'fl'        => $field,
+                'sort'      => $sort,
+                'pageSize'    => $this->export_count,
+            ];
+
+            $solrInfo['fq'][] = 'local_url:*';
+            $solrInfo['fq'][] = 'status:2';
+            $solrInfo['fq'][] = 'score:(4 OR 5)';
+
+            // 5.1 需求变更（传入的为三级类目，兼容老版本，老版本默认为四级类目）
+            if(!empty($category_id)){
+                if(is_array($category_id)){
+                    $solrInfo['fq'][] = $category_name.":(". implode(' OR ', $category_id) . ")";
+                }else{
+                    $solrInfo['fq'][]    = $category_name.':'.$category_id;
+                }
+            }
+
+            // 5.1 需求变更（传入的为三级品牌，兼容老版本，老版本默认为四级品牌）
+            if(!empty($brand_id)){
+                if(is_array($brand_id)){
+                    $solrInfo['fq'][] = "brand_id:(". implode(' OR ', $brand_id) . ")";
+                }else{
+                    $solrInfo['fq'][]    = 'brand_id:'.$brand_id;
+                }
+            }
+
+            $res = $this->select($solrInfo);
+
+            if($res['success'] == 1){
+                $res = $res['data']['response'];
+                //$sort_ids = $this->sortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
+                if(!empty($res['docs'])){
+                    $sort_ids = $this->anotherSortKoubeiId($res['docs'], 'item_id', $res['numFound'], 20, $page);
+                    $result = array('list' => $sort_ids, 'count' => $res['numFound']);
+                }
+            }
+            // 缓存
+            //$redis->setex($koubeiListKey, $result, 20*60);
+        //}
+        return $result;
     }
     
     /**
      * 通过类目id获取优质口碑
      */
-    public function getHighQualityKoubeiByCategoryId($category_id = 0, $page = 1)
+    public function getHighQualityKoubeiByCategoryId($category_id = 0, $page = 1, $category_name = "category_id")
     {
-        $brand_ids = $this->brandList($category_id);
-        if(!empty($brand_ids)){
-            $brand_ids = array_column($brand_ids, 'id');
+        $brand_ids = $this->brandList($category_id, $category_name);
+
+        if(!empty($brand_ids) && is_array($brand_ids)){
+
             // 通过品牌获取口碑列表
-            $result = $this->getHighQualityKoubeiByBrandId($category_id, $brand_ids, $page);
+            $result = $this->getHighQualityKoubeiByBrandId($category_id, $brand_ids, $page, $category_name);
             return $result;
+
         }
         return array();
     }
@@ -279,6 +335,7 @@ class Solr
      */
     public function getKoubeiList($conditon, $field = 'id', $page = 1, $count = 20, $order_by = 'rank_score desc')
     {
+
         $solr_info = [
             'q'         => '*:*',
             'fq'        => array(),
@@ -295,6 +352,15 @@ class Solr
                 $solr_info['fq'][]   = 'category_id:'. $conditon['category_id'];
             }
             
+        }
+        if(intval($conditon['category_id_ng']) > 0) {
+            //新类目ID（5.1版本使用此字段）
+            if (is_array($conditon['category_id_ng'])) {
+                $solr_info['fq'][]   = "category_id_ng:(". implode(' OR ', $conditon['category_id_ng']) . ")";
+            } else {
+                $solr_info['fq'][]   = 'category_id_ng:'. $conditon['category_id_ng'];
+            }
+
         }
         if(intval($conditon['brand_id']) > 0) { 
             //品牌ID
@@ -319,13 +385,13 @@ class Solr
         if(isset($conditon['status']) && in_array($conditon['status'],array(0,1,2))){
             $solr_info['fq'][]   = 'status:'. $conditon['status'];
             if($conditon['status'] == 2){
-                $solr_info['fq'][]   = 'subject_id:[0 TO *]';
+                $solr_info['fq'][]   = 'subject_id:[1 TO *]';
             }
         }
         if(isset($conditon['auto_evaluate']) && in_array($conditon['auto_evaluate'],array(0,1))){
             $solr_info['fq'][]   = 'auto_evaluate:'. $conditon['auto_evaluate'];
         }
-        if(!empty($conditon['score'])){
+        if(isset($conditon['score']) && $conditon['score'] >= 0){
             $solr_info['fq'][]   = 'score:'. $conditon['score'];
         }
         if(!empty($conditon['item_id'])){
@@ -514,10 +580,10 @@ class Solr
             return false;
         }
 
-        if($total_count <= $default_count){
+        /*if($total_count <= $default_count){
             $final_data = array_column($sort_data,'id');
             return $final_data;
-        }
+        }*/
         $sorted_data = array();
         array_values($sort_data);
         // 规则排序
@@ -526,7 +592,7 @@ class Solr
         }
         // 循环取出的条数（默认值）
         $sort_ids = array();
-        if($page <= round($total_count/$default_count)){
+        if($page <= ceil($total_count/$default_count)){
             for ($i=1; $i <= $page; $i++) {
                 //echo '第'.$i.'页数据';
                 $sort_ids = $this->another_order_list($sorted_data, $default_count);
@@ -535,6 +601,7 @@ class Solr
             return array();
         }
         // 取出当前页的条数
+        $current_sort_ids = array();
         foreach($sort_ids as $value){
             foreach($value as $item){
                 $current_sort_ids[] = $item;
@@ -552,14 +619,14 @@ class Solr
 
         $return_arr  = [];
         $removal_arr = [];
-        foreach ($arr as $key => $value) {
 
+        foreach ($arr as $key => $value) {
             if(in_array(array_keys($value)[0], $removal_arr)){
                 continue;
             }
             $return_arr[] = $value;
             //echo '<pre>';print_r($return_arr);
-            $removal_arr[]=array_keys($value);
+            $removal_arr[]= array_keys($value)[0];
             unset($arr[$key]);
             if(count($return_arr) == $default){
                 return $return_arr;
@@ -610,37 +677,54 @@ class Solr
      * 品牌列表
      * @return array 默认返回所有
      */
-    public function brandList($category_id)
+    public function brandList($category_id, $category_name)
     {
-        //$category_id = 2;
-        $solrInfo = [
-            'q'           => '*:*',
-            'sort'        => 'brand_id desc',
-            'group'       => 'true',
-            'group.main'  => 'true',
-            'group.field' => 'brand_id',
-            'fl'          => 'brand_id,name',
-            'pageSize'    => '20',
-            'group.cache.percent' => '20'
-        ];
-        if(!empty($category_id)){
-            $solrInfo['fq'][]    = 'category_id:'.$category_id;
+        //$redis = new Redis();
+        if(is_array($category_id)){
+            $category_str = implode(",",$category_id);
+            $brandListkey = md5($category_str);
+        }else{
+            $brandListkey = md5($category_id);
         }
-        $solrInfo['fq'][] = 'local_url:*';
-        $solrInfo['fq'][] = 'status:2';
-        $solrInfo['fq'][] = 'score:(4 OR 5)';
-        // solr select
-        $res = $this->select($solrInfo);
-        $new_brand_list = array();
-        if($res['success'] == 1){
-            $tmp = $res['data']['response']['docs'];
-            foreach ($tmp as $k => $v){
-                $new_brand_list[$k]['id'] = $v['brand_id'];
-                $new_brand_list[$k]['name'] = $v['name'];
+        $show_brand_ids = array();
+        //$new_brand_list = $redis->get($brandListkey);
+        //if(empty($new_brand_list)){
+            $solrInfo = [
+                'q'           => '*:*',
+                'pageSize'    => '20',
+                'facet'       => 'true',
+                'facet.pivot' => 'brand_id',
+                'facet.field' => array('brand_id'),
+            ];
+            $solrInfo['fq'][] = 'local_url:*';
+            $solrInfo['fq'][] = 'status:2';
+            $solrInfo['fq'][] = 'score:(4 OR 5)';
+
+            // 5.1 需求变更（传入的为三级类目，兼容老版本，老版本默认为四级类目）
+            if(!empty($category_id)){
+                if(is_array($category_id)){
+                    $solrInfo['fq'][] = $category_name.":(". implode(' OR ', $category_id) . ")";
+                }else{
+                    $solrInfo['fq'][]    = $category_name.':'.$category_id;
+                }
             }
-            return $new_brand_list;
-        }
-        return array();
+            $res = $this->select($solrInfo);
+
+            if($res['success'] == 1){
+                $facet_count = $res['data']['facet_counts']['facet_pivot']['brand_id'];
+                if(!empty($facet_count) && is_array($facet_count)){
+                    $show_brand_list = $facet_count;
+                    if(count($facet_count) > 20){
+                        // 展示前20条品牌
+                        $show_brand_list = array_slice($facet_count, 0, 20);
+                    }
+                    $show_brand_ids = array_column($show_brand_list, 'value');
+                }
+            }
+            // 缓存
+            //$redis->setex($brandListkey, $show_brand_ids, 20*60);
+        //}
+        return $show_brand_ids;
     }
 
 
@@ -651,21 +735,26 @@ class Solr
 
         // solr facet维度：默认只支持100（查询总量不现实）
         $begin_time = strtotime("-3 months", $search_time);
+
         $solrInfo = [
             'q'           => '*:*',
-            'fl'          => 'order_id',
             'facet'       => 'true',
             'facet.pivot' => 'score',
             'facet.field' => array('score'),
         ];
+
         $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:2';
-        $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO *]';
+
+        if(!empty($begin_time)){
+            $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO ' . $search_time.']';
+        }
         if($screen == 'item_id'){
             $solrInfo['fq'][] = '-(auto_evaluate:1)';
         }
+
         $res = $this->select($solrInfo);
-        $statis = array();
+
         $statis['count'] = [
             'num_five'  => 0,
             'num_four'  => 0,
@@ -673,28 +762,31 @@ class Solr
             'num_two'   => 0,
             'num_one'   => 0,
         ];
-        $docs = $res['data']['response']['docs'];
-        if(!empty($docs)) {
-            $facet_pivot = $res['data']['facet_counts']['facet_pivot']['score'];
-           foreach($facet_pivot as $value){
-               if($value['value'] == 5){
-                   $statis['count']['num_five'] = $value['count'];
-               }
-               if($value['value'] == 4){
-                   $statis['count']['num_four'] = $value['count'];
-               }
-               if($value['value'] == 3){
-                   $statis['count']['num_three'] = $value['count'];
-               }
-               if($value['value'] == 2){
-                   $statis['count']['num_two'] = $value['count'];
-               }
-               if($value['value'] == 1){
-                   $statis['count']['num_one'] = $value['count'];
-               }
-           }
+
+        if($res['success'] == 1){
+
+            $facet_score = $res['data']['facet_counts']['facet_pivot']['score'];
+            if(!empty($facet_score) && is_array($facet_score)) {
+
+                foreach($facet_score as $value){
+                    if($value['value'] == 5){
+                        $statis['count']['num_five'] = $value['count'];
+                    }
+                    if($value['value'] == 4){
+                        $statis['count']['num_four'] = $value['count'];
+                    }
+                    if($value['value'] == 3){
+                        $statis['count']['num_three'] = $value['count'];
+                    }
+                    if($value['value'] == 2){
+                        $statis['count']['num_two'] = $value['count'];
+                    }
+                    if($value['value'] == 1){
+                        $statis['count']['num_one'] = $value['count'];
+                    }
+                }
+            }
         }
-        // 返回各项得分
         return $statis;
     }
 
@@ -711,11 +803,16 @@ class Solr
         ];
         $solrInfo['fq'][] = $screen .":".$screen_param;
         $solrInfo['fq'][] = 'status:5';
-        $solrInfo['fq'][] = 'finish_time:['.$begin_time.' TO *]';
+
+        if(!empty($begin_time)){
+            $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO ' . $search_time.']';
+        }
 
         $res = $this->select($solrInfo);
+
         $docs = $res['data']['response']['docs'];
-        if(!empty($docs)){
+
+        if(!empty($docs) && is_array($docs)){
             return array( 'count' => $res['data']['response']['numFound']);
         }
         return array();
