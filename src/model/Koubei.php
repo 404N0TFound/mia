@@ -8,8 +8,10 @@ use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
 use mia\miagroup\Data\Koubei\KoubeiTags;
 use mia\miagroup\Data\Koubei\KoubeiTagsLayer;
 use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
+
 use \mia\miagroup\Data\Koubei\SearchWords as SearchWordsData;
 
+use mia\miagroup\Data\Koubei\KoubeiCateRelation;
 
 class Koubei {
     
@@ -20,8 +22,8 @@ class Koubei {
     private $koubeiTagsLayerData;
     private $koubeiTagsRelationData;
     private $koubeiSearchWordsData;
-    
-    
+    private $koubeiCateRelationData;
+
     public function __construct() {
         $this->koubeiData = new KoubeiData();
         $this->koubeiPicData = new KoubeiPicData();
@@ -30,6 +32,7 @@ class Koubei {
         $this->koubeiTagsLayerData = new KoubeiTagsLayer();
         $this->koubeiTagsRelationData = new KoubeiTagsRelation();
         $this->koubeiSearchWordsData = new SearchWordsData();
+        $this->koubeiCateRelationData = new koubeiCateRelation();
     }
     
     /**
@@ -736,6 +739,22 @@ class Koubei {
     {
         $searchKeys = $this->koubeiSearchWordsData->getNoteSearchKey();
         return $searchKeys;
+    }
+    
+    public function getFourList($three_cate, $flag)
+    {
+        $res = $this->koubeiCateRelationData->fourList($three_cate,$flag);
+        return $res;
+    }
+
+    public function getIdType($id){
+        $type = $this->koubeiCateRelationData->idType($id);
+        return $type;
+    }
+
+    public function getBrandName($ids){
+        $list = $this->koubeiCateRelationData->brandName($ids);
+        return $list;
     }
 
 }

@@ -14,11 +14,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public $koubeiModel;
     public $subjectService;
     public $koubeiConfig;
+    public $version;
 
     public function __construct() {
+        parent::__construct();
         $this->koubeiModel = new KoubeiModel();
         $this->subjectService = new SubjectService();
         $this->emojiUtil = new EmojiUtil();
+        $this->version = $this->ext_params['version'];
         $this->koubeiConfig = \F_Ice::$ins->workApp->config->get('batchdiff.koubeibatch');
     }
 
@@ -850,30 +853,54 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $solr        = new SolrRemote('koubei');
         $koubei      = array();
         $brand_list  = array();
-        if(!empty($category_id) && empty($brand_id)){
-            // 类目下口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByCategoryId($category_id, $page);
-            $brand_list  = $solr->brandList($category_id);
-        }else{
-            // 品牌口碑去重分页列表
-            $koubei_info = $solr->getHighQualityKoubeiByBrandId($category_id, $brand_id, $page);
+
+        // 5.1 版本控制
+        $category_name = "category_id";
+        $version = explode('_', $this->ext_params['version'], 3);
+        array_shift($version);
+        $version = intval(implode($version));
+        //$version = 51;
+        if ($version >= 51) {
+            $category_name = "category_id_ng";
         }
-        if(!empty($koubei_info)){
+
+        if(!empty($category_id) && empty($brand_id)){
+
+            // 类目（三级）
+            $relation_ids = $this->koubeiModel->getFourList($category_id, 'cid');
+            if(!empty($relation_ids)){
+                // 类目下口碑去重分页列表
+                $koubei_info = $solr->getHighQualityKoubeiByCategoryId($relation_ids, $page, $category_name);
+                $brand_ids  = $solr->brandList($relation_ids, $category_name);
+            }
+        }
+        if(empty($category_id) && !empty($brand_id)){
+
+            // 品牌（三级）
+            $relation_ids = $this->koubeiModel->getFourList($brand_id, 'bid');
+            // 品牌口碑去重分页列表
+            if(!empty($relation_ids)){
+                $koubei_info = $solr->getHighQualityKoubeiByBrandId('', $relation_ids, $page, $category_name);
+            }
+        }else{
+            // 类目及品牌 (默认为四级)
+
+            $relation_ids = $this->koubeiModel->getFourList($category_id, 'cid');
+            if(!empty($brand_id)){
+                $koubei_info = $solr->getHighQualityKoubeiByBrandId($relation_ids, $brand_id, $page, $category_name);
+            }
+        }
+
+        // 获取品牌名称
+        if(!empty($brand_ids) && is_array($brand_ids)){
+            $brand_list = $this->koubeiModel->getBrandName($brand_ids);
+        }
+
+        if(!empty($koubei_info) && is_array($koubei_info)){
             $koubei['count'] = $koubei_info['count'];
             $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_info['list'], $userId)['data']);
         }
 
-        /*$koubei_info = $solr->koubeiList($brand_id, $category_id, $count, $page);
-        if(!empty($category_id)){
-            $brand_list  = $solr->brandList($category_id);
-        }
-        if(!empty($koubei_info)){
-            $totalCount  = $koubei_info['numFound'];
-            $koubei_ids  = array_column($koubei_info['docs'],'id');
-            $koubei['count'] = $totalCount;
-            $koubei['list']  = array_values($this->getBatchKoubeiByIds($koubei_ids, $userId)['data']);
-
-        }*/
         $res = array('koubei_list' => $koubei, 'brand_list' => $brand_list);
         return $this->succ($res);
     }
@@ -1455,15 +1482,21 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * 批量获取供应商口碑评分数量
      * */
     public function getSupplierKoubeiScore($supplier = '',$search_time = ''){
-        if(empty($supplier) || empty($search_time)){
+
+        if(empty($supplier) || mb_strlen($search_time) != 10){
             return $this->succ(array());
         }
+
+        $search_time = !empty($search_time) ? $search_time : time();
+
+        $param_name = 'supplier_id';
         $supplier_list = array();
         $solr = new SolrRemote('koubei');
         $solr_supplier = new SolrRemote('supplier');
-        $supplier_info = $solr->getSupplierGoodsScore('supplier_id', $supplier, $search_time);
+        // 获取商家口碑信息
+        $supplier_info = $solr->getSupplierGoodsScore($param_name, $supplier, $search_time);
         // 获取默认5分好评
-        $default_info = $solr_supplier->getDefaultScoreFive('supplier_id', $supplier, $search_time);
+        $default_info = $solr_supplier->getDefaultScoreFive($param_name, $supplier, $search_time);
         $koubei_sum_score = array_sum($supplier_info['count']);
 
         $supplier_info['count']['num_default'] = 0;

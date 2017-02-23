@@ -84,7 +84,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //用户评分
             $solrCond['score'] = $params['score'];
         }
-        if (($params['score'] == '机选差评' || (is_array($params['score']) && in_array('机选差评', $params['score'])))  && intval($solrCond['id']) <= 0) {
+        if (($params['score'] === '机选差评' || (is_array($params['score']) && in_array('机选差评', $params['score'])))  && intval($solrCond['id']) <= 0) {
             //机器评分
             $solrCond['machine_score'] = 1;
         }
