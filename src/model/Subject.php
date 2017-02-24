@@ -416,9 +416,6 @@ class Subject {
      */
     public function editOperateNote($noteId, $noteInfo)
     {
-        if (is_array($noteInfo['ext_info']) && !empty($noteInfo['ext_info'])) {
-            $noteInfo['ext_info'] = json_encode($noteInfo['ext_info']);
-        }
         $data = $this->tabOpeationData->updateNoteById($noteId,$noteInfo);
         return $data;
     }
