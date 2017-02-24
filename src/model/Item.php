@@ -110,6 +110,13 @@ class Item {
         }
     }
 
+    /**
+     * 获取商品的九个妈妈信息
+     */
+    public function getNineMomCountryInfo($itemIds) {
+        $data = $this->itemData->getNineMomCountryInfo($itemIds);
+        return $data;
+    }
 
     /*
      * 获取类目四级关联列表
