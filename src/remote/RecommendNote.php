@@ -23,7 +23,7 @@ class RecommendNote
         $params['tp'] = 2;//取得最感兴趣的分类
         $params['sessionid'] = $this->session_info['bi_session_id'];
 
-        $result = $remote_curl->curl_remote('11/recommend_result', $params);
+        $result = $remote_curl->curl_remote('/recommend_result', $params);
         $tabInfo = $result['pl_list'];
         //错误处理
         if (empty($tabInfo) || $result['msg'] == 'error' || !$result) {
