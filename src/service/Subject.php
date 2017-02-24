@@ -400,6 +400,9 @@ class Subject extends \mia\miagroup\Lib\Service
             if (!empty($smallImageInfos[0])) {
                 $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos[0];
             }
+            if (!empty($smallImageInfos)) {
+                $subjectRes[$subjectInfo['id']]['small_image_infos'] = $smallImageInfos;
+            }
             if (!empty($subjectInfo['ext_info']['koubei']) || !empty($subjectInfo['ext_info']['koubei_id'])) {
                 if (!empty($subjectInfo['ext_info']['koubei'])) {
                     $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei']['id'];
