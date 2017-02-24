@@ -76,13 +76,6 @@ class Item extends \mia\miagroup\Lib\Service {
     public function getBatchItemBrandByIds($itemsIds)
     {
         $itemInfo = $this->itemModel->getBatchItemBrandByIds($itemsIds);
-
-        foreach ($itemInfo as $v) {
-            if (isset($v) && !empty($v['item_id'])) {
-                $arrItemIds[] = $v['item_id'];
-            }
-        }
-
         return $this->succ($itemInfo);
     }
     
