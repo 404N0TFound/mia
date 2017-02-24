@@ -75,8 +75,8 @@ class Item extends \mia\miagroup\Lib\Service {
      */
     public function getBatchItemBrandByIds($itemsIds)
     {
-        $data = $this->itemModel->getBatchItemBrandByIds($itemsIds);
-        return $this->succ($data);
+        $itemInfo = $this->itemModel->getBatchItemBrandByIds($itemsIds);
+        return $this->succ($itemInfo);
     }
     
     /**
@@ -107,5 +107,29 @@ class Item extends \mia\miagroup\Lib\Service {
     {
         $result = $this->itemModel->addUserSupplierMapping($supplier_id, $user_id);
         return $this->succ($result);
+    }
+
+    /*
+     * 获取四级类目列表
+     * */
+    public function getCategoryFourIds($three_cate, $flag)
+    {
+        if (empty($three_cate) || empty($flag)) {
+            return array();
+        }
+        $result = $this->itemModel->getCategoryFourList($three_cate, $flag);
+        return $result;
+    }
+
+    /*
+     * 获取四级品牌名称列表
+     * */
+    public function getRelationBrandName($brand_ids)
+    {
+        if(empty($brand_ids)) {
+            return array();
+        }
+        $result = $this->itemModel->getRelationBrandNameList($brand_ids);
+        return $result;
     }
 }

@@ -10,12 +10,18 @@ class Tab extends \DB_Query
     /**
      * 获取标签信息
      * @param $conditions
-     * @param array
+     * @return array
      */
     public function getBatchSubjects($conditions)
     {
+        if (isset($conditions['name_md5'])) {
+            $where[] = ['name_md5', $conditions['name_md5']];
+        }
         if (isset($conditions['id'])) {
             $where[] = ['id', $conditions['id']];
+        }
+        if(empty($where)){
+            return [];
         }
         $data = $this->getRows($where);
         return $data;

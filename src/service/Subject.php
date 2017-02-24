@@ -38,7 +38,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $this->albumService = new AlbumService();
 		$this->tagsService = new PointTagsService();
         $this->headlineRemote = new HeadlineRemote();
-        $this->noteRemote = new RecommendNote();
+
         $this->config = \F_Ice::$ins->workApp->config->get('busconf.subject');
     }
 
@@ -54,8 +54,18 @@ class Subject extends \mia\miagroup\Lib\Service
         //配置位3个
         $operation_tabs = $this->config['group_index_operation_tab'];
         //个性化推荐位6个
-        $userTabIds = $this->noteRemote->getRecommendTabList($userId);
-        $user_tabs = $this->getBatchTabInfos($userTabIds);
+        $noteRemote = new RecommendNote($this->ext_params);
+        $userTabNames = $noteRemote->getRecommendTabList($userId);
+        //个性化和配置位去重
+        foreach ($operation_tabs as $v) {
+            foreach ($userTabNames as $key => $val){
+                if($v['name'] == $val) {
+                    unset($userTabNames[$key]);
+                }
+            }
+        }
+        $user_tabs = $this->getBatchTabInfos($userTabNames);
+
         //最后固定位，“育儿”
         $last_tabs = $this->config['group_fixed_tab_last'];
 
@@ -65,21 +75,21 @@ class Subject extends \mia\miagroup\Lib\Service
 
     /**
      * 批量获取导航分类标签信息
-     * @param $tabIds
+     * @param $tabNames
      * @return array
      */
-    public function getBatchTabInfos($tabIds)
+    public function getBatchTabInfos($tabNames)
     {
-        if (!is_array($tabIds) || empty($tabIds)) {
+        if (!is_array($tabNames) || empty($tabNames)) {
             return [];
         }
-        $tab_infos = $this->subjectModel->getBatchTabInfos($tabIds);
+        $tab_infos = $this->subjectModel->getBatchTabInfos($tabNames);
         if (empty($tab_infos)) {
             return [];
         }
         foreach ($tab_infos as $v) {
             $res[] = [
-                'name' => $v['tab_name'],
+                'name' => $v['show_name']?$v['show_name']:$v['tab_name'],
                 'url' => '',
                 'type' => 'miagroup',
                 'extend_id' => $v['id'],
@@ -99,14 +109,19 @@ class Subject extends \mia\miagroup\Lib\Service
      */
     public function noteList($tabId, $action, $page = 1, $count = 20, $userId = 0)
     {
-        //育儿频道不同处理
-        if ($tabId == $this->config['group_fixed_tab_last'][0]['extend_id']) {
-            //获取推荐标签
-            $labelList = $this->labelService->getRecommendLabels();
-            $res['label_list'] = $labelList;
+        if (empty($tabId) || empty($action)) {
+            return $this->succ([]);
         }
+        //获取tabName
+        $noteRemote = new RecommendNote($this->ext_params);
+        $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
+
         //普通列表
-        $userNoteListIds = $this->noteRemote->getRecommendNoteList($tabId, $action, $page, $count, $userId);
+        if($action == 'init' || $action == 'refresh') {
+            //推荐会自动去除展示过后的数据，所以刷新只要重复请求第一页就行
+            $page = 1;
+        }
+        $userNoteListIds = $noteRemote->getRecommendNoteList($tabName, $page, $count);
 
         //发现列表，增加运营广告位
         $operationNoteData = [];
@@ -166,7 +181,9 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         //批量获取帖子信息
         $subjects = $this->getBatchSubjectInfos($subjectIds)['data'];
-        $doozerInfo = $this->userService->getUserInfoByUids($doozerIds)['data'];
+        if (!empty($doozerIds)) {
+            $doozerInfo = $this->userService->getUserInfoByUids($doozerIds, 0, ['count'])['data'];
+        }
 
         $return = [];
         foreach ($ids as $value) {
@@ -176,8 +193,8 @@ class Subject extends \mia\miagroup\Lib\Service
             if (array_key_exists($value, $operationNoteData)) {
                 $relation_id = $operationNoteData[$value]['relation_id'];
                 $relation_type = $operationNoteData[$value]['relation_type'];
-                $relation_title = $operationNoteData[$value]['ext_info']['title'];
-                $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'];
+                $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
+                $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
                 $is_opearation = 1;
             }
             switch ($relation_type) {
@@ -188,12 +205,14 @@ class Subject extends \mia\miagroup\Lib\Service
                         $subject = $subjects[$relation_id];
                         $tmpData['id'] = $subject['id'] . '_subject';
                         $tmpData['type'] = 'subject';
-                        $tmpData['type_name'] = '笔记';
+                        $tmpData['type_name'] = '口碑';
+
                         $subject['title'] = $relation_title ? $relation_title : $subject['title'];
                         if(!empty($relation_cover_image)){
                             $subject['cover_image'] = $relation_cover_image;
                         }
                         $tmpData['subject'] = $subject;
+                        $tmpData['is_opearation'] = $is_opearation;
                     }
                     break;
                 case 'doozer':
@@ -202,6 +221,7 @@ class Subject extends \mia\miagroup\Lib\Service
                         $tmpData['id'] = $user['user_id'] . '_doozer';
                         $tmpData['type'] = 'doozer';
                         $tmpData['type_name'] = '达人';
+
                         //配置了用配置的title，否则用group_doozer里的intro
                         if(!empty($relation_title)){
                             $user['doozer_intro'] = $relation_title ? $relation_title : $doozerInfo[$relation_id]['intro'];
@@ -210,6 +230,7 @@ class Subject extends \mia\miagroup\Lib\Service
                             $user['doozer_recimage'] = $relation_cover_image;
                         }
                         $tmpData['doozer'] = $user;
+                        $tmpData['is_opearation'] = $is_opearation;
                     }
                     break;
                 case 'link':
@@ -225,10 +246,12 @@ class Subject extends \mia\miagroup\Lib\Service
                             $link['image'] = $relation_cover_image;
                         }
                         $link['url'] = $linkInfo['ext_info']['url'];
+                        $link['desc'] = $linkInfo['ext_info']['desc'];
                         $tmpData['link'] = $link;
+                        $tmpData['is_opearation'] = $is_opearation;
                     break;
             }
-            $tmpData['is_opearation'] = $is_opearation;
+
             if (!empty($tmpData)) {
                 $return[] = $tmpData;
             }
@@ -261,7 +284,7 @@ class Subject extends \mia\miagroup\Lib\Service
         foreach ($subjectInfos as $subjectInfo) {
             $userIdArr[] = $subjectInfo['user_id'];
         }
-        
+
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
@@ -1383,7 +1406,111 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         return $this->succ($data);
     }
+
     
+    /**
+     * 新增运营笔记
+     */
+    public function addOperateNote($noteInfo)
+    {
+
+        if(empty($noteInfo) || !is_array($noteInfo)){
+            return $this->error(500);
+        }
+
+        $relation_type_fields = $this->config['operate_note_fields'];
+        $special_fields  = $this->config['operate_note_ext_fields'];
+
+        //relation_type校验
+        if(!in_array($noteInfo['relation_type'], $relation_type_fields)){
+            return $this->error(500);
+        }
+
+        $setData = array();
+        foreach($noteInfo as $key => $value) {
+            if(in_array($key, $special_fields)) {
+                $setData['ext_info'][$key] = $value;
+            }else {
+                $setData[$key] = $value;
+            }
+        }
+        $data = $this->subjectModel->addOperateNote($setData);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 编辑运营笔记
+     */
+    public function editOperateNote($noteId, $noteInfo) {
+
+        if (empty($noteId)) {
+            return $this->error(500);
+        }
+        $noteDetail = $this->subjectModel->getNoteInfoById($noteId);
+
+        if (empty($noteDetail)) {
+            return $this->error(500);
+        }
+
+        $special_fields  = $this->config['operate_note_ext_fields'];
+
+        $setData = array();
+        foreach($noteInfo as $key => $value) {
+            if(in_array($key, $special_fields)) {
+                $setData['ext_info'][$key] = $value;
+            }else {
+                $setData[] = [$key, $value];
+            }
+        }
+
+        if (is_array($setData['ext_info']) && !empty($setData['ext_info'])) {
+            $setData[] = ['ext_info',json_encode($setData['ext_info'])];
+            unset($setData['ext_info']);
+        }
+
+        $data = $this->subjectModel->editOperateNote($noteId, $setData);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 删除运营笔记
+     */
+    public function delOperateHeadLine($id) {
+
+        if(empty($id)){
+            return $this->error(500);
+        }
+        $data = $this->subjectModel->delOperateNote($id);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 通过relation_id/type获取运营笔记
+     */
+    public function getOperateHeadlineByRelationID($relation_id, $relation_type) {
+
+        $relation_type_fields = $this->config['operate_note_fields'];
+        if (empty($relation_id) || !in_array($relation_type, $relation_type_fields)) {
+            return false;
+        }
+        $data = $this->subjectModel->getOperateNoteByRelationId($relation_id, $relation_type);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 获取蜜芽圈笔记推广位列表
+     * @param $tabId
+     * @param $page
+     */
+    public function getOperationNoteList($tabId=1, $page = 1)
+    {
+        //发现列表，增加运营广告位
+        $res = array();
+        $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
+        $operationNoteIds = array_keys($operationNoteData);
+        $res['content_lists'] = $this->formatNoteData($operationNoteIds,$operationNoteData);
+        return $this->succ($res);
+    }
     
 }
 

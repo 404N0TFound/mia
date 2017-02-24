@@ -864,10 +864,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $category_name = "category_id_ng";
         }
 
+        $item_service = new ItemService();
+
         if(!empty($category_id) && empty($brand_id)){
 
             // 类目（三级）
-            $relation_ids = $this->koubeiModel->getFourList($category_id, 'cid');
+            $relation_ids = $item_service->getCategoryFourIds($category_id, 'cid');
+
             if(!empty($relation_ids)){
                 // 类目下口碑去重分页列表
                 $koubei_info = $solr->getHighQualityKoubeiByCategoryId($relation_ids, $page, $category_name);
@@ -877,7 +880,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($category_id) && !empty($brand_id)){
 
             // 品牌（三级）
-            $relation_ids = $this->koubeiModel->getFourList($brand_id, 'bid');
+            $relation_ids = $item_service->getCategoryFourIds($brand_id, 'bid');
+
             // 品牌口碑去重分页列表
             if(!empty($relation_ids)){
                 $koubei_info = $solr->getHighQualityKoubeiByBrandId('', $relation_ids, $page, $category_name);
@@ -885,7 +889,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }else{
             // 类目及品牌 (默认为四级)
 
-            $relation_ids = $this->koubeiModel->getFourList($category_id, 'cid');
+            $relation_ids = $item_service->getCategoryFourIds($category_id, 'cid');
             if(!empty($brand_id)){
                 $koubei_info = $solr->getHighQualityKoubeiByBrandId($relation_ids, $brand_id, $page, $category_name);
             }
@@ -893,7 +897,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         // 获取品牌名称
         if(!empty($brand_ids) && is_array($brand_ids)){
-            $brand_list = $this->koubeiModel->getBrandName($brand_ids);
+            $brand_list = $item_service->getRelationBrandName($brand_ids);
         }
 
         if(!empty($koubei_info) && is_array($koubei_info)){

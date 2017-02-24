@@ -53,11 +53,29 @@ class Subject {
     }
 
     /**
-     * @param $tabIds
+     * @param $tabNames
      * @return array
      * 批量获取导航分类标签信息
      */
-    public function getBatchTabInfos($tabIds)
+    public function getBatchTabInfos($tabNames)
+    {
+        if (!is_array($tabNames) || empty($tabNames)) {
+            return [];
+        }
+        $tabNames = array_map(function ($v) {
+            return md5($v);
+        }, $tabNames);
+        $conditions['name_md5'] = $tabNames;
+        $tabInfos = $this->tabData->getBatchSubjects($conditions);
+        return $tabInfos;
+    }
+
+    /**
+     * @param $tabNames
+     * @return array
+     * 获取导航分类标签信息
+     */
+    public function getTabInfos($tabIds)
     {
         if (!is_array($tabIds) || empty($tabIds)) {
             return [];
@@ -380,5 +398,51 @@ class Subject {
         $subjectIds = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page = 1, $limit = 20);
         return $subjectIds;
     }
-
+    
+    /**
+     * 新增运营笔记
+     */
+    public function addOperateNote($noteInfo)
+    {
+        if (is_array($noteInfo['ext_info']) && !empty($noteInfo['ext_info'])) {
+            $noteInfo['ext_info'] = json_encode($noteInfo['ext_info']);
+        }
+        $data = $this->tabOpeationData->addOperateNote($noteInfo);
+        return $data;
+    }
+    
+    /**
+     * 编辑运营笔记
+     */
+    public function editOperateNote($noteId, $noteInfo)
+    {
+        $data = $this->tabOpeationData->updateNoteById($noteId,$noteInfo);
+        return $data;
+    }
+    
+    /**
+     * 根据ID查询运营笔记
+     */
+    public function getNoteInfoById($noteId) {
+        $data = $this->tabOpeationData->getNoteInfoById($noteId);
+        return $data;
+    }
+    
+    /**
+     * 删除运营笔记
+     */
+    public function delOperateNote($noteId)
+    {
+        $data = $this->tabOpeationData->delNoteById($noteId);
+        return $data;
+    }
+    
+    /**
+     * 通过relation_id/type获取运营笔记
+     */
+    public function getOperateNoteByRelationId($relation_id, $relation_type)
+    {
+        $data = $this->tabOpeationData->getNoteByRelationId($relation_id, $relation_type);
+        return $data;
+    }
 }

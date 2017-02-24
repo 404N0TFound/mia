@@ -14,9 +14,12 @@ class Item extends \DB_Query {
 
     /**
      * 批量获取商品信息
-     * @param int $itemIds
+     * @param array $itemIds
+     * @param array $status
+     * @return array
      */
-    public function getBatchItemInfoByIds($itemIds, $status = array()){
+    public function getBatchItemInfoByIds($itemIds, $status = [])
+    {
         if (empty($itemIds)) {
             return array();
         }
@@ -25,7 +28,6 @@ class Item extends \DB_Query {
         if(!empty($status)){
             $where[] = ['status', $status];
         }
-        
         $data = $this->getRows($where);
         $result = array();
         if (!empty($data)) {
@@ -62,15 +64,19 @@ class Item extends \DB_Query {
         }
         return $result;
     }
-    
-    //批量获取商品信息
+
+    /**
+     * 批量获取商品信息
+     * @param $itemsIds
+     * @return array
+     */
     public function getBatchItemBrandByIds($itemsIds)
     {
         if(empty($itemsIds)){
             return array();
         }
         $itemsIds = implode(',', $itemsIds);
-    
+
         $sql = "select i.id as item_id, i.name as item_name, i.sale_price, i.brand_id, i.feedback_rate as feedback_rate,i.category_id as category_id,b.name as brand_name
         from {$this->tableName} as i
         left join `item_brand` as b
@@ -86,10 +92,10 @@ class Item extends \DB_Query {
                 $itemArr[$value['item_id']] = $value;
             }
         }
-    
+
         return $itemArr;
     }
-    
+
     /**
      * 获取待计算好评率的口碑商品
      */

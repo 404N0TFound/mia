@@ -28,12 +28,8 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         foreach($activeInfos as $activeInfo){
             $tmp = $activeInfo;
-            $topImg = array();
-            $size= getimagesize("http://img.miyabaobei.com/".$activeInfo['top_img']);
-            $topImg['url'] = $activeInfo['top_img'];
-            $topImg['width'] = $size[0];
-            $topImg['height'] = $size[1];
-            $tmp['top_img'] = $topImg;
+            $extInfo = json_decode($activeInfo['ext_info'],true);
+            $tmp['top_img'] = $extInfo['image'];
             
             $activeRes[] = $tmp;
         }
@@ -44,11 +40,11 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 获取单条活动信息
      */
-    public function getSingleActiveById($activeId) {
+    public function getSingleActiveById($activeId, $status = array(1)) {
         $condition = array('active_ids' => array($activeId));
         $activeRes = array();
         // 获取活动基本信息
-        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 1, array(1), $condition);
+        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 1, $status, $condition);
         if (empty($activeInfos[$activeId])) {
             return $this->succ(array());
         }
@@ -60,15 +56,11 @@ class Active extends \mia\miagroup\Lib\Service {
                 $activeRes['labels'] = $extInfo['labels'];
                 $activeRes['label_titles'] = implode(',',array_column($activeRes['labels'], 'title'));
             }
+            if(!empty($extInfo['image'])){
+                $activeRes['top_img'] = $extInfo['image'];
+                $activeRes['top_img_url'] = $activeInfos[$activeId]['top_img'];
+            }
         }
-        
-        $topImg = array();
-        $size= getimagesize("http://img.miyabaobei.com/".$activeInfos[$activeId]['top_img']);
-        $topImg['url'] = $activeInfos[$activeId]['top_img'];
-        $topImg['width'] = $size[0];
-        $topImg['height'] = $size[1];
-        $activeRes['top_img'] = $topImg;
-        
         return $this->succ($activeRes);
     }
     
@@ -125,9 +117,13 @@ class Active extends \mia\miagroup\Lib\Service {
         $extInfo = array();
         if(!empty($labels)){
             $extInfo['labels']= $labels;
+            unset($activeInfo['label_titles']);
+        }
+        if(!empty($activeInfo['image_info'])){
+            $extInfo['image']= $activeInfo['image_info'];
+            unset($activeInfo['image_info']);
         }
         $activeInfo['ext_info'] = json_encode($extInfo);
-        unset($activeInfo['label_titles']);
         
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
         if (!$insertActiveRes) {
@@ -164,9 +160,14 @@ class Active extends \mia\miagroup\Lib\Service {
         $extInfo = array();
         if(!empty($labels)){
             $extInfo['labels']= $labels;
+            unset($activeInfo['label_titles']);
         }
+        if(!empty($activeInfo['image_info'])){
+            $extInfo['image']= $activeInfo['image_info'];
+            unset($activeInfo['image_info']);
+        }
+        
         $activeInfo['ext_info'] = json_encode($extInfo);
-        unset($activeInfo['label_titles']);
         
         $this->activeModel->updateActive($activeInfo, $activeId);
         return $this->succ(true);
