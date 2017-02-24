@@ -1,13 +1,12 @@
 <?php
 namespace mia\miagroup\Remote;
-use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Lib\RemoteCurl;
 
 class Search
 {
-    public function __construct()
+    public function __construct($session_info)
     {
-        //获取配置信息
-        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.itemSearch');
+        $this->session_info = $session_info;
     }
 
     /**
@@ -41,9 +40,8 @@ class Search
      */
     public function itemSearch($searchArr)
     {
-        $queryStr = http_build_query($searchArr);
-        $url = $this->config['remote'] . $queryStr;
-        $ret = NormalUtil::getCurl('itemSearch', $url, 10);
-        return $ret;
+        $remote_curl = new RemoteCurl('item_search');
+        $result = $remote_curl->curl_remote('', $searchArr);
+        return $result;
     }
 }
