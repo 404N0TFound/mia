@@ -507,7 +507,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
         $subjectInfo['user_info'] = $userInfo;
         //评论信息
-        $commentInfo = $this->commentService->getCommentBySubjectId($subjectId, 0, 3);
+        $commentInfo = $this->commentService->getCommentBySubjectId($subjectId, 0, 3)['data'];
         $subjectInfo['comment_info'] = $commentInfo;
         
         /*蜜芽帖、口碑贴相关逻辑开始*/
