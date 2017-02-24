@@ -97,41 +97,6 @@ class Item extends \DB_Query {
     }
 
     /**
-     * 获取九个妈妈国家信息
-     * @param $itemIdArr
-     * @return array|bool
-     */
-    public function getNineMomCountryInfo($itemIdArr)
-    {
-        if (empty($itemIdArr) || !is_array($itemIdArr)) {
-            return false;
-        }
-
-        $itemsIds = implode(',', $itemIdArr);
-        if (!$itemsIds) {
-            return false;
-        }
-        $sql = "SELECT i.id, c.chinese_name
-                FROM item AS i
-                INNER JOIN customer_supplier AS cs ON i.supplier_id = cs.id
-                INNER JOIN country c ON i.country_id = c.id
-                WHERE i.supplier_id > 0
-                AND cs.is_c2c IN (1, 2)
-                AND i.id IN ({$itemsIds})";
-        $itemResult = $this->query($sql);
-        if (!empty($itemResult)) {
-            $result_arr = array();
-            foreach ($itemResult as $val) {
-                $result_arr[$val['id']] = $val;
-            }
-            return $result_arr;
-        } else {
-            return false;
-        }
-    }
-
-
-    /**
      * 获取待计算好评率的口碑商品
      */
     public function getListById($id = 0, $limit = 100) {

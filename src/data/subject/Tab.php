@@ -10,7 +10,7 @@ class Tab extends \DB_Query
     /**
      * 获取标签信息
      * @param $conditions
-     * @param array
+     * @return array
      */
     public function getBatchSubjects($conditions)
     {
@@ -19,6 +19,9 @@ class Tab extends \DB_Query
         }
         if (isset($conditions['id'])) {
             $where[] = ['id', $conditions['id']];
+        }
+        if(empty($where)){
+            return [];
         }
         $data = $this->getRows($where);
         return $data;
