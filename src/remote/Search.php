@@ -11,26 +11,41 @@ class Search
 
     /**
      * 笔记搜索
-     * @param $keyWords
-     * @param $page
-     * @param $count
+     * @param $searchArr
      * @return array
      */
-    public function noteSearch($keyWords, $page = 1, $count = 20)
+    public function noteSearch($searchArr)
     {
-        return ['267344', '267343', '267342', '267341', '267339', '267338', '267337'];
+        //return ['267344', '267343', '267342', '267341', '267339', '267338', '267337'];
+        $remote_curl = new RemoteCurl('subject_search');
+
+        $result = $remote_curl->curl_remote('', $searchArr);
+
+        if ($result['disp_num'] > 0) {
+            return $result;
+        } else {
+            return [];
+        }
     }
 
     /**
      * 用户搜索
-     * @param $keyWords
-     * @param $page
-     * @param $count
+     * @param $searchArr
      * @return array
      */
-    public function userSearch($keyWords, $page = 1, $count = 20)
+    public function userSearch($searchArr)
     {
-        return ["220103494", "1508587", "7509605", "7509576", "7509596", "7509608", "7509603", "7509614", "7509571", "7509569"];
+        $remote_curl = new RemoteCurl('user_search');
+        $param['q'] = $searchArr['key'];
+        $param['start'] = $searchArr['page'] - 1;
+        $param['rows'] = $searchArr['count'];
+        $param['wt'] = 'json';
+        $result = $remote_curl->curl_remote('', $param);
+        if ($result['response']['numFound'] > 0) {
+            return $result['response']['docs'];
+        } else {
+            return [];
+        }
     }
 
     /**
