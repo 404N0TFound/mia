@@ -108,12 +108,33 @@ class Item extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 根据商品ID批量获取商品品牌信息
+     * 根据商品ID批量获取蜜芽圈商品展示信息
      */
-    public function getBatchItemBrandByIds($itemsIds)
+    public function getBatchItemBrandByIds($itemIds, $is_show_cart = true)
     {
-        $itemInfo = $this->itemModel->getBatchItemBrandByIds($itemsIds);
-        return $this->succ($itemInfo);
+        if (empty($itemIds)) {
+            return $this->succ(array());
+        }
+        $items = $this->getItemList($itemIds)['data'];
+        $itemList = array();
+        if (!empty($items)) {
+            foreach ($items as $item) {
+                $tmp = null;
+                $tmp['item_id'] = $item['id'];
+                $tmp['item_name'] = $item['name'];
+                $tmp['item_img'] = isset($item['img'][4]) ? $item['img'][4] : '';
+                $tmp['brand_id'] = $item['brand_id'];
+                $tmp['brand_name'] = isset($item['brand_info']['name']) ? $item['brand_info']['name'] : '';
+                $tmp['sale_price'] = $item['sale_price'];
+                $tmp['market_price'] = $item['market_price'];
+                $tmp['is_self'] = $item['is_self'];
+                $tmp['business_mode'] = $item['business_mode'];
+                $tmp['favorable_comment_percent'] = $item['favorable_comment_percent'];
+                $tmp['show_cart'] = $is_show_cart ? 1 : 0;
+                $itemList[$item['id']] = $tmp;
+            }
+        }
+        return $this->succ($itemList);
     }
     
     /**
