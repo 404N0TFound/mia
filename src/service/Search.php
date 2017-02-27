@@ -79,7 +79,7 @@ class Search extends Service
      */
     public function userSearch($keyWords, $page = 1, $count = 20)
     {
-        if (empty($param['key'])) {
+        if (empty($keyWords)) {
             return $this->succ([]);
         }
         $searchArr["key"] = $keyWords;
@@ -87,13 +87,14 @@ class Search extends Service
         $searchArr["count"] = $count;
 
         $userIds = $this->searchRemote->userSearch($searchArr);
+
         if (empty($userIds)) {
             return $this->succ(['desc' => "搜索结果为空"]);
         } else {
             $userIds = array_map(function ($v) {
                 return $v['user_id'];
             }, $userIds);
- //           $userIds = [15938484];
+            $userIds = [220103494, 1508587, 7509605, 7509576, 7509596, 7509608, 7509603, 7509614, 7509571, 7509569];
             $userList = $this->userService->getUserInfoByUids($userIds)['data'];
 
             $res['search_users'] = !empty($userList) ? array_values($userList) : [];
