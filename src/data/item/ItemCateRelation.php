@@ -50,21 +50,4 @@ class ItemCateRelation extends \DB_Query {
         }
         return $result[0]['type'];
     }
-
-    /*
-     * 获取品牌名称列表
-     * */
-    public function brandNameList($ids){
-        if (empty($ids) && !is_array($ids)) {
-            return array();
-        }
-        $itemsIds = implode(',', $ids);
-        $sql = "select id , if(chinese_name != '',chinese_name,name) as name from item_brand where id in ({$itemsIds})";
-        $res = $this->query($sql);
-        if(!empty($res)){
-            return $res;
-        }
-        return array();
-    }
-
 }

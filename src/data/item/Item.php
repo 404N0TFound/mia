@@ -66,37 +66,6 @@ class Item extends \DB_Query {
     }
 
     /**
-     * 批量获取商品信息
-     * @param $itemsIds
-     * @return array
-     */
-    public function getBatchItemBrandByIds($itemsIds)
-    {
-        if(empty($itemsIds)){
-            return array();
-        }
-        $itemsIds = implode(',', $itemsIds);
-
-        $sql = "select i.id as item_id, i.name as item_name, i.sale_price, i.brand_id, i.feedback_rate as feedback_rate,i.category_id as category_id,b.name as brand_name
-        from {$this->tableName} as i
-        left join `item_brand` as b
-        on i.brand_id = b.id
-        where i.item_type = 0 and i.id in ({$itemsIds})";
-        $itemResult = $this->query($sql);
-    
-        $itemArr = array();
-        //添加商品图片
-        if(!empty($itemResult)){
-            foreach ($itemResult as $value) {
-                $value['item_img'] = \mia\miagroup\Util\NormalUtil::show_picture('447_447', $value['item_id']);
-                $itemArr[$value['item_id']] = $value;
-            }
-        }
-
-        return $itemArr;
-    }
-    
-    /**
      * 获取九个妈妈国家信息
      */
     public function getNineMomCountryInfo($itemIds)

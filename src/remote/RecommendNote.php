@@ -90,6 +90,23 @@ class RecommendNote
 
     public function getRelatedNote($subjectId, $page = 1, $limit = 1)
     {
-        return [267343, 266996, 266933, 266931, 266930, 266927];
+        $remote_curl = new RemoteCurl('index_cate_recommend');
+
+        $params['did'] = $this->session_info['dvc_id'];//设备id
+        $params['tp'] = 1; //取相关帖子
+        $params['sessionid'] = $this->session_info['bi_session_id'];
+        $params['aid'] = $subjectId;
+        $params['index'] = $page;
+        $params['pagesize'] = $limit;
+
+        $data = $remote_curl->curl_remote('/recommend_result', $params);
+        
+        $result = array();
+        if (!empty($data['pl_list'])) {
+            foreach ($data['pl_list'] as $v) {
+                $result[] = $v['id'];
+            }
+        }
+        return $result;
     }
 }
