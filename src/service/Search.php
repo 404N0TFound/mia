@@ -30,16 +30,44 @@ class Search extends Service
 
     /**
      * 笔记搜索
-     * @param $keyWords
-     * @param $page
-     * @param $count
+     * @param $param
      * @return mixed
      */
-    public function noteSearch($keyWords, $page = 1, $count = 20)
+    public function noteSearch($param)
     {
-        $noteIds = $this->searchRemote->noteSearch($keyWords, $page, $count);
-        $noteInfos = $this->subjectService->getBatchSubjectInfos($noteIds)['data'];
-        return $this->succ(array_values($noteInfos));
+        if(empty($param['key'])){
+            return $this->succ([]);
+        }
+        $searchArr["query"] = $param['key'];
+        $searchArr["pn"] = $param['page'] - 1;
+        $searchArr["rn"] = $param['count'] ? $param['count'] : 20;
+        if ($param['order']) {
+            $searchArr["sort_by_field"] = $param['order'] ? $param['order'] : 0;//按域排序，默认是0，1表示按照热度排序，2表示按时间排序
+        }
+        $searchArr["sort_field_style"] = $param['sort'] ? $param['sort'] : 1;//按域排序的方式，默认是1表示降序，0表示升序
+        $searchArr["search_type"] = $param['search_type'] ? $param['search_type'] : 0x10 | 0x20;//0x10 ：获取结果 0x20：获取筛选器。两个条件可做位或操作
+        if ($param['brand_id']) {
+            $searchArr["filter_brand_ids"] = $param['brand_id'];//筛选指定品牌id列表，以逗号分隔：2,3,5
+        }
+
+        $searchArr["query_source"] = 2;
+        //$searchArr["cluster_type"] = 0;//0不做任何聚合，1进行默认方法聚合
+        $searchArr["version"] = 1;
+
+        $searchResult = $this->searchRemote->noteSearch($searchArr);
+
+        $noteIds = array_map(function ($v) {
+            return $v['id'];
+        }, $searchResult['data']);
+
+        //$noteIds = ['267344', '267343', '267342', '267341', '267339', '267338', '267337'];
+        $noteInfos = $this->subjectService->getBatchSubjectInfos(array_values($noteIds))['data'];
+
+        $res['total'] = $searchResult['disp_num'];
+        $res['brand_condition'] = $searchResult['search_filter']['b_array'];
+        $res['search_notes'] = array_values($noteInfos);
+
+        return $this->succ($res);
     }
 
     /**
@@ -51,9 +79,28 @@ class Search extends Service
      */
     public function userSearch($keyWords, $page = 1, $count = 20)
     {
-        $userIds = $this->searchRemote->userSearch($keyWords, $page, $count);
-        $userList = $this->userService->getUserInfoByUids($userIds)['data'];
-        return $this->succ(array_values($userList));
+        if (empty($param['key'])) {
+            return $this->succ([]);
+        }
+        $searchArr["key"] = $keyWords;
+        $searchArr["page"] = $page;
+        $searchArr["count"] = $count;
+
+        $userIds = $this->searchRemote->userSearch($searchArr);
+        if (empty($userIds)) {
+            return $this->succ(['desc' => "搜索结果为空"]);
+        } else {
+            $userIds = array_map(function ($v) {
+                return $v['user_id'];
+            }, $userIds);
+ //           $userIds = [15938484];
+            $userList = $this->userService->getUserInfoByUids($userIds)['data'];
+
+            $res['search_users'] = !empty($userList) ? array_values($userList) : [];
+//            $res['search_info'] = 1;
+//            $res['rs'] = 1;
+            return $this->succ($res);
+        }
     }
 
     public function itemSearch($param)
