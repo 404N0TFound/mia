@@ -66,19 +66,75 @@ class Item extends \mia\miagroup\Lib\Service {
      * 根据商品id批量获取商品
      * @param int $itemIds
      */
-    public function getItemList($itemIds)
+    public function getItemList($itemIds, $status = array(0, 1))
     {
-        $itemInList = $this->itemModel->getBatchItemByIds($itemIds);
-        return $this->succ($itemInList);
+        $itemList = $this->itemModel->getBatchItemByIds($itemIds);
+        if (empty($itemList)) {
+            return $this->succ(array());
+        }
+        //获取九个妈妈国家信息
+        $nineMotherInfos = $this->itemModel->getNineMomCountryInfo($itemIds);
+        
+        //组装商品信息
+        foreach ($itemList as $key => $item) {
+            //是否自营
+            if ($item['is_single_sale'] == 1 && in_array($item['warehouse_type'], array(1, 6, 8))) {
+                $itemList[$key]['is_self'] = '自营';
+            } else {
+                $itemList[$key]['is_self'] = '';
+            }
+            //好评率
+            if (!empty($item['feedback_rate']) && floatval($item['feedback_rate']) >= 80) {
+                $itemList[$key]['favorable_comment_percent'] = intval($item['feedback_rate']) . '%好评';
+            } else {
+                $itemList[$key]['favorable_comment_percent'] = '';
+            }
+            //商品业务模式
+            $business_mode = '';
+            if ($item['is_single_sale'] == 1) {
+                if (in_array($item['warehouse_type'], array(6, 7))) {
+                    // 跨境仓，虚拟跨境仓
+                    $business_mode = '全球购';
+                } else if (isset($nineMomArr[$item['id']])) {
+                    //9个妈妈
+                    $business_mode = $nineMotherInfos[$item['id']]['chinese_name'] . '代购';
+                } else if (in_array($item['warehouse_type'], array(5, 8)) && !empty($item['country_pic_name'])) {
+                    $business_mode = $item['country_pic_name'];
+                }
+            }
+            $itemList[$key]['business_mode'] = $business_mode;
+        }
+        return $this->succ($itemList);
     }
     
     /**
-     * 批量获取商品信息
+     * 根据商品ID批量获取蜜芽圈商品展示信息
      */
-    public function getBatchItemBrandByIds($itemsIds)
+    public function getBatchItemBrandByIds($itemIds, $is_show_cart = true)
     {
-        $itemInfo = $this->itemModel->getBatchItemBrandByIds($itemsIds);
-        return $this->succ($itemInfo);
+        if (empty($itemIds)) {
+            return $this->succ(array());
+        }
+        $items = $this->getItemList($itemIds)['data'];
+        $itemList = array();
+        if (!empty($items)) {
+            foreach ($items as $item) {
+                $tmp = null;
+                $tmp['item_id'] = $item['id'];
+                $tmp['item_name'] = $item['name'];
+                $tmp['item_img'] = isset($item['img'][4]) ? $item['img'][4] : '';
+                $tmp['brand_id'] = $item['brand_id'];
+                $tmp['brand_name'] = isset($item['brand_info']['name']) ? $item['brand_info']['name'] : '';
+                $tmp['sale_price'] = $item['sale_price'];
+                $tmp['market_price'] = $item['market_price'];
+                $tmp['is_self'] = $item['is_self'];
+                $tmp['business_mode'] = $item['business_mode'];
+                $tmp['favorable_comment_percent'] = $item['favorable_comment_percent'];
+                $tmp['show_cart'] = $is_show_cart ? 1 : 0;
+                $itemList[$item['id']] = $tmp;
+            }
+        }
+        return $this->succ($itemList);
     }
     
     /**

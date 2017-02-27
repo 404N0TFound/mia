@@ -270,7 +270,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info', 'item', 'koubei'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -332,7 +332,6 @@ class Subject extends \mia\miagroup\Lib\Service
             foreach ($subjectItemIds as $subjectId => $subjectItem) {
                 foreach ($subjectItem as $itemId) {
                     if (!empty($subjectItemInfos[$itemId])) {
-                        $subjectItemInfos[$itemId]['is_recommend'] = 1; //作者推荐
                         $itemInfoById[$subjectId][$itemId] = $subjectItemInfos[$itemId];
                     }
                 }
@@ -399,6 +398,9 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
             if (!empty($smallImageInfos[0])) {
                 $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos[0];
+            }
+            if (!empty($smallImageInfos)) {
+                $subjectRes[$subjectInfo['id']]['small_image_infos'] = $smallImageInfos;
             }
             if (!empty($subjectInfo['ext_info']['koubei']) || !empty($subjectInfo['ext_info']['koubei_id'])) {
                 if (!empty($subjectInfo['ext_info']['koubei'])) {
@@ -504,6 +506,10 @@ class Subject extends \mia\miagroup\Lib\Service
         //作者信息
         $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
         $subjectInfo['user_info'] = $userInfo;
+        //评论信息
+        $commentInfo = $this->commentService->getCommentBySubjectId($subjectId, 0, 3)['data'];
+        $subjectInfo['comment_info'] = $commentInfo;
+        
         /*蜜芽帖、口碑贴相关逻辑开始*/
         if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
             //获取商品推荐
@@ -520,7 +526,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
                 $itemService = new \mia\miagroup\Service\Item();
                 $ItemInfos = $itemService->getBatchItemBrandByIds($itemIds)['data'];
-                $subjectInfo['items'] = array_merge($subjectInfo['items'], $ItemInfos);
+                $subjectInfo['relate_items'] = array_values($ItemInfos);
             }
             //获取相关帖子
             $noteRecommendService = new \mia\miagroup\Remote\RecommendNote();

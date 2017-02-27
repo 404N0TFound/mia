@@ -97,4 +97,20 @@ class Comment {
         return $data;
     }
     
+    /**
+     * 获取根据帖子ID获取评论列表
+     */
+    public function getCommentListBySubjectId($subjectId, $user_type = 0, $page = 1, $limit = 20) {
+        if($user_type == 1){
+            $where['is_expert'] = array('is_expert', 1);
+        }
+        $where['subject_id'] = array(':eq', 'subject_id', $subjectId);
+        $offset = $page > 1 ? ($page - 1) * $limit : 0;
+        $subjectComment = $this->subjectCommentData->getCommentListByCond($where, $offset, $limit, 'id desc');
+        $result = array();
+        foreach ($subjectComment as $comment) {
+            $result[] = $comment['id'];
+        }
+        return $result;
+    }
 }
