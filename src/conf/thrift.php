@@ -43,10 +43,5 @@ $address = array(
     ],
     
     'subject_sync' => 'root@10.1.15.14:/opt/article_in_mia/',
-    
-    'itemSearch' => [
-        'remote' => '172.16.96.75:18008/miase_wangpan/api.php?',
-        //'remote' => 'http://search.mia.com/miase/api.php?',
-    ],
 );
     

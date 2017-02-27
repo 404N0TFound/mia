@@ -22,9 +22,9 @@ class Search extends Service
         $this->userService = new UserService();
         $this->subjectService = new Subject();
         $this->koubeiModel = new KoubeiModel();
-        $this->searchRemote = new SearchRemote();
         $this->itemService = new ItemService();
         $this->koubeiService = new KoubeiService();
+        $this->searchRemote = new SearchRemote($this->ext_params);
         parent::__construct();
     }
 
@@ -245,26 +245,18 @@ class Search extends Service
             $items['rank'] = $rank;//type 1 为榜单
             $items['item_cluster'] = $item_cluster;//类聚
         }
-        $itemInfos = $this->itemService->getBatchItemBrandByIds($items['item_ids'])['data'];
-
         foreach ($items['item_ids'] as $v) {
             //口碑印象列表不需要了
-            $ext_info = $this->koubeiService->getKoubeiNums($itemInfos[$v]['item_id'])['data'];
-            if($ext_info['user_unm'] == 0|| $ext_info['item_rec_nums'] == 0){
-                $recommend_desc = '';
+            $ext_info = $this->koubeiService->getKoubeiNums($v)['data'];
+            if ($ext_info['user_unm'] == 0 || $ext_info['item_rec_nums'] == 0) {
+                $recommend_desc['text'] = '';
+                $recommend_desc['color'] = '';
             } else {
-                $recommend_desc = $ext_info['user_unm'] . '位妈妈发表了' . $ext_info['item_rec_nums'] . '篇笔记';
+                $recommend_desc['text'] = $ext_info['user_unm'] . '位妈妈发表了' . $ext_info['item_rec_nums'] . '篇笔记';
+                $recommend_desc['color'] = '';
             }
-            $items['showdata_list'][] = array_merge($itemInfos[$v], [
-                'type' => 1,
-                'item_info' => [
-                    'id' => $itemInfos[$v]['item_id'],
-                    'name' => $itemInfos[$v]['item_name'],
-                    'sale_price' => $itemInfos[$v]['sale_price'],
-                    'pic' => [$itemInfos[$v]['item_img']],
-                    'recommend_desc' => $recommend_desc,
-                    //'koubei_tag_lists' => $ext_info['tag_list']
-                ]]);
+            $items['recommend_desc'][$v] = $recommend_desc;
+            unset($recommend_desc);
         }
         return $this->succ($items);
     }

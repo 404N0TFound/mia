@@ -30,3 +30,11 @@ $index_cate_recommend = array(
     'method' => 'get',
     'result_format' => false
 );
+
+//首页分类标签个性化推荐
+$item_search = array(
+    'url' => 'http://172.16.96.75:18008/miase_wangpan/api.php',
+    //'url' => 'http://search.mia.com/miase/api.php',
+    'method' => 'get',
+    'result_format' => false
+);
