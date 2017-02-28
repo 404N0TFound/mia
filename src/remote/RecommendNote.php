@@ -68,7 +68,7 @@ class RecommendNote
         //$params['index'] = $page;  不需要传页数，推荐会把当前session_id下的曝光的id去除掉
         $params['pagesize'] = $count;
 
-        $result = $remote_curl->curl_remote('11/recommend_result', $params);
+        $result = $remote_curl->curl_remote('/recommend_result', $params);
         $noteIds = $result['pl_list'];
 
         //错误处理
