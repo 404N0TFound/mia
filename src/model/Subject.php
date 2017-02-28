@@ -52,6 +52,19 @@ class Subject {
         return $data;
     }
 
+    public function getYuerList($page, $count)
+    {
+        $conditions['is_fine'] = 1;
+        $conditions['iPageSize'] = $count;
+        $conditions['page'] = $page;
+        $conditions['without_item'] = 1;
+        $subjectIds = $this->subjectData->getSubjectList($conditions);
+        $subjectIds = array_map(function ($v) {
+            return $v . "_subject";
+        }, $subjectIds);
+        return $subjectIds;
+    }
+
     /**
      * @param $tabNames
      * @return array

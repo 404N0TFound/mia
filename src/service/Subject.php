@@ -112,17 +112,22 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($tabId) || empty($action)) {
             return $this->succ([]);
         }
-        //获取tabName
-        $noteRemote = new RecommendNote($this->ext_params);
-        $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
-
         //普通列表
         if($action == 'init' || $action == 'refresh') {
             //推荐会自动去除展示过后的数据，所以刷新只要重复请求第一页就行
             $page = 1;
         }
-        $userNoteListIds = $noteRemote->getRecommendNoteList($tabName, $page, $count);
 
+        //育儿频道
+        if ($tabId == $this->config['group_fixed_tab_last'][0]['extend_id']) {
+            $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
+        } else {
+            //获取tabName
+            $noteRemote = new RecommendNote($this->ext_params);
+            $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
+
+            $userNoteListIds = $noteRemote->getRecommendNoteList($tabName, $page, $count);
+        }
         //发现列表，增加运营广告位
         $operationNoteData = [];
         if ($action = "init" && $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
