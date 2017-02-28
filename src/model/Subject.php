@@ -27,13 +27,17 @@ class Subject {
      * @param $page
      * @return array
      */
-    public function getOperationNoteData($tabId, $page)
+    public function getOperationNoteData($tabId, $page, $timeTag=null)
     {
         if (empty($tabId)) {
             return [];
         }
         $conditions['tab_id'] = $tabId;
         $conditions['page'] = $page;
+        if(isset($timeTag)){
+            $conditions['time_tag'] = $timeTag;
+        }
+        
         $operationInfos = $this->tabOpeationData->getBatchOperationInfos($conditions);
         //按位置分组
         foreach ($operationInfos as $k => $v) {
@@ -48,6 +52,9 @@ class Subject {
         $data = [];
         foreach ($return as $detail) {
             $key = $detail['relation_id'] . '_' . $detail['relation_type'];
+            if($detail['relation_type'] == 'link'){
+                $key = $detail['id'] . '_' . 'link';
+            }
             $data[$key] = $detail;
         }
         return $data;

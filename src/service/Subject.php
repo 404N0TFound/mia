@@ -219,9 +219,11 @@ class Subject extends \mia\miagroup\Lib\Service
             if (array_key_exists($value, $operationNoteData)) {
                 $relation_id = $operationNoteData[$value]['relation_id'];
                 $relation_type = $operationNoteData[$value]['relation_type'];
+                $relation_desc = $operationNoteData[$value]['ext_info']['desc'] ? $operationNoteData[$value]['ext_info']['desc'] : '';
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
                 $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
                 $is_opearation = 1;
+                $tmpData['config_data'] = $operationNoteData[$value];
             }
             switch ($relation_type) {
                 //目前只有口碑帖子，蜜芽圈帖子。
@@ -272,12 +274,13 @@ class Subject extends \mia\miagroup\Lib\Service
                             $link['image'] = $relation_cover_image;
                         }
                         $link['url'] = $linkInfo['ext_info']['url'];
-                        $link['desc'] = $linkInfo['ext_info']['desc'];
+                        if(!empty($relation_desc)){
+                            $link['desc'] = $relation_desc;
+                        }
                         $tmpData['link'] = $link;
                         $tmpData['is_opearation'] = $is_opearation;
                     break;
             }
-
             if (!empty($tmpData)) {
                 $return[] = $tmpData;
             }
@@ -1432,10 +1435,29 @@ class Subject extends \mia\miagroup\Lib\Service
         if(!empty($subjectIds)) {
             $subjects = $this->getBatchSubjectInfos($subjectIds,$currentId)['data'];
             $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
+            $data['subject_nums'] = count($subjectIds);
+            
+            $userNums = $this->getSubjectUsersNums($subjectIds)['data'];
+            $data['user_nums'] = $userNums;
         }
         return $this->succ($data);
     }
-
+    
+    //根据图片ids获取活动的参加用户数
+    public function getSubjectUsersNums($subjectIds){
+        $subjects = $this->subjectModel->getSubjectByIds($subjectIds, array());
+        $userArr = array();
+        $userNums = 0;
+        foreach ($subjects as $subjectId => $subject) {
+            $userArr[] = $subject['user_id'];
+        }
+        if(!empty($userArr)){
+            $userArr = array_unique($userArr);
+            $userNums = count($userArr);
+        }
+        
+        return $this->succ($userNums);
+    }
     
     /**
      * 新增运营笔记
@@ -1504,7 +1526,7 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 删除运营笔记
      */
-    public function delOperateHeadLine($id) {
+    public function delOperateNote($id) {
 
         if(empty($id)){
             return $this->error(500);
@@ -1535,7 +1557,7 @@ class Subject extends \mia\miagroup\Lib\Service
     {
         //发现列表，增加运营广告位
         $res = array();
-        $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
+        $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page, 'all');
         $operationNoteIds = array_keys($operationNoteData);
         $res['content_lists'] = $this->formatNoteData($operationNoteIds,$operationNoteData);
         return $this->succ($res);
