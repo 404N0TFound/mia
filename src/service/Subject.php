@@ -15,7 +15,7 @@ use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Active as ActiveService;
-use mia\miagroup\Service\HeadLine as HeadLineServer;
+use mia\miagroup\Service\Feed as FeedServer;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -112,20 +112,46 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($tabId) || empty($action)) {
             return $this->succ([]);
         }
-        //获取tabName
-        $noteRemote = new RecommendNote($this->ext_params);
-        $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
-
         //普通列表
-        if($action == 'init' || $action == 'refresh') {
+        if ($action == 'init' || $action == 'refresh') {
             //推荐会自动去除展示过后的数据，所以刷新只要重复请求第一页就行
             $page = 1;
         }
-        $userNoteListIds = $noteRemote->getRecommendNoteList($tabName, $page, $count);
+        $fixTab = [];
+        $fixArr = array_merge($this->config['group_fixed_tab_first'], $this->config['group_fixed_tab_last']);
+        foreach ($fixArr as $val) {
+            $fixTab[$val['extend_id']] = $val;
+        }
 
+        //获取tabName
+        if (array_key_exists($tabId, $fixTab)) {
+            $tabName = $fixTab[$tabId]['name'];
+        } else {
+            $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
+        }
+
+
+        if ($tabId == $this->config['group_fixed_tab_last'][0]['extend_id']) {
+            //育儿频道
+            $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
+        } elseif ($tabId == $this->config['group_fixed_tab_first'][1]['extend_id']) {
+            //订阅
+            $feedService = new FeedServer();
+            $feedSubject = $feedService->getFeedSubject($userId, $userId, $page, $count)['data'];
+            if (empty($feedSubject['subject_lists'])) {
+                $userNoteListIds = [];
+            } else {
+                $userNoteListIds = array_map(function ($v) {
+                    return $v['id'] . "_subject";
+                }, $feedSubject['subject_lists']);
+            }
+        } else {
+            $noteRemote = new RecommendNote($this->ext_params);
+            $userNoteListIds = $noteRemote->getRecommendNoteList($tabName, $page, $count);
+        }
         //发现列表，增加运营广告位
         $operationNoteData = [];
-        if ($action = "init" && $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
+        if ($action == "init" && $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
             $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
             //运营数据和普通数据去重
             $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
@@ -133,7 +159,7 @@ class Subject extends \mia\miagroup\Lib\Service
         //合并数据Ids
         $combineIds = $this->combineOperationIds($userNoteListIds, $operationNoteData);
 
-        $res['content_lists'] = $this->formatNoteData($combineIds,$operationNoteData);
+        $res['content_lists'] = $this->formatNoteData($combineIds, $operationNoteData);
 
         return $this->succ($res);
     }
@@ -273,7 +299,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info', 'item', 'koubei'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -335,7 +361,6 @@ class Subject extends \mia\miagroup\Lib\Service
             foreach ($subjectItemIds as $subjectId => $subjectItem) {
                 foreach ($subjectItem as $itemId) {
                     if (!empty($subjectItemInfos[$itemId])) {
-                        $subjectItemInfos[$itemId]['is_recommend'] = 1; //作者推荐
                         $itemInfoById[$subjectId][$itemId] = $subjectItemInfos[$itemId];
                     }
                 }
@@ -402,6 +427,9 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
             if (!empty($smallImageInfos[0])) {
                 $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos[0];
+            }
+            if (!empty($smallImageInfos)) {
+                $subjectRes[$subjectInfo['id']]['small_image_infos'] = $smallImageInfos;
             }
             if (!empty($subjectInfo['ext_info']['koubei']) || !empty($subjectInfo['ext_info']['koubei_id'])) {
                 if (!empty($subjectInfo['ext_info']['koubei'])) {
@@ -507,6 +535,10 @@ class Subject extends \mia\miagroup\Lib\Service
         //作者信息
         $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
         $subjectInfo['user_info'] = $userInfo;
+        //评论信息
+        $commentInfo = $this->commentService->getCommentBySubjectId($subjectId, 0, 3)['data'];
+        $subjectInfo['comment_info'] = $commentInfo;
+        
         /*蜜芽帖、口碑贴相关逻辑开始*/
         if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
             //获取商品推荐
@@ -523,7 +555,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
                 $itemService = new \mia\miagroup\Service\Item();
                 $ItemInfos = $itemService->getBatchItemBrandByIds($itemIds)['data'];
-                $subjectInfo['items'] = array_merge($subjectInfo['items'], $ItemInfos);
+                $subjectInfo['relate_items'] = array_values($ItemInfos);
             }
             //获取相关帖子
             $noteRecommendService = new \mia\miagroup\Remote\RecommendNote();

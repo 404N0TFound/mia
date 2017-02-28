@@ -49,6 +49,7 @@ class Subject {
             $return[] = array_pop($val);
         }
         //返回的键名保留格式
+        $data = [];
         foreach ($return as $detail) {
             $key = $detail['relation_id'] . '_' . $detail['relation_type'];
             if($detail['relation_type'] == 'link'){
@@ -57,6 +58,19 @@ class Subject {
             $data[$key] = $detail;
         }
         return $data;
+    }
+
+    public function getYuerList($page, $count)
+    {
+        $conditions['is_fine'] = 1;
+        $conditions['iPageSize'] = $count;
+        $conditions['page'] = $page;
+        $conditions['without_item'] = 1;
+        $subjectIds = $this->subjectData->getSubjectList($conditions);
+        $subjectIds = array_map(function ($v) {
+            return $v . "_subject";
+        }, $subjectIds);
+        return $subjectIds;
     }
 
     /**

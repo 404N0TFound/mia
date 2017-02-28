@@ -140,22 +140,22 @@ $group_fixed_tab_last = [
 
 $group_index_operation_tab = [
     [
-        'name' => '纸尿裤',
+        'name' => '屁屁护理',
         'url' => '',
         'type' => 'miagroup',
-        'extend_id' => 10,
+        'extend_id' => 102,
     ],
     [
-        'name' => '宝宝湿巾',
+        'name' => '喂养用品',
         'url' => '',
         'type' => 'miagroup',
-        'extend_id' => 11,
+        'extend_id' => 103,
     ],
     [
-        'name' => '连身衣/爬服',
+        'name' => '玩具乐器',
         'url' => '',
         'type' => 'miagroup',
-        'extend_id' => 12,
+        'extend_id' => 104,
     ]
 ];
 

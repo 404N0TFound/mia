@@ -302,5 +302,29 @@ class Subject extends \DB_Query {
         $subjectsArrs = $this->getRows($where,'id',$limit,$offsetLimit,$orderBy);
         return array_column($subjectsArrs, 'id');
     }
-    
+
+    public function getSubjectList($params)
+    {
+        $where = [];
+        if(isset($params['is_fine'])){
+            $where[] = array(':eq', 'group_subjects.is_fine', $params['is_fine']);
+        }
+        if (intval($params['iPageSize']) > 0) {
+            $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
+            $limit = $params['iPageSize'];
+        }
+        $join = FALSE;
+        if (isset($params['without_item']) && $params['without_item'] == 1) {
+            $join = 'LEFT JOIN koubei ON koubei.subject_id = group_subjects.id';
+            $where[] = array(':gt', 'koubei.item_id', 0);
+        }
+        $orderBy = array('group_subjects.id DESC');
+        $data = $this->getRows($where, array('group_subjects.id as id'), $limit, $offset, $orderBy, $join);
+        if ($data) {
+            foreach ($data as $value) {
+                $subjectIds[] = $value['id'];
+            }
+        }
+        return $subjectIds;
+    }
 }
