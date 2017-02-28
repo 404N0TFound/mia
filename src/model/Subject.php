@@ -45,6 +45,7 @@ class Subject {
             $return[] = array_pop($val);
         }
         //返回的键名保留格式
+        $data = [];
         foreach ($return as $detail) {
             $key = $detail['relation_id'] . '_' . $detail['relation_type'];
             $data[$key] = $detail;

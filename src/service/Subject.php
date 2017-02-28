@@ -130,7 +130,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         //发现列表，增加运营广告位
         $operationNoteData = [];
-        if ($action = "init" && $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
+        if ($action == "init" && $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
             $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
             //运营数据和普通数据去重
             $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));

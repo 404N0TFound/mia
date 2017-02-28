@@ -77,7 +77,7 @@ class RecommendNote
             $idArr = explode(' ', $res);
             $noteIds = array_slice($idArr, ($page - 1) * $count, $count);
         }
-
+        $return = [];
         foreach ($noteIds as $v) {
             if (is_array($v)) {
                 $return[] = $v['id'] . "_subject";
