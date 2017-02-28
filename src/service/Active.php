@@ -19,7 +19,7 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 获取活动列表
      */
-    public function getActiveList($page, $limit) {
+    public function getActiveList($page, $limit, $fields = array('count')) {
         $activeRes = array();
         // 获取活动列表
         $activeInfos = $this->activeModel->getActiveByActiveIds($page, $limit);
@@ -30,7 +30,12 @@ class Active extends \mia\miagroup\Lib\Service {
             $tmp = $activeInfo;
             $extInfo = json_decode($activeInfo['ext_info'],true);
             $tmp['top_img'] = $extInfo['image'];
-            
+            if (in_array('count', $fields)) {
+                $subjectService = new SubjectService();
+                $subjectArr = $subjectService->getActiveSubjects($activeInfo['id'], 'all', 0, null, null)['data'];
+                $tmp['img_nums'] = $subjectArr['subject_nums'] > 0 ? $subjectArr['subject_nums'] : 0;
+                $tmp['user_nums'] = $subjectArr['user_nums'] > 0 ? $subjectArr['user_nums'] : 0;
+            }
             $activeRes[] = $tmp;
         }
         return $this->succ($activeRes);
@@ -40,7 +45,7 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 获取单条活动信息
      */
-    public function getSingleActiveById($activeId, $status = array(1)) {
+    public function getSingleActiveById($activeId, $status = array(1), $fields = array('share_info')) {
         $condition = array('active_ids' => array($activeId));
         $activeRes = array();
         // 获取活动基本信息
@@ -61,6 +66,29 @@ class Active extends \mia\miagroup\Lib\Service {
                 $activeRes['top_img_url'] = $activeInfos[$activeId]['top_img'];
             }
         }
+        
+        if (in_array('share_info', $fields)) {
+            // 分享内容
+            $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.active');
+            $shareDefault = $shareConfig['defaultShareInfo']['active'];
+            $share = $shareConfig['activeShare'];
+            $shareTitle = $shareDefault['title'];
+            $shareContent = "【".$activeRes['title']."】".$activeRes['introduction'];
+            $shareDesc = sprintf($shareDefault['desc'],$shareContent);
+            $h5Url = sprintf($shareDefault['wap_url'], $activeRes['id']);
+            if (empty($shareImage)) {
+                $shareImage = $shareDefault['img_url'];
+            }
+        
+            // 替换搜索关联数组
+            $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url);
+            // 进行替换操作
+            foreach ($share as $keys => $sh) {
+                $shareInfo[] = NormalUtil::buildGroupShare($sh, $replace);
+            }
+            $activeRes['share_info'] = $shareInfo;
+        }
+        
         return $this->succ($activeRes);
     }
     

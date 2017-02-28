@@ -20,9 +20,12 @@ class TabNoteOperation extends \DB_Query
         if (isset($conditions['page'])) {
             $where[] = ['page', $conditions['page']];
         }
-        $date = date("Y-m-d H:i:s");
-        $where[] = [':lt', 'start_time', $date];
-        $where[] = [':gt', 'end_time', $date];
+        if(!isset($conditions['time_tag'])){
+            $date = date("Y-m-d H:i:s");
+            
+            $where[] = [':lt', 'start_time', $date];
+            $where[] = [':gt', 'end_time', $date];
+        }
         $data = $this->getRows($where);
         foreach ($data as $v) {
             //http转https
