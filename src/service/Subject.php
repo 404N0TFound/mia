@@ -15,7 +15,7 @@ use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Active as ActiveService;
-use mia\miagroup\Service\HeadLine as HeadLineServer;
+use mia\miagroup\Service\Feed as FeedServer;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -113,19 +113,40 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ([]);
         }
         //普通列表
-        if($action == 'init' || $action == 'refresh') {
+        if ($action == 'init' || $action == 'refresh') {
             //推荐会自动去除展示过后的数据，所以刷新只要重复请求第一页就行
             $page = 1;
         }
+        $fixTab = [];
+        $fixArr = array_merge($this->config['group_fixed_tab_first'], $this->config['group_fixed_tab_last']);
+        foreach ($fixArr as $val) {
+            $fixTab[$val['extend_id']] = $val;
+        }
 
-        //育儿频道
-        if ($tabId == $this->config['group_fixed_tab_last'][0]['extend_id']) {
-            $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
+        //获取tabName
+        if (array_key_exists($tabId, $fixTab)) {
+            $tabName = $fixTab[$tabId]['name'];
         } else {
-            //获取tabName
-            $noteRemote = new RecommendNote($this->ext_params);
             $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
+        }
 
+
+        if ($tabId == $this->config['group_fixed_tab_last'][0]['extend_id']) {
+            //育儿频道
+            $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
+        } elseif ($tabId == $this->config['group_fixed_tab_first'][1]['extend_id']) {
+            //订阅
+            $feedService = new FeedServer();
+            $feedSubject = $feedService->getFeedSubject($userId, $userId, $page, $count)['data'];
+            if (empty($feedSubject['subject_lists'])) {
+                $userNoteListIds = [];
+            } else {
+                $userNoteListIds = array_map(function ($v) {
+                    return $v['id'] . "_subject";
+                }, $feedSubject['subject_lists']);
+            }
+        } else {
+            $noteRemote = new RecommendNote($this->ext_params);
             $userNoteListIds = $noteRemote->getRecommendNoteList($tabName, $page, $count);
         }
         //发现列表，增加运营广告位
@@ -138,7 +159,7 @@ class Subject extends \mia\miagroup\Lib\Service
         //合并数据Ids
         $combineIds = $this->combineOperationIds($userNoteListIds, $operationNoteData);
 
-        $res['content_lists'] = $this->formatNoteData($combineIds,$operationNoteData);
+        $res['content_lists'] = $this->formatNoteData($combineIds, $operationNoteData);
 
         return $this->succ($res);
     }
