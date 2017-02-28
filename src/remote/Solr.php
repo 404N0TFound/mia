@@ -248,7 +248,7 @@ class Solr
     public function getHighQualityKoubeiByBrandId($category_id, $brand_id = 0, $page = 1, $category_name)
     {
 
-        if(is_array($category_id)){
+        /*if(is_array($category_id)){
             $category_str = implode(",",$category_id);
         }else{
             $category_str = $category_id;
@@ -257,7 +257,7 @@ class Solr
             $brand_str = implode(",",$brand_id);
         }else{
             $brand_str = $brand_id;
-        }
+        }*/
         //$koubeiListKey = md5($category_str.$brand_str.$page);
         //$redis = new Redis();
         //$result = $redis->get($koubeiListKey);
@@ -679,14 +679,14 @@ class Solr
      */
     public function brandList($category_id, $category_name)
     {
-        $redis = new Redis();
+        /*$redis = new Redis();
         if(is_array($category_id)){
             $category_str = implode(",",$category_id);
             $brandListkey = md5($category_str);
         }else{
             $brandListkey = md5($category_id);
         }
-        $show_brand_ids = array();
+        $show_brand_ids = array();*/
         //$new_brand_list = $redis->get($brandListkey);
         //if(empty($new_brand_list)){
             $solrInfo = [
