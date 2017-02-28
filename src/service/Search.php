@@ -170,7 +170,7 @@ class Search extends Service
         $searchArr["dvc_id"] = $param['dvc_id'];
         $searchArr["user_id"] = $param['user_id'];
         $searchArr["bi_session_id"] = $param['bi_session_id'];
-        $searchArr["cluster_type"] = 1;//0不做任何聚合，1进行默认方法聚合
+        $searchArr["cluster_type"] = 0;//0不做任何聚合，1进行默认方法聚合
         $searchArr["version"] = 1;//api版本,不传为老接口，传1为新接口
 
         if ($brandId) {
