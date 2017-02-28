@@ -94,7 +94,7 @@ class Search extends Service
             $userIds = array_map(function ($v) {
                 return $v['user_id'];
             }, $userIds);
-            $userIds = [220103494, 1508587, 7509605, 7509576, 7509596, 7509608, 7509603, 7509614, 7509571, 7509569];
+//            $userIds = [220103494, 1508587, 7509605, 7509576, 7509596, 7509608, 7509603, 7509614, 7509571, 7509569];
             $userList = $this->userService->getUserInfoByUids($userIds)['data'];
 
             $res['search_users'] = !empty($userList) ? array_values($userList) : [];

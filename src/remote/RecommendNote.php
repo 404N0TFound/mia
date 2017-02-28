@@ -26,7 +26,7 @@ class RecommendNote
         $result = $remote_curl->curl_remote('/recommend_result', $params);
         $tabInfo = $result['pl_list'];
         //错误处理
-        if (empty($tabInfo) || $result['msg'] == 'error' || !$result) {
+        if ($result['msg'] == 'error' || $result === false) {
             //去redis 取数据
             $redis = new Redis('recommend/default');
             //这时候的刷新操作有问题
@@ -58,7 +58,11 @@ class RecommendNote
         $remote_curl = new RemoteCurl('index_cate_recommend');
 
         $params['did'] = $this->session_info['dvc_id'];//设备id
-        $params['tp'] = 4;//取得分类下笔记
+        $params['tp'] = 4;
+        if($tabName == "发现") {
+            $params['tp'] = 0;
+        }
+        //取得分类下笔记
         $params['sessionid'] = $this->session_info['bi_session_id'];
         $params['cate'] = $tabName;
         //$params['index'] = $page;  不需要传页数，推荐会把当前session_id下的曝光的id去除掉
@@ -68,7 +72,7 @@ class RecommendNote
         $noteIds = $result['pl_list'];
 
         //错误处理
-        if (empty($noteIds) || $result['msg'] == 'error' || !$result) {
+        if ($result['totalcount'] == 0 || $result['msg'] == 'error' || $result === false) {
             //去redis 取数据
             $redis = new Redis('recommend/default');
             //这时候的刷新操作有问题
