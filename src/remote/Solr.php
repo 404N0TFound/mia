@@ -260,9 +260,9 @@ class Solr
         }
         $koubeiListKey = md5($category_str.$brand_str.$page);
         $redis = new Redis();
-        //$result = $redis->get($koubeiListKey);
+        $result = $redis->get($koubeiListKey);
 
-        //if(empty($result)) {
+        if(empty($result)) {
 
             $field = 'id,item_id';
             $sort = 'score desc,id desc,rank_score desc';
@@ -307,8 +307,8 @@ class Solr
                 }
             }
             // 缓存
-            //$redis->setex($koubeiListKey, $result, 20*60);
-        //}
+            $redis->setex($koubeiListKey, $result, 20*60);
+        }
         return $result;
     }
     
