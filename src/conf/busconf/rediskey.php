@@ -145,3 +145,8 @@ $subjectKey = [
         'expire_time' => 86400 * 30,
     ],
 ];
+
+//笔记推荐服务相关，string格式，用空格分隔
+$recommendSubjectKey = "hot_article_all";//热门文章
+$recommendCateKey = "top_cate_hot";//热门分类
+$recommendCateSubjectKey = "hot_article_cate_%s";//分类下的热门文章
