@@ -872,7 +872,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($category_id) && !empty($brand_id)){
 
             // 品牌（三级）
-            $relation_ids = $item_service->getCategoryFourIds($brand_id, 'bid');
+            $relation_ids = $item_service->getCategoryFourIds($brand_id, 'bid')['data'];
 
             // 品牌口碑去重分页列表
             if(!empty($relation_ids)){
@@ -881,7 +881,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }else{
             // 类目及品牌 (默认为四级)
 
-            $relation_ids = $item_service->getCategoryFourIds($category_id, 'cid');
+            $relation_ids = $item_service->getCategoryFourIds($category_id, 'cid')['data'];
             if(!empty($brand_id)){
                 $koubei_info = $solr->getHighQualityKoubeiByBrandId($relation_ids, $brand_id, $page, $category_name);
             }
