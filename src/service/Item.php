@@ -176,7 +176,7 @@ class Item extends \mia\miagroup\Lib\Service {
             return array();
         }
         $result = $this->itemModel->getCategoryFourList($three_cate, $flag);
-        return $result;
+        return $this->succ($result);;
     }
 
     /*
@@ -188,6 +188,6 @@ class Item extends \mia\miagroup\Lib\Service {
             return array();
         }
         $result = $this->itemModel->getRelationBrandNameList($brand_ids);
-        return $result;
+        return $this->succ($result);;
     }
 }

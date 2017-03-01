@@ -141,9 +141,9 @@ class Item {
         if (!empty($data)) {
             foreach ($data as $v) {
                 if (!empty($v['chinese_name'])) {
-                    $result[] = $v['chinese_name'];
+                    $result[$v['id']] = array('id' => $v['id'], 'name' => $v['chinese_name']);
                 } else {
-                    $result[] = $v['name'];
+                    $result[$v['id']] = array('id' => $v['id'], 'name' => $v['name']);
                 }
             }
         }
