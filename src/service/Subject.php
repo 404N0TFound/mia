@@ -359,34 +359,36 @@ class Subject extends \mia\miagroup\Lib\Service {
                 return $this->error(1104);
             }
         }
-        //过滤敏感词
-        if(!empty($subjectInfo['title'])){
-            //过滤敏感词
-            $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'])['data'];
-            if(!empty($sensitive_res['sensitive_words'])){
-                return $this->error(1112);
-            }
-            //过滤xss、过滤html标签
-            $subjectInfo['title'] = strip_tags($subjectInfo['title'], '<span><p>');
-        }
-        if(!empty($subjectInfo['text'])){
-            //过滤敏感词
-            $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'])['data'];
-            if(!empty($sensitive_res['sensitive_words'])){
-                return $this->error(1112);
-            }
-            //过滤脚本
-            $subjectInfo['text'] = strip_tags($subjectInfo['text'], '<span><p>');
-        }
-        //蜜芽圈标签
-        if (!empty($labelInfos)) {
-            $labelTitleArr = array_column($labelInfos, 'title');
-            $labelStr = implode(',', $labelTitleArr);
-            //过滤敏感词
-            if(!empty($labelStr)){
-                $sensitive_res = $audit->checkSensitiveWords($labelStr)['data'];
+        
+        if ($koubeiId <= 0) { //口碑不过滤敏感词
+            if(!empty($subjectInfo['title'])){
+                //过滤敏感词
+                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'])['data'];
                 if(!empty($sensitive_res['sensitive_words'])){
                     return $this->error(1112);
+                }
+                //过滤xss、过滤html标签
+                $subjectInfo['title'] = strip_tags($subjectInfo['title'], '<span><p>');
+            }
+            if(!empty($subjectInfo['text'])){
+                //过滤敏感词
+                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'])['data'];
+                if(!empty($sensitive_res['sensitive_words'])){
+                    return $this->error(1112);
+                }
+                //过滤脚本
+                $subjectInfo['text'] = strip_tags($subjectInfo['text'], '<span><p>');
+            }
+            //蜜芽圈标签
+            if (!empty($labelInfos)) {
+                $labelTitleArr = array_column($labelInfos, 'title');
+                $labelStr = implode(',', $labelTitleArr);
+                //过滤敏感词
+                if(!empty($labelStr)){
+                    $sensitive_res = $audit->checkSensitiveWords($labelStr)['data'];
+                    if(!empty($sensitive_res['sensitive_words'])){
+                        return $this->error(1112);
+                    }
                 }
             }
         }
@@ -472,13 +474,15 @@ class Subject extends \mia\miagroup\Lib\Service {
             }
         }
         
-        // 赠送用户蜜豆
-        $mibean = new \mia\miagroup\Remote\MiBean();
-        $param['user_id'] = $subjectSetInfo['user_id'];
-        $param['relation_type'] = 'publish_pic';
-        $param['relation_id'] = $subjectId;
-        $param['to_user_id'] = $subjectSetInfo['user_id'];
-        $mibean->add($param);
+        if ($koubeiId <= 0) { //口碑不再发蜜豆
+            // 赠送用户蜜豆
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['user_id'] = $subjectSetInfo['user_id'];
+            $param['relation_type'] = 'publish_pic';
+            $param['relation_id'] = $subjectId;
+            $param['to_user_id'] = $subjectSetInfo['user_id'];
+            $mibean->add($param);
+        }
         
         // 添加蜜芽圈标签
         if (!empty($labelInfos)) {
