@@ -334,8 +334,8 @@ class Search extends Service
                         'color' => '#333333'
                     ],
                 ];
-                $recommend_desc['color'] = '#fa4b9b';//红色数字
             }
+            var_dump($recommend_desc);
             $items['recommend_desc'][$v] = $recommend_desc;
             unset($recommend_desc);
         }
