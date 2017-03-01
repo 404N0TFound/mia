@@ -176,3 +176,10 @@ $operate_note_ext_fields = array(
 );
 
 
+ 
+/**
+ * 帖子数据导出屏蔽账号
+ */
+$dump_exclude_uids = array(
+    '15854327', '3782852',
+);
