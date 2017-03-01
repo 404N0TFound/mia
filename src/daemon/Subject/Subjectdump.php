@@ -138,6 +138,7 @@ class Subjectdump extends \FD_Daemon {
         $userIds = array_diff($userIds, $existUids);
         $userService = new \mia\miagroup\Service\User();
         $userInfos = $userService->getUserInfoByUids($userIds, 0, array('count'))['data'];
+        $excludeUids = \F_Ice::$ins->workApp->config->get('busconf.subject.dump_exclude_uids');
         foreach ($data as $value) {
             if (isset($maxId)) { //获取最大event_id
                 $maxId = $value['id'] > $maxId ? $value['id'] : $maxId;
@@ -151,8 +152,11 @@ class Subjectdump extends \FD_Daemon {
             if (!empty($subject['album_article']) || !empty($subject['video_info'])) {
                 continue;
             }
+            //部分账号帖子屏蔽
+            if (in_array($value['user_id'], $excludeUids)) {
+                continue;
+            }
             $subject = $subjectInfos[$value['id']];
-        
             $dumpdata = array();
             //帖子ID
             $dumpdata['id'] = $subject['id'];
