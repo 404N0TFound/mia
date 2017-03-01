@@ -210,4 +210,11 @@ $cron_list['item_multiple_rank'] = array(
     'interval' => 86400
 );
 
-
+//首页tab分类更新
+$cron_list['tab_sync'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=tabsync",
+    'start_time' => '2017-02-28 00:00:00',
+    'interval' => 86400
+);
