@@ -85,10 +85,45 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['extr_info'] = json_encode($labels);
         //####end
         $koubeiInsertId = $this->koubeiModel->saveKoubei($koubeiSetData);
-
-        if(!$koubeiInsertId)
-        {
+        if(!$koubeiInsertId) {
             return $this->error(6101);
+        }
+        
+        //发口碑同时发布蜜芽圈帖子
+        //#############start
+        $subjectInfo = array();
+        $subjectInfo['user_info']['user_id'] = $koubeiSetData['user_id'];
+        $subjectInfo['title'] = $koubeiSetData['title'];
+        $subjectInfo['text'] = $koubeiSetData['content'];
+        $subjectInfo['created'] = $koubeiSetData['created_time'];
+        $subjectInfo['extr_info'] = $labels;
+        $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
+        $imageInfos = array();
+        $i=0;
+        if(!empty($koubeiData['image_infos'])) {
+            foreach($koubeiData['image_infos'] as $image){
+                $imageInfos[$i]['url'] = $image['url'];
+                $size= getimagesize("http://img.miyabaobei.com/".$image['url']);
+                $imageInfos[$i]['width'] = $size[0];
+                $imageInfos[$i]['height'] = $size[1];
+                $i++;
+            }
+        }
+        $subjectInfo['image_infos'] = $imageInfos;
+        $labelInfos = array();
+        if(!empty($labels['label'])) {
+            $labels = $labels['label'];
+            foreach($labels as $label) {
+                $labelInfos[] = array('title' => $label);
+            }
+        }
+        $pointInfo[0] = array( 'item_id' => $koubeiSetData['item_id']);
+        
+        $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiInsertId)['data'];
+        //#############end
+        //将帖子id回写到口碑表中
+        if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
+            $this->koubeiModel->addSubjectIdToKoubei($koubeiInsertId,$subjectIssue['id']);
         }
 
         //发蜜豆
@@ -134,49 +169,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //发布商品口碑，获得5个蜜豆奖励
             $param['mibean'] = 5;
             $mibean->add($param);
-        }
-
-        //发口碑同时发布蜜芽圈帖子
-        //#############start
-        $subjectInfo = array();
-        $subjectInfo['user_info']['user_id'] = $koubeiSetData['user_id'];
-        $subjectInfo['title'] = $koubeiSetData['title'];
-        $subjectInfo['text'] = $koubeiSetData['content'];
-        $subjectInfo['created'] = $koubeiSetData['created_time'];
-        $subjectInfo['extr_info'] = $labels;
-        $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
-        $imageInfos = array();
-        $i=0;
-        if(!empty($koubeiData['image_infos'])) {
-            foreach($koubeiData['image_infos'] as $image){
-
-                $imageInfos[$i]['url'] = $image['url'];
-                $size= getimagesize("http://img.miyabaobei.com/".$image['url']);
-                $imageInfos[$i]['width'] = $size[0];
-                $imageInfos[$i]['height'] = $size[1];
-                $i++;
-            }
-
-        }
-        $subjectInfo['image_infos'] = $imageInfos;
-        $labelInfos = array();
-
-        if(!empty($labels['label']))
-        {
-            $labels = $labels['label'];
-            foreach($labels as $label)
-            {
-                $labelInfos[] = array('title' => $label);
-            }
-        }
-
-        $pointInfo[0] = array( 'item_id' => $koubeiSetData['item_id']);
-
-        $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiInsertId)['data'];
-        //#############end
-        //将帖子id回写到口碑表中
-        if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
-            $this->koubeiModel->addSubjectIdToKoubei($koubeiInsertId,$subjectIssue['id']);
         }
 
         return $this->succ($koubeiInsertId);
@@ -869,7 +861,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!empty($category_id) && empty($brand_id)){
 
             // 类目（三级）
-            $relation_ids = $item_service->getCategoryFourIds($category_id, 'cid');
+            $relation_ids = $item_service->getCategoryFourIds($category_id, 'cid')['data'];
 
             if(!empty($relation_ids)){
                 // 类目下口碑去重分页列表
@@ -897,7 +889,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         // 获取品牌名称
         if(!empty($brand_ids) && is_array($brand_ids)){
-            $brand_list = $item_service->getRelationBrandName($brand_ids);
+            $brand_list = array_values($item_service->getRelationBrandName($brand_ids)['data']);
         }
 
         if(!empty($koubei_info) && is_array($koubei_info)){
