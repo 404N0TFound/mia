@@ -335,7 +335,6 @@ class Search extends Service
                     ],
                 ];
             }
-            var_dump($recommend_desc);
             $items['recommend_desc'][$v] = $recommend_desc;
             unset($recommend_desc);
         }
