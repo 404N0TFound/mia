@@ -394,6 +394,10 @@ class Subject extends \mia\miagroup\Lib\Service
                         $imageUrl[$k]['url'] = $img_info['url'];
                         $imageUrl[$k]['height'] = $img_info['height'];
                         $imageUrl[$k]['width'] = $img_info['width'];
+                        $small_img_info = NormalUtil::buildImgUrl($image,'koubeismall',640,640);
+                        $smallImageInfos[$k]['width'] = $small_img_info['width'];
+                        $smallImageInfos[$k]['height'] = $small_img_info['height'];
+                        $smallImageInfos[$k]['url'] = $small_img_info['url'];
                         $smallImageUrl[$k] = NormalUtil::buildImgUrl($image, 'small')['url'];
                         $bigImageUrl[$k] = $img_info['url'];
                     }
