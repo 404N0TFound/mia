@@ -1,5 +1,5 @@
 <?php
-namespace mia\miagroup\Daemon\Subject;
+namespace mia\miagroup\Daemon\Temp;
 
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Service\Subject as SubjectService;
@@ -24,7 +24,7 @@ class Tabsync extends \FD_Daemon
         //取redis数据
         $redis = new Redis('recommend/default');
         //这时候的刷新操作有问题
-        $allCate = $redis->get(\F_Ice::$ins->workApp->config->get('busconf.subject.recommendCateKey'));
+        $allCate = $redis->get(\F_Ice::$ins->workApp->config->get('busconf.rediskey.recommendCateKey'));
         $cateArr = explode(' ', $allCate);
         foreach ($cateArr as $k => $v) {
             $tabInfos = $this->subjectService->getBatchTabInfos([$v]);
