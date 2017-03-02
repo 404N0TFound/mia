@@ -316,7 +316,7 @@ class Subject extends \DB_Query {
         $join = FALSE;
         if (isset($params['without_item']) && $params['without_item'] == 1) {
             $join = 'LEFT JOIN koubei ON koubei.subject_id = group_subjects.id';
-            $where[] = array(':gt', 'koubei.item_id', 0);
+            $where[] = array(':eq', 'koubei.item_id', 0);
         }
         $orderBy = array('group_subjects.id DESC');
         $data = $this->getRows($where, array('group_subjects.id as id'), $limit, $offset, $orderBy, $join);
