@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Model\Ums;
-
+use mia\miagroup\Data\Subject\TabNoteOperation;
+use mia\miagroup\Data\Subject\Tab as TabData;
 use Ice;
 
 class Subject extends \DB_Query {
@@ -10,6 +11,13 @@ class Subject extends \DB_Query {
     protected $tableSubject = 'group_subjects';
     protected $indexSubject = array('id', 'user_id', 'created', 'status', 'is_top', 'is_fine');
 
+    protected $tabData = null;
+    protected $tabOpeationData = null;
+    
+    public function __construct() {
+        $this->tabData = new TabData();
+        $this->tabOpeationData = new TabNoteOperation();
+    }
     /**
      * 查询口碑表数据
      */
@@ -48,4 +56,29 @@ class Subject extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 获取首页，推荐栏目，运营数据
+     * @param $tabId
+     * @param $page
+     * @return array
+     */
+    public function getOperationNoteData($tabId, $page, $timeTag=null)
+    {
+        if (empty($tabId)) {
+            return [];
+        }
+        $conditions['tab_id'] = $tabId;
+        $conditions['page'] = $page;
+        if(isset($timeTag)){
+            $conditions['time_tag'] = $timeTag;
+        }
+        $result = array();
+        $operationInfos = $this->tabOpeationData->getBatchOperationNotes($conditions);
+        if(!empty($operationInfos)){
+            $result = $operationInfos;
+        }
+        return $result;
+    }
+    
 }

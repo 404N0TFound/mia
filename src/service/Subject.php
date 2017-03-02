@@ -217,7 +217,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
                 $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
                 $is_opearation = 1;
-                $tmpData['config_data'] = $operationNoteData[$value];
+                //$tmpData['config_data'] = $operationNoteData[$value];
             }
             switch ($relation_type) {
                 //目前只有口碑帖子，蜜芽圈帖子。
@@ -1437,28 +1437,8 @@ class Subject extends \mia\miagroup\Lib\Service
         if(!empty($subjectIds)) {
             $subjects = $this->getBatchSubjectInfos($subjectIds,$currentId)['data'];
             $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
-            $data['subject_nums'] = count($subjectIds);
-            
-            $userNums = $this->getSubjectUsersNums($subjectIds)['data'];
-            $data['user_nums'] = $userNums;
         }
         return $this->succ($data);
-    }
-    
-    //根据图片ids获取活动的参加用户数
-    public function getSubjectUsersNums($subjectIds){
-        $subjects = $this->subjectModel->getSubjectByIds($subjectIds, array());
-        $userArr = array();
-        $userNums = 0;
-        foreach ($subjects as $subjectId => $subject) {
-            $userArr[] = $subject['user_id'];
-        }
-        if(!empty($userArr)){
-            $userArr = array_unique($userArr);
-            $userNums = count($userArr);
-        }
-        
-        return $this->succ($userNums);
     }
     
     /**
