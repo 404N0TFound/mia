@@ -636,7 +636,7 @@ class Solr
             return $return_arr;
         }
         if(count($return_arr)< $default){
-            return array_merge($this->another_order_list($arr,$default-count($return_arr)),$return_arr);
+            return array_merge($return_arr, $this->another_order_list($arr,$default-count($return_arr)));
         }
     }
 

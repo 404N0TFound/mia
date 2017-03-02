@@ -217,7 +217,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
                 $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
                 $is_opearation = 1;
-                $tmpData['config_data'] = $operationNoteData[$value];
+                //$tmpData['config_data'] = $operationNoteData[$value];
             }
             switch ($relation_type) {
                 //目前只有口碑帖子，蜜芽圈帖子。
