@@ -26,15 +26,20 @@ class Active extends \mia\miagroup\Lib\Service {
         if (empty($activeInfos)) {
             return $this->succ(array());
         }
+        
+        $activeIds = array();
+        foreach($activeInfos as $activeInfo){
+            $activeIds[] = $activeInfo['id'];
+        }
+        $activeCount = $this->activeModel->getBatchActiveSubjectCounts($activeIds);
+        
         foreach($activeInfos as $activeInfo){
             $tmp = $activeInfo;
             $extInfo = json_decode($activeInfo['ext_info'],true);
             $tmp['top_img'] = $extInfo['image'];
             if (in_array('count', $fields)) {
-                $subjectService = new SubjectService();
-                $subjectArr = $subjectService->getActiveSubjects($activeInfo['id'], 'all', 0, null, null)['data'];
-                $tmp['img_nums'] = $subjectArr['subject_nums'] > 0 ? $subjectArr['subject_nums'] : 0;
-                $tmp['user_nums'] = $subjectArr['user_nums'] > 0 ? $subjectArr['user_nums'] : 0;
+                $tmp['img_nums'] = $activeCount[$activeInfo['id']]['img_nums'] ;
+                $tmp['user_nums'] = $activeCount[$activeInfo['id']]['user_nums'] ;
             }
             $activeRes[] = $tmp;
         }
