@@ -147,7 +147,7 @@ class Subject extends \mia\miagroup\Lib\Service
 
         //发现列表，增加运营广告位
         $operationNoteData = [];
-        if ($action == "init" && $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
+        if ($tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
             $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
             //运营数据和普通数据去重
             $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
@@ -213,8 +213,6 @@ class Subject extends \mia\miagroup\Lib\Service
             //使用运营配置信息
             $is_opearation = 0;
             if (array_key_exists($value, $operationNoteData)) {
-                $relation_id = $operationNoteData[$value]['relation_id'];
-                $relation_type = $operationNoteData[$value]['relation_type'];
                 $relation_desc = $operationNoteData[$value]['ext_info']['desc'] ? $operationNoteData[$value]['ext_info']['desc'] : '';
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
                 $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';

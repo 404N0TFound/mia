@@ -113,7 +113,7 @@ $album = array(
          ),
      ),
  );
-
+//蜜芽圈首页，起始固定的2个tab
 $group_fixed_tab_first = [
     [
         'name' => '发现',
@@ -128,7 +128,7 @@ $group_fixed_tab_first = [
         'extend_id' => 2,
     ]
 ];
-
+//蜜芽圈首页，最后一个固定的tab，育儿
 $group_fixed_tab_last = [
     [
         'name' => '育儿',
@@ -137,7 +137,7 @@ $group_fixed_tab_last = [
         'extend_id' => 3,
     ]
 ];
-
+//蜜芽圈首页，三个配置tab位
 $group_index_operation_tab = [
     [
         'name' => '屁屁护理',
@@ -159,9 +159,6 @@ $group_index_operation_tab = [
     ]
 ];
 
-$recommendSubjectKey = "hot_article_all";
-$recommendCateKey = "top_cate_hot";
-$recommendCateSubjectKey = "hot_article_cate_%s";
 $operate_note_fields = array(
     'subject',
     'doozer',

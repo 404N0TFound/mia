@@ -64,9 +64,25 @@ class Search extends Service
         $noteInfos = $this->subjectService->getBatchSubjectInfos(array_values($noteIds))['data'];
 
         $res['total'] = $searchResult['disp_num'];
-        $res['brand_condition'] = $searchResult['search_filter']['b_array'];
-        $res['search_notes'] = array_values($noteInfos);
 
+        //替换品牌名称，精简
+        $brand_condition = [];
+        $brandIds = [];
+        foreach ($searchResult['search_filter']['b_array'] as $brand) {
+            $brandIds[] = $brand['b_id'];
+        }
+        if(!empty($brandIds)) {
+            $itemService = new ItemService();
+            $brandInfo = $itemService->getRelationBrandName($brandIds)['data'];
+            foreach ($searchResult['search_filter']['b_array'] as $val) {
+                $brand_condition[] = [
+                    'b_id' => $val['b_id'],
+                    'b_name' => $brandInfo[$val['b_id']]['name']
+                ];
+            }
+        }
+        $res['brand_condition'] = $brand_condition;
+        $res['search_notes'] = array_values($noteInfos);
         return $this->succ($res);
     }
 
@@ -300,8 +316,24 @@ class Search extends Service
                 $recommend_desc['text'] = '';
                 $recommend_desc['color'] = '';
             } else {
-                $recommend_desc['text'] = $ext_info['user_unm'] . '位妈妈发表了' . $ext_info['item_rec_nums'] . '篇笔记';
-                $recommend_desc['color'] = '';
+                $recommend_desc = [
+                    [
+                        'text' => "{$ext_info['user_unm']}",
+                        'color' => '#fa4b9b'
+                    ],
+                    [
+                        'text' => "位妈妈发表了",
+                        'color' => '#333333'
+                    ],
+                    [
+                        'text' => "{$ext_info['item_rec_nums']}",
+                        'color' => '#fa4b9b'
+                    ],
+                    [
+                        'text' => "篇笔记",
+                        'color' => '#333333'
+                    ],
+                ];
             }
             $items['recommend_desc'][$v] = $recommend_desc;
             unset($recommend_desc);

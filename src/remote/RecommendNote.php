@@ -30,7 +30,7 @@ class RecommendNote
             //去redis 取数据
             $redis = new Redis('recommend/default');
             //这时候的刷新操作有问题
-            $res = $redis->get(\F_Ice::$ins->workApp->config->get('busconf.subject.recommendCateKey'));
+            $res = $redis->get(\F_Ice::$ins->workApp->config->get('busconf.rediskey.recommendCateKey'));
             $tabInfo = explode(' ', $res);
         }
 
@@ -69,7 +69,7 @@ class RecommendNote
             //去redis 取数据
             $redis = new Redis('recommend/default');
             //取热门文章，这时候的刷新操作有问题
-            $res = $redis->get(\F_Ice::$ins->workApp->config->get('busconf.subject.recommendSubjectKey'));
+            $res = $redis->get(\F_Ice::$ins->workApp->config->get('busconf.rediskey.recommendSubjectKey'));
             $idArr = explode(' ', $res);
             $noteIds = array_slice($idArr, ($page - 1) * $count, $count);
         }
@@ -112,7 +112,7 @@ class RecommendNote
             //去redis 取数据
             $redis = new Redis('recommend/default');
             //取分类下热门文章，这时候的刷新操作有问题
-            $res = $redis->get(sprintf(\F_Ice::$ins->workApp->config->get('busconf.subject.recommendCateSubjectKey'), $tabName));
+            $res = $redis->get(sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.recommendCateSubjectKey'), $tabName));
 
             $idArr = explode(' ', $res);
             $noteIds = array_slice($idArr, ($page - 1) * $count, $count);
