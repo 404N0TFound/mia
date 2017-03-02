@@ -76,8 +76,8 @@ class Search extends Service
             $brandInfo = $itemService->getRelationBrandName($brandIds)['data'];
             foreach ($searchResult['search_filter']['b_array'] as $val) {
                 $brand_condition[] = [
-                    'b_id' => $val['b_id'],
-                    'b_name' => $brandInfo[$val['b_id']]['name']
+                    'id' => $val['b_id'],
+                    'name' => $brandInfo[$val['b_id']]['name']
                 ];
             }
         }
