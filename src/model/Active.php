@@ -2,12 +2,15 @@
 namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Active\Active as ActiveData;
+use \mia\miagroup\Data\Active\ActiveSubject as ActiveSubjectData;
 
 class Active {
     protected $activeData = null;
+    protected $activeSubjectData = null;
 
     public function __construct() {
         $this->activeData = new ActiveData();
+        $this->activeSubjectData = new ActiveSubjectData();
     }
 
     /**
@@ -42,6 +45,11 @@ class Active {
         $affect = $this->activeData->delete($activeId, $operator);
         return $affect;
     }
-
+    
+    //批量获取活动下图片计数（图片数，发帖用户数）
+    public function getBatchActiveSubjectCounts($activeIds) {
+        $data = $this->activeSubjectData->getBatchActiveSubjectCounts($activeIds);
+        return $data;
+    }
 
 }

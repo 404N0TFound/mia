@@ -392,6 +392,10 @@ class Subject extends \mia\miagroup\Lib\Service
                         $imageUrl[$k]['url'] = $img_info['url'];
                         $imageUrl[$k]['height'] = $img_info['height'];
                         $imageUrl[$k]['width'] = $img_info['width'];
+                        $small_img_info = NormalUtil::buildImgUrl($image,'koubeismall',640,640);
+                        $smallImageInfos[$k]['width'] = $small_img_info['width'];
+                        $smallImageInfos[$k]['height'] = $small_img_info['height'];
+                        $smallImageInfos[$k]['url'] = $small_img_info['url'];
                         $smallImageUrl[$k] = NormalUtil::buildImgUrl($image, 'small')['url'];
                         $bigImageUrl[$k] = $img_info['url'];
                     }
@@ -1433,28 +1437,8 @@ class Subject extends \mia\miagroup\Lib\Service
         if(!empty($subjectIds)) {
             $subjects = $this->getBatchSubjectInfos($subjectIds,$currentId)['data'];
             $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
-            $data['subject_nums'] = count($subjectIds);
-            
-            $userNums = $this->getSubjectUsersNums($subjectIds)['data'];
-            $data['user_nums'] = $userNums;
         }
         return $this->succ($data);
-    }
-    
-    //根据图片ids获取活动的参加用户数
-    public function getSubjectUsersNums($subjectIds){
-        $subjects = $this->subjectModel->getSubjectByIds($subjectIds, array());
-        $userArr = array();
-        $userNums = 0;
-        foreach ($subjects as $subjectId => $subject) {
-            $userArr[] = $subject['user_id'];
-        }
-        if(!empty($userArr)){
-            $userArr = array_unique($userArr);
-            $userNums = count($userArr);
-        }
-        
-        return $this->succ($userNums);
     }
     
     /**
