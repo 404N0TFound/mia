@@ -117,41 +117,37 @@ class Subject extends \mia\miagroup\Lib\Service
             //推荐会自动去除展示过后的数据，所以刷新只要重复请求第一页就行
             $page = 1;
         }
-        $fixTab = [];
-        $fixArr = array_merge($this->config['group_fixed_tab_first'], $this->config['group_fixed_tab_last']);
-        foreach ($fixArr as $val) {
-            $fixTab[$val['extend_id']] = $val;
-        }
-
-        //获取tabName
-        if (array_key_exists($tabId, $fixTab)) {
-            $tabName = $fixTab[$tabId]['name'];
-        } else {
-            $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
-        }
-
-
-        if ($tabId == $this->config['group_fixed_tab_last'][0]['extend_id']) {
-            //育儿频道
-            $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
-        } elseif ($tabId == $this->config['group_fixed_tab_first'][1]['extend_id']) {
+        switch ($tabId){
+            //育儿
+            case $this->config['group_fixed_tab_last'][0]['extend_id']:
+                $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
+                break;
             //订阅
-            $feedService = new FeedServer();
-            $feedSubject = $feedService->getFeedSubject($userId, $userId, $page, $count)['data'];
-            if (empty($feedSubject['subject_lists'])) {
-                $userNoteListIds = [];
-            } else {
-                $userNoteListIds = array_map(function ($v) {
-                    return $v['id'] . "_subject";
-                }, $feedSubject['subject_lists']);
-            }
-        } else {
-            $noteRemote = new RecommendNote($this->ext_params);
-            $userNoteListIds = $noteRemote->getRecommendNoteList($tabName, $page, $count);
+            case $tabId == $this->config['group_fixed_tab_first'][1]['extend_id']:
+                $feedService = new FeedServer();
+                $feedSubject = $feedService->getFeedSubject($userId, $userId, $page, $count)['data'];
+                if (empty($feedSubject['subject_lists'])) {
+                    $userNoteListIds = [];
+                } else {
+                    $userNoteListIds = array_map(function ($v) {
+                        return $v['id'] . "_subject";
+                    }, $feedSubject['subject_lists']);
+                }
+                break;
+            //发现
+            case $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']:
+                $noteRemote = new RecommendNote($this->ext_params);
+                $userNoteListIds = $noteRemote->getRecommendNoteList($page, $count);
+                break;
+            default:
+                $noteRemote = new RecommendNote($this->ext_params);
+                $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
+                $userNoteListIds = $noteRemote->getNoteListByCate($tabName, $page, $count);
         }
+
         //发现列表，增加运营广告位
         $operationNoteData = [];
-        if ($action == "init" && $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
+        if ($tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
             $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
             //运营数据和普通数据去重
             $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
@@ -217,8 +213,6 @@ class Subject extends \mia\miagroup\Lib\Service
             //使用运营配置信息
             $is_opearation = 0;
             if (array_key_exists($value, $operationNoteData)) {
-                $relation_id = $operationNoteData[$value]['relation_id'];
-                $relation_type = $operationNoteData[$value]['relation_type'];
                 $relation_desc = $operationNoteData[$value]['ext_info']['desc'] ? $operationNoteData[$value]['ext_info']['desc'] : '';
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
                 $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
@@ -398,6 +392,10 @@ class Subject extends \mia\miagroup\Lib\Service
                         $imageUrl[$k]['url'] = $img_info['url'];
                         $imageUrl[$k]['height'] = $img_info['height'];
                         $imageUrl[$k]['width'] = $img_info['width'];
+                        $small_img_info = NormalUtil::buildImgUrl($image,'koubeismall',640,640);
+                        $smallImageInfos[$k]['width'] = $small_img_info['width'];
+                        $smallImageInfos[$k]['height'] = $small_img_info['height'];
+                        $smallImageInfos[$k]['url'] = $small_img_info['url'];
                         $smallImageUrl[$k] = NormalUtil::buildImgUrl($image, 'small')['url'];
                         $bigImageUrl[$k] = $img_info['url'];
                     }
@@ -667,34 +665,36 @@ class Subject extends \mia\miagroup\Lib\Service
                 return $this->error(1104);
             }
         }
-        //过滤敏感词
-        if(!empty($subjectInfo['title'])){
-            //过滤敏感词
-            $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'])['data'];
-            if(!empty($sensitive_res['sensitive_words'])){
-                return $this->error(1112);
-            }
-            //过滤xss、过滤html标签
-            $subjectInfo['title'] = strip_tags($subjectInfo['title'], '<span><p>');
-        }
-        if(!empty($subjectInfo['text'])){
-            //过滤敏感词
-            $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'])['data'];
-            if(!empty($sensitive_res['sensitive_words'])){
-                return $this->error(1112);
-            }
-            //过滤脚本
-            $subjectInfo['text'] = strip_tags($subjectInfo['text'], '<span><p>');
-        }
-        //蜜芽圈标签
-        if (!empty($labelInfos)) {
-            $labelTitleArr = array_column($labelInfos, 'title');
-            $labelStr = implode(',', $labelTitleArr);
-            //过滤敏感词
-            if(!empty($labelStr)){
-                $sensitive_res = $audit->checkSensitiveWords($labelStr)['data'];
+        
+        if ($koubeiId <= 0) { //口碑不过滤敏感词
+            if(!empty($subjectInfo['title'])){
+                //过滤敏感词
+                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'])['data'];
                 if(!empty($sensitive_res['sensitive_words'])){
                     return $this->error(1112);
+                }
+                //过滤xss、过滤html标签
+                $subjectInfo['title'] = strip_tags($subjectInfo['title'], '<span><p>');
+            }
+            if(!empty($subjectInfo['text'])){
+                //过滤敏感词
+                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'])['data'];
+                if(!empty($sensitive_res['sensitive_words'])){
+                    return $this->error(1112);
+                }
+                //过滤脚本
+                $subjectInfo['text'] = strip_tags($subjectInfo['text'], '<span><p>');
+            }
+            //蜜芽圈标签
+            if (!empty($labelInfos)) {
+                $labelTitleArr = array_column($labelInfos, 'title');
+                $labelStr = implode(',', $labelTitleArr);
+                //过滤敏感词
+                if(!empty($labelStr)){
+                    $sensitive_res = $audit->checkSensitiveWords($labelStr)['data'];
+                    if(!empty($sensitive_res['sensitive_words'])){
+                        return $this->error(1112);
+                    }
                 }
             }
         }
@@ -814,13 +814,15 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectSetInfo['small_image_url'][] = NormalUtil::buildImgUrl($image['url'], 'small')['url'];
             }
         }
-        // 赠送用户蜜豆
-        $mibean = new \mia\miagroup\Remote\MiBean();
-        $param['user_id'] = $subjectSetInfo['user_id'];
-        $param['relation_type'] = 'publish_pic';
-        $param['relation_id'] = $subjectId;
-        $param['to_user_id'] = $subjectSetInfo['user_id'];
-        $mibean->add($param);
+        if ($koubeiId <= 0) { //口碑不再发蜜豆
+            // 赠送用户蜜豆
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['user_id'] = $subjectSetInfo['user_id'];
+            $param['relation_type'] = 'publish_pic';
+            $param['relation_id'] = $subjectId;
+            $param['to_user_id'] = $subjectSetInfo['user_id'];
+            $mibean->add($param);
+        }
         
         // 添加蜜芽圈标签
         if (!empty($labelInfos)) {

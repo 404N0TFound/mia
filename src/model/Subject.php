@@ -416,7 +416,7 @@ class Subject {
      * 获取活动的帖子（全部/精华）
      */
     public function getSubjectIdsByActiveId($activeId, $type, $page = 1, $limit = 20){
-        $subjectIds = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page = 1, $limit = 20);
+        $subjectIds = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page, $limit);
         return $subjectIds;
     }
     
