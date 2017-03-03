@@ -24,6 +24,9 @@ class Tab extends \DB_Query
             return [];
         }
         $data = $this->getRows($where);
-        return $data;
+        foreach ($data as $v) {
+            $res[$v['tab_name']] = $v;
+        }
+        return $res;
     }
 }
