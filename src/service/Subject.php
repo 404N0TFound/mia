@@ -96,7 +96,7 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             $key = array_search($cate[$val], $show);
             if (array_key_exists($key, $firstLevel)) {
-                $firstLevel[$key]['extend_id'] .= "," . $tab_infos[$val]['id'];
+                $firstLevel[$key]['extend_id'] .= "_" . $tab_infos[$val]['id'];
             } else {
                 $firstLevel[$key] =
                     [
@@ -177,7 +177,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $userNoteListIds = $noteRemote->getRecommendNoteList($page, $count);
                 break;
             default:
-                $tabId = explode(",", $tabId);
+                $tabId = explode("_", $tabId);
                 $noteRemote = new RecommendNote($this->ext_params);
                 $tabName = $this->subjectModel->getTabInfos($tabId);
                 $tabName = implode(",", array_keys($tabName));
