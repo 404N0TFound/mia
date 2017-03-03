@@ -101,8 +101,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         return $firstLevel;
     }
-
-
+    
     /**
      * 批量获取导航分类标签信息
      * @param $tabNames
@@ -1576,4 +1575,3 @@ class Subject extends \mia\miagroup\Lib\Service
     }
     
 }
-
