@@ -547,7 +547,8 @@ class Subject extends \mia\miagroup\Lib\Service
                     foreach ($subjectInfo['items'] as $item) {
                         $relateItemIds[] = $item['item_id'];
                     }
-                    $itemIds = $itemRecommendService->getRecommedItemList('cart', 9 - count($relateItemIds), $relateItemIds);
+                    $relateItemIds = count($relateItemIds) > 3 ? array_splice($relateItemIds, 0, 3) : $relateItemIds;
+                    $itemIds = $itemRecommendService->getRecommedItemList('item', 9 - count($relateItemIds), $relateItemIds);
                 } else {
                     $itemIds = $itemRecommendService->getRecommedItemList('home', 9);
                 }
@@ -556,7 +557,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectInfo['relate_items'] = array_values($ItemInfos);
             }
             //获取相关帖子
-            $noteRecommendService = new \mia\miagroup\Remote\RecommendNote();
+            $noteRecommendService = new \mia\miagroup\Remote\RecommendNote($this->ext_params);
             $relatedIds = $noteRecommendService->getRelatedNote($subjectId);
             $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
             if (!empty($relatedSubjects)) {
@@ -618,7 +619,7 @@ class Subject extends \mia\miagroup\Lib\Service
      */
     public function getRelatedNoteList($subjectId, $page = 1, $count = 10) {
         //获取相关帖子
-        $noteRecommendService = new \mia\miagroup\Remote\RecommendNote();
+        $noteRecommendService = new \mia\miagroup\Remote\RecommendNote($this->ext_params);
         $relatedIds = $noteRecommendService->getRelatedNote($subjectId, $page, $count);
         $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
         if (!empty($relatedSubjects)) {
