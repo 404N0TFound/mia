@@ -313,8 +313,12 @@ class Search extends Service
             //口碑印象列表不需要了
             $ext_info = $this->koubeiService->getKoubeiNums($v)['data'];
             if ($ext_info['user_unm'] == 0 || $ext_info['item_rec_nums'] == 0) {
-                $recommend_desc['text'] = '';
-                $recommend_desc['color'] = '';
+                $recommend_desc = [
+                    [
+                        'text' => "{$ext_info['user_unm']}",
+                        'color' => '#fa4b9b'
+                    ]
+                ];
             } else {
                 $recommend_desc = [
                     [
