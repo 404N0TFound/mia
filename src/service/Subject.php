@@ -52,10 +52,13 @@ class Subject extends \mia\miagroup\Lib\Service
         //起始固定位，“发现”，“关注”
         $beginning_tabs = $this->config['group_fixed_tab_first'];
         //配置位3个
-        $operation_tabs = $this->config['group_index_operation_tab'];
+        //$operation_tabs = $this->config['group_index_operation_tab'];
+        $operation_tabs = [];//暂时不需要了
         //个性化推荐位6个
         $noteRemote = new RecommendNote($this->ext_params);
         $userTabNames = $noteRemote->getRecommendTabList($userId);
+        //获取对应的一级分类
+
         //个性化和配置位去重
         foreach ($operation_tabs as $v) {
             foreach ($userTabNames as $key => $val){
@@ -65,12 +68,38 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         $user_tabs = $this->getBatchTabInfos($userTabNames);
+        //$this->getFirstLevel($userTabNames);
 
         //最后固定位，“育儿”
         $last_tabs = $this->config['group_fixed_tab_last'];
 
         $tab_list['navList'] = array_merge($beginning_tabs, $operation_tabs, $user_tabs, $last_tabs);
         return $this->succ($tab_list);
+    }
+
+    /**
+     * 获取二级分类对应展示的一级分类
+     * @param $secondLevel
+     * @return array
+     */
+    public function getFirstLevel($secondLevel)
+    {
+        $firstLevel = [];
+        $cate = $this->config['second_level'];
+        $show = $this->config['first_level'];
+        foreach ($secondLevel as $val) {
+            if(!array_key_exists($val,$cate)) {
+                continue;
+            }
+            $firstLevel[] =
+                [
+                    'name' => $cate[$val],
+                    'url' => '',
+                    'type' => 'miagroup',
+                    'extend_id' => array_search($show),
+                ];
+        }
+        return $firstLevel;
     }
 
     /**
@@ -87,12 +116,12 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($tab_infos)) {
             return [];
         }
-        foreach ($tab_infos as $v) {
+        foreach ($tabNames as $v) {
             $res[] = [
-                'name' => $v['show_name']?$v['show_name']:$v['tab_name'],
+                'name' => $tab_infos[$v]['show_name']?$tab_infos[$v]['show_name']:$tab_infos[$v]['tab_name'],
                 'url' => '',
                 'type' => 'miagroup',
-                'extend_id' => $v['id'],
+                'extend_id' => $tab_infos[$v]['id'],
             ];
         }
         return $res;
@@ -141,7 +170,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 break;
             default:
                 $noteRemote = new RecommendNote($this->ext_params);
-                $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
+                $tabName = array_values($this->subjectModel->getTabInfos([$tabId]))[0]['tab_name'];
                 $userNoteListIds = $noteRemote->getNoteListByCate($tabName, $page, $count);
         }
 
@@ -1547,4 +1576,3 @@ class Subject extends \mia\miagroup\Lib\Service
     }
     
 }
-
