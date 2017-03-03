@@ -303,6 +303,11 @@ class Subject extends \DB_Query {
         return array_column($subjectsArrs, 'id');
     }
 
+    /**
+     * 获取帖子列表
+     * @param $params
+     * @return array
+     */
     public function getSubjectList($params)
     {
         $where = [];
@@ -315,8 +320,11 @@ class Subject extends \DB_Query {
         }
         $join = FALSE;
         if (isset($params['without_item']) && $params['without_item'] == 1) {
-            $join = 'LEFT JOIN koubei ON koubei.subject_id = group_subjects.id';
-            $where[] = array(':eq', 'koubei.item_id', 0);
+            $join = 'LEFT JOIN group_subject_point_tags ON group_subject_point_tags.subject_id = group_subjects.id';
+            $where[] = array(':eq', 'group_subject_point_tags.type', 'sku');
+            $where[] = array(':and', array(
+                array(':notnull', 'group_subject_point_tags.id'),
+            ));
         }
         $orderBy = array('group_subjects.id DESC');
         $data = $this->getRows($where, array('group_subjects.id as id'), $limit, $offset, $orderBy, $join);
