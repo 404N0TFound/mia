@@ -320,8 +320,7 @@ class Subject extends \DB_Query {
         }
         $join = FALSE;
         if (isset($params['without_item']) && $params['without_item'] == 1) {
-            $join = 'LEFT JOIN group_subject_point_tags ON group_subject_point_tags.subject_id = group_subjects.id';
-            $where[] = array(':eq', 'group_subject_point_tags.type', 'sku');
+            $join = 'LEFT JOIN group_subject_point_tags ON  group_subjects.id = group_subject_point_tags.subject_id';
             $where[] = array(':and', array(
                 array(':isnull', 'group_subject_point_tags.id'),
             ));
