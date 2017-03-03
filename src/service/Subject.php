@@ -101,7 +101,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         return $firstLevel;
     }
-    
+
     /**
      * 批量获取导航分类标签信息
      * @param $tabNames
@@ -170,7 +170,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 break;
             default:
                 $noteRemote = new RecommendNote($this->ext_params);
-                $tabName = $this->subjectModel->getTabInfos([$tabId])[0]['tab_name'];
+                $tabName = array_values($this->subjectModel->getTabInfos([$tabId]))[0]['tab_name'];
                 $userNoteListIds = $noteRemote->getNoteListByCate($tabName, $page, $count);
         }
 
