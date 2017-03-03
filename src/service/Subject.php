@@ -52,7 +52,7 @@ class Subject extends \mia\miagroup\Lib\Service
         //起始固定位，“发现”，“关注”
         $beginning_tabs = $this->config['group_fixed_tab_first'];
         //配置位3个
-        $operation_tabs = $this->config['group_index_operation_tab'];
+        $operation_tabs = [];
         //个性化推荐位6个
         $noteRemote = new RecommendNote($this->ext_params);
         $userTabNames = $noteRemote->getRecommendTabList($userId);
