@@ -67,13 +67,13 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
         }
-        $user_tabs = $this->getBatchTabInfos($userTabNames);
-        //$this->getFirstLevel($userTabNames);
+
+        $showTabs = $this->getFirstLevel($userTabNames);
 
         //最后固定位，“育儿”
         $last_tabs = $this->config['group_fixed_tab_last'];
 
-        $tab_list['navList'] = array_merge($beginning_tabs, $operation_tabs, $user_tabs, $last_tabs);
+        $tab_list['navList'] = array_merge($beginning_tabs, $operation_tabs, $showTabs, $last_tabs);
         return $this->succ($tab_list);
     }
 
@@ -84,20 +84,28 @@ class Subject extends \mia\miagroup\Lib\Service
      */
     public function getFirstLevel($secondLevel)
     {
+        $cate = $this->config['second_level'];//所有二级分类
+        $show = $this->config['first_level'];//所有一级分类
+
+        $tab_infos = $this->subjectModel->getBatchTabInfos($secondLevel);//标签信息
+
         $firstLevel = [];
-        $cate = $this->config['second_level'];
-        $show = $this->config['first_level'];
         foreach ($secondLevel as $val) {
-            if(!array_key_exists($val,$cate)) {
+            if (!array_key_exists($val, $cate)) {
                 continue;
             }
-            $firstLevel[] =
-                [
-                    'name' => $cate[$val],
-                    'url' => '',
-                    'type' => 'miagroup',
-                    'extend_id' => array_search($show),
-                ];
+            $key = array_search($cate[$val], $show);
+            if (array_key_exists($key, $firstLevel)) {
+                $firstLevel[$key]['extend_id'] .= "," . $tab_infos[$val]['id'];
+            } else {
+                $firstLevel[$key] =
+                    [
+                        'name' => $cate[$val],
+                        'url' => '',
+                        'type' => 'miagroup',
+                        'extend_id' => $tab_infos[$val]['id'],
+                    ];
+            }
         }
         return $firstLevel;
     }
@@ -146,7 +154,7 @@ class Subject extends \mia\miagroup\Lib\Service
             //推荐会自动去除展示过后的数据，所以刷新只要重复请求第一页就行
             $page = 1;
         }
-        switch ($tabId){
+        switch ($tabId) {
             //育儿
             case $this->config['group_fixed_tab_last'][0]['extend_id']:
                 $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
@@ -169,8 +177,10 @@ class Subject extends \mia\miagroup\Lib\Service
                 $userNoteListIds = $noteRemote->getRecommendNoteList($page, $count);
                 break;
             default:
+                $tabId = explode(",", $tabId);
                 $noteRemote = new RecommendNote($this->ext_params);
-                $tabName = array_values($this->subjectModel->getTabInfos([$tabId]))[0]['tab_name'];
+                $tabName = $this->subjectModel->getTabInfos($tabId);
+                $tabName = implode(",", array_keys($tabName));
                 $userNoteListIds = $noteRemote->getNoteListByCate($tabName, $page, $count);
         }
 
