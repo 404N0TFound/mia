@@ -209,5 +209,3 @@ $cron_list['item_multiple_rank'] = array(
     'start_time' => '2016-12-23 02:00:00',
     'interval' => 86400
 );
-
-

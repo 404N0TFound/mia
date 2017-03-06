@@ -2,19 +2,108 @@
 namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
+use mia\miagroup\Data\Subject\TabNoteOperation;
 use mia\miagroup\Data\Subject\Video as VideoData;
+use mia\miagroup\Data\Subject\Tab as TabData;
 use mia\miagroup\Data\Subject\GroupSubjectRecommendPool;
 use mia\miagroup\Lib\Redis;
 
 class Subject {
 
     protected $subjectData = null;
-
     protected $videoData = null;
-
+    protected $tabData = null;
+    protected $tabOpeationData = null;
     public function __construct() {
         $this->subjectData = new SubjectData();
         $this->videoData = new VideoData();
+        $this->tabData = new TabData();
+        $this->tabOpeationData = new TabNoteOperation();
+    }
+
+    /**
+     * 获取首页，推荐栏目，运营数据
+     * @param $tabId
+     * @param $page
+     * @return array
+     */
+    public function getOperationNoteData($tabId, $page, $timeTag=null)
+    {
+        if (empty($tabId)) {
+            return [];
+        }
+        $conditions['tab_id'] = $tabId;
+        $conditions['page'] = $page;
+        if(isset($timeTag)){
+            $conditions['time_tag'] = $timeTag;
+        }
+        
+        $operationInfos = $this->tabOpeationData->getBatchOperationInfos($conditions);
+        //按位置分组
+        foreach ($operationInfos as $k => $v) {
+            $result[$v['row']][$k] = $v;
+        }
+        //同位置有重复的，随机取一个
+        foreach ($result as $val) {
+            shuffle($val);
+            $return[] = array_pop($val);
+        }
+        //返回的键名保留格式
+        $data = [];
+        foreach ($return as $detail) {
+            $key = $detail['relation_id'] . '_' . $detail['relation_type'];
+            if($detail['relation_type'] == 'link'){
+                $key = $detail['id'] . '_' . 'link';
+            }
+            $data[$key] = $detail;
+        }
+        return $data;
+    }
+
+    public function getYuerList($page, $count)
+    {
+        $conditions['is_fine'] = 1;
+        $conditions['iPageSize'] = $count;
+        $conditions['page'] = $page;
+        $conditions['without_item'] = 1;
+        $subjectIds = $this->subjectData->getSubjectList($conditions);
+        $subjectIds = array_map(function ($v) {
+            return $v . "_subject";
+        }, $subjectIds);
+        return $subjectIds;
+    }
+
+    /**
+     * @param $tabNames
+     * @return array
+     * 批量获取导航分类标签信息
+     */
+    public function getBatchTabInfos($tabNames)
+    {
+        if (!is_array($tabNames) || empty($tabNames)) {
+            return [];
+        }
+        $tabNames = array_map(function ($v) {
+            return md5($v);
+        }, $tabNames);
+        $conditions['name_md5'] = $tabNames;
+        $tabInfos = $this->tabData->getBatchSubjects($conditions);
+        return $tabInfos;
+    }
+
+    /**
+     * @param $tabNames
+     * @return array
+     * 获取导航分类标签信息
+     */
+    public function getTabInfos($tabIds)
+    {
+        if (!is_array($tabIds) || empty($tabIds)) {
+            return [];
+        }
+        $conditions['id'] = $tabIds;
+        $tabInfos = $this->tabData->getBatchSubjects($conditions);
+        return $tabInfos;
     }
 
     /**
@@ -322,5 +411,59 @@ class Subject {
         $affect = $this->subjectData->cacelSubjectIsFine($subjectId);
         return $affect;
     }
-
+    
+    /**
+     * 获取活动的帖子（全部/精华）
+     */
+    public function getSubjectIdsByActiveId($activeId, $type, $page = 1, $limit = 20){
+        $subjectIds = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page, $limit);
+        return $subjectIds;
+    }
+    
+    /**
+     * 新增运营笔记
+     */
+    public function addOperateNote($noteInfo)
+    {
+        if (is_array($noteInfo['ext_info']) && !empty($noteInfo['ext_info'])) {
+            $noteInfo['ext_info'] = json_encode($noteInfo['ext_info']);
+        }
+        $data = $this->tabOpeationData->addOperateNote($noteInfo);
+        return $data;
+    }
+    
+    /**
+     * 编辑运营笔记
+     */
+    public function editOperateNote($noteId, $noteInfo)
+    {
+        $data = $this->tabOpeationData->updateNoteById($noteId,$noteInfo);
+        return $data;
+    }
+    
+    /**
+     * 根据ID查询运营笔记
+     */
+    public function getNoteInfoById($noteId) {
+        $data = $this->tabOpeationData->getNoteInfoById($noteId);
+        return $data;
+    }
+    
+    /**
+     * 删除运营笔记
+     */
+    public function delOperateNote($noteId)
+    {
+        $data = $this->tabOpeationData->delNoteById($noteId);
+        return $data;
+    }
+    
+    /**
+     * 通过relation_id/type获取运营笔记
+     */
+    public function getOperateNoteByRelationId($relation_id, $relation_type)
+    {
+        $data = $this->tabOpeationData->getNoteByRelationId($relation_id, $relation_type);
+        return $data;
+    }
 }

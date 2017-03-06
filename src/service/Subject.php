@@ -2,6 +2,7 @@
 namespace mia\miagroup\Service;
 
 use \F_Ice;
+use mia\miagroup\Remote\RecommendNote;
 use mia\miagroup\Util\QiniuUtil;
 use mia\miagroup\Model\Subject as SubjectModel;
 use mia\miagroup\Service\Label as LabelService;
@@ -13,9 +14,11 @@ use mia\miagroup\Service\Koubei as KoubeiService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
+use mia\miagroup\Service\Active as ActiveService;
+use mia\miagroup\Service\Feed as FeedServer;
 
-class Subject extends \mia\miagroup\Lib\Service {
-
+class Subject extends \mia\miagroup\Lib\Service
+{
     public $subjectModel = null;
     public $labelService = null;
     public $userService = null;
@@ -24,6 +27,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     public $albumService = null;
 	public $tagsService = null;
     private $headlineRemote;
+    private $config;
 
     public function __construct() {
         parent::__construct();
@@ -34,7 +38,293 @@ class Subject extends \mia\miagroup\Lib\Service {
         $this->albumService = new AlbumService();
 		$this->tagsService = new PointTagsService();
         $this->headlineRemote = new HeadlineRemote();
+
+        $this->config = \F_Ice::$ins->workApp->config->get('busconf.subject');
     }
+
+    /**
+     * 首页导航分类标签
+     * @param $userId
+     * @return mixed
+     */
+    public function indexTabList($userId)
+    {
+        //起始固定位，“发现”，“关注”
+        $beginning_tabs = $this->config['group_fixed_tab_first'];
+        //配置位3个
+        //$operation_tabs = $this->config['group_index_operation_tab'];
+        $operation_tabs = [];//暂时不需要了
+        //个性化推荐位6个
+        $noteRemote = new RecommendNote($this->ext_params);
+        $userTabNames = $noteRemote->getRecommendTabList($userId);
+        //获取对应的一级分类
+
+        //个性化和配置位去重
+        foreach ($operation_tabs as $v) {
+            foreach ($userTabNames as $key => $val){
+                if($v['name'] == $val) {
+                    unset($userTabNames[$key]);
+                }
+            }
+        }
+
+        $showTabs = $this->getFirstLevel($userTabNames);
+
+        //最后固定位，“育儿”
+        $last_tabs = $this->config['group_fixed_tab_last'];
+
+        $tab_list['navList'] = array_merge($beginning_tabs, $operation_tabs, $showTabs, $last_tabs);
+        return $this->succ($tab_list);
+    }
+
+    /**
+     * 获取二级分类对应展示的一级分类
+     * @param $secondLevel
+     * @return array
+     */
+    public function getFirstLevel($secondLevel)
+    {
+        $cate = $this->config['second_level'];//所有二级分类
+        $show = $this->config['first_level'];//所有一级分类
+
+        $tab_infos = $this->subjectModel->getBatchTabInfos($secondLevel);//标签信息
+
+        $firstLevel = [];
+        foreach ($secondLevel as $val) {
+            if (!array_key_exists($val, $cate)) {
+                continue;
+            }
+            $key = array_search($cate[$val], $show);
+            if (array_key_exists($key, $firstLevel)) {
+                $firstLevel[$key]['extend_id'] .= "_" . $tab_infos[$val]['id'];
+            } else {
+                $firstLevel[$key] =
+                    [
+                        'name' => $cate[$val],
+                        'url' => '',
+                        'type' => 'miagroup',
+                        'extend_id' => $tab_infos[$val]['id'],
+                    ];
+            }
+        }
+        return $firstLevel;
+    }
+
+    /**
+     * 批量获取导航分类标签信息
+     * @param $tabNames
+     * @return array
+     */
+    public function getBatchTabInfos($tabNames)
+    {
+        if (!is_array($tabNames) || empty($tabNames)) {
+            return [];
+        }
+        $tab_infos = $this->subjectModel->getBatchTabInfos($tabNames);
+        if (empty($tab_infos)) {
+            return [];
+        }
+        foreach ($tabNames as $v) {
+            $res[] = [
+                'name' => $tab_infos[$v]['show_name']?$tab_infos[$v]['show_name']:$tab_infos[$v]['tab_name'],
+                'url' => '',
+                'type' => 'miagroup',
+                'extend_id' => $tab_infos[$v]['id'],
+            ];
+        }
+        return $res;
+    }
+
+    /**
+     * 每个分类下，笔记瀑布流列表
+     * @param $userId
+     * @param $tabId
+     * @param $action [init,refresh,next]
+     * @param $count
+     * @param $page
+     * @return mixed
+     */
+    public function noteList($tabId, $action, $page = 1, $count = 20, $userId = 0)
+    {
+        if (empty($tabId) || empty($action)) {
+            return $this->succ([]);
+        }
+        //普通列表
+        if ($action == 'init' || $action == 'refresh') {
+            //推荐会自动去除展示过后的数据，所以刷新只要重复请求第一页就行
+            $page = 1;
+        }
+        switch ($tabId) {
+            //育儿
+            case $this->config['group_fixed_tab_last'][0]['extend_id']:
+                $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
+                break;
+            //订阅
+            case $tabId == $this->config['group_fixed_tab_first'][1]['extend_id']:
+                $feedService = new FeedServer();
+                $feedSubject = $feedService->getFeedSubject($userId, $userId, $page, $count)['data'];
+                if (empty($feedSubject['subject_lists'])) {
+                    $userNoteListIds = [];
+                } else {
+                    $userNoteListIds = array_map(function ($v) {
+                        return $v['id'] . "_subject";
+                    }, $feedSubject['subject_lists']);
+                }
+                break;
+            //发现
+            case $tabId == $this->config['group_fixed_tab_first'][0]['extend_id']:
+                $noteRemote = new RecommendNote($this->ext_params);
+                $userNoteListIds = $noteRemote->getRecommendNoteList($page, $count);
+                break;
+            default:
+                $tabId = explode("_", $tabId);
+                $noteRemote = new RecommendNote($this->ext_params);
+                $tabName = $this->subjectModel->getTabInfos($tabId);
+                $tabName = implode(",", array_keys($tabName));
+                $userNoteListIds = $noteRemote->getNoteListByCate($tabName, $page, $count);
+        }
+
+        //发现列表，增加运营广告位
+        $operationNoteData = [];
+        if ($tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
+            $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
+            //运营数据和普通数据去重
+            $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
+        }
+        //合并数据Ids
+        $combineIds = $this->combineOperationIds($userNoteListIds, $operationNoteData);
+
+        $res['content_lists'] = $this->formatNoteData($combineIds, $operationNoteData);
+
+        return $this->succ($res);
+    }
+
+    /**
+     * 合并Id
+     * @param $userNoteListIds
+     * @param $operationNoteData
+     * @return array
+     */
+    public function combineOperationIds(array $userNoteListIds, array $operationNoteData = [])
+    {
+        //按row，从小到大排序
+        uasort($operationNoteData, function ($left, $right) {
+            return $left['row'] > $right['row'];
+        });
+        //把运营数据插入到指定位置
+        foreach ($operationNoteData as $noteId => $operationInfo) {
+            $offset = $operationInfo['row'] - 1;
+            $replacement = $noteId;
+            array_splice($userNoteListIds, $offset, 0, $replacement);
+        }
+        return $userNoteListIds;
+    }
+
+    /**
+     * 根据展示id，运营数据，拼凑出数据
+     * @param array $ids
+     * @param array $operationNoteData
+     * @return array
+     */
+    public function formatNoteData(array $ids, $operationNoteData = [])
+    {
+        foreach ($ids as $key => $value) {
+            list($relation_id, $relation_type) = explode('_', $value, 2);
+            //帖子
+            if ($relation_type == 'subject') {
+                $subjectIds[] = $relation_id;
+                //专题
+            } elseif ($relation_type == 'doozer') {
+                $doozerIds[] = $relation_id;
+            } elseif ($relation_type == 'link') {
+
+            }
+        }
+        //批量获取帖子信息
+        $subjects = $this->getBatchSubjectInfos($subjectIds)['data'];
+        if (!empty($doozerIds)) {
+            $doozerInfo = $this->userService->getUserInfoByUids($doozerIds, 0, ['count'])['data'];
+        }
+
+        $return = [];
+        foreach ($ids as $value) {
+            list($relation_id, $relation_type) = explode('_', $value, 2);
+            //使用运营配置信息
+            $is_opearation = 0;
+            if (array_key_exists($value, $operationNoteData)) {
+                $relation_desc = $operationNoteData[$value]['ext_info']['desc'] ? $operationNoteData[$value]['ext_info']['desc'] : '';
+                $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
+                $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
+                $is_opearation = 1;
+                //$tmpData['config_data'] = $operationNoteData[$value];
+            }
+            switch ($relation_type) {
+                //目前只有口碑帖子，蜜芽圈帖子。
+                case 'subject':
+                    if (isset($subjects[$relation_id]) && !empty($subjects[$relation_id])) {
+                        //有无视频不区分，video_info有值代表有视频
+                        $subject = $subjects[$relation_id];
+                        $tmpData['id'] = $subject['id'] . '_subject';
+                        $tmpData['type'] = 'subject';
+                        $tmpData['type_name'] = '口碑';
+
+                        $subject['title'] = $relation_title ? $relation_title : $subject['title'];
+                        if(!empty($relation_cover_image)){
+                            $subject['cover_image'] = $relation_cover_image;
+                        }
+                        $tmpData['subject'] = $subject;
+                        $tmpData['is_opearation'] = $is_opearation;
+                    }
+                    break;
+                case 'doozer':
+                    if (isset($doozerInfo[$relation_id]) && !empty($doozerInfo[$relation_id])) {
+                        $user = $doozerInfo[$relation_id];
+                        $tmpData['id'] = $user['user_id'] . '_doozer';
+                        $tmpData['type'] = 'doozer';
+                        $tmpData['type_name'] = '达人';
+
+                        //配置了用配置的title，否则用group_doozer里的intro
+                        if(!empty($relation_title)){
+                            $user['doozer_intro'] = $relation_title ? $relation_title : $doozerInfo[$relation_id]['intro'];
+                        }
+                        if(!empty($relation_cover_image)){
+                            $user['doozer_recimage'] = $relation_cover_image;
+                        }
+                        $tmpData['doozer'] = $user;
+                        $tmpData['is_opearation'] = $is_opearation;
+                    }
+                    break;
+                case 'link':
+                        //链接跳转，只是运营配置的
+                        $linkInfo = $operationNoteData[$relation_id.'_'.$relation_type];
+                        $tmpData['id'] = $relation_id;
+                        $tmpData['type'] = 'link';
+                        $tmpData['type_name'] = '链接';
+
+                        $link['title'] = $relation_title ? $relation_title : '';
+                        $link['id'] = $relation_id;
+                        if(!empty($relation_cover_image)){
+                            $link['image'] = $relation_cover_image;
+                        }
+                        $link['url'] = $linkInfo['ext_info']['url'];
+                        if(!empty($relation_desc)){
+                            $link['desc'] = $relation_desc;
+                        }
+                        $tmpData['link'] = $link;
+                        $tmpData['is_opearation'] = $is_opearation;
+                    break;
+            }
+            if (!empty($tmpData)) {
+                $return[] = $tmpData;
+            }
+            unset($subject);
+            unset($tmpData);
+            unset($relation_title);
+            unset($relation_cover_image);
+        }
+        return $return;
+    }
+
 
     /**
      * 批量获取帖子信息
@@ -42,7 +332,7 @@ class Subject extends \mia\miagroup\Lib\Service {
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info', 'item', 'koubei'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -56,7 +346,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         foreach ($subjectInfos as $subjectInfo) {
             $userIdArr[] = $subjectInfo['user_id'];
         }
-        
+
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
@@ -141,6 +431,10 @@ class Subject extends \mia\miagroup\Lib\Service {
                         $imageUrl[$k]['url'] = $img_info['url'];
                         $imageUrl[$k]['height'] = $img_info['height'];
                         $imageUrl[$k]['width'] = $img_info['width'];
+                        $small_img_info = NormalUtil::buildImgUrl($image,'koubeismall',640,640);
+                        $smallImageInfos[$k]['width'] = $small_img_info['width'];
+                        $smallImageInfos[$k]['height'] = $small_img_info['height'];
+                        $smallImageInfos[$k]['url'] = $small_img_info['url'];
                         $smallImageUrl[$k] = NormalUtil::buildImgUrl($image, 'small')['url'];
                         $bigImageUrl[$k] = $img_info['url'];
                     }
@@ -170,6 +464,9 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
             if (!empty($smallImageInfos[0])) {
                 $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos[0];
+            }
+            if (!empty($smallImageInfos)) {
+                $subjectRes[$subjectInfo['id']]['small_image_infos'] = $smallImageInfos;
             }
             if (!empty($subjectInfo['ext_info']['koubei']) || !empty($subjectInfo['ext_info']['koubei_id'])) {
                 if (!empty($subjectInfo['ext_info']['koubei'])) {
@@ -265,20 +562,56 @@ class Subject extends \mia\miagroup\Lib\Service {
     /**
      * 获取单条帖子信息
      */
-    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('count', 'comment', 'group_labels', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
+    public function getSingleSubjectById($subjectId, $currentUid = 0, $field = array('count', 'group_labels', 'item', 'praise_info', 'album','share_info'), $dmSync = array(), $status = array(1, 2)) {
         $subjectInfo = $this->getBatchSubjectInfos(array($subjectId), $currentUid, $field, $status);
         $subjectInfo = $subjectInfo['data'][$subjectId];
-
         if (empty($subjectInfo)) {
             return $this->succ(array());
         }
-
-        //如果是专栏，获取作者的其他专栏
+        
+        //作者信息
+        $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
+        $subjectInfo['user_info'] = $userInfo;
+        //评论信息
+        $commentInfo = $this->commentService->getCommentBySubjectId($subjectId, 0, 3)['data'];
+        $subjectInfo['comment_info'] = $commentInfo;
+        
+        /*蜜芽帖、口碑贴相关逻辑开始*/
+        if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
+            //获取商品推荐
+            if (in_array('item', $field)) {
+                $itemRecommendService = new \mia\miagroup\Remote\RecommendItem($this->ext_params);
+                if (!empty($subjectInfo['items'])) {
+                    $relateItemIds = array();
+                    foreach ($subjectInfo['items'] as $item) {
+                        $relateItemIds[] = $item['item_id'];
+                    }
+                    $relateItemIds = count($relateItemIds) > 3 ? array_splice($relateItemIds, 0, 3) : $relateItemIds;
+                    $itemIds = $itemRecommendService->getRecommedItemList('item', 9 - count($relateItemIds), $relateItemIds);
+                } else {
+                    $itemIds = $itemRecommendService->getRecommedItemList('home', 9);
+                }
+                $itemService = new \mia\miagroup\Service\Item();
+                $ItemInfos = $itemService->getBatchItemBrandByIds($itemIds)['data'];
+                $subjectInfo['relate_items'] = array_values($ItemInfos);
+            }
+            //获取相关帖子
+            $noteRecommendService = new \mia\miagroup\Remote\RecommendNote($this->ext_params);
+            $relatedIds = $noteRecommendService->getRelatedNote($subjectId);
+            $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
+            if (!empty($relatedSubjects)) {
+                $subjectInfo['related_subject'] = array_values($relatedSubjects);
+            }
+        }
+        /*蜜芽帖、口碑贴相关逻辑结束*/
+        
+        /*专栏、头条相关逻辑开始*/
         if (!empty($subjectInfo['album_article'])) { 
             $con = [
                 'user_id'   => $subjectInfo['user_id'],
                 'iPageSize' => 5,
             ];
+            //如果是专栏，获取作者的其他专栏
             $albumServiceData = $this->albumService->getArticleList($con);
             $albumServiceData = $albumServiceData['data'];
             $albumArticleList = array();
@@ -294,33 +627,46 @@ class Subject extends \mia\miagroup\Lib\Service {
                 //最多显示3条，输出4条给客户端显示全部
                 $subjectInfo['recent_article'] = count($albumArticleList) > 4 ? array_slice($albumArticleList, 0, 4) : $albumArticleList;
             }
+            if (!empty($dmSync['refer_channel_id'])) {
+                $dmSync['refer_subject_id'] = $subjectId;
+                $headlineRemote = new HeadlineRemote();
+                //阅读告知
+                if (intval($currentUid) > 0) {
+                    $uniqueFlag = $currentUid;
+                } else { //不登录情况下用户的唯一标识
+                    $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
+                }
+                $headlineRemote->headlineRead($dmSync['refer_channel_id'], $subjectId, $uniqueFlag);
+                //相关帖子
+                $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
+                $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
+                $recommendArticle = array_values($recommendArticle);
+                $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
+            }
         }
-
+        /*专栏、头条相关逻辑结束*/
+        
+        //阅读量计数
         if (in_array('view_num_record', $field)) {
-            //阅读量计数
             $this->subjectModel->viewNumRecord($subjectId);
         }
-        if (!empty($dmSync['refer_channel_id'])) {
-                $dmSync['refer_subject_id'] = $subjectId;
-            $headlineRemote = new HeadlineRemote();
-            //阅读告知
-            if (intval($currentUid) > 0) {
-                $uniqueFlag = $currentUid;
-            } else { //不登录情况下用户的唯一标识
-                $uniqueFlag = $this->ext_params['dvc_id'] ? $this->ext_params['dvc_id'] : $this->ext_params['cookie'];
-            }
-            $headlineRemote->headlineRead($dmSync['refer_channel_id'], $subjectId, $uniqueFlag);
-            //相关帖子
-            $subjectIds = $headlineRemote->headlineRelate($dmSync['refer_channel_id'], $dmSync['refer_subject_id'], $uniqueFlag, 6);
-            $recommendArticle = $this->getBatchSubjectInfos($subjectIds)['data'];
-            $recommendArticle = array_values($recommendArticle);
-            $subjectInfo['recommend_article'] = count($recommendArticle) > 5 ? array_slice($recommendArticle, 0, 5) : $recommendArticle;
-        }
-        $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
-        $subjectInfo['user_info'] = $userInfo;
         return $this->succ($subjectInfo);
     }
     
+    /**
+     * 分页获取笔记的相关笔记
+     */
+    public function getRelatedNoteList($subjectId, $page = 1, $count = 10) {
+        //获取相关帖子
+        $noteRecommendService = new \mia\miagroup\Remote\RecommendNote($this->ext_params);
+        $relatedIds = $noteRecommendService->getRelatedNote($subjectId, $page, $count);
+        $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
+        if (!empty($relatedSubjects)) {
+            return $this->succ(array_values($relatedSubjects));
+        } else {
+            return $this->succ();
+        }
+    }
     
     /**
      * 批量获取用户发布的帖子数
@@ -394,6 +740,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         
         $subjectSetInfo = array();
+        $subjectSetInfo['active_id'] = 0;
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
             return $this->error(500);
         }
@@ -402,6 +749,17 @@ class Subject extends \mia\miagroup\Lib\Service {
         } else {
             $subjectSetInfo['created'] = date("Y-m-d H:i:s", time());
         }
+        $activeService = new ActiveService();
+        //如果参加活动，检查活动是否有效
+        if (intval($subjectInfo['active_id']) > 0) {
+            //获取活动信息
+            $activeInfo = $activeService->getSingleActiveById($subjectInfo['active_id'])['data'];
+            $currentTime = date("Y-m-d H:i:s",time());
+            if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time']){
+                $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
+            }
+        }
+        
         // 添加视频
         if ($subjectInfo['video_url']) {
             $videoInfo['user_id'] = $subjectInfo['user_info']['user_id'];
@@ -448,6 +806,29 @@ class Subject extends \mia\miagroup\Lib\Service {
         $subjectSetInfo['ext_info']['image'] = $imageInfo;
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
+        
+        //如果为普通发帖，检查标签中是否有参加在线活动的
+        if(!empty($labelInfos) && intval($subjectInfo['active_id']) == 0){
+            //获取在线的蜜芽圈活动
+            $activeInfos = $activeService->getCurrentActive()['data'];
+            foreach($activeInfos as $key=>$activeInfo){
+                //取帖子标签中参加活动的标签
+                if(!empty($activeInfo['ext_info'])){
+                    $activeExtInfos = json_decode($activeInfo['ext_info'],true);
+                    if(!empty($activeExtInfos['labels'])){
+                        $activeLabelTitles = array_column($activeExtInfos['labels'], 'title');
+                        $labelTitles = array_column($labelInfos, 'title');
+                        $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
+                        //活动id为在线活动的索引(key)，如果标签中有参加活动的，则保存活动id
+                        if(!empty($attendLabels)){
+                            $subjectSetInfo['active_id'] = $key;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
         $insertSubjectRes = $this->subjectModel->addSubject($subjectSetInfo);
         unset($subjectSetInfo['image_url']);
         unset($subjectSetInfo['ext_info']);
@@ -473,7 +854,6 @@ class Subject extends \mia\miagroup\Lib\Service {
                 $subjectSetInfo['small_image_url'][] = NormalUtil::buildImgUrl($image['url'], 'small')['url'];
             }
         }
-        
         if ($koubeiId <= 0) { //口碑不再发蜜豆
             // 赠送用户蜜豆
             $mibean = new \mia\miagroup\Remote\MiBean();
@@ -1089,5 +1469,120 @@ class Subject extends \mia\miagroup\Lib\Service {
         return $this->succ($affect);
     }
     
-}
+    //获取某活动下的所有/精华帖子
+    public function getActiveSubjects($activeId, $type='all', $currentId = 0, $page=1, $limit=20){
+        $data = array('subject_lists'=>array());
+        $subjectIds = $this->subjectModel->getSubjectIdsByActiveId($activeId, $type, $page, $limit);
 
+        if(!empty($subjectIds)) {
+            $subjects = $this->getBatchSubjectInfos($subjectIds,$currentId)['data'];
+            $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
+        }
+        return $this->succ($data);
+    }
+    
+    /**
+     * 新增运营笔记
+     */
+    public function addOperateNote($noteInfo)
+    {
+
+        if(empty($noteInfo) || !is_array($noteInfo)){
+            return $this->error(500);
+        }
+
+        $relation_type_fields = $this->config['operate_note_fields'];
+        $special_fields  = $this->config['operate_note_ext_fields'];
+
+        //relation_type校验
+        if(!in_array($noteInfo['relation_type'], $relation_type_fields)){
+            return $this->error(500);
+        }
+
+        $setData = array();
+        foreach($noteInfo as $key => $value) {
+            if(in_array($key, $special_fields)) {
+                $setData['ext_info'][$key] = $value;
+            }else {
+                $setData[$key] = $value;
+            }
+        }
+        $data = $this->subjectModel->addOperateNote($setData);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 编辑运营笔记
+     */
+    public function editOperateNote($noteId, $noteInfo) {
+
+        if (empty($noteId)) {
+            return $this->error(500);
+        }
+        $noteDetail = $this->subjectModel->getNoteInfoById($noteId);
+
+        if (empty($noteDetail)) {
+            return $this->error(500);
+        }
+
+        $special_fields  = $this->config['operate_note_ext_fields'];
+
+        $setData = array();
+        foreach($noteInfo as $key => $value) {
+            if(in_array($key, $special_fields)) {
+                $setData['ext_info'][$key] = $value;
+            }else {
+                $setData[] = [$key, $value];
+            }
+        }
+
+        if (is_array($setData['ext_info']) && !empty($setData['ext_info'])) {
+            $setData[] = ['ext_info',json_encode($setData['ext_info'])];
+            unset($setData['ext_info']);
+        }
+
+        $data = $this->subjectModel->editOperateNote($noteId, $setData);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 删除运营笔记
+     */
+    public function delOperateNote($id) {
+
+        if(empty($id)){
+            return $this->error(500);
+        }
+        $data = $this->subjectModel->delOperateNote($id);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 通过relation_id/type获取运营笔记
+     */
+    public function getOperateHeadlineByRelationID($relation_id, $relation_type) {
+
+        $relation_type_fields = $this->config['operate_note_fields'];
+        if (empty($relation_id) || !in_array($relation_type, $relation_type_fields)) {
+            return false;
+        }
+        $data = $this->subjectModel->getOperateNoteByRelationId($relation_id, $relation_type);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 获取蜜芽圈笔记推广位列表
+     * @param $tabId
+     * @param $page
+     */
+    public function getOperationNoteList($tabId=1, $page = 1)
+    {
+        //发现列表，增加运营广告位
+        $res = array();
+        $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page, 'all');
+        $operationNoteIds = array_keys($operationNoteData);
+        $res['content_lists'] = $this->formatNoteData($operationNoteIds,$operationNoteData);
+        return $this->succ($res);
+    }
+    
+}

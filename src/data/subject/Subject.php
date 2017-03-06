@@ -286,5 +286,52 @@ class Subject extends \DB_Query {
         return $affect;
     }
     
-    
+    /**
+     * 获取蜜芽圈活动下的帖子（全部/精华）
+     */
+    public function getSubjectIdsByActiveid($activeId, $type = 'all', $page = 1, $limit = 20){
+        $offsetLimit = $page > 1 ? $limit * ($page - 1) : 0;    
+        $where[] = ['active_id',$activeId];
+        $where[] = ['status',1];
+        $orderBy = 'created desc';
+        if($type == 'recommend'){
+            $where[] = ['is_fine',1];
+            $orderBy = 'top_time desc, update_time desc';
+        }
+        
+        $subjectsArrs = $this->getRows($where,'id',$limit,$offsetLimit,$orderBy);
+        return array_column($subjectsArrs, 'id');
+    }
+
+    /**
+     * 获取帖子列表
+     * @param $params
+     * @return array
+     */
+    public function getSubjectList($params)
+    {
+        $where = [];
+        if(isset($params['is_fine'])){
+            $where[] = array(':eq', 'group_subjects.is_fine', $params['is_fine']);
+        }
+        if (intval($params['iPageSize']) > 0) {
+            $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
+            $limit = $params['iPageSize'];
+        }
+        $join = FALSE;
+        if (isset($params['without_item']) && $params['without_item'] == 1) {
+            $join = 'LEFT JOIN group_subject_point_tags ON  group_subjects.id = group_subject_point_tags.subject_id';
+            $where[] = array(':and', array(
+                array(':isnull', 'group_subject_point_tags.id'),
+            ));
+        }
+        $orderBy = array('group_subjects.id DESC');
+        $data = $this->getRows($where, array('group_subjects.id as id'), $limit, $offset, $orderBy, $join);
+        if ($data) {
+            foreach ($data as $value) {
+                $subjectIds[] = $value['id'];
+            }
+        }
+        return $subjectIds;
+    }
 }

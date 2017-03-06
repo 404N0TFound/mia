@@ -28,4 +28,18 @@ class GroupDoozer extends \DB_Query {
         }
         return $userIdArr;
     }
+
+    /**
+     * 获取达人
+     * @param $conditions
+     * @return array
+     */
+    public function getBatchOperationInfos($conditions)
+    {
+        if (isset($conditions['user_id'])) {
+            $where[] = ['user_id', $conditions['user_id']];
+        }
+        $data = $this->getRows($where);
+        return $data;
+    }
 }

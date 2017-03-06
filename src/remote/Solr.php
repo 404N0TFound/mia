@@ -21,14 +21,14 @@ class Solr
      * */
     public function switchServer(){
 
-        /*$this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
+        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
         $this->handleSolrUrlParams();
         if($this->ping() == false){
             $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
             $this->handleSolrUrlParams();
-        }*/
+        }
 
-        $solrConfigList = \F_Ice::$ins->workApp->config->get('thrift.address.solr_switch');
+        /*$solrConfigList = \F_Ice::$ins->workApp->config->get('thrift.address.solr_switch');
         $ipCount = count($solrConfigList);
         $master_num = rand(0,$ipCount-1);
         $this->config = $solrConfigList['online'.$master_num];
@@ -39,7 +39,7 @@ class Solr
             $slave_num = rand(0,$ipCount-1);
             $this->config = $solrConfigList['online'.$slave_num];
             $this->handleSolrUrlParams();
-        }
+        }*/
     }
 
     /**
@@ -636,7 +636,7 @@ class Solr
             return $return_arr;
         }
         if(count($return_arr)< $default){
-            return array_merge($this->another_order_list($arr,$default-count($return_arr)),$return_arr);
+            return array_merge($return_arr, $this->another_order_list($arr,$default-count($return_arr)));
         }
     }
 

@@ -244,7 +244,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubei_res = $this->getTagsKoubeiList($itemId, $tag_id, $page, $count, $userId);
         if($page == 1){
-            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
+            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data']['tag_list'];
         }
         return $this->succ($koubei_res);
     }
@@ -296,7 +296,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
         if($page == 1){
-            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
+            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data']['tag_list'];
         }
         return $this->succ($koubei_res);
     }
@@ -856,10 +856,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $category_name = "category_id_ng";
         }
 
+        $item_service = new ItemService();
+
         if(!empty($category_id) && empty($brand_id)){
 
             // 类目（三级）
-            $relation_ids = $this->koubeiModel->getFourList($category_id, 'cid');
+            $relation_ids = $item_service->getCategoryFourIds($category_id, 'cid')['data'];
+
             if(!empty($relation_ids)){
                 // 类目下口碑去重分页列表
                 $koubei_info = $solr->getHighQualityKoubeiByCategoryId($relation_ids, $page, $category_name);
@@ -869,7 +872,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($category_id) && !empty($brand_id)){
 
             // 品牌（三级）
-            $relation_ids = $this->koubeiModel->getFourList($brand_id, 'bid');
+            $relation_ids = $item_service->getCategoryFourIds($brand_id, 'bid')['data'];
+
             // 品牌口碑去重分页列表
             if(!empty($relation_ids)){
                 $koubei_info = $solr->getHighQualityKoubeiByBrandId('', $relation_ids, $page, $category_name);
@@ -877,7 +881,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }else{
             // 类目及品牌 (默认为四级)
 
-            $relation_ids = $this->koubeiModel->getFourList($category_id, 'cid');
+            $relation_ids = $item_service->getCategoryFourIds($category_id, 'cid')['data'];
             if(!empty($brand_id)){
                 $koubei_info = $solr->getHighQualityKoubeiByBrandId($relation_ids, $brand_id, $page, $category_name);
             }
@@ -885,7 +889,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         // 获取品牌名称
         if(!empty($brand_ids) && is_array($brand_ids)){
-            $brand_list = $this->koubeiModel->getBrandName($brand_ids);
+            $brand_list = array_values($item_service->getRelationBrandName($brand_ids)['data']);
         }
 
         if(!empty($koubei_info) && is_array($koubei_info)){
@@ -1354,7 +1358,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param array $field  normal普通标签 collect聚合标签
      * @return
      */
-    public function getItemTagList($item_id, $field = ["normal", "collect"])
+    public function getItemTagList($item_id, $field = ["normal", "collect"], $ext_info = 0)
     {
         $tagOpen = \F_Ice::$ins->workApp->config->get('busconf.koubei.tagOpen');
         if (!$tagOpen) {
@@ -1373,40 +1377,41 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (in_array('collect', $field)) {
             //查询商品所有父标签
             $tagsIds = $this->koubeiModel->getItemKoubeiTags($item_ids);
+            if (!empty($tagsIds)) {//父标签为空，就不查了
+                //查询标签信息
+                $tagInfos = $this->koubeiModel->getTags(array_keys($tagsIds));
 
-            //查询标签信息
-            $tagInfos = $this->koubeiModel->getTags(array_keys($tagsIds));
-
-            //根据商品id查询每个标签数量
-            $tagCount = $this->getTagsCount($item_ids, array_keys($tagsIds));
-            foreach ($tagInfos as &$tag) {
-                if (array_key_exists($tag['id'], $tagCount)) {
-                    $tag["count"] = $tagCount[$tag['id']];
+                //根据商品id查询每个标签数量
+                $tagCount = $this->getTagsCount($item_ids, array_keys($tagsIds));
+                foreach ($tagInfos as &$tag) {
+                    if (array_key_exists($tag['id'], $tagCount)) {
+                        $tag["count"] = $tagCount[$tag['id']];
+                    }
                 }
-            }
-            //调整展示数量和顺序,按大小排序,正向最多10个，负向最多1个
-            $good = 0;
-            $bad = 0;
-            foreach ($tagInfos as $k => $v) {
-                if ($v["count"] >= 2 && $v['positive'] == 1 && $good < 10) {
-                    $tagList[$k]['type'] = "collect";
-                    $tagList[$k]['tag_id'] = $v["id"];
-                    $tagList[$k]['tag_name'] = $v["tag_name"];
-                    $tagList[$k]['count'] = intval($v["count"]);
-                    $tagList[$k]['positive'] = 1;
-                    $good++;
-                } elseif ($v['positive'] == 2 && $bad < 1) {
-                    $tagList[$k]['type'] = "collect";
-                    $tagList[$k]['tag_id'] = $v["id"];
-                    $tagList[$k]['tag_name'] = $v["tag_name"];
-                    $tagList[$k]['count'] = intval($v["count"]);
-                    $tagList[$k]['positive'] = 2;
-                    $bad++;
+                //调整展示数量和顺序,按大小排序,正向最多10个，负向最多1个
+                $good = 0;
+                $bad = 0;
+                foreach ($tagInfos as $k => $v) {
+                    if ($v["count"] >= 2 && $v['positive'] == 1 && $good < 10) {
+                        $tagList[$k]['type'] = "collect";
+                        $tagList[$k]['tag_id'] = $v["id"];
+                        $tagList[$k]['tag_name'] = $v["tag_name"];
+                        $tagList[$k]['count'] = intval($v["count"]);
+                        $tagList[$k]['positive'] = 1;
+                        $good++;
+                    } elseif ($v['positive'] == 2 && $bad < 1) {
+                        $tagList[$k]['type'] = "collect";
+                        $tagList[$k]['tag_id'] = $v["id"];
+                        $tagList[$k]['tag_name'] = $v["tag_name"];
+                        $tagList[$k]['count'] = intval($v["count"]);
+                        $tagList[$k]['positive'] = 2;
+                        $bad++;
+                    }
                 }
+                usort($tagList, function ($left, $right) {
+                    return $left['count'] < $right['count'];
+                });
             }
-            usort($tagList, function ($left, $right) {
-                return $left['count'] < $right['count'];
-            });
         }
 
         //常规印象为：全部，有图，好评，内容数量小于3则不显示
@@ -1426,6 +1431,28 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         $result = array_merge($normalTags,$tagList);
+        if($ext_info == 1) {
+            $result['user_unm'] = $this->koubeiModel->getItemKoubeiUserNums($item_ids);
+            $result['item_rec_nums'] = $this->koubeiModel->getItemKoubeiNums($item_ids);
+        }
+        return $this->succ($result);
+    }
+
+    /**
+     * 获取口碑发布人数，口碑数
+     * @param $item_id
+     * @return mixed
+     */
+    public function getKoubeiNums($item_id)
+    {
+        //获取商品的关联商品或者套装单品
+        $item_service = new ItemService();
+        $item_ids = $item_service->getRelateItemById($item_id);
+        if (empty($item_ids)) {
+            $this->succ([]);
+        }
+        $result['user_unm'] = $this->koubeiModel->getItemKoubeiUserNums($item_ids);
+        $result['item_rec_nums'] = $this->koubeiModel->getItemKoubeiNums($item_ids);
         return $this->succ($result);
     }
 

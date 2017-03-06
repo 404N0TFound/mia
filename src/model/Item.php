@@ -4,7 +4,9 @@ namespace mia\miagroup\Model;
 use mia\miagroup\Data\Item\Item as ItemData;
 use mia\miagroup\Data\Item\ItemPic as ItemPicData;
 use mia\miagroup\Data\Item\ItemSpu as ItemSpuData;
+use mia\miagroup\Data\Item\ItemCateRelation as ItemCateRelationData;
 use mia\miagroup\Data\Item\UserSupplierMapping as UserSupplierMappingData;
+use mia\miagroup\Data\Item\ItemBrand as ItemBrandData;
 
 class Item {
     
@@ -12,12 +14,16 @@ class Item {
     private $itemPicData;
     private $itemSpuData;
     private $userSupplierData;
-    
+    private $itemCateRelationData;
+    private $itemBrandData;
+
     public function __construct() {
         $this->itemData = new ItemData();
         $this->itemPicData = new ItemPicData();
         $this->itemSpuData = new ItemSpuData();
+        $this->itemCateRelationData = new ItemCateRelationData();
         $this->userSupplierData = new UserSupplierMappingData();
+        $this->itemBrandData = new ItemBrandData();
     }
     
     /**
@@ -25,8 +31,25 @@ class Item {
      * @param int $itemIds 商品id
      */
     public function getBatchItemByIds($itemIds){
-        $itemData = $this->itemData->getBatchItemInfoByIds($itemIds);
-        return $itemData;
+        //获取商品基本信息
+        $itemDatas = $this->itemData->getBatchItemInfoByIds($itemIds);
+        if (empty($itemDatas)) {
+            return array();
+        }
+        $brandIds = array();
+        foreach ($itemDatas as $v) {
+            $brandIds[] = $v['brand_id'];
+        }
+        //获取商品图片信息
+        $itemPics = $this->itemPicData->getBatchItemPicList($itemIds);
+        //获取商品品牌信息
+        $itemBrandInfos = $this->itemBrandData->getBatchBrandInfoByIds($brandIds);
+        $result = array();
+        foreach ($itemDatas as $k => $v) {
+            $itemDatas[$k]['brand_info'] = isset($itemBrandInfos[$v['brand_id']]) ? $itemBrandInfos[$v['brand_id']] : array();
+            $itemDatas[$k]['img'] = isset($itemPics[$v['id']]) ? $itemPics[$v['id']] : array();
+        }
+        return $itemDatas;
     }
     /**
      * 根据商品关联标识获取关联商品
@@ -55,22 +78,6 @@ class Item {
         return $spuData;
     }
     
-    /**
-     * 根据item_id获取一组图片
-     */
-    public function getBatchItemPicList($item_id ,$type = 'normal'){
-        $data = $this->itemPicData->getBatchItemPicList($item_id,$type);
-        return $data;
-    }
-    
-    /**
-     * 批量获取商品信息
-     */
-    public function getBatchItemBrandByIds($itemsIds)
-    {
-        return $this->itemData->getBatchItemBrandByIds($itemsIds);
-    }
-
     /**
      * 批量查询用户是否为商家
      */
@@ -105,5 +112,41 @@ class Item {
                 return $data['id'];
             }
         }
+    }
+
+    /**
+     * 获取商品的九个妈妈信息
+     */
+    public function getNineMomCountryInfo($itemIds) {
+        $data = $this->itemData->getNineMomCountryInfo($itemIds);
+        return $data;
+    }
+
+    /**
+     * 获取类目四级关联列表
+     **/
+    public function getCategoryFourList($three_cate, $flag)
+    {
+        $res = $this->itemCateRelationData->cateFourList($three_cate,$flag);
+        return $res;
+    }
+
+    /**
+     * 获取品牌名称列表
+     */
+    public function getRelationBrandNameList($brand_ids)
+    {
+        $data = $this->itemBrandData->getBatchBrandInfoByIds($brand_ids);
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                if (!empty($v['chinese_name'])) {
+                    $result[$v['id']] = array('id' => $v['id'], 'name' => $v['chinese_name']);
+                } else {
+                    $result[$v['id']] = array('id' => $v['id'], 'name' => $v['name']);
+                }
+            }
+        }
+        return $result;
     }
 }
