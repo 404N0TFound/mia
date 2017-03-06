@@ -337,7 +337,7 @@ class Search extends Service
                         'color' => '#fa4b9b'
                     ],
                     [
-                        'text' => "篇笔记",
+                        'text' => "篇口碑",
                         'color' => '#333333'
                     ],
                 ];
