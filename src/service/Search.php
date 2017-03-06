@@ -315,8 +315,8 @@ class Search extends Service
             if ($ext_info['user_unm'] == 0 || $ext_info['item_rec_nums'] == 0) {
                 $recommend_desc = [
                     [
-                        'text' => "{$ext_info['user_unm']}",
-                        'color' => '#fa4b9b'
+                        'text' => "",
+                        'color' => ''
                     ]
                 ];
             } else {
@@ -326,7 +326,7 @@ class Search extends Service
                         'color' => '#fa4b9b'
                     ],
                     [
-                        'text' => "位妈妈发表了",
+                        'text' => "妈妈发表了",
                         'color' => '#333333'
                     ],
                     [
@@ -351,6 +351,9 @@ class Search extends Service
     public function noteHotWordsList()
     {
         $searchKeys['hot_words'] = $this->koubeiModel->getNoteSearchKey();
+        array_walk($searchKeys['hot_words'],function(&$n){
+            $n['key_word'] = trim($n['key_word']);
+        });
         return $this->succ($searchKeys);
     }
 
