@@ -1507,9 +1507,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 4*$supplier_info['count']['num_four']+
                 3*$supplier_info['count']['num_three']+
                 2*$supplier_info['count']['num_two']+
-                1*$supplier_info['count']['num_one'])*100
-            +5*$supplier_info['count']['num_default'];
-        $denominator = $koubei_sum_score*100+$supplier_info['count']['num_default'];
+                1*$supplier_info['count']['num_one']);
+        $denominator = $koubei_sum_score;
         $supplier_info['count']['score_today'] = 0;
         if(!empty($denominator)){
             $supplier_info['count']['score_today'] = round($numerator/$denominator, 3);
