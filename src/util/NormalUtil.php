@@ -315,4 +315,17 @@ class NormalUtil {
         //返回结果
         return $result;
     }
+
+
+    /**
+     * 把超过4位数的数字转换为几点几万
+     */
+    public static function formatNum($num)
+    {
+        if ($num <= 9999) {
+            return $num;
+        }
+        $num = number_format($num / 10000, 1, ".", "")."万";
+        return $num;
+    }
 }

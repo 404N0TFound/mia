@@ -8,6 +8,7 @@ use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Remote\Search as SearchRemote;
 use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Koubei as KoubeiService;
+use mia\miagroup\Util\NormalUtil;
 
 /**
  * 蜜芽圈搜索服务类
@@ -320,17 +321,19 @@ class Search extends Service
                     ]
                 ];
             } else {
+                $userNum = NormalUtil::formatNum($ext_info['user_unm']);
+                $koubeiNum = NormalUtil::formatNum($ext_info['item_rec_nums']);
                 $recommend_desc = [
                     [
-                        'text' => "{$ext_info['user_unm']}",
+                        'text' => "{$userNum}",
                         'color' => '#fa4b9b'
                     ],
                     [
-                        'text' => "妈妈发表了",
+                        'text' => "位妈妈发表了",
                         'color' => '#333333'
                     ],
                     [
-                        'text' => "{$ext_info['item_rec_nums']}",
+                        'text' => "{$koubeiNum}",
                         'color' => '#fa4b9b'
                     ],
                     [
