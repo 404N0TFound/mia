@@ -162,7 +162,7 @@ class SubjectComment extends \DB_Query {
         }
         $where[] = ['subject_id',$subjectId];
         $where[] = ['status',[1,2]];
-        $orderBy = 'id asc';
+        $orderBy = 'id desc';
         $commentInfo = $this->getRows($where,'id',$pageSize,0,$orderBy);
         $commentIds = array_column($commentInfo, 'id');
         return $commentIds;
