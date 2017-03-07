@@ -8,6 +8,7 @@ use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Remote\Search as SearchRemote;
 use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Koubei as KoubeiService;
+use mia\miagroup\Util\NormalUtil;
 
 /**
  * 蜜芽圈搜索服务类
@@ -110,13 +111,19 @@ class Search extends Service
             $userIds = array_map(function ($v) {
                 return $v['user_id'];
             }, $userIds);
-//            $userIds = [220103494, 1508587, 7509605, 7509576, 7509596, 7509608, 7509603, 7509614, 7509571, 7509569];
+            //$userIds = [220103494, 1508587, 7509605, 7509576, 7509596, 7509608, 7509603, 7509614, 7509571, 7509569];
             $userList = $this->userService->getUserInfoByUids($userIds)['data'];
+            foreach ($userIds as $v) {
+                if (empty($userList[$v])) {
+                    continue;
+                }
+                $res[] = $userList[$v];
+            }
 
-            $res['search_users'] = !empty($userList) ? array_values($userList) : [];
+            $result['search_users'] = !empty($res) ? $res : [];
 //            $res['search_info'] = 1;
 //            $res['rs'] = 1;
-            return $this->succ($res);
+            return $this->succ($result);
         }
     }
 
@@ -315,14 +322,16 @@ class Search extends Service
             if ($ext_info['user_unm'] == 0 || $ext_info['item_rec_nums'] == 0) {
                 $recommend_desc = [
                     [
-                        'text' => "{$ext_info['user_unm']}",
-                        'color' => '#fa4b9b'
+                        'text' => "",
+                        'color' => ''
                     ]
                 ];
             } else {
+                $userNum = NormalUtil::formatNum($ext_info['user_unm']);
+                $koubeiNum = NormalUtil::formatNum($ext_info['item_rec_nums']);
                 $recommend_desc = [
                     [
-                        'text' => "{$ext_info['user_unm']}",
+                        'text' => "{$userNum}",
                         'color' => '#fa4b9b'
                     ],
                     [
@@ -330,11 +339,11 @@ class Search extends Service
                         'color' => '#333333'
                     ],
                     [
-                        'text' => "{$ext_info['item_rec_nums']}",
+                        'text' => "{$koubeiNum}",
                         'color' => '#fa4b9b'
                     ],
                     [
-                        'text' => "篇笔记",
+                        'text' => "篇口碑",
                         'color' => '#333333'
                     ],
                 ];
@@ -351,6 +360,9 @@ class Search extends Service
     public function noteHotWordsList()
     {
         $searchKeys['hot_words'] = $this->koubeiModel->getNoteSearchKey();
+        array_walk($searchKeys['hot_words'],function(&$n){
+            $n['key_word'] = trim($n['key_word']);
+        });
         return $this->succ($searchKeys);
     }
 

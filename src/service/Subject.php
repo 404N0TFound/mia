@@ -157,7 +157,15 @@ class Subject extends \mia\miagroup\Lib\Service
         switch ($tabId) {
             //育儿
             case $this->config['group_fixed_tab_last'][0]['extend_id']:
-                $userNoteListIds = $this->subjectModel->getYuerList($page, $count);
+                $yuerSubjectIds = $this->labelService->getBatchSubjectIdsByLabelIds($this->config['yuer_labels'], 0, $page, $count, 0, [])['data'];
+                $yuerSubjectIds = array_keys($yuerSubjectIds);
+                if (empty($yuerSubjectIds)) {
+                    $userNoteListIds = [];
+                } else {
+                    $userNoteListIds = array_map(function ($v) {
+                        return $v . "_subject";
+                    }, $yuerSubjectIds);
+                }
                 break;
             //订阅
             case $tabId == $this->config['group_fixed_tab_first'][1]['extend_id']:
