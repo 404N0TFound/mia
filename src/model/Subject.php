@@ -39,6 +39,10 @@ class Subject {
         }
         
         $operationInfos = $this->tabOpeationData->getBatchOperationInfos($conditions);
+        //后台管理不需要过滤帖子，直接返回原结果
+        if(isset($timeTag) && !empty($operationInfos)){
+            return $operationInfos;
+        }
         //按位置分组
         foreach ($operationInfos as $k => $v) {
             $result[$v['row']][$k] = $v;
@@ -53,9 +57,6 @@ class Subject {
         $data = [];
         foreach ($return as $detail) {
             $key = $detail['relation_id'] . '_' . $detail['relation_type'];
-            if($detail['relation_type'] == 'link'){
-                $key = $detail['id'] . '_' . 'link';
-            }
             $data[$key] = $detail;
         }
         return $data;
