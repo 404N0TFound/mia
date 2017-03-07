@@ -124,6 +124,7 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp['item_name'] = $item['name'];
                 $tmp['item_img'] = isset($item['img'][4]) ? $item['img'][4] : '';
                 $tmp['brand_id'] = $item['brand_id'];
+                $tmp['category_id'] = $item['category_id'];
                 $tmp['brand_name'] = isset($item['brand_info']['name']) ? $item['brand_info']['name'] : '';
                 $tmp['sale_price'] = $item['sale_price'];
                 $tmp['market_price'] = $item['market_price'];
