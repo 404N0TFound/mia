@@ -320,40 +320,42 @@ class Search extends Service
             $items['rank'] = $rank;//type 1 为榜单
             $items['item_cluster'] = $item_cluster;//类聚
         }
-        foreach ($items['item_ids'] as $v) {
-            //口碑印象列表不需要了
-            $ext_info = $this->koubeiService->getKoubeiNums($v)['data'];
-            if ($ext_info['user_unm'] == 0 || $ext_info['item_rec_nums'] == 0) {
-                $recommend_desc = [
-                    [
-                        'text' => "",
-                        'color' => ''
-                    ]
-                ];
-            } else {
-                $userNum = NormalUtil::formatNum($ext_info['user_unm']);
-                $koubeiNum = NormalUtil::formatNum($ext_info['item_rec_nums']);
-                $recommend_desc = [
-                    [
-                        'text' => "{$userNum}",
-                        'color' => '#fa4b9b'
-                    ],
-                    [
-                        'text' => "位妈妈发表了",
-                        'color' => '#333333'
-                    ],
-                    [
-                        'text' => "{$koubeiNum}",
-                        'color' => '#fa4b9b'
-                    ],
-                    [
-                        'text' => "篇口碑",
-                        'color' => '#333333'
-                    ],
-                ];
+        if(!empty($items['item_ids']) && is_array($items['item_ids'])){
+            foreach ($items['item_ids'] as $v) {
+                //口碑印象列表不需要了
+                $ext_info = $this->koubeiService->getKoubeiNums($v)['data'];
+                if ($ext_info['user_unm'] == 0 || $ext_info['item_rec_nums'] == 0) {
+                    $recommend_desc = [
+                        [
+                            'text' => "",
+                            'color' => ''
+                        ]
+                    ];
+                } else {
+                    $userNum = NormalUtil::formatNum($ext_info['user_unm']);
+                    $koubeiNum = NormalUtil::formatNum($ext_info['item_rec_nums']);
+                    $recommend_desc = [
+                        [
+                            'text' => "{$userNum}",
+                            'color' => '#fa4b9b'
+                        ],
+                        [
+                            'text' => "位妈妈发表了",
+                            'color' => '#333333'
+                        ],
+                        [
+                            'text' => "{$koubeiNum}",
+                            'color' => '#fa4b9b'
+                        ],
+                        [
+                            'text' => "篇口碑",
+                            'color' => '#333333'
+                        ],
+                    ];
+                }
+                $items['recommend_desc'][$v] = $recommend_desc;
+                unset($recommend_desc);
             }
-            $items['recommend_desc'][$v] = $recommend_desc;
-            unset($recommend_desc);
         }
         return $this->succ($items);
     }
