@@ -139,12 +139,9 @@ class Active extends \mia\miagroup\Lib\Service {
             $labelInfoArr = array();
             $labels = array();
             foreach($activeInfo['label_titles'] as $labelTitle){
-                $labelInfo = $labelService->getLabelInfoByTitle($labelTitle)['data'];
-                if(empty($labelInfo)){
-                    continue;
-                }
-                $labelInfoArr['id'] = $labelInfo['id'];
-                $labelInfoArr['title'] = $labelInfo['title'];
+                $labelId = $labelService->addLabel($labelTitle)['data'];
+                $labelInfoArr['id'] = $labelId;
+                $labelInfoArr['title'] = $labelTitle;
                 $labels[] = $labelInfoArr;
             }
             if(!empty($labels)){
@@ -184,12 +181,9 @@ class Active extends \mia\miagroup\Lib\Service {
             $labelInfoArr = array();
             $labels = array();
             foreach($activeInfo['label_titles'] as $labelTitle){
-                $labelInfo = $labelService->getLabelInfoByTitle($labelTitle)['data'];
-                if(empty($labelInfo)){
-                    continue;
-                }
-                $labelInfoArr['id'] = $labelInfo['id'];
-                $labelInfoArr['title'] = $labelInfo['title'];
+                $labelId = $labelService->addLabel($labelTitle)['data'];
+                $labelInfoArr['id'] = $labelId;
+                $labelInfoArr['title'] = $labelTitle;
                 $labels[] = $labelInfoArr;
             }
         }
