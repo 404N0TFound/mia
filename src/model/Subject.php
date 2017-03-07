@@ -44,6 +44,7 @@ class Subject {
             $result[$v['row']][$k] = $v;
         }
         //同位置有重复的，随机取一个
+        $return = [];
         foreach ($result as $val) {
             shuffle($val);
             $return[] = array_pop($val);

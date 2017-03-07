@@ -56,10 +56,12 @@ class Search extends Service
         $searchArr["version"] = 1;
 
         $searchResult = $this->searchRemote->noteSearch($searchArr);
-
-        $noteIds = array_map(function ($v) {
-            return $v['id'];
-        }, $searchResult['data']);
+        $noteIds = [];
+        if(!empty($searchResult['data']) && is_array($searchResult['data'])) {
+            $noteIds = array_map(function ($v) {
+                return $v['id'];
+            }, $searchResult['data']);
+        }
 
         //$noteIds = ['267344', '267343', '267342', '267341', '267339', '267338', '267337'];
         $noteInfos = $this->subjectService->getBatchSubjectInfos(array_values($noteIds))['data'];
@@ -69,8 +71,10 @@ class Search extends Service
         //替换品牌名称，精简
         $brand_condition = [];
         $brandIds = [];
-        foreach ($searchResult['search_filter']['b_array'] as $brand) {
-            $brandIds[] = $brand['b_id'];
+        if(!empty($searchResult['search_filter']['b_array'])) {
+            foreach ($searchResult['search_filter']['b_array'] as $brand) {
+                $brandIds[] = $brand['b_id'];
+            }
         }
         if(!empty($brandIds)) {
             $itemService = new ItemService();

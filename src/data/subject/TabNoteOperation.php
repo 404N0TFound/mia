@@ -27,6 +27,7 @@ class TabNoteOperation extends \DB_Query
             $where[] = [':gt', 'end_time', $date];
         }
         $data = $this->getRows($where);
+        $result = [];
         foreach ($data as $v) {
             //http转https
             $result[$v['relation_id'] . '_' . $v['relation_type']] = array_merge($v, ['ext_info' => json_decode(str_replace('http:\/\/', 'https:\/\/', strval($v['ext_info'])), true)]);
