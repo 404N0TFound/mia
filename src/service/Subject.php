@@ -581,6 +581,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $userInfo = $this->userService->getUserInfoByUserId($subjectInfo['user_id'], array("relation","count"), $currentUid)['data'];
         $subjectInfo['user_info'] = $userInfo;
         //评论信息
+        $this->commentService = new CommentService();
         $commentInfo = $this->commentService->getCommentBySubjectId($subjectId, 0, 3)['data'];
         $subjectInfo['comment_info'] = $commentInfo;
         
