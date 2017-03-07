@@ -236,10 +236,6 @@ class Subject extends \mia\miagroup\Lib\Service
      */
     public function formatNoteData(array $ids, $operationNoteData = [])
     {
-        if(empty($operationNoteData)){
-            return array();
-        }
-        
         $subjectIds = array();
         $doozerIds = array();
         foreach ($ids as $key => $value) {
@@ -272,11 +268,9 @@ class Subject extends \mia\miagroup\Lib\Service
             //使用运营配置信息
             $is_opearation = 0;
             if (array_key_exists($value, $operationNoteData)) {
-                $relation_id = $operationNoteData[$value]['relation_id'];
-                $relation_type = $operationNoteData[$value]['relation_type'];
                 $relation_desc = $operationNoteData[$value]['ext_info']['desc'] ? $operationNoteData[$value]['ext_info']['desc'] : '';
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
-                $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
+                $relation_cover_image = !empty($operationNoteData[$value]['ext_info']['cover_image']) ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
                 $is_opearation = 1;
                 $tmpData['config_data'] = $operationNoteData[$value];
             }
@@ -325,13 +319,9 @@ class Subject extends \mia\miagroup\Lib\Service
 
                         $link['title'] = $relation_title ? $relation_title : '';
                         $link['id'] = $relation_id;
-                        if(!empty($relation_cover_image)){
-                            $link['image'] = $relation_cover_image;
-                        }
+                        $link['image'] = $relation_cover_image;
                         $link['url'] = $linkInfo['ext_info']['url'];
-                        if(!empty($relation_desc)){
-                            $link['desc'] = $relation_desc;
-                        }
+                        $link['desc'] = $relation_desc;
                         $tmpData['link'] = $link;
                         $tmpData['is_opearation'] = $is_opearation;
                     break;
