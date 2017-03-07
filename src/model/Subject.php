@@ -44,6 +44,7 @@ class Subject {
             return $operationInfos;
         }
         //按位置分组
+        $result = [];
         foreach ($operationInfos as $k => $v) {
             $result[$v['row']][$k] = $v;
         }
