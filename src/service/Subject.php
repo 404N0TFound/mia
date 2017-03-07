@@ -236,20 +236,32 @@ class Subject extends \mia\miagroup\Lib\Service
      */
     public function formatNoteData(array $ids, $operationNoteData = [])
     {
+        if(empty($operationNoteData)){
+            return array();
+        }
+        
+        $subjectIds = array();
+        $doozerIds = array();
         foreach ($ids as $key => $value) {
             list($relation_id, $relation_type) = explode('_', $value, 2);
+            if($relation_type == 'link'){
+                continue;
+            }
             //帖子
             if ($relation_type == 'subject') {
                 $subjectIds[] = $relation_id;
-                //专题
+                //达人
             } elseif ($relation_type == 'doozer') {
                 $doozerIds[] = $relation_id;
-            } elseif ($relation_type == 'link') {
-
             }
         }
+        
         //批量获取帖子信息
-        $subjects = $this->getBatchSubjectInfos($subjectIds)['data'];
+        if(!empty($subjectIds)){
+            $subjects = $this->getBatchSubjectInfos($subjectIds)['data'];
+        }
+        
+        //批量获取达人信息
         if (!empty($doozerIds)) {
             $doozerInfo = $this->userService->getUserInfoByUids($doozerIds, 0, ['count'])['data'];
         }
@@ -260,11 +272,13 @@ class Subject extends \mia\miagroup\Lib\Service
             //使用运营配置信息
             $is_opearation = 0;
             if (array_key_exists($value, $operationNoteData)) {
+                $relation_id = $operationNoteData[$value]['relation_id'];
+                $relation_type = $operationNoteData[$value]['relation_type'];
                 $relation_desc = $operationNoteData[$value]['ext_info']['desc'] ? $operationNoteData[$value]['ext_info']['desc'] : '';
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
                 $relation_cover_image = $operationNoteData[$value]['ext_info']['cover_image'] ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
                 $is_opearation = 1;
-                //$tmpData['config_data'] = $operationNoteData[$value];
+                $tmpData['config_data'] = $operationNoteData[$value];
             }
             switch ($relation_type) {
                 //目前只有口碑帖子，蜜芽圈帖子。

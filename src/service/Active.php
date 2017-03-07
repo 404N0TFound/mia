@@ -132,6 +132,7 @@ class Active extends \mia\miagroup\Lib\Service {
         if (empty($activeInfo)) {
             return $this->error(500);
         }
+        $extInfo = array();
         //参加活动的标签
         if (!empty($activeInfo['label_titles'])) {
             $labelService = new LabelService();
@@ -146,25 +147,27 @@ class Active extends \mia\miagroup\Lib\Service {
                 $labelInfoArr['title'] = $labelInfo['title'];
                 $labels[] = $labelInfoArr;
             }
+            if(!empty($labels)){
+                $extInfo['labels']= $labels;
+                unset($activeInfo['label_titles']);
+            }
         }
-        $extInfo = array();
-        if(!empty($labels)){
-            $extInfo['labels']= $labels;
-            unset($activeInfo['label_titles']);
-        }
+
         if(!empty($activeInfo['image_info'])){
             $extInfo['image']= $activeInfo['image_info'];
             unset($activeInfo['image_info']);
         }
         $activeInfo['ext_info'] = json_encode($extInfo);
-        
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
-        if (!$insertActiveRes) {
-            // 发布失败
+        
+        if($insertActiveRes > 0){
+            $insertId = $insertActiveRes;
+            $updata = array('asort' => $insertId);
+            $this->activeModel->updateActive($updata, $insertId);
+            return $this->succ(true);
+        }else{
             return $this->succ(false);
         }
-        
-        return $this->succ(true);
     }
 
     

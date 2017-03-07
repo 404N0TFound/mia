@@ -6,7 +6,7 @@
 $defaultShareInfo = array(
     'active' => array(
         'img_url'   =>'https://image1.miyabaobei.com/d1/p3/2016/04/21/fc/fd4/fcf4b48fe16504ed8812f014e5d0b266.png',
-        'wap_url' => 'https://m.miyabaobei.com/wx/group_detail/%s.html',
+        'wap_url' => 'https://m.mia.com/wx/group_promotion_share/index/%s',
         'title'      => '发现了一个有意思的活动，分享给你！',
         'desc'      => '%s',
     ),
