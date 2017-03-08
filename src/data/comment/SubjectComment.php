@@ -155,7 +155,7 @@ class SubjectComment extends \DB_Query {
     //获取选题评论列表
     public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
         if ($commentId > 0) {
-            $where[] = [':>','id',$commentId];
+            $where[] = [':<','id',$commentId];
         }
         if($user_type == 1){
             $where[] = ['is_expert',1];
