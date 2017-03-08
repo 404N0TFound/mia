@@ -1430,7 +1430,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $normalTags[] = ["type" => "normal", "tag_id" => "2", "tag_name" => "晒图", "count" => intval($picNum), 'positive' => 1];
             }
         }
-        $result['tag_list'] = array_merge($normalTags,$tagList);
+        $result = array_merge($normalTags,$tagList);
         if($ext_info == 1) {
             $result['user_unm'] = $this->koubeiModel->getItemKoubeiUserNums($item_ids);
             $result['item_rec_nums'] = $this->koubeiModel->getItemKoubeiNums($item_ids);
