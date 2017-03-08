@@ -50,7 +50,7 @@ class Search extends Service
             case 'normal':
                 $sort_by_field = 0;
                 break;
-            case 'hot ':
+            case 'hot':
                 $sort_by_field = 1;
                 break;
             case 'new':

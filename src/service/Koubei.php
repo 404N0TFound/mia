@@ -1358,7 +1358,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param array $field  normal普通标签 collect聚合标签
      * @return
      */
-    public function getItemTagList($item_id, $field = ["normal", "collect"], $ext_info = 0)
+    public function getItemTagList($item_id, $field = ["normal", "collect"])
     {
         $tagOpen = \F_Ice::$ins->workApp->config->get('busconf.koubei.tagOpen');
         if (!$tagOpen) {
@@ -1431,10 +1431,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         $result = array_merge($normalTags,$tagList);
-        if($ext_info == 1) {
-            $result['user_unm'] = $this->koubeiModel->getItemKoubeiUserNums($item_ids);
-            $result['item_rec_nums'] = $this->koubeiModel->getItemKoubeiNums($item_ids);
-        }
         return $this->succ($result);
     }
 
