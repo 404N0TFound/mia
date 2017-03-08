@@ -42,9 +42,27 @@ class Search extends Service
         $searchArr["query"] = $param['key'];
         $searchArr["pn"] = $param['page'] - 1;
         $searchArr["rn"] = $param['count'] ? $param['count'] : 20;
-        if ($param['order']) {
-            $searchArr["sort_by_field"] = $param['order'] ? $param['order'] : 0;//按域排序，默认是0，1表示按照热度排序，2表示按时间排序
+        if (!in_array($param['order'], array('normal', 'hot', 'new'))) {
+            return $this->succ([]);
         }
+
+        switch ($param['order']) {
+            case 'normal':
+                $sort_by_field = 0;
+                break;
+            case 'hot ':
+                $sort_by_field = 1;
+                break;
+            case 'new':
+                $sort_by_field = 2;
+                break;
+            default:
+                $sort_by_field = 0;
+                break;
+        }
+
+        $searchArr["sort_by_field"] = $sort_by_field;//按域排序，默认是0，1表示按照热度排序，2表示按时间排序
+
         $searchArr["sort_field_style"] = $param['sort'] ? $param['sort'] : 1;//按域排序的方式，默认是1表示降序，0表示升序
         $searchArr["search_type"] = $param['search_type'] ? $param['search_type'] : 0x10 | 0x20;//0x10 ：获取结果 0x20：获取筛选器。两个条件可做位或操作
         if ($param['brand_id']) {
