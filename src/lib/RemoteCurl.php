@@ -12,6 +12,7 @@ class RemoteCurl {
     private $_msg_key = 'msg'; //json结果集，错误信息key
     private $_success_code = 0; //json结果集，成功正确码
     private $_result_format = true; //返回结果是否格式化解析
+    private $_time_out = 1; //连接超时时间，默认1秒
     
     public function __construct($remote_name) {
         $this->set_remote_info($remote_name);
@@ -110,6 +111,9 @@ class RemoteCurl {
             if (isset($remote_info['result_format'])) {
                 $this->_result_format = $remote_info['result_format'];
             }
+            if (isset($remote_info['time_out'])) {
+                $this->_time_out = $remote_info['time_out'];
+            }
         }
     }
 
@@ -120,10 +124,18 @@ class RemoteCurl {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->_time_out);
         $return_data = curl_exec($ch);
+        if (!$return_data) {
+            $curl_info = curl_getinfo($ch);
+            if ($curl_info['http_code'] == 0 || $curl_info['http_code'] >= 400) {
+                throw new \Exception('http error', $curl_info['http_code']);
+            }
+        }
         if ($charset != 'utf8') {
             $return_data = iconv($charset, 'utf8', $return_data);
         }
+        curl_close($ch);
         return $return_data;
     }
 
@@ -141,12 +153,20 @@ class RemoteCurl {
         curl_setopt($ch, CURLOPT_DNS_USE_GLOBAL_CACHE, false);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $this->_time_out);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
         $return_data = curl_exec($ch);
+        if (!$return_data) {
+            $curl_info = curl_getinfo($ch);
+            if ($curl_info['http_code'] == 0 || $curl_info['http_code'] >= 400) {
+                throw new \Exception('http error', $curl_info['http_code']);
+            }
+        }
         if ($charset != 'utf-8') {
             $return_data = iconv($charset, 'utf-8', $return_data);
         }
+        curl_close($ch);
         return $return_data;
     }
 }
