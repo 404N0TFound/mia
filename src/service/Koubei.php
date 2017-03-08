@@ -244,7 +244,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubei_res = $this->getTagsKoubeiList($itemId, $tag_id, $page, $count, $userId);
         if($page == 1){
-            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data']['tag_list'];
+            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
         }
         return $this->succ($koubei_res);
     }
@@ -296,7 +296,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['recom_count'] = $item_rec_nums;//蜜粉推荐
         }
         if($page == 1){
-            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data']['tag_list'];
+            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
         }
         return $this->succ($koubei_res);
     }
