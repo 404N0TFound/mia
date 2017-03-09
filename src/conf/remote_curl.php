@@ -27,27 +27,29 @@ $item_recommend = array(
 //首页分类标签个性化推荐
 $index_cate_recommend = array(
     'url' => 'http://10.1.106.28:1872',
+    //'url' => 'http://content.rec.mia.com',
     'method' => 'get',
     'result_format' => false
 );
 
-//首页分类标签个性化推荐
+//商品搜索
 $item_search = array(
     'url' => 'http://172.16.96.75:18008/miase_wangpan/api.php',
     //'url' => 'http://search.mia.com/miase/api.php',
     'method' => 'get',
     'result_format' => false
 );
-
+//用户搜索
 $user_search = array(
     'url' => 'http://10.1.106.10:8998/solr/user_search/select',
-    //'url' => 'http://search.mia.com/miase/api.php',
+    //'url' => '​http://user.search.miaidc.com:81/solr/user_search/select',
     'method' => 'get',
     'result_format' => false
 );
+//笔记搜索
 $subject_search = array(
     'url' => 'http://172.16.96.75:18008/notes/api.php',
-    //'url' => 'http://search.mia.com/miase/api.php',
+    //'url' => 'http://notes.search.miaidc.com/notes/api.php',
     'method' => 'get',
     'result_format' => false
 );
