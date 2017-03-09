@@ -84,6 +84,41 @@ class RecommendNote
         return $return;
     }
 
+    /**
+     * 获取育儿分类下笔记列表
+     * @param $yuer_labels
+     * @param $page
+     * @param $count
+     * @return array [sujectId_subject]  口碑帖子
+     */
+    public function getYuerNoteList($yuer_labels, $page = 1, $count = 20)
+    {
+        $remote_curl = new RemoteCurl('index_cate_recommend');
+        $params['did'] = $this->session_info['dvc_id'];//设备id
+        $params['sessionid'] = $this->session_info['bi_session_id'];
+        $yuerTags = '';
+        foreach ($yuer_labels as $v) {
+            $yuerTags .= "t_".$v." 1 ";
+        }
+        $params['tagstr'] = trim($yuerTags);
+        $params['pagesize'] = $count;
+        $result = $remote_curl->curl_remote('/recommend_result', $params);
+        $noteIds = $result['pl_list'];
+
+        //错误处理
+        if ($result['totalcount'] == 0 || $result['msg'] == 'error' || $result === false) {
+            return [];
+        }
+        $return = [];
+        foreach ($noteIds as $v) {
+            if (is_array($v)) {
+                $return[] = $v['id'] . "_subject";
+            } else {
+                $return[] = $v . "_subject";
+            }
+        }
+        return $return;
+    }
 
     /**
      * 获取某个分类下得个性化笔记列表

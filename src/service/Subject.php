@@ -157,14 +157,18 @@ class Subject extends \mia\miagroup\Lib\Service
         switch ($tabId) {
             //育儿
             case $this->config['group_fixed_tab_last'][0]['extend_id']:
-                $yuerSubjectIds = $this->labelService->getBatchSubjectIdsByLabelIds($this->config['yuer_labels'], 0, $page, $count, 0, [])['data'];
-                $yuerSubjectIds = array_keys($yuerSubjectIds);
-                if (empty($yuerSubjectIds)) {
-                    $userNoteListIds = [];
-                } else {
-                    $userNoteListIds = array_map(function ($v) {
-                        return $v . "_subject";
-                    }, $yuerSubjectIds);
+                $noteRemote = new RecommendNote($this->ext_params);
+                $userNoteListIds = $noteRemote->getYuerNoteList($this->config['yuer_labels'], $page, $count);
+                if (empty($userNoteListIds)) {
+                    $yuerSubjectIds = $this->labelService->getBatchSubjectIdsByLabelIds($this->config['yuer_label_ids'], 0, $page, $count, 0, [])['data'];
+                    $yuerSubjectIds = array_keys($yuerSubjectIds);
+                    if (empty($yuerSubjectIds)) {
+                        $userNoteListIds = [];
+                    } else {
+                        $userNoteListIds = array_map(function ($v) {
+                            return $v . "_subject";
+                        }, $yuerSubjectIds);
+                    }
                 }
                 break;
             //订阅
