@@ -348,7 +348,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info', 'item', 'koubei'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'group_labels', 'praise_info', 'album','share_info'), $status = array(1, 2)) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'group_labels', 'content_format', 'praise_info', 'album', 'share_info'), $status = array(1, 2)) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -426,7 +426,17 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['id'] = $subjectInfo['id'];
             $subjectRes[$subjectInfo['id']]['created'] = $subjectInfo['created'];
             $subjectRes[$subjectInfo['id']]['title'] = $subjectInfo['title'];
-            $subjectRes[$subjectInfo['id']]['text'] = $subjectInfo['text'];
+            if (in_array('content_format', $field)) {
+                $text = $subjectInfo['text'];
+                $text = str_replace("\r\n", ' ', $text);
+                $text = str_replace("\n", ' ', $text);
+                if (mb_strlen($text, 'utf8') > 50) {
+                    $text = mb_substr($text, 0, 50);
+                }
+                $subjectRes[$subjectInfo['id']]['text'] = $text;
+            } else {
+                $subjectRes[$subjectInfo['id']]['text'] = $subjectInfo['text'];
+            }
             $subjectRes[$subjectInfo['id']]['status'] = $subjectInfo['status'];
             $subjectRes[$subjectInfo['id']]['source'] = $subjectInfo['source'];
             $subjectRes[$subjectInfo['id']]['is_top'] = $subjectInfo['is_top'];

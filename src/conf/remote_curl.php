@@ -14,6 +14,7 @@
  *   'msg_key'      => 'msg',            //可选配置，返回json错误信息key，默认为"msg"
  *   'success_code' => 0,                //可选配置，返回json请求成功状态码，默认为0
  *   'result_format'=> true,             //可选配置，返回结果是否格式化解析，默认为true。
+ *   'time_out'     => 1,                //可选配置，请求超时时间，默认为1。
  * );
  */
 

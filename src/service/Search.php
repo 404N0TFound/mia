@@ -399,16 +399,19 @@ class Search extends Service
     {
         //推荐池数据
         $userIdRes = $this->abumModel->getGroupDoozerList();
-        $userIds = array_slice($userIdRes, 0, 20);
         $currentUid = $this->ext_params['current_uid'];
-        $userList = $this->userService->getUserInfoByUids($userIds, $currentUid)['data'];
+        $userList = $this->userService->getUserInfoByUids($userIdRes, $currentUid)['data'];
         $return = [];
+        $i = 0;
         foreach ($userList as $val) {
+            if ($i >= $count) {
+                break;
+            }
             if($val['relation_with_me'] == 0){
                 $return[] = $val;
+                $i ++;
             }
         }
-        $return = array_slice($return, 0, $count);
         return $this->succ(['user_list' => $return]);
     }
 
