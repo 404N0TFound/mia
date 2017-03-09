@@ -15,11 +15,11 @@ class GroupDoozer extends \DB_Query {
      * 推荐列表
      * @return array() 推荐列表
      */
-    public function getGroupDoozerList() {
+    public function getGroupDoozerList($count = 10) {
         $where = array();
         $where[] = array(':eq', 'status', 1);
         $orderBy = array('create_time DESC');
-        $userIdRes = $this->getRows($where, array('user_id'), 1000, 0, $orderBy);
+        $userIdRes = $this->getRows($where, array('user_id'), $count, 0, $orderBy);
         $userIdArr = array();
         if ($userIdRes) {
             foreach ($userIdRes as $value) {

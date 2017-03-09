@@ -187,9 +187,9 @@ class Album {
      * @params array() 
      * @return array() 推荐用户列表
      */
-    public function getGroupDoozerList()
+    public function getGroupDoozerList($count = 10)
     {
-        return $this->userGroupDoozerData->getGroupDoozerList();
+        return $this->userGroupDoozerData->getGroupDoozerList($count);
     }
     
     
