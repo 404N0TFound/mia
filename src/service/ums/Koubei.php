@@ -184,7 +184,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         do {
             $pieceIds = count($koubeiIds) > $pieceCount ? array_splice($koubeiIds, 0, $pieceCount) : array_splice($koubeiIds, 0, count($koubeiIds));
             //获取口碑信息
-            $tmpKoubeiInfos = $koubeiService->getBatchKoubeiByIds($pieceIds, 0, array('user_info', 'count', 'item', 'order_info', 'koubei_reply'), array())['data'];
+            $tmpKoubeiInfos = $koubeiService->getBatchKoubeiByIds($pieceIds, 0, array('user_info', 'count', 'item', 'order_info', 'koubei_reply', 'content_format'), array())['data'];
             if (!empty($tmpKoubeiInfos)) {
                 foreach ($tmpKoubeiInfos as $koubeiId => $koubei) {
                     $koubeiInfos[$koubeiId] = $koubei;
