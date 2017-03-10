@@ -314,4 +314,14 @@ class User extends \mia\miagroup\Lib\Service {
         \DB_Query::switchCluster($preNode);
         return $this->succ($user_info);
     }
+
+    /**
+     * 查推荐用户列表
+     * @params array()
+     * @return array() 推荐用户列表
+     */
+    public function getGroupDoozerList($count = 10)
+    {
+        return $this->userModel->getGroupDoozerList($count);
+    }
 }

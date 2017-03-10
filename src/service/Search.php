@@ -2,12 +2,12 @@
 namespace mia\miagroup\Service;
 
 use \mia\miagroup\Lib\Service;
-use mia\miagroup\Model\Album as AlbumModel;
-use mia\miagroup\Model\Koubei as KoubeiModel;
-use mia\miagroup\Service\User as UserService;
-use mia\miagroup\Remote\Search as SearchRemote;
 use mia\miagroup\Service\Item as ItemService;
+use mia\miagroup\Service\User as UserService;
+use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Koubei as KoubeiService;
+use mia\miagroup\Model\Search as SearchModel;
+use mia\miagroup\Remote\Search as SearchRemote;
 use mia\miagroup\Util\NormalUtil;
 
 /**
@@ -19,14 +19,9 @@ class Search extends Service
 {
     public function __construct()
     {
-        $this->abumModel = new AlbumModel();
-        $this->userService = new UserService();
-        $this->subjectService = new Subject();
-        $this->koubeiModel = new KoubeiModel();
-        $this->itemService = new ItemService();
-        $this->koubeiService = new KoubeiService();
-        $this->searchRemote = new SearchRemote($this->ext_params);
         parent::__construct();
+        $this->searchModel = new SearchModel();
+        $this->searchRemote = new SearchRemote($this->ext_params);
     }
 
     /**
@@ -82,7 +77,8 @@ class Search extends Service
         }
 
         //$noteIds = ['267344', '267343', '267342', '267341', '267339', '267338', '267337'];
-        $noteInfos = $this->subjectService->getBatchSubjectInfos(array_values($noteIds))['data'];
+        $subjectService = new SubjectService();
+        $noteInfos = $subjectService->getBatchSubjectInfos(array_values($noteIds))['data'];
 
         $res['total'] = $searchResult['disp_num'];
 
@@ -134,7 +130,8 @@ class Search extends Service
                 return $v['user_id'];
             }, $userIds);
             //$userIds = [220103494, 1508587, 7509605, 7509576, 7509596, 7509608, 7509603, 7509614, 7509571, 7509569];
-            $userList = $this->userService->getUserInfoByUids($userIds)['data'];
+            $userService = new UserService();
+            $userList = $userService->getUserInfoByUids($userIds)['data'];
             foreach ($userIds as $v) {
                 if (empty($userList[$v])) {
                     continue;
@@ -341,7 +338,8 @@ class Search extends Service
         if(!empty($items['item_ids']) && is_array($items['item_ids'])){
             foreach ($items['item_ids'] as $v) {
                 //口碑印象列表不需要了
-                $ext_info = $this->koubeiService->getKoubeiNums($v)['data'];
+                $koubeiService = new KoubeiService();
+                $ext_info = $koubeiService->getKoubeiNums($v)['data'];
                 if ($ext_info['user_unm'] == 0 || $ext_info['item_rec_nums'] == 0) {
                     $recommend_desc = [
                         [
@@ -383,7 +381,7 @@ class Search extends Service
      */
     public function noteHotWordsList()
     {
-        $searchKeys['hot_words'] = $this->koubeiModel->getNoteSearchKey();
+        $searchKeys['hot_words'] = $this->searchModel->getNoteSearchKey();
         array_walk($searchKeys['hot_words'],function(&$n){
             $n['key_word'] = trim($n['key_word']);
         });
@@ -398,9 +396,10 @@ class Search extends Service
     public function userHotList($count = 20)
     {
         //推荐池数据
-        $userIdRes = $this->abumModel->getGroupDoozerList($count);
+        $userService = new UserService();
+        $userIdRes = $userService->getGroupDoozerList($count);
         $currentUid = $this->ext_params['current_uid'];
-        $userList = $this->userService->getUserInfoByUids($userIdRes, $currentUid)['data'];
+        $userList = $userService->getUserInfoByUids($userIdRes, $currentUid)['data'];
         $return = array_values($userList);
         return $this->succ(['user_list' => $return]);
     }
