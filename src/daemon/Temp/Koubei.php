@@ -368,4 +368,45 @@ class Koubei extends \FD_Daemon {
         }
         return false;
     }
+
+    /*
+  * 当妈也漂亮优惠券发放
+  * */
+    public function prettyMomSendCoupons() {
+
+        $data = file('/home/xiekun/coupon_prettyUsers');
+        $couponRemote = new \mia\miagroup\Remote\Coupon();
+        $batch_code = ['normal-20170303-2', 'normal-20170303-1'];
+        $i = 1;
+        set_time_limit(0);
+
+        // 日志记录
+        $lastIdFile = '/home/xiekun/return_prettyUsers';
+        $fp = fopen($lastIdFile, 'a+');
+
+        foreach ($data as $v) {
+            $user_id = trim($v);
+            if ($i % 100 == 0) {
+                sleep(1);
+            }
+            $i ++;
+            foreach ($batch_code as $code) {
+                $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $code);
+                if (!$bindCouponRes) {
+                    // 重发一次
+                    $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $code);
+                    if(!$bindCouponRes){
+                        // 记录日志
+                        echo 'error:', $user_id, "\n";
+                    } else {
+                        echo 'success:', $user_id, "\n";
+                        fwrite($fp, $user_id."\n");
+                    }
+                } else {
+                    echo 'success:', $user_id, "\n";
+                    fwrite($fp, $user_id."\n");
+                }
+            }
+        }
+    }
 }
