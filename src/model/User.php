@@ -6,10 +6,15 @@ use mia\miagroup\Data\User\GroupSubjectUserExperts;
 use mia\miagroup\Data\User\AppDeviceToken as AppDeviceTokenData;
 use mia\miagroup\Data\User\HeadLineUserCategory as HeadLineUserCategoryData;
 use mia\miagroup\Data\User\GroupSubjectVideoPermission;
-use mia\miagroup\Data\User\GroupDoozer;
+use mia\miagroup\Data\User\GroupDoozer as GroupDoozerData;
 
-class User {
+class User
+{
 
+    public function __construct()
+    {
+        $this->groupDoozerData = new GroupDoozerData();
+    }
     /**
      * 批量获取用户信息
      *
@@ -167,12 +172,22 @@ class User {
      */
     public function getUserRecommendInfo($userIds)
     {
-        $doozerData = new GroupDoozer();
+        $doozerData = new GroupDoozerData();
         $conditions['user_id'] = $userIds;
         $recommendInfos = $doozerData->getBatchOperationInfos($conditions);
         foreach ($recommendInfos as $v) {
             $res[$v['user_id']] = $v;
         }
         return $res;
+    }
+
+    /**
+     * 查推荐用户列表
+     * @params array()
+     * @return array() 推荐用户列表
+     */
+    public function getGroupDoozerList($count = 10)
+    {
+        return $this->groupDoozerData->getGroupDoozerList($count);
     }
 }

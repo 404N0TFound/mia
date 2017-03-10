@@ -1,5 +1,5 @@
 <?php
-namespace mia\miagroup\Data\Koubei;
+namespace mia\miagroup\Data\Search;
 
 class SearchWords extends \DB_Query
 {

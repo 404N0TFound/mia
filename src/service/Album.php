@@ -77,9 +77,9 @@ class Album extends \mia\miagroup\Lib\Service {
                 $response['article_list'] = array_values($articleResult['data']);
             }
         }
-        
-        $userIdRes = $this->abumModel->getGroupDoozerList();
         $User = new \mia\miagroup\Service\User();
+        $userIdRes = $User->getGroupDoozerList();
+
         $userInfo = $User->getUserInfoByUids($userIdRes,$user_id);
         $users = array();
         if( isset($userInfo['data']) && $userInfo['data']){

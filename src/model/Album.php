@@ -183,17 +183,6 @@ class Album {
     }
     
     /**
-     * 查推荐用户列表
-     * @params array() 
-     * @return array() 推荐用户列表
-     */
-    public function getGroupDoozerList($count = 10)
-    {
-        return $this->userGroupDoozerData->getGroupDoozerList($count);
-    }
-    
-    
-    /**
      * 查用户下专栏数
      * @params array() $userIds 用户ID
      * @return array() 用户专栏个数
