@@ -12,8 +12,12 @@ class Subjectdump extends \FD_Daemon {
     private $dumpSubjectFile;
     private $dumpUserFile;
     private $mode;
+    private $python_bin;
+    private $negative_path;
 
     public function __construct() {
+        $this->python_bin = \F_Ice::$ins->workApp->config->get('app.daemon_python_bin');
+        $this->negative_path = '/home/work/negative_notes/bin/';
     }
 
     public function execute() {
@@ -209,6 +213,7 @@ class Subjectdump extends \FD_Daemon {
             //帖子标题
             $dumpdata['title'] = !empty(trim($subject['title'])) ? $subject['title'] : 'NULL';
             //帖子文本
+            $subject['text'] = str_replace("\t", ' ', $subject['text']);
             $subject['text'] = str_replace("\r\n", ' ', $subject['text']);
             $subject['text'] = str_replace("\n", ' ', $subject['text']);
             $dumpdata['text'] = !empty(trim($subject['text'])) ? $subject['text'] : 'NULL';
@@ -220,6 +225,14 @@ class Subjectdump extends \FD_Daemon {
             $dumpdata['machine_score'] = !empty($koubeiInfos[$value['id']]) ? $koubeiInfos[$value['id']]['machine_score'] : 'NULL';
             //关联标签ID
             $dumpdata['label_ids'] = !empty($labelIds) ? implode(',', $labelIds) : 'NULL';
+            //好评差评识别
+            if ($dumpdata['text'] == 'NULL' && $dumpdata['title'] == 'NULL') {
+                $dumpdata['negative_result'] = 'NULL';
+            } else {
+                $cmd = "{$this->python_bin} {$this->negative_path}wordseg_client_notes.py {$this->negative_path}new_model_3 {$dumpdata['title']}{$dumpdata['text']}  {$this->negative_path}new_top_a_good";
+                exec($cmd, $negative_result);
+                $dumpdata['negative_result'] = $negative_result[0];
+            }
             //写入文本
             $put_content = implode("\t", $dumpdata);
             file_put_contents($this->dumpSubjectFile, $put_content . "\n", FILE_APPEND);

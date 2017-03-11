@@ -37,3 +37,4 @@ $daemon_filter = array(
 );
 
 $damon_php_bin = '/opt/php/bin/php';
+$daemon_python_bin = '/usr/bin/python';

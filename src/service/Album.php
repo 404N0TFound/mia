@@ -368,11 +368,27 @@ class Album extends \mia\miagroup\Lib\Service {
             $data['ext_info']['label'] = $labelInfos;
         }
         if(isset($set['image_infos']) && !empty($set['image_infos'])){
+            //获取封面图准确的宽高
+            if (strpos($set['image_infos']['url'], 'http') === 0) {
+                $url = $set['image_infos']['url'];
+            } else if($set['image_infos']['url'] == 'local') {
+                $url = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $set['image_infos']['url'];
+            } else {
+                $url = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $set['image_infos']['url'];
+            }
+            @$img = getimagesize($url);
+            if ($img) {
+               $imgWidth = $img[0];
+               $imgHeight = $img[1];
+            } else {
+                $imgWidth = $set['image_infos']['width'];
+                $imgHeight = $set['image_infos']['height'];
+            }
             $data['cover_image'] = json_encode(
                 array(
-                    'width'=>$set['image_infos']['width'],
-                    'height'=>$set['image_infos']['height'],
-                    'url'=>$set['image_infos']['url'],
+                    'width'=>$imgWidth,
+                    'height'=>$imgHeight,
+                    'url'=>$url,
                     'content'=>'',
                     'source' => isset($set['image_infos']['source']) ? $set['image_infos']['source'] : ''
                 ));
@@ -526,11 +542,27 @@ class Album extends \mia\miagroup\Lib\Service {
         }
         
         if(isset($insert['image_infos'])){ //封面图
+            //获取封面图准确的宽高
+            if (strpos($insert['image_infos']['url'], 'http') === 0) {
+                $url = $insert['image_infos']['url'];
+            } else if($insert['image_infos']['url'] == 'local') {
+                $url = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $insert['image_infos']['url'];
+            } else {
+                $url = F_Ice::$ins->workApp->config->get('app')['url']['qiniu_url'] . $insert['image_infos']['url'];
+            }
+            @$img = getimagesize($url);
+            if ($img) {
+                $imgWidth = $img[0];
+                $imgHeight = $img[1];
+            } else {
+                $imgWidth = $insert['image_infos']['width'];
+                $imgHeight = $insert['image_infos']['height'];
+            }
             $params['cover_image'] = json_encode(
                 array(
-                    'width'=>$insert['image_infos']['width'],
-                    'height'=>$insert['image_infos']['height'],
-                    'url'=>$insert['image_infos']['url'],
+                    'width'=>$imgWidth,
+                    'height'=>$imgHeight,
+                    'url'=>$url,
                     'content'=>'',
                     'source' => isset($insert['image_infos']['source']) ? $insert['image_infos']['source'] : ''
                 ));
