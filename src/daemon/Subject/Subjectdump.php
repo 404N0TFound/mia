@@ -229,9 +229,9 @@ class Subjectdump extends \FD_Daemon {
             if ($dumpdata['text'] == 'NULL' && $dumpdata['title'] == 'NULL') {
                 $dumpdata['negative_result'] = 'NULL';
             } else {
-                $cmd = "{$this->python_bin} {$this->negative_path}wordseg_client_notes.py {$this->negative_path}new_model_3 {$dumpdata['title']}{$dumpdata['text']}  {$this->negative_path}new_top_a_good";
-                exec($cmd, $negative_result);
-                $dumpdata['negative_result'] = $negative_result[0];
+                $cmd = "{$this->python_bin} {$this->negative_path}wordseg_client_notes.py {$this->negative_path}new_model_3 '{$dumpdata['title']}{$dumpdata['text']}'  {$this->negative_path}new_top_a_good";
+                $negative_result = system($cmd);
+                $dumpdata['negative_result'] = $negative_result;
             }
             //写入文本
             $put_content = implode("\t", $dumpdata);
