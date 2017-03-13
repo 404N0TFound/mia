@@ -54,13 +54,12 @@ class RemoteCurl {
                 throw new \Exception('empty data', -1);
             }
             $return_data = json_decode($return_data, true);
-            if ($this->_result_format === false) {
-                return $return_data;
+            if ($this->_result_format !== false) {
+                if (isset($return_data[$this->_code_key]) && $return_data[$this->_code_key] != $this->_success_code) {
+                    throw new \Exception(strval($return_data[$this->_msg_key]), $return_data[$this->_code_key]);
+                }
+                $return_data = isset($return_data[$this->_data_key]) ? $return_data[$this->_data_key] : array();
             }
-            if (isset($return_data[$this->_code_key]) && $return_data[$this->_code_key] != $this->_success_code) {
-                throw new \Exception(strval($return_data[$this->_msg_key]), $return_data[$this->_code_key]);
-            }
-            $return_data = isset($return_data[$this->_data_key]) ? $return_data[$this->_data_key] : array();
             \F_Ice::$ins->mainApp->logger_remote->info(array(
                 'third_server'  =>  $this->_remote_name,
                 'type'          =>  'INFO',
@@ -90,6 +89,7 @@ class RemoteCurl {
      * @param array $remote_info 接口信息，数组，包含url-地址、method方法、charset编码
      */
     private function set_remote_info($remote_name) {
+        $this->_remote_name = $remote_name;
         $this->_config_info = $this->config = \F_Ice::$ins->workApp->config->get('remote_curl');
         $remote_info = $this->_config_info[$remote_name];
         if ($remote_info) {
