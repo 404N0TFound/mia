@@ -27,9 +27,11 @@ class RemoteCurl {
     public function curl_remote($url_path, $arguments) {
         try {
             $request_time = gettimeofday(true);
-            foreach ($arguments as $key => $value) {
-                if (is_string($value) && strpos($value, '@') === 0) { //防止@被解析成文件
-                    $arguments[$key] = ' ' . $value;
+            if (is_array($arguments)) {
+                foreach ($arguments as $key => $value) {
+                    if (is_string($value) && strpos($value, '@') === 0) { //防止@被解析成文件
+                        $arguments[$key] = ' ' . $value;
+                    }
                 }
             }
             if ($this->_url && $this->_method && $this->_charset) {
