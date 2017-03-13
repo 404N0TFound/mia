@@ -422,6 +422,13 @@ class AlbumArticle extends \DB_Query {
         return $affect;
     }
     
-    
-    
+    /*
+     * 修复图片信息
+     * */
+    public function updateArticleImg($id = 0, $cover_image = '') {
+        $where[] = ['id',$id];
+        $setData[] = ['cover_image',$cover_image];
+        $affect = $this->update($setData,$where);
+        return $affect;
+    }
 }
