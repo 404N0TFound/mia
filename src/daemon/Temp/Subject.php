@@ -71,7 +71,7 @@ class Subject extends \FD_Daemon {
         $editFile = '/home/xiekun/return_article_img';
         $fp = fopen($editFile, 'a+');
         foreach ($data as $v) {
-            list($id, $url_json) = explode("\t", $v);
+            list($id, $url_json) = explode(" ", $v);
             if ($i % 100 == 0) {
                 sleep(1);
             }
