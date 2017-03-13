@@ -226,7 +226,9 @@ class Audit extends \mia\miagroup\Lib\Service {
                     }
                 }
             }
-            return $this->succ(array('sensitive_words' => $matchList));
+            if (!empty($matchList)) {
+                return $this->succ(array('sensitive_words' => $matchList));
+            }
         }
         //获取敏感词
         $sensitiveWord = $this->auditModel->getAllSensitiveWord();
