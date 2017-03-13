@@ -24,7 +24,7 @@ class RemoteCurl {
      * @param array|string $remote_name 接口信息或接口名
      * @return string 返回接口返回的数据
      */
-    public function curl_remote($url_path, array $arguments) {
+    public function curl_remote($url_path, $arguments) {
         try {
             $request_time = gettimeofday(true);
             foreach ($arguments as $key => $value) {
@@ -143,7 +143,7 @@ class RemoteCurl {
      * 发送post请求并返回请求结果
      *
      */
-    public function post($url, $arguments, $charset = 'utf-8') {
+    public function post($url, $arguments, $charset = 'utf8') {
         if(is_array($arguments)){
             $post_data =  http_build_query($arguments);
         }else{
@@ -163,8 +163,8 @@ class RemoteCurl {
                 throw new \Exception('http error', $curl_info['http_code']);
             }
         }
-        if ($charset != 'utf-8') {
-            $return_data = iconv($charset, 'utf-8', $return_data);
+        if ($charset != 'utf8') {
+            $return_data = iconv($charset, 'utf8', $return_data);
         }
         curl_close($ch);
         return $return_data;
