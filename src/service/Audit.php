@@ -222,7 +222,7 @@ class Audit extends \mia\miagroup\Lib\Service {
                     $matchList = [];
                     $checkResult = $shumeiService->checkText($text);
                     if ($checkResult !== true) {
-                        $matchList[$key] = $checkResult;
+                        $matchList[$key] = [$checkResult];
                     }
                 }
             }
