@@ -5,6 +5,7 @@ use mia\miagroup\Model\Audit as AuditModel;
 use mia\miagroup\service\User as UserService;
 use mia\miagroup\service\Subject as SubjectService;
 use mia\miagroup\service\Comment as CommentService;
+use mia\miagroup\Util;
 
 /**
  * 审核服务
@@ -203,7 +204,30 @@ class Audit extends \mia\miagroup\Lib\Service {
      * @param $textArray 可以是字符串，也可以是数组
      * @return 当$textArray是字符串返回一维数组，$textArray是数组返回二维数组
      */
-    public function checkSensitiveWords($textArray) {
+    public function checkSensitiveWords($textArray, $shumei = 0)
+    {
+        //数美检测
+        if ($shumei == 1) {
+            $shumeiService = new Util\ShumeiUtil($this->ext_params);
+            if (is_string($textArray)) {
+                $checkResult = $shumeiService->checkText($textArray);
+                if ($checkResult === true) {
+                    $matchList = [];
+                } else {
+                    $matchList = [$checkResult];
+                }
+            } else if (is_array($textArray)) {
+                foreach ($textArray as $text) {
+                    $key = md5($text);
+                    $matchList = [];
+                    $checkResult = $shumeiService->checkText($text);
+                    if ($checkResult !== true) {
+                        $matchList[$key] = $checkResult;
+                    }
+                }
+            }
+            return $this->succ(array('sensitive_words' => $matchList));
+        }
         //获取敏感词
         $sensitiveWord = $this->auditModel->getAllSensitiveWord();
         if (empty($sensitiveWord) || !is_array($sensitiveWord)) {
