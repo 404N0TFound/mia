@@ -158,7 +158,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         
         if ($checkSensitive == true) {
             //过滤敏感词
-            $sensitive_res = $audit->checkSensitiveWords($commentInfo['comment'], 1)['data'];
+            $sensitive_res = $audit->checkSensitiveWords($commentInfo['comment'], 1);
             if ($sensitive_res['code'] == 1127) {
                 return $this->error(1127);
             }
