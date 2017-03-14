@@ -697,7 +697,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         //过滤敏感词
         $audit = new \mia\miagroup\Service\Audit();
-        $sensitive_res = $audit->checkSensitiveWords($comment, 1)['data'];
+        $sensitive_res = $audit->checkSensitiveWords($comment)['data'];
         if(!empty($sensitive_res['sensitive_words'])){
             return $this->error(1112, '有敏感内容 "' . implode('","', $sensitive_res['sensitive_words']) . '"，发布失败');
         }
