@@ -2,7 +2,7 @@
 namespace mia\miagroup\Daemon\Temp;
 
 use mia\miagroup\Data\Subject\Subject as SubjectData;
-use mia\miagroup\Data\Album\AlbumArticle as AlbumArticleData;
+use mia\miagroup\Data\Album\AlbumArticle;
 
 /**
  * 帖子相关-临时脚本
@@ -12,7 +12,6 @@ class Subject extends \FD_Daemon {
 
     public function __construct() {
         $this->subjectData = new SubjectData();
-        $this->albumArticleData = new AlbumArticleData();
     }
 
     public function execute() {
@@ -62,21 +61,26 @@ class Subject extends \FD_Daemon {
      * 修复头条视频首图宽高
      * */
     public function editSubjectImg() {
-
-        $data = file('/home/xiekun/subject_image');
-        //$data = file('D:/tmpfile/test.txt');
-        $i = 1;
+        $albumArticleData = new AlbumArticle();
+        $nums = 1887755;
+        $limit = 1000;
+        $end = floor($nums / $limit) + 1;
         set_time_limit(0);
         // 日志
         $editFile = '/home/xiekun/return_article_img';
         $fp = fopen($editFile, 'a+');
-        foreach ($data as $v) {
-            list($id, $url_json) = explode(" ", $v);
+        for ($i = 1; $i <= $end; $i++) {
             if ($i % 100 == 0) {
                 sleep(1);
             }
-            $i ++;
-            if(!empty($url_json)) {
+            $start = ($i - 1) * $limit;
+            $imgList = $albumArticleData->query('select id,cover_image from group_article where user_id not in (select user_id from group_headline_user_category) and cover_image != "" limit '.$start.','.$limit, \DB_Query::RS_ARRAY);
+            foreach($imgList as $v) {
+                $id = $v['id'];
+                $url_json = $v['cover_image'];
+                if(empty($url_json)) {
+                    continue;
+                }
                 $url_data = json_decode($url_json, true);
                 if($url_data['width'] == 702  &&  $url_data['height'] == 204) {
                     $img_url = 'https://video1.miyabaobei.com/'.$url_data['url'].'&imageInfo';
@@ -90,7 +94,7 @@ class Subject extends \FD_Daemon {
                         $update_data = json_encode($url_data);
                     }
                     if(!empty($id) && !empty($update_data)) {
-                        $flag = $this->albumArticleData->updateArticleImg($id, $update_data);
+                        $flag = $albumArticleData->query('update group_article set cover_image = '.$update_data.' where id = '.$id, \DB_Query::RS_ARRAY);
                         if($flag) {
                             echo 'success:', $id, "\n";
                             fwrite($fp, $id.'_'.$update_data,"\n");
