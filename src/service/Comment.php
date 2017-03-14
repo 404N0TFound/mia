@@ -162,6 +162,7 @@ class Comment extends \mia\miagroup\Lib\Service {
             if ($sensitive_res['code'] == 1127) {
                 return $this->error(1127);
             }
+            $sensitive_res = $sensitive_res['data'];
             if(!empty($sensitive_res['sensitive_words'])){
                 return $this->error(1112, '有敏感内容 "' . implode('","', $sensitive_res['sensitive_words']) . '"，发布失败');
             }
