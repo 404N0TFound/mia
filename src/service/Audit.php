@@ -217,9 +217,9 @@ class Audit extends \mia\miagroup\Lib\Service {
                     $matchList = [$checkResult];
                 }
             } else if (is_array($textArray)) {
+                $matchList = [];
                 foreach ($textArray as $text) {
                     $key = md5($text);
-                    $matchList = [];
                     $checkResult = $shumeiService->checkText($text);
                     if ($checkResult !== true) {
                         $matchList[$key] = [$checkResult];
