@@ -720,7 +720,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * @param unknown $labelInfos
      * @param unknown $koubeiId
      */
-    public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0) {
+    public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0, $isValidate = 0) {
         if (empty($subjectInfo)) {
             return $this->error(500);
         }
@@ -732,11 +732,15 @@ class Subject extends \mia\miagroup\Lib\Service
                 return $this->error(1104);
             }
         }
-        
-        if ($koubeiId <= 0) { //口碑不过滤敏感词
+        //口碑不经过数美验证
+        if ($isValidate == 1) {
+            //启用数美验证
             if(!empty($subjectInfo['title'])){
                 //过滤敏感词
-                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'])['data'];
+                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'], 1)['data'];
+                if ($sensitive_res['code'] == 1127) {
+                    return $this->error(1127);
+                }
                 if(!empty($sensitive_res['sensitive_words'])){
                     return $this->error(1112);
                 }
@@ -745,7 +749,10 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if(!empty($subjectInfo['text'])){
                 //过滤敏感词
-                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'])['data'];
+                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'], 1)['data'];
+                if ($sensitive_res['code'] == 1127) {
+                    return $this->error(1127);
+                }
                 if(!empty($sensitive_res['sensitive_words'])){
                     return $this->error(1112);
                 }
@@ -758,7 +765,10 @@ class Subject extends \mia\miagroup\Lib\Service
                 $labelStr = implode(',', $labelTitleArr);
                 //过滤敏感词
                 if(!empty($labelStr)){
-                    $sensitive_res = $audit->checkSensitiveWords($labelStr)['data'];
+                    $sensitive_res = $audit->checkSensitiveWords($labelStr, 1)['data'];
+                    if ($sensitive_res['code'] == 1127) {
+                        return $this->error(1127);
+                    }
                     if(!empty($sensitive_res['sensitive_words'])){
                         return $this->error(1112);
                     }

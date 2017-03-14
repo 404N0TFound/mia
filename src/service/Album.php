@@ -681,7 +681,7 @@ class Album extends \mia\miagroup\Lib\Service {
         
         if(empty($resGetArticle['subject_id'])){
             $subjectService = new \mia\miagroup\Service\Subject();
-            $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0)['data'];
+            $subjectRes = $subjectService->issue($subjectInfo, array(), $labelInfos, 0, 1)['data'];
         }
         
         $paramsArticle = array();
