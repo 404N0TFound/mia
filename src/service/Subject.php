@@ -738,6 +738,9 @@ class Subject extends \mia\miagroup\Lib\Service
             if(!empty($subjectInfo['title'])){
                 //过滤敏感词
                 $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'], 1)['data'];
+                if ($sensitive_res['code'] == 1127) {
+                    return $this->error(1127);
+                }
                 if(!empty($sensitive_res['sensitive_words'])){
                     return $this->error(1112);
                 }
@@ -747,6 +750,9 @@ class Subject extends \mia\miagroup\Lib\Service
             if(!empty($subjectInfo['text'])){
                 //过滤敏感词
                 $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'], 1)['data'];
+                if ($sensitive_res['code'] == 1127) {
+                    return $this->error(1127);
+                }
                 if(!empty($sensitive_res['sensitive_words'])){
                     return $this->error(1112);
                 }
@@ -760,6 +766,9 @@ class Subject extends \mia\miagroup\Lib\Service
                 //过滤敏感词
                 if(!empty($labelStr)){
                     $sensitive_res = $audit->checkSensitiveWords($labelStr, 1)['data'];
+                    if ($sensitive_res['code'] == 1127) {
+                        return $this->error(1127);
+                    }
                     if(!empty($sensitive_res['sensitive_words'])){
                         return $this->error(1112);
                     }
