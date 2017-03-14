@@ -9,6 +9,9 @@ class RecommendNote
     public function __construct($session_info)
     {
         $this->session_info = $session_info;
+        if (empty($this->session_info['bi_session_id'])) {
+            $this->session_info['bi_session_id'] = $this->session_info['dvc_id'].date("H");
+        }
     }
 
     /**
