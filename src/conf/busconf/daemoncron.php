@@ -126,6 +126,14 @@ $cron_list['subject_data_dump'] = array(
     'start_time' => '2017-02-09 00:00:00',
     'interval' => 1
 );
+//帖子文本语义分析
+$cron_list['content_analys'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=contentanalys",
+    'start_time' => '2017-03-15 00:00:00',
+    'interval' => 1
+);
 //帖子增量数据导出
 $cron_list['subject_data_incremental_dump'] = array(
     'enable' => true,
