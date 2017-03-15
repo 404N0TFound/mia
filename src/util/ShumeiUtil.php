@@ -32,6 +32,10 @@ class ShumeiUtil
         $result = $remote_curl->curl_remote('', $post_data);
 
         $return = true;
+
+        if ($result['code'] == 1100 && $result['riskLevel'] == "REJECT" && json_decode($result['detail'], true)['description'] == "包含过多无意义字符") {
+            return $return;
+        }
         if ($result['code'] = !1100 || $result['riskLevel'] != "PASS") {
             $reason = json_decode($result['detail'], true);
             $return = $reason['description'] ? $reason['description'] : "请求失败";
