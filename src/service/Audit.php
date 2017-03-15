@@ -206,6 +206,10 @@ class Audit extends \mia\miagroup\Lib\Service {
      */
     public function checkSensitiveWords($textArray, $shumei = 0)
     {
+        $passUid = \F_Ice::$ins->workApp->config->get('busconf.subject.dump_exclude_uids');
+        if (in_array($this->ext_params['current_uid'], $passUid)) {
+            return $this->succ(array('sensitive_words' => []));
+        }
         //数美检测
         if ($shumei == 1) {
             $shumeiService = new Util\ShumeiUtil($this->ext_params);
@@ -255,6 +259,9 @@ class Audit extends \mia\miagroup\Lib\Service {
             }
         }
         //单条返回一维数组，多条返回二维数组
+        if(!empty($matchList)) {
+            return $this->error(1127);
+        }
         return $this->succ(array('sensitive_words' => $matchList));
     }
     
