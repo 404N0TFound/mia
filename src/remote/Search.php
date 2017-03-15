@@ -37,7 +37,7 @@ class Search
     {
         $remote_curl = new RemoteCurl('user_search');
         $param['q'] = $searchArr['key'];
-        $param['start'] = $searchArr['page'] - 1;
+        $param['start'] = ($searchArr['page'] - 1) * $searchArr['count'];
         $param['rows'] = $searchArr['count'];
         $param['wt'] = 'json';
         $result = $remote_curl->curl_remote('', $param);
