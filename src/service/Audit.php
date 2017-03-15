@@ -214,6 +214,10 @@ class Audit extends \mia\miagroup\Lib\Service {
         if ($shumei == 1) {
             $shumeiService = new Util\ShumeiUtil($this->ext_params);
             if (is_string($textArray)) {
+                $textArray = str_replace(" ", '', $textArray);
+                $textArray = str_replace("\t", '', $textArray);
+                $textArray = str_replace("\n", '', $textArray);
+                $textArray = str_replace("\r\n", '', $textArray);
                 $checkResult = $shumeiService->checkText($textArray);
                 if ($checkResult === true) {
                     $matchList = [];
@@ -223,6 +227,10 @@ class Audit extends \mia\miagroup\Lib\Service {
             } else if (is_array($textArray)) {
                 $matchList = [];
                 foreach ($textArray as $text) {
+                    $text = str_replace(" ", '', $text);
+                    $text = str_replace("\t", '', $text);
+                    $text = str_replace("\n", '', $text);
+                    $text = str_replace("\r\n", '', $text);
                     $key = md5($text);
                     $checkResult = $shumeiService->checkText($text);
                     if ($checkResult !== true) {
