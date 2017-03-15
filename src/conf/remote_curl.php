@@ -27,8 +27,8 @@ $item_recommend = array(
 
 //首页分类标签个性化推荐
 $index_cate_recommend = array(
-    'url' => 'http://10.1.106.28:1872',
-    //'url' => 'http://content.rec.mia.com',
+    //'url' => 'http://10.1.106.28:1872',
+    'url' => 'http://content.rec.mia.com',
     'method' => 'get',
     'result_format' => false
 );
