@@ -221,14 +221,21 @@ class Audit extends \mia\miagroup\Lib\Service {
                     $matchList = [$checkResult];
                 }
             } else if (is_array($textArray)) {
-                $matchList = [];
-                foreach ($textArray as $text) {
-                    $key = md5($text);
-                    $checkResult = $shumeiService->checkText($text);
-                    if ($checkResult !== true) {
-                        $matchList[$key] = [$checkResult];
-                    }
+                $textArray = implode('', $textArray);
+                $checkResult = $shumeiService->checkText($textArray);
+                if ($checkResult === true) {
+                    $matchList = [];
+                } else {
+                    $matchList = [$checkResult];
                 }
+//                $matchList = [];
+//                foreach ($textArray as $text) {
+//                    $key = md5($text);
+//                    $checkResult = $shumeiService->checkText($text);
+//                    if ($checkResult !== true) {
+//                        $matchList[$key] = [$checkResult];
+//                    }
+//                }
             }
             if (!empty($matchList)) {
                 return $this->error(1127);
