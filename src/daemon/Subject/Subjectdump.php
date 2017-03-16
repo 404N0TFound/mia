@@ -103,6 +103,7 @@ class Subjectdump extends \FD_Daemon {
         $where[] = [':gt','id', $lastId];
         $where[] = ['source', [1, 2]];
         $where[] = ['status', 1];
+        $where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-3 minute"))];
         $data = $subjectData->getRows($where, 'id, user_id, ext_info', 1000);
         if (empty($data)) {
             return ;
@@ -226,13 +227,11 @@ class Subjectdump extends \FD_Daemon {
             //关联标签ID
             $dumpdata['label_ids'] = !empty($labelIds) ? implode(',', $labelIds) : 'NULL';
             //好评差评识别
-            /*if ($dumpdata['text'] == 'NULL' && $dumpdata['title'] == 'NULL') {
+            if ($dumpdata['text'] == 'NULL' && $dumpdata['title'] == 'NULL') {
                 $dumpdata['negative_result'] = 'NULL';
             } else {
-                $cmd = "{$this->python_bin} {$this->negative_path}wordseg_client_notes.py {$this->negative_path}new_model_3 '{$dumpdata['title']}{$dumpdata['text']}'  {$this->negative_path}new_top_a_good";
-                $negative_result = system($cmd);
-                $dumpdata['negative_result'] = $negative_result;
-            }*/
+                $dumpdata['negative_result'] = $subject['semantic_analys'];
+            }
             //写入文本
             $put_content = implode("\t", $dumpdata);
             file_put_contents($this->dumpSubjectFile, $put_content . "\n", FILE_APPEND);
