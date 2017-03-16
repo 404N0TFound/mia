@@ -42,7 +42,8 @@
             "mia\\miagroup\\Data\\PointTags\\":    "src/data/pointtags",
 	        "mia\\miagroup\\Data\\Active\\":    "src/data/active",
             "mia\\miagroup\\Data\\Search\\":    "src/data/search",
-            "Wcs\\": "src/lib/Wcs"
+            "Wcs\\": "src/lib/Wcs",
+	    "mia\\miagroup\\Data\\OperationLog\\":    "src/data/operationlog",
         },
         "files": [
             "src/lib/Wcs/utils.php",
