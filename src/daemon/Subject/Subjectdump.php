@@ -104,7 +104,7 @@ class Subjectdump extends \FD_Daemon {
         $where[] = ['source', [1, 2]];
         $where[] = ['status', 1];
         $where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-3 minute"))];
-        $data = $subjectData->getRows($where, 'id, user_id, ext_info', 1000);
+        $data = $subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys', 1000);
         if (empty($data)) {
             return ;
         }
@@ -153,6 +153,7 @@ class Subjectdump extends \FD_Daemon {
             if (!isset($subjectInfos[$value['id']])) {
                 continue;
             }
+            $subject = $subjectInfos[$value['id']];
             //专栏或者视频过滤掉
             if (!empty($subject['album_article']) || !empty($subject['video_info'])) {
                 continue;
@@ -161,7 +162,6 @@ class Subjectdump extends \FD_Daemon {
             if (in_array($value['user_id'], $excludeUids)) {
                 continue;
             }
-            $subject = $subjectInfos[$value['id']];
             $dumpdata = array();
             //帖子ID
             $dumpdata['id'] = $subject['id'];
@@ -230,7 +230,7 @@ class Subjectdump extends \FD_Daemon {
             if ($dumpdata['text'] == 'NULL' && $dumpdata['title'] == 'NULL') {
                 $dumpdata['negative_result'] = 'NULL';
             } else {
-                $dumpdata['negative_result'] = $subject['semantic_analys'];
+                $dumpdata['negative_result'] = $value['semantic_analys'];
             }
             //写入文本
             $put_content = implode("\t", $dumpdata);
