@@ -26,12 +26,13 @@ class ShumeiUtil
         $params['accessKey'] = $this->_config['accessKey'];
         $params['type'] = $this->_config['type'];
         $params['data']['text'] = $text;
-        $params['data']['tokenId'] = strval($this->session_info['current_uid']);
+        $params['data']['tokenId'] = strval($this->session_info['dvc_id']);
         $post_data = json_encode($params);
 
         $result = $remote_curl->curl_remote('', $post_data);
 
         $return = true;
+
         if ($result['code'] = !1100 || $result['riskLevel'] != "PASS") {
             $reason = json_decode($result['detail'], true);
             $return = $reason['description'] ? $reason['description'] : "请求失败";

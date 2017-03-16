@@ -103,7 +103,8 @@ class Subjectdump extends \FD_Daemon {
         $where[] = [':gt','id', $lastId];
         $where[] = ['source', [1, 2]];
         $where[] = ['status', 1];
-        $data = $subjectData->getRows($where, 'id, user_id, ext_info', 1000);
+        $where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-3 minute"))];
+        $data = $subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys', 1000);
         if (empty($data)) {
             return ;
         }
@@ -152,6 +153,7 @@ class Subjectdump extends \FD_Daemon {
             if (!isset($subjectInfos[$value['id']])) {
                 continue;
             }
+            $subject = $subjectInfos[$value['id']];
             //专栏或者视频过滤掉
             if (!empty($subject['album_article']) || !empty($subject['video_info'])) {
                 continue;
@@ -160,7 +162,6 @@ class Subjectdump extends \FD_Daemon {
             if (in_array($value['user_id'], $excludeUids)) {
                 continue;
             }
-            $subject = $subjectInfos[$value['id']];
             $dumpdata = array();
             //帖子ID
             $dumpdata['id'] = $subject['id'];
@@ -226,13 +227,11 @@ class Subjectdump extends \FD_Daemon {
             //关联标签ID
             $dumpdata['label_ids'] = !empty($labelIds) ? implode(',', $labelIds) : 'NULL';
             //好评差评识别
-            /*if ($dumpdata['text'] == 'NULL' && $dumpdata['title'] == 'NULL') {
+            if ($dumpdata['text'] == 'NULL' && $dumpdata['title'] == 'NULL') {
                 $dumpdata['negative_result'] = 'NULL';
             } else {
-                $cmd = "{$this->python_bin} {$this->negative_path}wordseg_client_notes.py {$this->negative_path}new_model_3 '{$dumpdata['title']}{$dumpdata['text']}'  {$this->negative_path}new_top_a_good";
-                $negative_result = system($cmd);
-                $dumpdata['negative_result'] = $negative_result;
-            }*/
+                $dumpdata['negative_result'] = $value['semantic_analys'];
+            }
             //写入文本
             $put_content = implode("\t", $dumpdata);
             file_put_contents($this->dumpSubjectFile, $put_content . "\n", FILE_APPEND);

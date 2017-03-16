@@ -1,4 +1,4 @@
- <?php
+<?php
  namespace mia\miagroup\Action\Say;
  class Helloworld extends \FW_Action {
      public function execute() {

@@ -30,9 +30,9 @@ class Item {
      * 根据商品id批量获取商品
      * @param int $itemIds 商品id
      */
-    public function getBatchItemByIds($itemIds){
+    public function getBatchItemByIds($itemIds,$status=[0,1]){
         //获取商品基本信息
-        $itemDatas = $this->itemData->getBatchItemInfoByIds($itemIds);
+        $itemDatas = $this->itemData->getBatchItemInfoByIds($itemIds,$status);
         if (empty($itemDatas)) {
             return array();
         }

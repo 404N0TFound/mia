@@ -221,14 +221,21 @@ class Audit extends \mia\miagroup\Lib\Service {
                     $matchList = [$checkResult];
                 }
             } else if (is_array($textArray)) {
-                $matchList = [];
-                foreach ($textArray as $text) {
-                    $key = md5($text);
-                    $checkResult = $shumeiService->checkText($text);
-                    if ($checkResult !== true) {
-                        $matchList[$key] = [$checkResult];
-                    }
+                $textArray = implode('', $textArray);
+                $checkResult = $shumeiService->checkText($textArray);
+                if ($checkResult === true) {
+                    $matchList = [];
+                } else {
+                    $matchList = [$checkResult];
                 }
+//                $matchList = [];
+//                foreach ($textArray as $text) {
+//                    $key = md5($text);
+//                    $checkResult = $shumeiService->checkText($text);
+//                    if ($checkResult !== true) {
+//                        $matchList[$key] = [$checkResult];
+//                    }
+//                }
             }
             if (!empty($matchList)) {
                 return $this->error(1127);
@@ -245,12 +252,20 @@ class Audit extends \mia\miagroup\Lib\Service {
         
         $matchList = array();
         if (is_string($textArray)) { //兼容单条
+            $textArray = str_replace(" ", '', $textArray);
+            $textArray = str_replace("\t", '', $textArray);
+            $textArray = str_replace("\n", '', $textArray);
+            $textArray = str_replace("\r\n", '', $textArray);
             preg_match_all("/".$sensitiveWord."/i", $textArray, $match);
             if (isset($match[0]) && !empty($match[0])) {
                 $matchList = $match[0];
             }
         } else if (is_array($textArray)) {
             foreach ($textArray as $text) {
+                $text = str_replace(" ", '', $text);
+                $text = str_replace("\t", '', $text);
+                $text = str_replace("\n", '', $text);
+                $text = str_replace("\r\n", '', $text);
                 $key = md5($text);
                 preg_match_all("/".$sensitiveWord."/i", $text, $match);
                 if (isset($match[0]) && !empty($match[0])) {
@@ -259,6 +274,9 @@ class Audit extends \mia\miagroup\Lib\Service {
             }
         }
         //单条返回一维数组，多条返回二维数组
+        if(!empty($matchList)) {
+            return $this->error(1127);
+        }
         return $this->succ(array('sensitive_words' => $matchList));
     }
     
