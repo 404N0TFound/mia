@@ -146,7 +146,7 @@ class Subject extends \mia\miagroup\Lib\Service
      */
     public function noteList($tabId, $action, $page = 1, $count = 20, $userId = 0)
     {
-        if (empty($tabId) || empty($action)) {
+        if (empty(intval($tabId)) || empty($action)) {
             return $this->succ([]);
         }
         //普通列表
