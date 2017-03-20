@@ -230,7 +230,7 @@ class Subjectdump extends \FD_Daemon {
             if ($dumpdata['text'] == 'NULL' && $dumpdata['title'] == 'NULL') {
                 $dumpdata['negative_result'] = 'NULL';
             } else {
-                $dumpdata['negative_result'] = $value['semantic_analys'];
+                $dumpdata['negative_result'] = $value['semantic_analys'] ? $value['semantic_analys'] : 'NULL';
             }
             //写入文本
             $put_content = implode("\t", $dumpdata);
