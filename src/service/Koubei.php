@@ -387,6 +387,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'status' => $koubei['status'],
                 'order_id' => $koubei['order_id'],
                 'comment_id' => $koubei['comment_id'],
+                'auto_evaluate' => $koubei['auto_evaluate'],
             );
             //获取口碑订单id，用于获取订单编号(order_code)
             if(!empty($koubei['order_id'])){
@@ -1642,5 +1643,5 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $this->succ($res);
     }
     
-    
+
 }
