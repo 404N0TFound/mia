@@ -942,17 +942,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
         foreach ($itemIds as $value) {
             $item_ids = $item_service->getRelateItemById($value);
             if(!empty($item_ids)){
+                // 5.3 逻辑  新增精品口碑逻辑
                 $condition = array();
                 $condition['score'] = array(4, 5);
                 $condition['machine_score'] = 3;
+                $condition['rank'] = 1;
                 $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, 20);
-                if (!empty($koubei_ids)) {
+                if (empty($koubei_ids)) {
+                    unset($condition['rank']);
+                    $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, 20);
+                }
+                if(!empty($koubei_ids)) {
                     $res = $this->getBatchKoubeiByIds(array($koubei_ids[0]));
                     foreach($res['data'] as $v){
                         $transfer_koubei[$value] = $v;
                     }
                 }
-           }
+            }
         }
         return $this->succ($transfer_koubei);
     }
