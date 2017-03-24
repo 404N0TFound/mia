@@ -38,7 +38,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $orderInfo = $orderService->getOrderInfoByOrderCode(array($koubeiData['order_code']))['data'][$koubeiData['order_code']];
             $orderId = $orderInfo['id'];
             $finishTime = strtotime($orderInfo['finish_time']) ;
-            if($orderInfo['status'] != 5  || (time()- $finishTime) > 15 * 86400 )
+            if($orderInfo['status'] != 5  || (time()- $finishTime) > 16 * 86400 )
             {
                 return $this->error(6102);
             }
