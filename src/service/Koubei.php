@@ -428,7 +428,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
                 }
                 // 把口碑订单类型写入口碑信息(甄选商品)
-                $subjectRes['data'][$key]['item_koubei']['from_type'] = $orderInfos[$value['order_id']]['from_type'];
+                $subjectRes['data'][$key]['item_koubei']['closed_report'] = $orderInfos[$value['order_id']]['from_type'];
                 //拼口碑官方回复信息
                 if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
                     $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
