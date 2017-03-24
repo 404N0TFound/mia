@@ -428,9 +428,9 @@ class Koubei {
     /*
      * 首评验证
      * */
-    public function getCheckFirstComment($order_id, $item_id){
+    public function getCheckFirstComment($order_id, $item_id, $user_id = 0 ){
         $koubeiData = new KoubeiData();
-        $result = $koubeiData->checkFirstComment($order_id, $item_id);
+        $result = $koubeiData->checkFirstComment($order_id, $item_id, $user_id);
         return $result;
     }
 

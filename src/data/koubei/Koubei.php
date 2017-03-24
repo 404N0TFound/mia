@@ -309,15 +309,23 @@ class Koubei extends \DB_Query {
     /*
      * 查看口碑首评
      * */
-    public function checkFirstComment($order_id, $item_id){
-        if (empty($item_id) || empty($order_id)) {
+    public function checkFirstComment($order_id, $item_id, $user_id){
+        if (empty($item_id)) {
             return false;
         }
         $where = array();
         $where[] = ['status', 2];
-        $where[] = ['item_id', $item_id];
-        $result = $this->getRows($where);
-        return count($result);
+        if(!empty($item_id)) {
+            $where[] = ['item_id', $item_id];
+        }
+        if(!empty($user_id)) {
+            $where[] = ['user_id', $user_id];
+        }
+        if(!empty($order_id)) {
+            $where[] = ['order_id', $order_id];
+        }
+        $result = $this->count($where);
+        return $result;
     }
 
     public function getBatchBestKoubeiIds($itemIds){

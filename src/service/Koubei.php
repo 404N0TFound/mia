@@ -126,27 +126,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $this->koubeiModel->addSubjectIdToKoubei($koubeiInsertId,$subjectIssue['id']);
         }
 
+        // 首评代金券
+        if(!empty($koubeiData['issue_reward'])) {
+            if ((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])) {
+                $couponRemote = new CouponRemote();
+                $batch_code = $this->koubeiConfig['batch_code']['test'];
+                if (!empty($batch_code)) {
+                    $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+                    if (!$bindCouponRes) {
+                        $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+                    }
+                }
+            }
+        }
+
         //发蜜豆
         $mibean = new \mia\miagroup\Remote\MiBean();
         $param['user_id'] = 3782852;//蜜芽兔
         $param['to_user_id'] = $koubeiData['user_id'];
         $param['relation_type'] = "send_koubei";
         $param['relation_id'] = $koubeiInsertId;
-
-//因客户端问题，首评代金券暂时由daemon程序控制发放
-//         //首评奖励(绑定代金券)
-//         if(!empty($koubeiData['issue_reward'])) {
-//             if ((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])) {
-//                 $couponRemote = new CouponRemote();
-//                 $batch_code = $this->koubeiConfig['batch_code']['test'];
-//                 if (!empty($batch_code)) {
-//                     $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
-//                     if (!$bindCouponRes) {
-//                         $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
-//                     }
-//                 }
-//             }
-//         }
 
         //保存口碑相关图片信息
         if(!empty($koubeiData['image_infos'])){
@@ -919,7 +918,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($item_id)){
             return $this->error(500);
         }
-        $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id);
+        $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id, 0);
         if(empty($check_res)){
             $batch_info = $this->koubeiConfig['shouping'];
             $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
@@ -1644,6 +1643,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId,$arrParams);
         return $this->succ($res);
     }
-    
 
+    /*
+     * 甄选封测商品
+     * 维度：用户，订单，商品
+     * 用户购买的商品是否已评价
+     * */
+    public function checkItemKoubeiStatus($user_id, $item_id, $order_id)
+    {
+        if(empty($user_id)) {
+            return $this->error(500, "传参不完整");
+        }
+        $count = $this->koubeiModel->getCheckFirstComment($order_id, $item_id, $user_id);
+        empty($count) ? $flag = 0 : $flag = 1;
+        return $this->succ($flag);
+    }
 }
