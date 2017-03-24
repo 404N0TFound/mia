@@ -1646,15 +1646,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
     /*
      * 甄选封测商品
-     * 维度：用户，订单
+     * 维度：用户，订单，商品
      * 用户购买的商品是否已评价
      * */
-    public function checkItemKoubeiStatus($user_id, $item_id)
+    public function checkItemKoubeiStatus($user_id, $item_id, $order_id)
     {
-        if(empty($user_id) || empty($item_id)) {
+        if(empty($user_id)) {
             return $this->error(500, "传参不完整");
         }
-        $count = $this->koubeiModel->getCheckFirstComment(0, $item_id, $user_id);
+        $count = $this->koubeiModel->getCheckFirstComment($order_id, $item_id, $user_id);
         empty($count) ? $flag = 0 : $flag = 1;
         return $this->succ($flag);
     }
