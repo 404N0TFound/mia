@@ -310,9 +310,6 @@ class Koubei extends \DB_Query {
      * 查看口碑首评
      * */
     public function checkFirstComment($order_id, $item_id, $user_id){
-        if (empty($item_id)) {
-            return false;
-        }
         $where = array();
         $where[] = ['status', 2];
         if(!empty($item_id)) {
