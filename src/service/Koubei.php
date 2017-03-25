@@ -66,6 +66,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels = array();
         $labels['label'] = array();
         $labels['image'] = array();
+        // 5.3 口碑新增 甄选商品用户推荐
+        $labels['selection'] = '1';
+        // 5.3 口碑新增 甄选商品印象标签
+        $labels['selection_label'] = array();
         if(!empty($koubeiData['labels'])) {
             foreach($koubeiData['labels'] as $label) {
                 $labels['label'][] = $label['title'];
@@ -74,6 +78,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!empty($koubeiData['image_infos'])) {
             foreach($koubeiData['image_infos'] as $image) {
                 $labels['image'][] = $image;
+            }
+        }
+        if(!empty($koubeiData['selection_labels'])) {
+            $no_recommend_ident = 0;
+            $no_recommends = \F_Ice::$ins->workApp->config->get('busconf.koubei.selNoRecommend');
+            foreach($koubeiData['selection_label'] as $id => $selection_label) {
+                $labels['selection_label'][] = $selection_label['title'];
+                if(!empty($id) && in_array($id, $no_recommends)) {
+                    $no_recommend_ident += 1;
+                }
+            }
+            if($no_recommend_ident == count($no_recommends)) {
+                $labels['selection'] = '0';
             }
         }
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
