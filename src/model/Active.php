@@ -3,14 +3,17 @@ namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Active\Active as ActiveData;
 use \mia\miagroup\Data\Active\ActiveSubject as ActiveSubjectData;
+use \mia\miagroup\Data\Active\ActiveSubjectRelation as RelationData;
 
 class Active {
     protected $activeData = null;
     protected $activeSubjectData = null;
+    protected $relationData = null;
 
     public function __construct() {
         $this->activeData = new ActiveData();
         $this->activeSubjectData = new ActiveSubjectData();
+        $this->relationData = new RelationData();
     }
 
     /**
@@ -48,7 +51,41 @@ class Active {
     
     //批量获取活动下图片计数（图片数，发帖用户数）
     public function getBatchActiveSubjectCounts($activeIds) {
-        $data = $this->activeSubjectData->getBatchActiveSubjectCounts($activeIds);
+        $data = $this->relationData->getBatchActiveSubjectCounts($activeIds);
+        return $data;
+    }
+    
+    /**
+     * 根据帖子id批量获取活动帖子信息
+     */
+    public function getActiveSubjectBySids($subjectIds, $status) {
+        $subjectArr = $this->relationData->getActiveSubjectBySids($subjectIds, $status);
+        return $subjectArr;
+    }
+    
+    /**
+     * 根据活动id批量获取帖子信息
+     */
+    public function getBatchActiveSubjects($activeIds, $type = 'all', $page, $limit) {
+        $subjectArrs = $this->relationData->getBatchActiveSubjects($activeIds, $type, $page, $limit);
+        return $subjectArrs;
+    }
+    
+    /**
+     * 新增活动帖子关联数据
+     */
+    public function addActiveSubjectRelation($insertData){
+        $data = $this->relationData->addActiveSubjectRelation($insertData);
+        return $data;
+    }
+    
+    /**
+     * 删除活动帖子
+     */
+    public function delActiveSubject($relationId){
+        $setData = array();
+        $setData['status'] = 0;
+        $data = $this->relationData->updateActiveSubjectRelation($setData, $relationId);
         return $data;
     }
 
