@@ -259,7 +259,7 @@ class Audit extends \mia\miagroup\Lib\Service {
             preg_match_all("/".$sensitiveWord."/i", $textArray, $match);
             if (isset($match[0]) && !empty($match[0])) {
                 $matchList = $match[0];
-                $msg = array_pop($matchList);
+                $msg = $matchList[0];
             }
         } else if (is_array($textArray)) {
             foreach ($textArray as $text) {
@@ -273,7 +273,7 @@ class Audit extends \mia\miagroup\Lib\Service {
                     $matchList[$key] = $match[0];
                 }
             }
-            $msg = array_pop(array_values($matchList));
+            $msg = array_values($matchList)[0];
         }
         //单条返回一维数组，多条返回二维数组
         if(!empty($matchList)) {
