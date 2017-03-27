@@ -49,11 +49,17 @@ class Active {
         return $affect;
     }
     
-    //批量获取活动下图片计数（图片数，发帖用户数）
+    //批量获取活动下图片计数（图片数，发帖用户数）(暂时用这个方法，数据导入关联表后用新方法)
     public function getBatchActiveSubjectCounts($activeIds) {
-        $data = $this->relationData->getBatchActiveSubjectCounts($activeIds);
+        $data = $this->activeSubjectData->getBatchActiveSubjectCounts($activeIds);
         return $data;
     }
+    
+//     //批量获取活动下图片计数（图片数，发帖用户数）（数据导入关联表后可以改方法）
+//     public function getBatchActiveSubjectCounts($activeIds) {
+//         $data = $this->relationData->getBatchActiveSubjectCounts($activeIds);
+//         return $data;
+//     }
     
     /**
      * 根据帖子id批量获取活动帖子信息
