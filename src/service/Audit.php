@@ -249,7 +249,7 @@ class Audit extends \mia\miagroup\Lib\Service {
         $sensitiveWord = implode('|', $sensitiveWord);
         //解除敏感词匹配个数限制
         ini_set('pcre.backtrack_limit', -1);
-        
+        //数组被合并了，$textArray过了数美都变成字符串了
         $matchList = array();
         if (is_string($textArray)) { //兼容单条
             $textArray = str_replace(" ", '', $textArray);
