@@ -226,7 +226,7 @@ class Audit extends \mia\miagroup\Lib\Service {
                 if ($checkResult === true) {
                     $matchList = [];
                 } else {
-                    $matchList = [$checkResult];
+                    $matchList = $checkResult;
                 }
 //                $matchList = [];
 //                foreach ($textArray as $text) {
@@ -238,7 +238,7 @@ class Audit extends \mia\miagroup\Lib\Service {
 //                }
             }
             if (!empty($matchList)) {
-                return $this->error(1127);
+                return $this->error(1127,$matchList);
             }
         }
         //获取敏感词
@@ -274,9 +274,9 @@ class Audit extends \mia\miagroup\Lib\Service {
             }
         }
         //单条返回一维数组，多条返回二维数组
-        if(!empty($matchList)) {
-            return $this->error(1127);
-        }
+//        if(!empty($matchList)) {
+//            return $this->error(1127);
+//        }
         return $this->succ(array('sensitive_words' => $matchList));
     }
     

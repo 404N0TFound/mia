@@ -35,7 +35,7 @@ class ShumeiUtil
 
         if ($result['code'] = !1100 || $result['riskLevel'] != "PASS") {
             $reason = json_decode($result['detail'], true);
-            $return = $reason['description'] ? $reason['description'] : "请求失败";
+            $return = $reason['description'] ? $reason['description'] : "内容不合法";
         }
         return $return;
     }
