@@ -404,6 +404,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'order_id' => $koubei['order_id'],
                 'comment_id' => $koubei['comment_id'],
                 'auto_evaluate' => $koubei['auto_evaluate'],
+                'extr_info' => $koubei['extr_info'],
             );
             //获取口碑订单id，用于获取订单编号(order_code)
             if(!empty($koubei['order_id'])){
@@ -1677,5 +1678,38 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $count = $this->koubeiModel->getCheckFirstComment($order_id, $item_id, $user_id);
         empty($count) ? $flag = 0 : $flag = 1;
         return $this->succ($flag);
+    }
+
+    /*
+ * 甄选封测商品
+ * 批量获取口碑数，封测推荐测评数
+ * */
+    public function getSelectionKoubeiInfo($item_ids)
+    {
+        if(empty($item_id)) {
+            $this->succ([]);
+        }
+        $selection_info = array();
+        foreach($item_ids as $item_id) {
+            $recommend_count = 0;
+            $koubei_info = $this->getItemKoubeiList($item_id);
+            if(empty($koubei_info)) {
+                $this->succ([]);
+            }
+            $total_count = $koubei_info['data']['total_count'];
+            $selection_info[$item_id]['total_count'] = $total_count;
+            $koubeis = $koubei_info['data']['koubei_info'];
+            foreach($koubeis as $koubei) {
+                $extr_info = json_decode($koubei['item_koubei']['extr_info'], true);
+                if(!empty($extr_info['selection'])) {
+                    $recommend_count += 1;
+                }
+            }
+            $selection_info[$item_id]['recommend_count'] =  $recommend_count;
+            if(!empty($total_count)) {
+                $selection_info[$item_id]['rate'] = round($recommend_count / $total_count, 2);
+            }
+        }
+        return $this->succ($selection_info);
     }
 }
