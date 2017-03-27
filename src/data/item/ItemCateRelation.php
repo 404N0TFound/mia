@@ -8,7 +8,7 @@ class ItemCateRelation extends \DB_Query {
     protected $dbResource = 'miadefault';
 
     protected $tableName = 'app_menu_category_v2';
-
+    protected $tableNewCategory = 'item_category_ng';
     protected $mapping = array();
 
 
@@ -49,5 +49,21 @@ class ItemCateRelation extends \DB_Query {
             return '';
         }
         return $result[0]['type'];
+    }
+
+    /*
+     * 根据四级分类查询父类目路径
+     * */
+    public function getparentCategoryPath($category_id_ng) {
+
+        if(empty($category_id_ng)) {
+            return '';
+        }
+        $this->tableName = $this->tableNewCategory;
+        $where[] = ['status', 1];
+        $where[] = ['id',$category_id_ng];
+        $fields = "path";
+        $result = $this->getRows($where,$fields);
+        return $result[0]['path'];
     }
 }
