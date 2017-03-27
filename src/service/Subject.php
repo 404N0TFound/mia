@@ -348,7 +348,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info', 'item', 'koubei'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'content_format', 'praise_info', 'album', 'share_info'), $status = array(1, 2)) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'content_format', 'praise_info', 'album'), $status = array(1, 2)) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
