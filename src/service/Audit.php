@@ -226,7 +226,7 @@ class Audit extends \mia\miagroup\Lib\Service {
                 if ($checkResult === true) {
                     $matchList = [];
                 } else {
-                    $matchList = [$checkResult];
+                    $matchList = $checkResult;
                 }
 //                $matchList = [];
 //                foreach ($textArray as $text) {
@@ -238,7 +238,7 @@ class Audit extends \mia\miagroup\Lib\Service {
 //                }
             }
             if (!empty($matchList)) {
-                return $this->error(1127);
+                return $this->error(1127,$matchList);
             }
         }
         //获取敏感词
@@ -249,7 +249,7 @@ class Audit extends \mia\miagroup\Lib\Service {
         $sensitiveWord = implode('|', $sensitiveWord);
         //解除敏感词匹配个数限制
         ini_set('pcre.backtrack_limit', -1);
-        
+        //数组被合并了，$textArray过了数美都变成字符串了
         $matchList = array();
         if (is_string($textArray)) { //兼容单条
             $textArray = str_replace(" ", '', $textArray);
@@ -259,6 +259,7 @@ class Audit extends \mia\miagroup\Lib\Service {
             preg_match_all("/".$sensitiveWord."/i", $textArray, $match);
             if (isset($match[0]) && !empty($match[0])) {
                 $matchList = $match[0];
+                $msg = $matchList[0];
             }
         } else if (is_array($textArray)) {
             foreach ($textArray as $text) {
@@ -272,10 +273,11 @@ class Audit extends \mia\miagroup\Lib\Service {
                     $matchList[$key] = $match[0];
                 }
             }
+            $msg = array_values($matchList)[0];
         }
         //单条返回一维数组，多条返回二维数组
         if(!empty($matchList)) {
-            return $this->error(1127);
+            return $this->error(1127,'"'.$msg.'"为敏感词');
         }
         return $this->succ(array('sensitive_words' => $matchList));
     }
