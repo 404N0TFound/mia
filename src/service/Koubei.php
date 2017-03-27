@@ -106,7 +106,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!$koubeiInsertId) {
             return $this->error(6101);
         }
-        
+
         //发口碑同时发布蜜芽圈帖子
         //#############start
         $subjectInfo = array();
@@ -939,7 +939,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $return_Info = array();
-        $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id, 0);
+        $check_res = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
         if(empty($check_res)) {
             // 首评
             $batch_info = $this->koubeiConfig['shouping'];
