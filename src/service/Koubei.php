@@ -955,9 +955,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $p_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_price_labels');
         $e_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_exper_labels');
 
-        $return_Info['labels']['quality_labels'] = $q_labels;
-        $return_Info['labels']['price_labels'] = $p_labels;
-        $return_Info['labels']['exper_labels'] = $e_labels;
+        $return_Info['selection_labels']['quality_labels'] = $q_labels;
+        $return_Info['selection_labels']['price_labels'] = $p_labels;
+        $return_Info['selection_labels']['exper_labels'] = $e_labels;
 
         return $this->succ($return_Info);
     }
