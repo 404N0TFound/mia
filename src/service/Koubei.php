@@ -67,7 +67,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels['label'] = array();
         $labels['image'] = array();
         // 5.3 口碑新增 甄选商品用户推荐
-        $labels['selection'] = '1';
+        $labels['selection'] = 1;
         // 5.3 口碑新增 甄选商品印象标签
         $labels['selection_label'] = array();
         if(!empty($koubeiData['labels'])) {
@@ -83,14 +83,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!empty($koubeiData['selection_labels'])) {
             $no_recommend_ident = 0;
             $no_recommends = \F_Ice::$ins->workApp->config->get('busconf.koubei.selNoRecommend');
-            foreach($koubeiData['selection_label'] as $id => $selection_label) {
-                $labels['selection_label'][] = $selection_label['title'];
-                if(!empty($id) && in_array($id, $no_recommends)) {
+            foreach($koubeiData['selection_labels'] as $selection_label) {
+                $labels['selection_labels'][] = $selection_label['tag_name'];
+                // 1:推荐 2:不推荐
+                if($selection_label['positive'] == 2) {
                     $no_recommend_ident += 1;
                 }
             }
-            if($no_recommend_ident == count($no_recommends)) {
-                $labels['selection'] = '0';
+            // 甄选商品三个维度，不推荐个取一个
+            if($no_recommend_ident == 3) {
+                $labels['selection'] = 0;
             }
         }
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
@@ -105,7 +107,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!$koubeiInsertId) {
             return $this->error(6101);
         }
-        
+
         //发口碑同时发布蜜芽圈帖子
         //#############start
         $subjectInfo = array();
@@ -926,26 +928,43 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
 
     /**
-     * solr 分类检索口碑列表
+     * solr 口碑发布初始化
      * @param $order_code     订单编号
      * @param $item_id        商品SKU
      * @ return issue_reward  口碑发布奖励
      * @ return issue_tip_url 口碑发布图片提升
      */
     public function issueinit($order_code = 0, $item_id = 0){
-        //$order_code = 1;
-        //$item_id = 1005598;
-        // 验证是否为首评
+
         if(empty($item_id)){
             return $this->error(500);
         }
-        $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id, 0);
-        if(empty($check_res)){
+        $return_Info = array();
+        $check_res = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
+        if(empty($check_res)) {
+            // 首评
             $batch_info = $this->koubeiConfig['shouping'];
-            $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
-            return $this->succ($shouping_Info);
+            $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
         }
-        return $this->error(1126);
+
+        // 甄选商品，获取一级分类
+        $item_service = new ItemService();
+        $parent_cate_id = $item_service->getRelationCateId($item_id, 1)['data'];
+        $selection_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_cate');
+        $relation = $selection_labels[$parent_cate_id];
+        $q_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_quality_labels_'.$relation);
+        $p_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_price_labels');
+        $e_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_exper_labels');
+
+        $return_Info['selection_labels']['quality_labels'] = $q_labels;
+        $return_Info['selection_labels']['price_labels'] = $p_labels;
+        $return_Info['selection_labels']['exper_labels'] = $e_labels;
+
+        // 商品信息
+        $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+        $return_Info['item_info'] = $item_info[$item_id];
+
+        return $this->succ($return_Info);
     }
 
     /**

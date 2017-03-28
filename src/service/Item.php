@@ -132,6 +132,8 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp['business_mode'] = $item['business_mode'];
                 $tmp['favorable_comment_percent'] = $item['favorable_comment_percent'];
                 $tmp['show_cart'] = $is_show_cart ? 1 : 0;
+                // 甄选商品标识（v5.3） 0:普通 1:甄选
+                $tmp['is_pick'] = $item['is_pick'];
                 $itemList[$item['id']] = $tmp;
             }
         }
@@ -189,6 +191,48 @@ class Item extends \mia\miagroup\Lib\Service {
             return array();
         }
         $result = $this->itemModel->getRelationBrandNameList($brand_ids);
-        return $this->succ($result);;
+        return $this->succ($result);
+    }
+
+    /*
+     * 根据商品分类对应路径
+     * */
+    public function getRelationCateId($item_id, $level)
+    {
+        if(empty($item_id)) {
+            return '';
+        }
+        $parent_category_id = '';
+        $catgory_id_ng = $this->getCategoryIdNgByItem($item_id)['data'];
+        $category_path = $this->getParentCatePath($catgory_id_ng)['data'];
+        $parent_cate_id = explode('-', $category_path);
+        if(!empty($parent_cate_id)) {
+            $parent_category_id = $parent_cate_id[$level - 1];
+        }
+        return $this->succ($parent_category_id);
+    }
+
+    /*
+     * 根据商品ID获取新类目ID
+     * */
+    public function getCategoryIdNgByItem($item_id)
+    {
+        if(empty($item_id)) {
+            return '';
+        }
+        $catgory_id_ng = $this->itemModel->itemCategoryIdNg($item_id);
+        return $this->succ($catgory_id_ng);
+    }
+
+    /*
+     * 根据商品四级类目获取父类目路径
+     * */
+    public function getParentCatePath($item_id)
+    {
+        if(empty($item_id)) {
+            return '';
+        }
+        $catgory_path = $this->itemModel->parentCatePath($item_id);
+        return $this->succ($catgory_path);
     }
 }

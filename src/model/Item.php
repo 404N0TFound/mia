@@ -149,4 +149,23 @@ class Item {
         }
         return $result;
     }
+
+    /*
+     * 获取商品新定义分类
+     * */
+    public function itemCategoryIdNg($item_id)
+    {
+        $res = $this->itemData->getItemNewCategory($item_id);
+        return $res;
+    }
+
+    /*
+     * 获取商品分类
+     * 维度：等级
+     * */
+    public function parentCatePath($category_id_ng)
+    {
+        $res = $this->itemCateRelationData->getparentCategoryPath($category_id_ng);
+        return $res;
+    }
 }
