@@ -132,6 +132,8 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp['business_mode'] = $item['business_mode'];
                 $tmp['favorable_comment_percent'] = $item['favorable_comment_percent'];
                 $tmp['show_cart'] = $is_show_cart ? 1 : 0;
+                // 甄选商品标识（v5.3） 0:普通 1:甄选
+                $tmp['is_pick'] = $item['is_pick'];
                 $itemList[$item['id']] = $tmp;
             }
         }

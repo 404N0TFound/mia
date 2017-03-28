@@ -83,9 +83,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!empty($koubeiData['selection_labels'])) {
             $no_recommend_ident = 0;
             $no_recommends = \F_Ice::$ins->workApp->config->get('busconf.koubei.selNoRecommend');
-            foreach($koubeiData['selection_label'] as $selection_label) {
-                $labels['selection_label'][] = $selection_label['title'];
-                if(!empty($selection_label['is_recommend'])) {
+            foreach($koubeiData['selection_labels'] as $selection_label) {
+                $labels['selection_labels'][] = $selection_label['tag_name'];
+                // 1:推荐 2:不推荐
+                if($selection_label['positive'] == 2) {
                     $no_recommend_ident += 1;
                 }
             }
@@ -958,6 +959,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $return_Info['selection_labels']['quality_labels'] = $q_labels;
         $return_Info['selection_labels']['price_labels'] = $p_labels;
         $return_Info['selection_labels']['exper_labels'] = $e_labels;
+
+        // 商品信息
+        $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+        $return_Info['item_info'] = $item_info[$item_id];
 
         return $this->succ($return_Info);
     }
