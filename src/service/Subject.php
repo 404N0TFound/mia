@@ -1217,10 +1217,10 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         //检验帖子是否参加了活动
         $activeService = new ActiveService();
-        $activeSubject = $activeService->getActiveSubjectBySid($subjectId,array(1));
+        $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId));
         //如果参加了活动，删除活动帖子关联表记录
-        if(!empty($activeSubject['data'])){
-            $activeService->delActiveSubject($activeSubject['data']['id']);
+        if(!empty($activeSubject['data'][$subjectId])){
+            $activeService->upActiveSubject(array('status'=>0), $activeSubject['data'][$subjectId]['id']);
         }
         
         if($result){

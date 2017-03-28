@@ -233,7 +233,7 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 根据帖子id获取活动帖子信息
      */
-    public function getActiveSubjectBySids($subjectIds, $status) {
+    public function getActiveSubjectBySids($subjectIds, $status=array(1)) {
         if(empty($subjectIds)){
             return $this->error(500);
         }
@@ -262,6 +262,17 @@ class Active extends \mia\miagroup\Lib\Service {
             $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
         }
         return $this->succ($data);
+    }
+    
+    /**
+     * 更新活动帖子信息
+     */
+    public function upActiveSubject($relationData, $relationId){
+        if(empty($relationId)){
+            return $this->error(500);
+        }
+        $result = $this->activeModel->upActiveSubject($relationData, $relationId);
+        return $this->succ($result);
     }
     
 }

@@ -86,12 +86,10 @@ class Active {
     }
     
     /**
-     * 删除活动帖子
+     * 更新活动帖子
      */
-    public function delActiveSubject($relationId){
-        $setData = array();
-        $setData['status'] = 0;
-        $data = $this->relationData->updateActiveSubjectRelation($setData, $relationId);
+    public function upActiveSubject($relationData,$relationId){
+        $data = $this->relationData->updateActiveSubjectRelation($relationData,$relationId);
         return $data;
     }
 

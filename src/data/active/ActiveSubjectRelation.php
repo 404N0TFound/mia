@@ -57,10 +57,11 @@ class ActiveSubjectRelation extends \DB_Query {
         }else{
             $fileds = $this->tableName. '.active_id as active_id, group_subjects.id as subject_id, '.$this->tableName. '.regulate as regulate,'.$this->tableName. '.id as id';
             $join = 'LEFT JOIN group_subjects ON  '.$this->tableName. '.subject_id = group_subjects.id';
+            
+            $where[] = ['group_subjects.is_fine',1];
             if($type == 'active_over'){
                 $orderBy = $this->tableName. '.hot_value desc, group_subjects.update_time desc';
             }elseif($type == 'recommend'){
-                $where[] = ['group_subjects.is_fine',1];
                 $orderBy = 'group_subjects.top_time desc, group_subjects.update_time desc';
             }
         }
@@ -84,7 +85,6 @@ class ActiveSubjectRelation extends \DB_Query {
         }
         $where[] = ['status',$status];
         $where[] = ['subject_id',$subjectIds];
-    
         $activeSubjectArrs = $this->getRows($where,'*');
         $result = array();
         if (!empty($activeSubjectArrs)) {
