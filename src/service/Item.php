@@ -195,7 +195,7 @@ class Item extends \mia\miagroup\Lib\Service {
     }
 
     /*
-     * 根据商品分类对应路径
+     * 根据商品ID获取商品父分类ID
      * */
     public function getRelationCateId($item_id, $level)
     {
@@ -227,12 +227,12 @@ class Item extends \mia\miagroup\Lib\Service {
     /*
      * 根据商品四级类目获取父类目路径
      * */
-    public function getParentCatePath($item_id)
+    public function getParentCatePath($category_id_ng)
     {
-        if(empty($item_id)) {
+        if(empty($category_id_ng)) {
             return '';
         }
-        $catgory_path = $this->itemModel->parentCatePath($item_id);
+        $catgory_path = $this->itemModel->parentCatePath($category_id_ng);
         return $this->succ($catgory_path);
     }
 }

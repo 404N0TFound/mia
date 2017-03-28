@@ -929,10 +929,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
     /**
      * solr 口碑发布初始化
-     * @param $order_code     订单编号
-     * @param $item_id        商品SKU
-     * @ return issue_reward  口碑发布奖励
-     * @ return issue_tip_url 口碑发布图片提升
+     * @param $order_code        订单编号（预留字段，暂时不用）
+     * @param $item_id           商品SKU
+     * @ return issue_reward     口碑发布奖励
+     * @ return selection_labels 甄选商品印象标签
+     * @ return item_info        商品详情
      */
     public function issueinit($order_code = 0, $item_id = 0){
 
