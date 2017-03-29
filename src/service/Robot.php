@@ -50,8 +50,12 @@ class Robot extends \mia\miagroup\Lib\Service {
     /**
      * 生成机器人账户
      */
-    public function generateRobotAccout($avatar_material_id) {
-        
+    public function generateRobotAccout($avatar_material_id, $category, $nickname) {
+        //检查素材状态是否正确
+        //检查昵称是否已存在
+        //素材表数据更新
+        //生成马甲用户
+        //回写user_id
     }
     
     /**
@@ -180,7 +184,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         $data['keyword'] = $import_data['keyword'];
         $data['brand'] = $import_data['brand'];
         $data['source'] = $import_data['source'];
-        $data['create_time'] = date('Y-m-d H:i:s');
+        //$data['create_time'] = date('Y-m-d H:i:s');
         
         $result = $this->robotModel->addSubjectMaterial($data);
         return $this->succ($result);
