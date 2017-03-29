@@ -66,9 +66,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels = array();
         $labels['label'] = array();
         $labels['image'] = array();
-        // 5.3 口碑新增 甄选商品用户推荐
+        // 5.3 口碑新增 甄选商品用户推荐（默认）
         $labels['selection'] = 1;
-        // 5.3 口碑新增 甄选商品印象标签
+
+        // 5.3 口碑新增 甄选商品印象标签(三个维度)
         $labels['selection_label'] = array();
         if(!empty($koubeiData['labels'])) {
             foreach($koubeiData['labels'] as $label) {
@@ -82,9 +83,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         if(!empty($koubeiData['selection_labels'])) {
             $no_recommend_ident = 0;
-            $no_recommends = \F_Ice::$ins->workApp->config->get('busconf.koubei.selNoRecommend');
             foreach($koubeiData['selection_labels'] as $selection_label) {
-                $labels['selection_labels'][] = $selection_label['tag_name'];
+                $labels['selection_label'][] = $selection_label['tag_name'];
                 // 1:推荐 2:不推荐
                 if($selection_label['positive'] == 2) {
                     $no_recommend_ident += 1;
@@ -316,6 +316,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if($page == 1){
             $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
         }
+        // 甄选商品推荐率
+        $selection_info = $this->getSelectionKoubeiInfo([$itemId])['data'];
+        $koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
         return $this->succ($koubei_res);
     }
     
@@ -447,6 +450,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 if (in_array('order_info', $field) && intval($value['order_id']) > 0) {
                     $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
                 }
+                $selection_label = array();
+                // 把口碑甄选商品标签拼到口碑信息中
+                if(!empty($value['extr_info'])) {
+                    $extr_arr = json_decode($value['extr_info'], true);
+                    if(!empty($extr_arr['selection_label'])) {
+                        $selection_label = $extr_arr['selection_label'];
+                    }
+                }
+                $subjectRes['data'][$key]['item_koubei']['selection_label'] = $selection_label;
                 // 把口碑订单类型写入口碑信息(甄选商品)
                 $subjectRes['data'][$key]['item_koubei']['closed_report'] = 0;
                 if(!empty($orderInfos[$value['order_id']]['from_type']) && $orderInfos[$value['order_id']]['from_type'] == 8) {
@@ -957,9 +969,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $p_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_price_labels');
         $e_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_exper_labels');
 
-        $return_Info['selection_labels']['quality_labels'] = $q_labels;
-        $return_Info['selection_labels']['price_labels'] = $p_labels;
-        $return_Info['selection_labels']['exper_labels'] = $e_labels;
+        $return_Info['selection_labels'][] = $q_labels;
+        $return_Info['selection_labels'][] = $p_labels;
+        $return_Info['selection_labels'][] = $e_labels;
 
         // 商品信息
         $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
@@ -1712,22 +1724,30 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $selection_info = array();
         foreach($item_ids as $item_id) {
             $recommend_count = 0;
-            $koubei_info = $this->getItemKoubeiList($item_id);
-            if(empty($koubei_info)) {
+
+            // 获取关联商品ID
+            $item_service = new ItemService();
+            $item_rel_ids = $item_service->getRelateItemById($item_id);
+            if (empty($item_rel_ids)) {
                 $this->succ([]);
             }
-            $total_count = $koubei_info['data']['total_count'];
-            $selection_info[$item_id]['total_count'] = $total_count;
-            $koubeis = $koubei_info['data']['koubei_info'];
-            foreach($koubeis as $koubei) {
+            //获取口碑数量
+            $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_rel_ids);
+            //通过商品id获取口碑id
+            $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0);
+            //获取口碑信息
+            $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, 0)['data'];
+
+            $selection_info[$item_id]['total_count'] = $koubei_nums;
+            foreach($koubei_infos as $koubei) {
                 $extr_info = json_decode($koubei['item_koubei']['extr_info'], true);
                 if(!empty($extr_info['selection'])) {
                     $recommend_count += 1;
                 }
             }
             $selection_info[$item_id]['recommend_count'] =  $recommend_count;
-            if(!empty($total_count)) {
-                $selection_info[$item_id]['rate'] = round($recommend_count / $total_count, 2);
+            if(!empty($koubei_nums)) {
+                $selection_info[$item_id]['rate'] = round($recommend_count / $koubei_nums, 2);
             }
         }
         return $this->succ($selection_info);
