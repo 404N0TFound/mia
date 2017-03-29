@@ -71,7 +71,7 @@ class Livetovideo extends \FD_Daemon {
             if(!$status){
                 return;
             }
-            $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
+            //$mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
 
         }elseif ($liveInfo['source'] == 2) {
             //把金山的回放移到七牛上
@@ -81,11 +81,13 @@ class Livetovideo extends \FD_Daemon {
             $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
         }
 
-        if (!isset($mvToVideo['key']) || empty($mvToVideo['key'])) {
-            echo '资源移动失败' . "\n";
-            //剔除无法fetch的
-            $redis->rpop($live_list_key);
-            return;
+        if ($liveInfo['source'] != 1) {
+            if (!isset($mvToVideo['key']) || empty($mvToVideo['key'])) {
+                echo '资源移动失败' . "\n";
+                //剔除无法fetch的
+                $redis->rpop($live_list_key);
+                return;
+            }
         }
 
         // 发帖子
