@@ -67,7 +67,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels['label'] = array();
         $labels['image'] = array();
         // 5.3 口碑新增 甄选商品用户推荐（默认）
-        $labels['selection'] = 1;
+        $labels['selection'] = "1";
 
         // 5.3 口碑新增 甄选商品印象标签(三个维度)
         $labels['selection_label'] = array();
@@ -92,7 +92,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             // 甄选商品三个维度，不推荐个取一个
             if($no_recommend_ident == 3) {
-                $labels['selection'] = 0;
+                $labels['selection'] = "0";
             }
         }
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
@@ -459,10 +459,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     }
                 }
                 $subjectRes['data'][$key]['item_koubei']['selection_label'] = $selection_label;
-                // 把口碑订单类型写入口碑信息(甄选商品)
-                $subjectRes['data'][$key]['item_koubei']['closed_report'] = 0;
+                // 是否为封测报告（0：不是，1：是）
+                $subjectRes['data'][$key]['item_koubei']['closed_report'] = '0';
                 if(!empty($orderInfos[$value['order_id']]['from_type']) && $orderInfos[$value['order_id']]['from_type'] == 8) {
-                    $subjectRes['data'][$key]['item_koubei']['closed_report'] = 1;
+                    $subjectRes['data'][$key]['item_koubei']['closed_report'] = '1';
                 }
                 //拼口碑官方回复信息
                 if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
