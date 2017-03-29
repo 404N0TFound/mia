@@ -53,8 +53,7 @@ class Robot {
         if (!$is_exist) {
             $result = $this->avatarMaterialData->addAvatarMaterail($avatar_material_info);
         } else {
-            $this->avatarMaterialData->updateAvatarMaterialById($id, $avatar_material_info);
-            $result = $id;
+            $this->avatarMaterialData->updateAvatarMaterialById($avatar_material_info['id'], $avatar_material_info);
         }
         return $avatar_material_info['id'];
     }
@@ -67,12 +66,9 @@ class Robot {
         if (!$is_exist) {
             $result = $this->subjectMaterialData->addSubjectMaterail($subject_material_info);
         } else {
-            $id = $subject_material_info['id'];
-            unset($subject_material_info['id']);
-            $this->subjectMaterialData->updateSubjectMaterialById($id, $subject_material_info);
-            $result = $id;
+            $this->subjectMaterialData->updateSubjectMaterialById($subject_material_info['id'], $subject_material_info);
         }
-        return $result;
+        return $subject_material_info['id'];
     }
     
     /**
