@@ -217,3 +217,12 @@ $cron_list['item_multiple_rank'] = array(
     'start_time' => '2016-12-23 02:00:00',
     'interval' => 86400
 );
+
+//更新活动帖子热度值
+$cron_list['active_subject_hotvalue'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=active --action=setactivesubjecthotvalue",
+    'start_time' => '2017-03-30 15:00:00',
+    'interval' => 3600
+);

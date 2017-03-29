@@ -23,13 +23,14 @@ class SetActiveSubjectHotvalue extends \FD_Daemon{
         if(!empty($activeArrs['data'])){
             foreach($activeArrs['data'] as $key=>$activeArr){
                 //获取活动下的帖子（帖子里包括赞数，评论数）
-                $subjectArrs = $this->activeService->getActiveSubjects($key, $type='all', false, 0)['data']['subject_lists'];
+                $subjectArrs = $this->activeService->getActiveSubjects($key, $type='all', 0, false, 0)['data']['subject_lists'];
                 if(empty($subjectArrs)){
                     continue;
                 }
                 $subjectIds = array_column($subjectArrs, 'id');
                 //根据帖子id获取帖子活动关联信息
                 $relations = $this->relationData->getActiveSubjectBySids($subjectIds);
+                
                 foreach($subjectArrs as $subjectArr){
                     //获取帖子调节值
                     $regulate = $relations[$subjectArr['id']]['regulate'];
