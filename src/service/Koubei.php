@@ -95,13 +95,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $labels['selection'] = "0";
             }
         }
+        // 排序权重新增封测报告逻辑
+        $koubeiSetData['extr_info'] = json_encode($labels);
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
         //供应商ID获取
         $itemService = new ItemService();
         $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
         $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
-        $koubeiSetData['extr_info'] = json_encode($labels);
         //####end
         $koubeiInsertId = $this->koubeiModel->saveKoubei($koubeiSetData);
         if(!$koubeiInsertId) {
@@ -612,7 +613,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         //蜜芽圈同步8分，权重1
         $immutable_score += (($data['source'] == 1 ? 8 : 0) * 1);
-        
+
+        //封测报告，权重（上下浮动2分）
+        if(!empty($data['extr_info'])) {
+            $extr_arr = json_decode($data['extr_info'], true);
+            if(!empty($extr_arr['selection']) && $extr_arr['selection'] == 1) {
+                $immutable_score += 3;
+            }else {
+                $immutable_score -= 3;
+            }
+        }
         return $immutable_score;
     }
     
@@ -1751,5 +1761,43 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         return $this->succ($selection_info);
+    }
+
+    /*
+     * 封测报告列表
+     * */
+    public function getSelectionKoubei($itemId, $page=1, $count=20, $userId = 0)
+    {
+        $koubei_res = array("koubei_info" => array());
+        //获取商品的关联商品或者套装单品
+        $item_service = new ItemService();
+        $item_ids = $item_service->getRelateItemById($itemId);
+        if (empty($item_ids)) {
+            return $this->succ($koubei_res);
+        }
+        //获取封测报告数量（过滤自动好评）
+        $ext_params = array("auto_evaluate" => 0);
+        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $ext_params);
+        if($koubei_nums <=0){
+            return $this->succ($koubei_res);
+        }
+        $koubei_res['total_count'] = $koubei_nums;//口碑数量
+
+        //通过商品id获取口碑id
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $ext_params);
+
+        //获取口碑信息
+        $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
+
+        $koubei_res['koubei_info'] = !empty($koubei_infos) ? array_values($koubei_infos) : array();
+
+        if($page == 1){
+            $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
+        }
+        // 甄选商品推荐率
+        $selection_info = $this->getSelectionKoubeiInfo([$itemId])['data'];
+        $koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
+        return $this->succ($koubei_res);
     }
 }
