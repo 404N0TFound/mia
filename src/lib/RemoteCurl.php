@@ -13,7 +13,8 @@ class RemoteCurl {
     private $_success_code = 0; //json结果集，成功正确码
     private $_result_format = true; //返回结果是否格式化解析
     private $_time_out = 1; //连接超时时间，默认1秒
-    
+    private $_log_response = false; //是否记录返回结果
+
     public function __construct($remote_name) {
         $this->set_remote_info($remote_name);
     }
@@ -54,6 +55,10 @@ class RemoteCurl {
                 throw new \Exception('empty data', -1);
             }
             $return_data = json_decode($return_data, true);
+            $response = "";
+            if ($this->_log_response === true) {
+                $response = $return_data;
+            }
             if ($this->_result_format !== false) {
                 if (isset($return_data[$this->_code_key]) && $return_data[$this->_code_key] != $this->_success_code) {
                     throw new \Exception(strval($return_data[$this->_msg_key]), $return_data[$this->_code_key]);
@@ -64,6 +69,7 @@ class RemoteCurl {
                 'third_server'  =>  $this->_remote_name,
                 'type'          =>  'INFO',
                 'request_param' =>  $arguments,
+                'response'      =>  $response,
                 'response_code' =>  $return_data[$this->_code_key],
                 'response_msg'  =>  '',
                 'request_url'   =>  $this->_url,
@@ -115,6 +121,9 @@ class RemoteCurl {
             }
             if (isset($remote_info['time_out'])) {
                 $this->_time_out = $remote_info['time_out'];
+            }
+            if (isset($remote_info['log_response']) && $remote_info['log_response'] === true) {
+                $this->_log_response = true;
             }
         }
     }
