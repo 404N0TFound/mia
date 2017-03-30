@@ -51,11 +51,27 @@ class Robot extends \mia\miagroup\Lib\Service {
      * 生成机器人账户
      */
     public function generateRobotAccout($avatar_material_id, $category, $nickname) {
+        $material_info = $this->robotModel->getAvatarMaterialById($avatar_material_id);
         //检查素材状态是否正确
-        //检查昵称是否已存在
-        //素材表数据更新
+        if (empty($material_info) || $material_info['status'] == $this->robotConfig['avatar_material_status']['create_user']) {
+            $this->error(500);
+        }
         //生成马甲用户
-        //回写user_id
+        $user_info['username'] = 'miagroup_robot_' . $avatar_material_id;
+        $user_info['nickname'] = $nickname;
+        $user_info['password'] = 'a255220a91378ba2f4aad17300ed8ab7';
+        $user_info['icon'] = $material_info['avatar'];
+        $userService = new \mia\miagroup\Service\User();
+        $result = $userService->addMiaUser($user_info);
+        if ($result['code'] > 0) {
+            $this->error($result['code']);
+        }
+        //素材表数据更新
+        $update_info['user_id'] = $result['data'];
+        $update_info['generate_time'] = date('Y-m-d H:i:s');
+        $update_info['status'] = 2;
+        $this->robotModel->updateAvatarMaterialById($avatar_material_id, $update_info);
+        return $user_info;
     }
     
     /**

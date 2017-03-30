@@ -46,6 +46,14 @@ class Robot {
     }
     
     /**
+     * 根据ID获取头像素材
+     */
+    public function getAvatarMaterialById($avatar_material_id) {
+        $result = $this->avatarMaterialData->getAvatarMaterialById($avatar_material_id);
+        return $result;
+    }
+    
+    /**
      * 新增头像素材
      */
     public function addAvatarMaterial($avatar_material_info) {
@@ -92,6 +100,14 @@ class Robot {
      */
     public function updateSubjectMaterialByOpadmin($update_status, $op_admin, $current_status) {
         $result = $this->subjectMaterialData->updateSubjectMaterialByOpadmin($update_status, $op_admin, $current_status);
+        return $result;
+    }
+    
+    /**
+     * 更新头像素材信息
+     */
+    public function updateAvatarMaterialById($avatar_material_id, $update_data) {
+        $result = $this->avatarMaterialData->updateAvatarMaterialById($avatar_material_id, $update_data);
         return $result;
     }
 }

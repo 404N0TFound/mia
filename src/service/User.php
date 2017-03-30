@@ -314,6 +314,39 @@ class User extends \mia\miagroup\Lib\Service {
         \DB_Query::switchCluster($preNode);
         return $this->succ($user_info);
     }
+    
+    /**
+     * 新增蜜芽圈用户
+     */
+    public function addMiaUser($user_info) {
+        if (empty($user_info['username']) || empty($user_info['nickname'])) {
+            $this->error(500);
+        }
+        $insert_info = array();
+        $is_exist = $this->userModel->getUidByNickName($user_info['username']);
+        if ($is_exist) {
+            $this->error(40001);
+        }
+        $is_exist = $this->userModel->getUidByUserName($user_info['nickname']);
+        if ($is_exist) {
+            $this->error(40002);
+        }
+        $insert_info['username'] = $user_info['username'];
+        $insert_info['nickname'] = $user_info['nickname'];
+        if (!empty($user_info['icon'])) {
+            $insert_info['icon'] = $user_info['icon'];
+        }
+        if (!empty($user_info['password'])) {
+            $insert_info['password'] = $user_info['password'];
+        }
+        if (!empty($user_info['create_date'])) {
+            $insert_info['create_date'] = $user_info['create_date'];
+        } else {
+            $insert_info['create_date'] = date('Y-m-d H:i:s');
+        }
+        $user_id = $this->userModel->addUser($insert_info);
+        return $this->succ($user_id);
+    }
 
     /**
      * 查推荐用户列表

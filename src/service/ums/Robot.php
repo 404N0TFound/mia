@@ -25,11 +25,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //获取待处理的素材
         $select_codition['status'] = 0;
         $offset = ($page - 1) * $limit;
-        $to_do_list = $this->robotModel->getSubjectMaterialData($select_codition, $offset, $limit)['list'];
+        $to_do_list = $this->robotModel->getSubjectMaterialData($select_codition, $offset, $limit);
         //查询锁定
-        $robot_service->updateSubjectMaterialStatusByIds($this->robotConfig['subject_material_status']['locked'], $current_op_admin, $to_do_list);
+        $robot_service->updateSubjectMaterialStatusByIds($this->robotConfig['subject_material_status']['locked'], $current_op_admin, $to_do_list['list']);
         //获取结果集数据
-        $subject_material_ids = array_merge($editing_materials, $to_do_list);
+        $subject_material_ids = array_merge($editing_materials, $to_do_list['list']);
         $subject_materials = $robot_service->getBatchSubjectMaterial($subject_material_ids);
         return $this->succ(['count' => $to_do_list['count'], 'list' => array_values($subject_materials)]);
     }
@@ -37,8 +37,34 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取素材列表
      */
-    public function getSubjectMaterialList($param, $page = 1, $limit = 20) {
-        ;
+    public function getSubjectMaterialList($params, $page = 1, $limit = 20) {
+        $result = array('list' => array(), 'count' => 0);
+        $condition = array();
+        //初始化入参
+        $orderBy = 'id asc'; //默认排序
+        if (!empty($params['category'])) {
+            $condition['category'] = $params['category'];
+        }
+        if (!empty($params['keyword'])) {
+            $condition['keyword'] = $params['keyword'];
+        }
+        if (!empty($params['source'])) {
+            $condition['source'] = $params['source'];
+        }
+        if (!empty($params['op_admin'])) {
+            $condition['op_admin'] = $params['op_admin'];
+        }
+        if (in_array($params['status'], $this->robotConfig['subject_material_status'])) {
+            $condition['status'] = $params['status'];
+        }
+        $offset = ($page - 1) * $limit;
+        $subject_material_list = $this->robotModel->getSubjectMaterialData($condition, $offset, $limit, $orderBy)['list'];
+        
+        //获取结果集数据
+        $robot_service = new \mia\miagroup\Service\Robot();
+        $result['list'] = $robot_service->getBatchSubjectMaterial($subject_material_list['list']);
+        $result['count'] = $subject_material_list['count'];
+        return $this->succ($result);
     }
     
     /**
@@ -53,7 +79,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 获取马甲列表
      */
-    public function getAvatarMaterialList($param, $page = 1, $limit = 20) {
-        ;
+    public function getAvatarMaterialList($params, $page = 1, $limit = 20) {
+        $result = array('list' => array(), 'count' => 0);
+        $condition = array();
+        //初始化入参
+        $orderBy = 'id asc'; //默认排序
+        
+        if (!empty($params['category'])) {
+            $condition['category'] = $params['category'];
+        }
+        if (!empty($params['nickname'])) {
+            $condition['nickname'] = $params['nickname'];
+        }
+        if (in_array($params['status'], $this->robotConfig['avatar_material_status'])) {
+            $condition['status'] = $params['status'];
+        }
+        $offset = ($page - 1) * $limit;
+        $avatar_material_list = $this->robotModel->getAvatarMaterialData($condition, $offset, $limit, $orderBy);
+        $result['list'] = $avatar_material_list['list'];
+        $result['count'] = $avatar_material_list['count'];
+        return $this->succ($result);
     }
+    
 }
