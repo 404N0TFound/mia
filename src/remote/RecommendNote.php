@@ -29,7 +29,7 @@ class RecommendNote
         $result = $remote_curl->curl_remote('/recommend_result', $params);
         $tabInfo = $result['pl_list'];
         //错误处理
-        if ($result['msg'] == 'error' || $result === false) {
+        if ($result['msg'] == 'error' || $result === false || empty($tabInfo)) {
             //去redis 取数据
             $redis = new Redis('recommend/default');
             //这时候的刷新操作有问题
