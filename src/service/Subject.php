@@ -841,6 +841,7 @@ class Subject extends \mia\miagroup\Lib\Service
         //只有当帖子带图的时候才能参加活动
         if(!empty($imgUrl)){
             $activeService = new ActiveService();
+            $relationSetInfo = array();
             //如果参加活动，检查活动是否有效
             if (intval($subjectInfo['active_id']) > 0) {
                 //获取活动信息
@@ -848,9 +849,10 @@ class Subject extends \mia\miagroup\Lib\Service
                 $currentTime = date("Y-m-d H:i:s",time());
                 if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time']){
                     $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
+                    $relationSetInfo['active_id'] = $subjectInfo['active_id'];
                 }
             }
-            
+        
             //如果为普通发帖，检查标签中是否有参加在线活动的
             if(!empty($labelInfos) && intval($subjectInfo['active_id']) == 0){
                 //获取在线的蜜芽圈活动
@@ -866,6 +868,7 @@ class Subject extends \mia\miagroup\Lib\Service
                             //活动id为在线活动的索引(key)，如果标签中有参加活动的，则保存活动id
                             if(!empty($attendLabels)){
                                 $subjectSetInfo['active_id'] = $key;
+                                $relationSetInfo['active_id'] = $key;
                                 break;
                             }
                         }
@@ -946,6 +949,14 @@ class Subject extends \mia\miagroup\Lib\Service
                 //插入帖子标记信息
                 $this->tagsService->saveSubjectTags($subjectId,$itemPoint);
             }
+        }
+        
+        //组装活动帖子关联表信息
+        if(isset($relationSetInfo['active_id'])){
+            $relationSetInfo['subject_id'] = $subjectId;
+            $relationSetInfo['user_id'] = $subjectSetInfo['user_id'];
+            $relationSetInfo['create_time'] = $subjectSetInfo['created'];
+            $activeService->addActiveSubjectRelation($relationSetInfo);
         }
         
         $subjectSetInfo['id'] = $subjectId;
@@ -1198,19 +1209,22 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         //删除帖子
         $result = $this->subjectModel->delete($subjectId, $userId);
+        
+        //如果是口碑，同时删除口碑
+        if(!empty($subjectInfo['ext_info']['koubei']['id'])){
+            $koubei = new \mia\miagroup\Service\Koubei();
+            $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $userId);
+        }
+        //检验帖子是否参加了活动
+        $activeService = new ActiveService();
+        $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId));
+        //如果参加了活动，删除活动帖子关联表记录
+        if(!empty($activeSubject['data'][$subjectId])){
+            $activeService->upActiveSubject(array('status'=>0), $activeSubject['data'][$subjectId]['id']);
+        }
+        
         if($result){
-            if(!empty($subjectInfo['ext_info']['koubei']['id'])){
-                //删除口碑
-                $koubei = new \mia\miagroup\Service\Koubei();
-                $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $userId);
-                if($res){
-                    return $this->succ(true);
-                }else{
-                    return $this->error(6104);
-                }
-            }else{
-                return $this->succ(true);
-            }
+            return $this->succ(true);
         }else{
             return $this->error(6104);
         }
@@ -1514,7 +1528,7 @@ class Subject extends \mia\miagroup\Lib\Service
         return $this->succ($affect);
     }
     
-    //获取某活动下的所有/精华帖子
+    //获取某活动下的所有/精华帖子(该方法迁到活动服务里了)
     public function getActiveSubjects($activeId, $type='all', $currentId = 0, $page=1, $limit=20){
         $data = array('subject_lists'=>array());
         $subjectIds = $this->subjectModel->getSubjectIdsByActiveId($activeId, $type, $page, $limit);

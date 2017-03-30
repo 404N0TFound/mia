@@ -1,10 +1,16 @@
 <?php
 namespace mia\miagroup\Daemon\Temp;
 
+use mia\miagroup\Data\Active\Active as ActiveData;
+use mia\miagroup\Service\Subject as SubjectService;
+use mia\miagroup\Data\Active\ActiveSubjectRelation as RelationData;
+
 class ActiveSubject extends \FD_Daemon {
 
     public function execute() {
-        $this->pushNews();
+        $this->setActiveSubjects();
+        //$this->fixImgData();
+        //$this->pushNews();
     }
 
     /**
@@ -85,5 +91,33 @@ class ActiveSubject extends \FD_Daemon {
             $activeData->updateActive($set_data, $id);
             exit;
         }
+    }
+
+    //将活动的帖子导入活动帖子关联表
+    public function setActiveSubjects(){
+        $activeData = new ActiveData();
+        $subjectService = new SubjectService();
+        $relationData = new RelationData();
+        //获取所有在线活动
+        $activeArrs = $activeData->getBatchActiveInfos(false, 0);
+        if(!empty($activeArrs)){
+            foreach($activeArrs as $activeArr){
+                //获取活动下的帖子
+                $subjectArrs = $subjectService->getActiveSubjects($activeArr['id'], $type='all', 0, false, 0)['data']['subject_lists'];
+                if(empty($subjectArrs)){
+                    continue;
+                }
+                foreach($subjectArrs as $subjectArr){
+                    //将帖子信息存入活动帖子关联表中
+                    $setData = array();
+                    $setData['active_id'] = $activeArr['id'];
+                    $setData['subject_id'] = $subjectArr['id'];
+                    $setData['user_id'] = $subjectArr['user_id'];
+                    $setData['create_time'] = $subjectArr['created'];
+                    $relationData->addActiveSubjectRelation($setData);
+                }
+            }
+        }
+        return true;
     }
 }
