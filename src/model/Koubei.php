@@ -115,8 +115,8 @@ class Koubei {
      * @param $withPic
      * @return int
      */
-    public function getItemKoubeiNums($itemIds, $withPic = 0){
-        if(empty($itemIds)){
+    public function getItemKoubeiNums($itemIds, $withPic = 0, $conditions = array()){
+        if (empty($itemIds)) {
             return 0;
         }
         $filed = ' count(distinct(koubei.id)) as nums ';
@@ -127,8 +127,13 @@ class Koubei {
         if ($withPic == 1) {
             $where['with_pic'] = 1;
         }
+        if(!empty($conditions)) {
+            foreach($conditions as $k => $v) {
+                $where[$k] = $v;
+            }
+        }
         $koubeiNums = $this->koubeiData->getItemInvolveNums($filed, $where);
-        return $koubeiNums;    
+        return $koubeiNums;
     }
 
     /**
