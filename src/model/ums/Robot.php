@@ -33,7 +33,12 @@ class Robot extends \DB_Query {
         if (intval($result['count']) <= 0) {
             return $result;
         }
-        $result['list'] = $this->getRows($where, 'id', $limit, $offset, $orderBy);
+        $data = $this->getRows($where, 'id', $limit, $offset, $orderBy);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result['list'][] = $v['id'];
+            }
+        }
         return $result;
     }
     
