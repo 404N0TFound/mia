@@ -96,10 +96,18 @@ class Robot {
     }
     
     /**
-     * 批量修改帖子素材
+     * 根据操作人修改帖子素材状态
      */
     public function updateSubjectMaterialByOpadmin($update_status, $op_admin, $current_status) {
         $result = $this->subjectMaterialData->updateSubjectMaterialByOpadmin($update_status, $op_admin, $current_status);
+        return $result;
+    }
+    
+    /**
+     * 更新运营帖子信息
+     */
+    public function updateEditorSubjectById($editor_subject_id, $update_data) {
+        $result = $this->editorSubjectData->updateEditorSubjectById($editor_subject_id, $update_data);
         return $result;
     }
     

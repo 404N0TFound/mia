@@ -54,7 +54,7 @@ class SubjectMaterial extends \DB_Query
             if (in_array($k, ['title', 'text'])) {
                 $insert_data[$k] = $emojiUtil->emoji_unified_to_html($v);
             }
-            if (in_array($k, ['pics'])) {
+            if (in_array($k, ['pics', 'draft'])) {
                 $insert_data[$k] = json_encode($v);
             }
         }
@@ -75,7 +75,7 @@ class SubjectMaterial extends \DB_Query
             if (in_array($k, ['title', 'text'])) {
                 $v = $emojiUtil->emoji_unified_to_html($v);
             }
-            if (in_array($k, ['pics'])) {
+            if (in_array($k, ['pics', 'draft'])) {
                 $v = json_encode($v);
             }
             $set_data[] = array($k, $v);
@@ -107,6 +107,9 @@ class SubjectMaterial extends \DB_Query
         $row_data['text'] = $emojiUtil->emoji_html_to_unified($row_data['text']);
         if (isset($row_data['pics'])) {
             $row_data['pics'] = json_decode($row_data['pics'], true);
+        }
+        if (isset($row_data['draft'])) {
+            $row_data['draft'] = json_decode($row_data['draft'], true);
         }
         return $row_data;
     }

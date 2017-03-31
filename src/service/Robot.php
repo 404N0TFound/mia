@@ -93,15 +93,49 @@ class Robot extends \mia\miagroup\Lib\Service {
         $insert_data['content'] = $editor_subject_info['content'];
         //图片
         if (!empty($editor_subject_info['image']) || is_array($editor_subject_info['image'])) {
-            $insert_data['image'] = $editor_subject_info['image'];
+            foreach ($editor_subject_info['image'] as $pic) {
+                @$img = getimagesize(\F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $pic);
+                if ($img) {
+                    $imgWidth = $img[0];
+                    $imgHeight = $img[1];
+                    $insert_data['image'][] = ['url' => $pic, 'width' => $imgWidth, 'height' => $imgHeight];
+                }
+            }
         }
         //关联商品
         if (!empty($editor_subject_info['relate_item']) || is_array($editor_subject_info['relate_item'])) {
-            $insert_data['relate_item'] = $editor_subject_info['relate_item'];
+            foreach ($editor_subject_info['relate_item'] as $item) {
+                $tmp_item = array();
+                if ($item['is_outer'] == 1) {
+                    if (empty($item['item_name'])) {
+                        continue;
+                    } 
+                    $tmp_item['name'] = $item['item_name'];
+                    $tmp_item['is_outer'] = $item['is_outer'];
+                    if (!empty($item['item_name']['brand_name'])) {
+                        $tmp_item['brand_name'] = $item['brand_name'];
+                    }
+                    if (!empty($item['item_name']['category_name'])) {
+                        $tmp_item['category_name'] = $item['category_name'];
+                    }
+                    if (!empty($item['item_name']['item_pic'])) {
+                        $tmp_item['item_pic'] = $item['item_pic'];
+                    }
+                } else {
+                    if ($item['item_id'] > 0) {
+                        $tmp_item['item_id'] = $item['item_id'];
+                    }
+                }
+                $insert_data['relate_item'][] = $tmp_item;
+            }
         }
         //关联标签
         if (!empty($editor_subject_info['relate_tag']) || is_array($editor_subject_info['relate_tag'])) {
-            $insert_data['relate_tag'] = $editor_subject_info['relate_tag'];
+            foreach ($editor_subject_info['relate_tag'] as $label) {
+                if (!empty($label)) {
+                    $insert_data['relate_tag'][] = $label;
+                }
+            }
         }
         //是否推荐
         if ($editor_subject_info['is_recommend'] == 1) {
@@ -221,13 +255,49 @@ class Robot extends \mia\miagroup\Lib\Service {
      * 编辑帖子素材(编辑锁定，并保存草稿)
      */
     public function editMaterialBegin($subject_material_id, $op_admin, $draft = array(), $editor_subject_id = 0) {
-    
+        if (empty($op_admin) || empty($subject_material_id)) {
+            return $this->error(500);
+        }
+        //锁定素材状态
+        $set_data = array();
+        $set_data['op_admin'] = $op_admin;
+        $set_data['status'] = $this->robotConfig['subject_material_status']['editing'];
+        $set_data['draft'] = $draft;
+        $result = $this->robotModel->updateSubjectMaterialByIds($set_data, [$subject_material_id]);
+        
+        //如果运营帖子被编辑，锁定运营帖子状态
+        if ($editor_subject_id > 0) {
+            $set_data = array();
+            $set_data['status'] = $this->robotConfig['subject_material_status']['editing'];
+            $this->robotModel->updateEditorSubjectById($editor_subject_id, $set_data);
+        }
+        return $result;
     }
     
     /**
      * 帖子素材编辑完成(编辑锁定解除，清空草稿箱)
      */
     public function editMaterialEnd($subject_material_id, $op_admin, $editor_subject_id = 0) {
-    
+        if (empty($op_admin) || empty($subject_material_id)) {
+            return $this->error(500);
+        }
+        $subject_material = $this->robotModel->getSingleSubjectMaterial($subject_material_id);
+        if ($subject_material['op_admin'] != $op_admin) {
+            return $this->error(500);
+        }
+        //重置素材状态
+        $set_data = array();
+        $set_data['op_admin'] = '';
+        $set_data['status'] = $this->robotConfig['subject_material_status']['used'];
+        $set_data['draft'] = '';
+        $result = $this->robotModel->updateSubjectMaterialByIds($set_data, [$subject_material_id]);
+        
+        //如果运营帖子完成编辑，重置运营帖子状态
+        if ($editor_subject_id > 0) {
+            $set_data = array();
+            $set_data['status'] = 1;
+            $this->robotModel->updateEditorSubjectById($editor_subject_id, $set_data);
+        }
+        return $result;
     }
 }
