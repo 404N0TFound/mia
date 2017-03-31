@@ -249,7 +249,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (empty($op_admin)) {
             return $this->error(500);
         }
-        $result = $this->robotModel->updateSubjectMaterialByOpadmin($this->robotConfig['subject_material_status']['locked'], $op_admin, $this->robotConfig['subject_material_status']['unused']);
+        $result = $this->robotModel->updateSubjectMaterialByOpadmin($this->robotConfig['subject_material_status']['unused'], $op_admin, $this->robotConfig['subject_material_status']['locked']);
         return $this->succ($result);
     }
     
