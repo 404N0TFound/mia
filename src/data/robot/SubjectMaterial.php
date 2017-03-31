@@ -111,6 +111,9 @@ class SubjectMaterial extends \DB_Query
         if (isset($row_data['draft'])) {
             $row_data['draft'] = json_decode($row_data['draft'], true);
         }
+        if ($row_data['status'] == 1) {
+            $row_data['op_admin'] = '';
+        }
         return $row_data;
     }
 }
