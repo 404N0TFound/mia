@@ -1,7 +1,7 @@
 <?php
 namespace mia\miagroup\Service\Ums;
 
-class Koubei extends \mia\miagroup\Lib\Service {
+class Robot extends \mia\miagroup\Lib\Service {
     
     private $robotModel;
     
