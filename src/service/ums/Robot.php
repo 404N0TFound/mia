@@ -30,7 +30,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         $robot_service->updateSubjectMaterialStatusByIds($this->robotConfig['subject_material_status']['locked'], $current_op_admin, $to_do_list['list']);
         //获取结果集数据
         $subject_material_ids = array_merge($editing_materials, $to_do_list['list']);
-        $subject_materials = $robot_service->getBatchSubjectMaterial($subject_material_ids);
+        $subject_materials = $robot_service->getBatchSubjectMaterial($subject_material_ids)['data'];
         return $this->succ(['count' => $to_do_list['count'], 'list' => array_values($subject_materials)]);
     }
     
