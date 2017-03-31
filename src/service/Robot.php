@@ -67,6 +67,8 @@ class Robot extends \mia\miagroup\Lib\Service {
             $this->error($result['code']);
         }
         //素材表数据更新
+        $update_info['nickname'] = $nickname;
+        $update_info['category'] = $category;
         $update_info['user_id'] = $result['data'];
         $update_info['generate_time'] = date('Y-m-d H:i:s');
         $update_info['status'] = 2;
