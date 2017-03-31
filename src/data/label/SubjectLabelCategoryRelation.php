@@ -18,7 +18,7 @@ class SubjectLabelCategoryRelation extends \DB_Query
         $data = $this->getRows($where);
         $result = [];
         foreach ($data as $v) {
-            $result[$v['label_id']] = $v['category_id'];
+            $result[] = $v['category_id'];
         }
         return $result;
     }
@@ -35,7 +35,7 @@ class SubjectLabelCategoryRelation extends \DB_Query
         $data =  $this->getRows($where,'*',$limit,$offset,'id desc');
         $result = [];
         foreach ($data as $key => $value) {
-            $result[$value['category_id']] = $value;
+            $result[] = $value;
         }
         
         return $result;
