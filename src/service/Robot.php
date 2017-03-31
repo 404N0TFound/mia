@@ -71,7 +71,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         $update_info['generate_time'] = date('Y-m-d H:i:s');
         $update_info['status'] = 2;
         $this->robotModel->updateAvatarMaterialById($avatar_material_id, $update_info);
-        return $user_info;
+        return $this->succ($user_info);
     }
     
     /**
@@ -271,7 +271,7 @@ class Robot extends \mia\miagroup\Lib\Service {
             $set_data['status'] = $this->robotConfig['subject_material_status']['editing'];
             $this->robotModel->updateEditorSubjectById($editor_subject_id, $set_data);
         }
-        return $result;
+        return $this->succ($result);
     }
     
     /**
@@ -298,6 +298,6 @@ class Robot extends \mia\miagroup\Lib\Service {
             $set_data['status'] = 1;
             $this->robotModel->updateEditorSubjectById($editor_subject_id, $set_data);
         }
-        return $result;
+        return $this->succ($result);
     }
 }
