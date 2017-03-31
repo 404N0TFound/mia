@@ -90,11 +90,14 @@ class SubjectMaterial extends \DB_Query
      */
     public function updateSubjectMaterialByOpadmin($update_status, $op_admin, $current_status) {
         $materialStatusConfig = \F_Ice::$ins->workApp->config->get('busconf.robot.subject_material_status');
-        if (empty($op_admin) || !in_array($update_status, $materialStatusConfig) || !in_array($current_status, [0, 1, 2, 3])) {
+        if (empty($op_admin) || !in_array($update_status, $materialStatusConfig) || !in_array($current_status, $materialStatusConfig)) {
             return false;
         }
         $set_data = [];
         $set_data[] = ['status', $update_status];
+        if ($update_status == $materialStatusConfig['unused']) {
+            $set_data[] = ['op_admin', null];
+        }
         $where[] = ['status', $current_status];
         $where[] = ['op_admin', $op_admin];
         $data = $this->update($set_data, $where);
