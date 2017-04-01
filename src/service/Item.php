@@ -132,6 +132,9 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp['business_mode'] = $item['business_mode'];
                 $tmp['favorable_comment_percent'] = $item['favorable_comment_percent'];
                 $tmp['show_cart'] = $is_show_cart ? 1 : 0;
+                if ($item['status'] == 0) {
+                    $tmp['show_cart'] = 0;
+                }
                 $itemList[$item['id']] = $tmp;
             }
         }

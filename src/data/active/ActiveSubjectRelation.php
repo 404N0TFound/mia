@@ -52,7 +52,7 @@ class ActiveSubjectRelation extends \DB_Query {
         $where[] = [$this->tableName.'.status',1];
         
         if($type == 'all'){
-            $orderBy = $this->tableName.'.create_time desc';
+            $orderBy = $this->tableName.'.subject_id desc';
             $fileds = "*";
         }else{
             $fileds = $this->tableName. '.active_id as active_id, group_subjects.id as subject_id, '.$this->tableName. '.regulate as regulate,'.$this->tableName. '.id as id';
