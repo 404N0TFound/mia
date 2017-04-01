@@ -115,7 +115,7 @@ class Item extends \mia\miagroup\Lib\Service {
         if (empty($itemIds)) {
             return $this->succ(array());
         }
-        $items = $this->getItemList($itemIds,[1])['data'];
+        $items = $this->getItemList($itemIds,[0,1])['data'];
         $itemList = array();
         if (!empty($items)) {
             foreach ($items as $item) {
