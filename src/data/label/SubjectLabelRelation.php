@@ -58,7 +58,7 @@ class SubjectLabelRelation extends \DB_Query {
 
         $where[] = ['label_id',$lableIds];
         $where[] = ['status',1];
-        $orderBy = 'create_time DESC';
+        $orderBy = 'subject_id DESC';
         if($is_recommend>0){
             $where[] = ['is_recommend',1];
             $orderBy = 'top_time DESC, recom_time DESC';
