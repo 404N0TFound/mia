@@ -81,15 +81,7 @@ class Active {
      * 新增活动帖子关联数据
      */
     public function addActiveSubjectRelation($insertData){
-        //判断帖子是否已参加活动
-        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
-        $subject = $this->relationData->getActiveSubjectBySids(array($insertData['subject_id']));
-        \DB_Query::switchCluster($preNode);
-        if (empty($subject[[$insertData['subject_id']]])) {
-            $data = $this->relationData->addActiveSubjectRelation($insertData);
-        } else {
-            $data = $subject[[$insertData['subject_id']]]['id'];
-        }
+        $data = $this->relationData->addActiveSubjectRelation($insertData);
         return $data;
     }
     
