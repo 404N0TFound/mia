@@ -95,12 +95,6 @@ class EditorSubject extends \DB_Query
         $row_data['title'] = $emojiUtil->emoji_html_to_unified($row_data['title']);
         $row_data['content'] = $emojiUtil->emoji_html_to_unified($row_data['content']);
         $row_data['image'] = json_decode($row_data['image'], true);
-        if (!empty($row_data['image'])) {
-            $normalUtil = new \mia\miagroup\Util\NormalUtil();
-            foreach ($row_data['image'] as $k => $v) {
-                $row_data['image'][$k] = $normalUtil->buildImgUrl($v['url'], 'normal', $v['width'], $v['height']);
-            }
-        }
         $row_data['relate_item'] = json_decode($row_data['relate_item'], true);
         $row_data['relate_tag'] = json_decode($row_data['relate_tag'], true);
         $row_data['ext_info'] = json_decode($row_data['ext_info'], true);

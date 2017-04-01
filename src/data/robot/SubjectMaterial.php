@@ -110,12 +110,6 @@ class SubjectMaterial extends \DB_Query
         $row_data['text'] = $emojiUtil->emoji_html_to_unified($row_data['text']);
         if (isset($row_data['pics'])) {
             $row_data['pics'] = json_decode($row_data['pics'], true);
-            if (!empty($row_data['pics'])) {
-                $normalUtil = new \mia\miagroup\Util\NormalUtil();
-                foreach ($row_data['pics'] as $k => $v) {
-                    $row_data['pics'][$k] = $normalUtil->buildImgUrl($v['url'], 'normal', $v['width'], $v['height']);
-                }
-            }
         }
         if (isset($row_data['draft'])) {
             $row_data['draft'] = json_decode($row_data['draft'], true);
