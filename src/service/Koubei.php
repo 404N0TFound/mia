@@ -66,6 +66,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels = array();
         $labels['label'] = array();
         $labels['image'] = array();
+        // 5.3 新增发布类型（针对封测报告）
+        if(isset($koubeiData['type']) && $koubeiData['type'] == 'pick') {
+            // 封测报告默认是没有评分的
+            $koubeiSetData['score'] = 0;
+        }
         // 5.3 口碑新增 甄选商品用户推荐（默认）
         $labels['selection'] = "1";
 
