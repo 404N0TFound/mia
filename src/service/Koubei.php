@@ -1752,6 +1752,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0);
             //获取口碑信息
             $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, 0)['data'];
+            var_dump($koubei_infos);exit;
 
             $selection_info[$item_id]['total_count'] = $koubei_nums;
             foreach($koubei_infos as $koubei) {
