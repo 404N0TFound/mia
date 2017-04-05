@@ -511,9 +511,9 @@ class Subject extends \mia\miagroup\Lib\Service
                     // 获取口碑订单信息
                     $orderService = new OrderService();
                     $orderInfos = $orderService->getOrderInfoByIds([$order_id])['data'];
-                    $subjectRes['item_koubei']['closed_report'] = 0;
+                    $subjectRes[$subjectInfo['id']]['item_koubei']['closed_report'] = 0;
                     if(!empty($orderInfos[$order_id]['from_type']) && $orderInfos[$order_id]['from_type'] == 8) {
-                        $subjectRes['item_koubei']['closed_report'] = '1';
+                        $subjectRes[$subjectInfo['id']]['item_koubei']['closed_report'] = '1';
                     }
                 }
 
@@ -522,7 +522,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 if(!empty($koubei_info[$subjectInfo['ext_info']['koubei_id']]['extr_info'])) {
                     $extr_info = json_decode($koubei_info[$subjectInfo['ext_info']['koubei_id']]['extr_info'], true);
                     if(!empty($extr_info['selection_label'])) {
-                        $subjectRes['item_koubei']['selection_label'] = $extr_info['selection_label'];
+                        $subjectRes[$subjectInfo['id']]['item_koubei']['selection_label'] = $extr_info['selection_label'];
                         // 帖子展示标签
                         $config = \F_Ice::$ins->workApp->config->get('busconf.koubei');
                         $default_label_title = $config['miaGroup_label'];
@@ -666,7 +666,7 @@ class Subject extends \mia\miagroup\Lib\Service
         /*蜜芽帖、口碑贴相关逻辑结束*/
         
         /*专栏、头条相关逻辑开始*/
-        if (!empty($subjectInfo['album_article'])) { 
+        if (!empty($subjectInfo['album_article'])) {
             $con = [
                 'user_id'   => $subjectInfo['user_id'],
                 'iPageSize' => 5,
