@@ -323,6 +323,8 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (empty($op_admin) || empty($subject_material_id)) {
             return $this->error(500);
         }
+        //解除之前锁定的素材
+        $this->robotModel->updateSubjectMaterialByOpadmin($this->robotConfig['subject_material_status']['unused'], $op_admin, $this->robotConfig['subject_material_status']['editing']);
         //锁定素材状态
         $set_data = array();
         $set_data['op_admin'] = $op_admin;
