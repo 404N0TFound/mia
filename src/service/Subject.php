@@ -503,7 +503,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
                 // 5.3 甄选
                 $koubeiServer = new KoubeiService();
-                $koubei_info = $koubeiServer->getOriKoubeiByIds([$subjectInfo['ext_info']['koubei_id']])['data'];
+                $koubei_info = $koubeiServer->getOriKoubeiByIds([$subjectRes[$subjectInfo['id']]['koubei_id']])['data'];
                 $order_id = $koubei_info[$subjectInfo['ext_info']['koubei_id']]['order_id'];
 
                 // 封测标识
