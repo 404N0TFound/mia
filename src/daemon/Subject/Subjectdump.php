@@ -101,7 +101,8 @@ class Subjectdump extends \FD_Daemon {
         $subjectData = new \mia\miagroup\Data\Subject\Subject();
         $where = [];
         $where[] = [':gt','id', $lastId];
-        $where[] = ['source', [1, 2]];
+        $source_config = \F_Ice::$ins->workApp->config->get('busconf.subject.source');
+        $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor']]];
         $where[] = ['status', 1];
         $where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-3 minute"))];
         $data = $subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys', 1000);

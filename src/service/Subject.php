@@ -792,6 +792,9 @@ class Subject extends \mia\miagroup\Lib\Service
         }else{
             $subjectSetInfo['source'] = 1;
         }
+        if (!empty($subjectInfo['ext_info'])) {
+            $subjectSetInfo['ext_info'] = $subjectInfo['ext_info'];
+        }
         
         // 添加视频
         if ($subjectInfo['video_url']) {

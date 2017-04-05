@@ -71,6 +71,7 @@ $album = array(
      'default'  => 1, //默认
      'koubei'   => 2, //口碑
      'headline' => 3, //头条
+     'editor'   => 4, //编辑发布
  );
  
  /**

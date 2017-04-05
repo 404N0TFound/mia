@@ -151,7 +151,7 @@ class Search extends Service
         //复用api的逻辑，参照4.9 api接口说明
         //接收参数
         $keyword = $param['key'];
-        $page = isset($param['page']) ? $param['page'] : 0;
+        $page = isset($param['page']) ? $param['page'] : 1;
         $count = isset($param['count']) ? $param['count'] : 10;
         $order = isset($param['order']) ? $param['order'] : 'normal';
         $status = isset($param['so']) ? $param['so'] : 0;
