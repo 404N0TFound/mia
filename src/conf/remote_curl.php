@@ -61,9 +61,3 @@ $shumei_text = array(
     'method' => 'post',
     'result_format' => false
 );
-//图片上传
-$image_upload = array(
-    'url' => 'https://uploads.miyabaobei.com/app_upload.php',
-    'method' => 'post',
-    'result_format' => false
-);
