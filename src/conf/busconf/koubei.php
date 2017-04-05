@@ -99,9 +99,3 @@ $selection_exper_labels = array(
 $selection_cate = array(
     352 => 'A',
 );
-
-/**
- * 蜜芽圈封测帖子对应标签
- * 默认标签
- */
-$miaGroup_label = '封测报告';
