@@ -59,14 +59,14 @@ class Image extends \mia\miagroup\Lib\Service
         $this->image->crop($temp_url, $newUrl, $width, $height,$x, $y);
         // 上传图片
         $post = $this->handleImgData($newUrl);
-        $this->image->uploadImage($post);
-        echo 'ok';exit;
+        $path = $this->image->uploadImage($post, $newUrl);
+        return $this->succ($path);
     }
 
     /*
      * 上传图片加密封装
      * */
-    public function handleImgData($newUrl)
+    public function handleImgData()
     {
         $post_data = [];
         $secret = $this->imageConfig['secret'];
@@ -80,8 +80,6 @@ class Image extends \mia\miagroup\Lib\Service
         $post_data['sign'] = $sign;
         $post_data['timestemp'] = $params['timestemp'];
         $post_data['type'] = $params['type'];
-        $post_data['Filedata'] = $newUrl;
-        //$post_data['Filedata'] = 'https://img.miyabaobei.com/d1/p5/2017/03/27/82/1e/821e849822f81d0dcb8fd06ea57e0c42075831046.jpg';
         return $post_data;
     }
 

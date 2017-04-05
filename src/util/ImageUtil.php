@@ -1,7 +1,6 @@
 <?php
 namespace mia\miagroup\Util;
 
-use mia\miagroup\Lib\RemoteCurl;
 use Intervention\Image\ImageManager;
 
 class ImageUtil
@@ -95,10 +94,33 @@ class ImageUtil
     /*
      * 图片上传
      * */
-    public function uploadImage($post_data)
+    public function uploadImage($data, $imgUrl)
     {
-        $remote_curl = new RemoteCurl('image_upload');
 
+        $config = \F_Ice::$ins->workApp->config->get('busconf.image');
+        $remote_url = $config['remote_url'];
+
+        // 上传图片
+        if (class_exists('\CURLFile')) {
+            $data['Filedata'] = new \CURLFile(realpath($imgUrl), 'image.jpg');
+        } else {
+            $data['Filedata'] = '@' . realpath($imgUrl);
+        }
+
+        $curl= curl_init ();
+        curl_setopt ( $curl, CURLOPT_URL, $remote_url);
+        curl_setopt ( $curl, CURLOPT_SSL_VERIFYPEER, FALSE );
+        curl_setopt ( $curl, CURLOPT_SSL_VERIFYHOST, FALSE );
+
+        //发送post数据
+        curl_setopt ( $curl, CURLOPT_POST, 1 );
+        curl_setopt ( $curl, CURLOPT_POSTFIELDS, $data);
+        curl_setopt ( $curl, CURLOPT_RETURNTRANSFER, 1 );
+        $output= curl_exec ( $curl);
+        curl_close ( $curl);
+        $res = json_decode($output, true);
+        if($res['code'] != 200) return '';
+        return $res['content'];
     }
 
 
@@ -126,7 +148,8 @@ class ImageUtil
         if (!in_array($suffix, $fileType)) {
             return false;
         }
-
+        // 固定后缀
+        $suffix = 'jpg';
         // 设置保存后的文件名
         $fileName = $fileName == '' ? time() . rand(0, 9) . '.' . $suffix : $defaultFileName;
 
