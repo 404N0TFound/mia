@@ -74,8 +74,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         // 5.3 口碑新增 甄选商品用户推荐（默认）
         $labels['selection'] = "1";
 
-        // 5.3 口碑新增 甄选商品印象标签(三个维度)
-        $labels['selection_label'] = array();
         if(!empty($koubeiData['labels'])) {
             foreach($koubeiData['labels'] as $label) {
                 $labels['label'][] = $label['title'];
@@ -86,6 +84,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $labels['image'][] = $image;
             }
         }
+
+        // 5.3 口碑新增 甄选商品印象标签(三个维度)
+        $labels['selection_label'] = array();
         if(!empty($koubeiData['selection_labels'])) {
             $no_recommend_ident = 0;
             foreach($koubeiData['selection_labels'] as $selection_label) {
@@ -99,7 +100,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if($no_recommend_ident == 3) {
                 $labels['selection'] = "0";
             }
+            // 默认蜜芽圈封测标签
+            $labels['label'][] = '封测报告';
         }
+
         // 排序权重新增封测报告逻辑
         $koubeiSetData['extr_info'] = json_encode($labels);
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);

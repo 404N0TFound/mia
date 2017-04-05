@@ -523,10 +523,6 @@ class Subject extends \mia\miagroup\Lib\Service
                     $extr_info = json_decode($koubei_info[$subjectInfo['ext_info']['koubei_id']]['extr_info'], true);
                     if(!empty($extr_info['selection_label'])) {
                         $subjectRes[$subjectInfo['id']]['item_koubei']['selection_label'] = $extr_info['selection_label'];
-                        // 帖子展示标签
-                        $config = \F_Ice::$ins->workApp->config->get('busconf.koubei');
-                        $default_label_title = $config['miaGroup_label'];
-                        $selection_label[]['title'] = $default_label_title;
                     }
                 }
             }
@@ -540,11 +536,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['comment_info'] = is_array($comments[$subjectInfo['id']]) ? array_values($comments[$subjectInfo['id']]) : array();
             }
             if (in_array('group_labels', $field)) {
-                if(!empty($selection_label)) {
-                    $subjectRes[$subjectInfo['id']]['group_labels'] = $selection_label;
-                }else {
-                    $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
-                }
+                $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
