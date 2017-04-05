@@ -519,7 +519,7 @@ class Subject extends \mia\miagroup\Lib\Service
 
                 // 封测标签
                 $subjectRes['item_koubei']['selection_label'] = [];
-                if(!empty($koubei_info[$subjectInfo['ext_info']['koubei_id']]['extr_info'])) {
+                if(!empty($koubei_info[$subjectRes[$subjectInfo['id']]['koubei_id']]['extr_info'])) {
                     $extr_info = json_decode($koubei_info[$subjectInfo['ext_info']['koubei_id']]['extr_info'], true);
                     if(!empty($extr_info['selection_label'])) {
                         $subjectRes[$subjectInfo['id']]['item_koubei']['selection_label'] = $extr_info['selection_label'];
