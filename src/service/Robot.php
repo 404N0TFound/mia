@@ -80,7 +80,7 @@ class Robot extends \mia\miagroup\Lib\Service {
      * 生成运营编辑帖子
      */
     public function generateEditorSubject($editor_subject_info) {
-        if (empty($editor_subject_info['material_id']) || empty($editor_subject_info['content'])) {
+        if (empty($editor_subject_info['material_id']) || empty($editor_subject_info['content']) || empty($editor_subject_info['pub_user']) || empty($editor_subject_info['op_admin'])) {
             $this->error(500);
         }
         $insert_data = array();
@@ -114,13 +114,13 @@ class Robot extends \mia\miagroup\Lib\Service {
                     } 
                     $tmp_item['name'] = $item['item_name'];
                     $tmp_item['is_outer'] = $item['is_outer'];
-                    if (!empty($item['item_name']['brand_name'])) {
+                    if (!empty($item['brand_name'])) {
                         $tmp_item['brand_name'] = $item['brand_name'];
                     }
-                    if (!empty($item['item_name']['category_name'])) {
+                    if (!empty($item['category_name'])) {
                         $tmp_item['category_name'] = $item['category_name'];
                     }
-                    if (!empty($item['item_name']['item_pic'])) {
+                    if (!empty($item['item_pic'])) {
                         $tmp_item['item_pic'] = $item['item_pic'];
                     }
                 } else {
@@ -128,7 +128,9 @@ class Robot extends \mia\miagroup\Lib\Service {
                         $tmp_item['item_id'] = $item['item_id'];
                     }
                 }
-                $insert_data['relate_item'][] = $tmp_item;
+                if (!empty($tmp_item)) {
+                    $insert_data['relate_item'][] = $tmp_item;
+                }
             }
         }
         //关联标签
@@ -151,19 +153,80 @@ class Robot extends \mia\miagroup\Lib\Service {
         if ($editor_subject_info['todo_mark'] == 1) {
             $insert_data['todo_mark'] = 1;
         }
+        $insert_data['ext_info'] = $ext_info;
+        $insert_data['create_time'] = date('Y-m-d H:i:s');
         $insert_id = $this->robotModel->addEditorSubject($insert_data);
-        return $this->succ($insert_id);
+        if (!$insert_id) {
+            return $this->error(500);
+        }
+        //更新素材状态
+        $set_data = ['status' => $this->robotConfig['subject_material_status']['used'], 'op_admin' => $editor_subject_info['op_admin']];
+        $this->robotModel->updateSubjectMaterialByIds($set_data, $editor_subject_info['material_id']);
+        //发布帖子
+        $result = $this->publishEditorSubject($insert_id);
+        if ($result['code'] > 0) {
+            $this->error($result['code']);
+        }
+        $subject = $result['data'];
+        //更新状态
+        $set_data = [];
+        $set_data['status'] = $this->robotConfig['subject_material_status']['used'];
+        $set_data['subject_id'] = $subject['id'];
+        $set_data['publish_time'] = $insert_data['create_time'];
+        $this->robotModel->updateEditorSubjectById($insert_id, $set_data);
+        
+        return $this->succ($subject);
     }
     
     /**
      * 发布运营编辑帖子
      */
     public function publishEditorSubject($editor_subject_id) {
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $editor_subject_info = $this->robotModel->getBatchEditorSubjectByIds([$editor_subject_id])[$editor_subject_id];
+        \DB_Query::switchCluster($preNode);
         if (empty($editor_subject_info)) {
             return $this->error(500);
         }
-        
+        $subject_service = new \mia\miagroup\Service\Subject();
+        $subject_info = array();
+        $subject_info['user_info']['user_id'] = $editor_subject_info['pub_user'];
+        $subject_info['title'] = $editor_subject_info['title'];
+        $subject_info['text'] = $editor_subject_info['content'];
+        $subject_info['created'] = date('Y-m-d H:i:s');
+        $subject_info['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.editor'); //帖子数据来自口碑标识
+        if(!empty($editor_subject_info['image'])) {
+            $subject_info['image_infos'] = $editor_subject_info['image'];
+        }
+        $label_infos = array();
+        if(!empty($editor_subject_info['relate_tag'])) {
+            foreach($editor_subject_info['relate_tag'] as $label) {
+                $label_infos[] = array('title' => $label);
+            }
+        }
+        $point_info = array();
+        $outer_items = array();
+        if (!empty($editor_subject_info['relate_item'])) {
+            foreach($editor_subject_info['relate_item'] as $item) {
+                if (isset($item['is_outer']) && $item['is_outer'] == 1) {
+                    $outer_items[] = $item;
+                } elseif ($item['item_id'] > 0) {
+                    $point_info[] = array('item_id' => $item['item_id']);
+                }
+            }
+        }
+        if (!empty($outer_items)) {
+            $subject_info['ext_info']['outer_items'] = $outer_items;
+        }
+        $result = $subject_service->issue($subject_info, $point_info, $label_infos, 0, 1);
+        if ($result['code'] > 0) {
+            $this->error($result['code']);
+        }
+        $subject = $result['data'];
+        if ($editor_subject_info['ext_info']['is_recommend'] == 1) {
+            $subject_service->subjectAddFine($subject['id']);
+        }
+        return $this->succ($subject);
     }
     
     /**
