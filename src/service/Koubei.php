@@ -1805,4 +1805,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
         return $this->succ($koubei_res);
     }
+
+    /*
+     * 获取原始口碑信息
+     * 22564
+     * */
+    public function getOriKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'koubei_reply', 'group_labels', 'praise_info', 'item' , 'order_info', 'content_format'), $status = array(2))
+    {
+        if (empty($koubeiIds)) {
+            return $this->succ(array());
+        }
+        $koubeiArr = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds, $status);
+        if (empty($koubeiArr)) {
+            return $this->succ();
+        }
+        return $this->succ($koubeiArr);
+    }
 }

@@ -16,6 +16,7 @@ use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Service\Feed as FeedServer;
+use mia\miagroup\Service\Order as OrderService;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -500,6 +501,34 @@ class Subject extends \mia\miagroup\Lib\Service
                 } else if (!empty($subjectInfo['ext_info']['koubei_id'])) {
                     $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei_id'];
                 }
+                // 5.3 甄选
+                $koubeiServer = new KoubeiService();
+                $koubei_info = $koubeiServer->getOriKoubeiByIds([$subjectInfo['ext_info']['koubei_id']])['data'];
+                $order_id = $koubei_info[$subjectInfo['ext_info']['koubei_id']]['order_id'];
+
+                // 封测标识
+                if(!empty($order_id)){
+                    // 获取口碑订单信息
+                    $orderService = new OrderService();
+                    $orderInfos = $orderService->getOrderInfoByIds([$order_id])['data'];
+                    $subjectRes['item_koubei']['closed_report'] = 0;
+                    if(!empty($orderInfos[$order_id]['from_type']) && $orderInfos[$order_id]['from_type'] == 8) {
+                        $subjectRes['item_koubei']['closed_report'] = '1';
+                    }
+                }
+
+                // 封测标签
+                $subjectRes['item_koubei']['selection_label'] = [];
+                if(!empty($koubei_info[$subjectInfo['ext_info']['koubei_id']]['extr_info'])) {
+                    $extr_info = json_decode($koubei_info[$subjectInfo['ext_info']['koubei_id']]['extr_info'], true);
+                    if(!empty($extr_info['selection_label'])) {
+                        $subjectRes['item_koubei']['selection_label'] = $extr_info['selection_label'];
+                        // 帖子展示标签
+                        $config = \F_Ice::$ins->workApp->config->get('busconf.koubei');
+                        $default_label_title = $config['miaGroup_label'];
+                        $selection_label[]['title'] = $default_label_title;
+                    }
+                }
             }
             if (!empty($subjectInfo['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['video_info'] = $subjectInfo['video_info'];
@@ -511,7 +540,11 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['comment_info'] = is_array($comments[$subjectInfo['id']]) ? array_values($comments[$subjectInfo['id']]) : array();
             }
             if (in_array('group_labels', $field)) {
-                $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
+                if(!empty($selection_label)) {
+                    $subjectRes[$subjectInfo['id']]['group_labels'] = $selection_label;
+                }else {
+                    $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
+                }
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
