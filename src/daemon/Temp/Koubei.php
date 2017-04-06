@@ -33,7 +33,7 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
-        $this->prettyMomSendCoupons();exit;
+        $this->SendCoupons();exit;
         $this->piaopiaoSendCoupons();
         $this->firstKoubeiSendCoupons();
         $this->koubeiItemTransfer();
@@ -300,21 +300,35 @@ class Koubei extends \FD_Daemon {
 
 
     /*
-     * 漂漂羽毛晒单好评返券活动
+     * 好评发代金券系统
      * */
-    public function piaopiaoSendCoupons(){
+    public function SendCoupons(){
 
-        $i = 1;
-        $requires = array('picNum' => 3, 'contentLen' => 15);
         $couponRemote = new \mia\miagroup\Remote\Coupon();
-        $batch_code = '908853';
+        $batch_code = '909282';
         $solr = new SolrRemote('koubei');
-        $koubeiIds = $solr->getpiaopiaoSolrIds();
+        //$data = file('home/xiekun/coupon_item');
+        $handle = @fopen("D:/tmpfile/coupon_item.txt", "r");
 
-        // 过滤少于3张图片及文件少于15字
+        if ($handle) {
+            while (!feof($handle)) {
+                $item_id = fgets($handle, 4096);
+                $item_ids[] = $item_id;
+            }
+        }
+
+        if(empty($item_ids)) {
+            echo '请求数据为空';exit;
+        }
+        $koubeiIds = $solr->getcouponsSolrIds($item_ids);
+
+        $requires['contentLen'] = 10;
+        $requires['picNum'] = 1;
+        $i = 1;
+        // 过滤没有图片及文件少于10字
         if(!empty($koubeiIds)){
             foreach($koubeiIds as $v){
-                //$v = 28863;
+                $v = 28863;
                 $koubeiIds = array($v);
                 $singleKoubeiInfo = $this->koubeiModel->getBatchKoubeiByIds($koubeiIds,array(2));
                 if(!empty($singleKoubeiInfo)){
@@ -327,7 +341,7 @@ class Koubei extends \FD_Daemon {
                         $i ++;
 
                         $user_id = $singleKoubeiInfo[$v]['user_id'];
-                        $lastIdFile = '/tmp/user_id';
+                        $lastIdFile = '/tmp/'.time().'user_id';
                         $fp = fopen($lastIdFile, 'a+');
                         $bindCouponRes = $couponRemote->bindCouponByBatchCode($user_id, $batch_code);
                         if (!$bindCouponRes) {

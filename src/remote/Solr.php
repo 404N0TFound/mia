@@ -820,46 +820,46 @@ class Solr
 
 
     /*
-     * 漂漂羽毛項目
+     * 通用发代金券
      * */
-    public function getpiaopiaoSolrIds(){
+    public function getcouponsSolrIds($item_ids){
         // 查询符合条件总条数
         $result = array();
-        $solrInfo = $this->getpiaopiaoSolrParams();
+        $solrInfo = $this->getcouponParams($item_ids, 0);
         $res = $this->select($solrInfo);
         $totalCount = $res['data']['response']['numFound'];
         if(empty($totalCount)){
             return $result;
         }
-        $solrInfo = $this->getpiaopiaoSolrParams($totalCount);
+        $solrInfo = $this->getcouponParams($item_ids, $totalCount);
         $res = $this->select($solrInfo);
         $result = array_column($res['data']['response']['docs'],'id');
         return $result;
     }
 
 
-    public function getpiaopiaoSolrParams($totalCount = 0){
-        // 查詢两种数据格式
-        //$begin_time = '1486656000';
-        //$end_time = '1487087999';
+    public function getcouponParams($item_ids, $totalCount = 0){
 
         // 执行前一天的时间戳
         date_default_timezone_set('PRC');
         $end_time = strtotime(date("Y-m-d"),time());
         $begin_time = $end_time - 24*60*60;
 
-        $brand_id = 6004;
         $solrInfo = [
             'q'         => '*:*',
             'fl'        => 'id',
         ];
+
+        if (!empty($item_ids)) {
+            $solrInfo['fq'][]   = "item_id:(". implode(' OR ', $item_ids) . ")";
+        } else {
+            $solrInfo['fq'][]   = 'item_id:'. $item_ids;
+        }
         if(!empty($totalCount)){
             $solrInfo['pageSize'] = $totalCount;
         }
-        //$solrInfo['fq'][] = 'local_url:*';
         $solrInfo['fq'][] = 'status:2';
-        $solrInfo['fq'][] = 'score:5';
-        $solrInfo['fq'][] = 'brand_id:'.$brand_id;
+        $solrInfo['fq'][] = 'score:(4 OR 5)';
         $solrInfo['fq'][] = 'created_time:['.$begin_time.' TO '.$end_time.']';
         return $solrInfo;
     }
