@@ -20,45 +20,35 @@ class Image extends \mia\miagroup\Lib\Service
         $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
         $this->imageConfig = \F_Ice::$ins->workApp->config->get('busconf.image');
         $this->img_server = \F_Ice::$ins->workApp->config->get('app.url')['img_url'];
-        $this->imageTempUrl = $runFilePath . '/image/';
+        $this->imageTempUrl = $runFilePath . '/image';
     }
 
     /*
      * 图片裁剪
+     * width 必选
+     * height 必选
+     * x 可选
+     * y 可选
      * */
     public function cropImage($url, $width, $height, $x, $y)
     {
-        if(empty($url)) {
+        if(empty($url) || empty($width) || empty($height)) {
             return $this->succ();
         }
-        if(empty($x)) {
-            $x = null;
-        }
-        if(empty($y)) {
-            $y = null;
-        }
-        if(empty(strstr($url, 'http'))) {
-            $url = substr($this->img_server, 0, strrpos($this->img_server, '/')) . $url;
-        }
-        $fileName = md5($url);
-        $this->imageTempUrl = 'D:/tmpfile';
-        if (!file_exists($this->imageTempUrl)) {
-            mkdir($this->imageTempUrl, 0777, true);
-        }
-        $img_info = $this->image->downloadImage($url, $fileName, $this->imageTempUrl);
+        // 图片下载
+        $img_info = $this->downLoad($url)['data'];
         if(empty($img_info)) {
             return $this->succ();
         }
         $temp_url = $img_info['saveDir'].'/'.$img_info['fileName'];
         $new_Dir = $img_info['saveDir'].'/crop';
-
         if (!file_exists($new_Dir)) {
             mkdir($new_Dir, 0777, true);
         }
         $newUrl = $new_Dir.'/'.$img_info['fileName'];
         $this->image->crop($temp_url, $newUrl, $width, $height,$x, $y);
         // 上传图片
-        $post = $this->handleImgData($newUrl);
+        $post = $this->handleImgData()['data'];
         $path = $this->image->uploadImage($post, $newUrl);
         return $this->succ($path);
     }
@@ -80,7 +70,48 @@ class Image extends \mia\miagroup\Lib\Service
         $post_data['sign'] = $sign;
         $post_data['timestemp'] = $params['timestemp'];
         $post_data['type'] = $params['type'];
-        return $post_data;
+        return $this->succ($post_data);
     }
 
+    /*
+     * 图片下载
+     * */
+    public function downLoad($url)
+    {
+        if(empty(strstr($url, 'http'))) {
+            $url = substr($this->img_server, 0, strrpos($this->img_server, '/')) . $url;
+        }
+        // 图片名唯一
+        $fileName = md5($url.time());
+        //$this->imageTempUrl = 'D:/tmpfile/image';
+        if (!file_exists($this->imageTempUrl)) {
+            mkdir($this->imageTempUrl, 0777, true);
+        }
+        $img_info = $this->image->downloadImage($url, $fileName, $this->imageTempUrl);
+        return $this->succ($img_info);
+    }
+
+    /*
+    * 图片美化
+    * */
+    public function beautyImage($url)
+    {
+        if(empty($url)) {
+            return $this->succ();
+        }
+        $img_info = $this->downLoad($url)['data'];
+        if(empty($img_info)) {
+            return $this->succ();
+        }
+        //临时图片保存路径
+        $temp_url = $img_info['saveDir'].'/'.$img_info['fileName'];
+        $new_Dir = $img_info['saveDir'].'/beauty';
+        if (!file_exists($new_Dir)) {
+            mkdir($new_Dir, 0777, true);
+        }
+        $newUrl = $new_Dir.'/'.$img_info['fileName'];
+        $this->image->beauty($temp_url, $newUrl);
+        echo 'OK';exit;
+        // 上传图片
+    }
 }
