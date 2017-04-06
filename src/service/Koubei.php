@@ -964,11 +964,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $item_id        可选
      * @param $issue_type[default:koubei]  发布类型
      */
-    public function issueinit($order_id = 0, $item_id = 0, $issue_type){
+    public function issueinit($order_id = 0, $item_id = 0, $issue_type = 'koubei'){
 
-        if(empty($issue_type)){
-            return $this->error(500);
-        }
         // 发布口碑传入，帖子不需要传
         if($issue_type == 'koubei') {
             if(empty($order_id) || empty($item_id)) {
