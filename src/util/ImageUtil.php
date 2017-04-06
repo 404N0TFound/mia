@@ -74,7 +74,7 @@ class ImageUtil
     /*
      * 图片锐化
      * */
-    public function sharpen($path, $newPath, $level)
+    public function sharpenImg($path, $newPath, $level)
     {
         $img = $this->imgSource->make($path);
         $img->sharpen($level);
@@ -84,7 +84,7 @@ class ImageUtil
     /*
      * 图片对比
      * */
-    public function contrast($path, $newPath, $level)
+    public function contrastImg($path, $newPath, $level)
     {
         $img = $this->imgSource->make($path);
         $img->contrast($level);
@@ -141,7 +141,7 @@ class ImageUtil
             return '';
         }
         // 获取文件原文件名
-        $defaultFileName = basename($url);
+        //$defaultFileName = basename($url);
 
         // 获取文件类型
         $suffix = substr(strrchr($url, '.'), 1);
@@ -151,7 +151,8 @@ class ImageUtil
         // 固定后缀
         $suffix = 'jpg';
         // 设置保存后的文件名
-        $fileName = $fileName == '' ? time() . rand(0, 9) . '.' . $suffix : $defaultFileName;
+        //$fileName = $fileName == '' ? time() . rand(0, 9) . '.' . $suffix : $defaultFileName;
+        $fileName = $fileName . '.' . $suffix;
 
         // 获取远程文件资源
         if ($type) {
@@ -185,4 +186,18 @@ class ImageUtil
         return $img_info;
     }
 
+    /*
+    * 图片美化
+    * */
+    public function beauty($path, $newPath)
+    {
+        $img = $this->imgSource->make($path);
+        // 亮度 10
+        $img->brightness(8);
+        // 对比度 15
+        $img->contrast(8);
+        // 锐化 30
+        $img->sharpen(16);
+        $img->save($newPath);
+    }
 }
