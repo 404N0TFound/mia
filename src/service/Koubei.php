@@ -5,6 +5,7 @@ use mia\miagroup\Model\Koubei as KoubeiModel;
 use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
+use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
 use mia\miagroup\Remote\Coupon as CouponRemote;
@@ -959,42 +960,56 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
     /**
      * solr 口碑发布初始化
-     * @param $order_code        订单编号（预留字段，暂时不用）
-     * @param $item_id           商品SKU
-     * @ return issue_reward     口碑发布奖励
-     * @ return selection_labels 甄选商品印象标签
-     * @ return item_info        商品详情
+     * @param $order_id       可选
+     * @param $item_id        可选
+     * @param $issue_type[default:koubei]  发布类型
      */
-    public function issueinit($order_code = 0, $item_id = 0){
+    public function issueinit($order_id = 0, $item_id = 0, $issue_type){
 
-        if(empty($item_id)){
+        if(empty($issue_type)){
             return $this->error(500);
         }
-        $return_Info = array();
-        $check_res = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
-        if(empty($check_res)) {
-            // 首评
-            $batch_info = $this->koubeiConfig['shouping'];
-            $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
+        // 发布口碑传入，帖子不需要传
+        if($issue_type == 'koubei') {
+            if(empty($order_id) || empty($item_id)) {
+                return $this->error(500);
+            }
         }
+        $return_Info = array();
+        switch ($issue_type) {
+            case 'subject':
+                # 帖子
+                $label_service = new LabelService();
+                $labels = $label_service->getRecommendLabels()['data'];
+                $return_Info['labels'] = $labels;
+                break;
 
-        // 甄选商品，获取一级分类
-        $item_service = new ItemService();
-        $parent_cate_id = $item_service->getRelationCateId($item_id, 1)['data'];
-        $selection_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_cate');
-        $relation = $selection_labels[$parent_cate_id];
-        $q_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_quality_labels_'.$relation);
-        $p_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_price_labels');
-        $e_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_exper_labels');
+            default:
+                # 口碑
+                $check_res = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
+                if(empty($check_res)) {
+                    // 首评
+                    $batch_info = $this->koubeiConfig['shouping'];
+                    $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
+                }
 
-        $return_Info['selection_labels'][] = $q_labels;
-        $return_Info['selection_labels'][] = $p_labels;
-        $return_Info['selection_labels'][] = $e_labels;
+                // 甄选商品
+                $item_service = new ItemService();
+                $parent_cate_id = $item_service->getRelationCateId($item_id, 1)['data'];
+                $selection_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_cate');
+                $relation = $selection_labels[$parent_cate_id];
+                $q_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_quality_labels_'.$relation);
+                $p_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_price_labels');
+                $e_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_exper_labels');
+                $return_Info['selection_labels'][] = $q_labels;
+                $return_Info['selection_labels'][] = $p_labels;
+                $return_Info['selection_labels'][] = $e_labels;
 
-        // 商品信息
-        $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
-        $return_Info['item_info'] = $item_info[$item_id];
-
+                // 商品信息
+                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+                $return_Info['item_info'] = $item_info[$item_id];
+                break;
+        }
         return $this->succ($return_Info);
     }
 
