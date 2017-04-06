@@ -12,6 +12,8 @@ class Robot extends \DB_Query {
     protected $tableSubjectMaterial = 'group_robot_subject_materials';
     //编辑帖子表
     protected $tableEditorSubject = 'group_robot_editor_subject';
+    //文本素材表
+    protected $tableTextMaterial = 'group_robot_text_material';
     
     /**
      * 查询帖子素材表
@@ -82,6 +84,33 @@ class Robot extends \DB_Query {
                         break;
                     case 'create_end_time':
                         $where[] = [':le','create_time', $v];
+                        break;
+                    default:
+                        $where[] = [$k, $v];
+                }
+            }
+        }
+        $result['count'] = $this->count($where);
+        if (intval($result['count']) <= 0) {
+            return $result;
+        }
+        $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        return $result;
+    }
+    
+    /**
+     * 查询文本素材表
+     */
+    public function getTextMaterialData($cond, $offset = 0, $limit = 50, $orderBy = '') {
+        $this->tableName = $this->tableTextMaterial;
+        $result = array('count' => 0, 'list' => array());
+        $where = array();
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'text':
+                        $where[] = [':like_literal','text', "%$v%"];
                         break;
                     default:
                         $where[] = [$k, $v];

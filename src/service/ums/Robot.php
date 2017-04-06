@@ -102,4 +102,28 @@ class Robot extends \mia\miagroup\Lib\Service {
         return $this->succ($result);
     }
     
+    /**
+     * 获取文本素材列表
+     */
+    public function getTextMaterialList($params, $page = 1, $limit = 20) {
+        $result = array('list' => array(), 'count' => 0);
+        $condition = array();
+        //初始化入参
+        $orderBy = 'id asc'; //默认排序
+        
+        if (!empty($params['category'])) {
+            $condition['category'] = $params['category'];
+        }
+        if (!empty($params['type'])) {
+            $condition['type'] = $params['type'];
+        }
+        if (!empty($params['text'])) {
+            $condition['text'] = $params['text'];
+        }
+        $offset = ($page - 1) * $limit;
+        $avatar_material_list = $this->robotModel->getTextMaterialData($condition, $offset, $limit, $orderBy);
+        $result['list'] = $avatar_material_list['list'];
+        $result['count'] = $avatar_material_list['count'];
+        return $this->succ($result);
+    }
 }
