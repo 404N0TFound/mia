@@ -3,6 +3,7 @@ namespace mia\miagroup\Daemon\Temp;
 
 use mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Album\AlbumArticle;
+use mia\miagroup\Service\Image as ImageService;
 
 /**
  * 帖子相关-临时脚本
@@ -10,12 +11,17 @@ use mia\miagroup\Data\Album\AlbumArticle;
  
 class Subject extends \FD_Daemon {
 
+    private $lastIdFile;
+    private $tempFilePath;
     public function __construct() {
         $this->subjectData = new SubjectData();
+        //加载定时脚本临时文件存放地址
+        $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
+        $this->tempFilePath = $runFilePath . '/subject/';
     }
 
     public function execute() {
-        $this->editSubjectImg();exit;
+        $this->beautyImg();exit;
     }
     
     /**
@@ -95,5 +101,75 @@ class Subject extends \FD_Daemon {
             }
             fclose($handle);
         }
+    }
+
+    /*
+     * 美化图片
+     * */
+    public function beautyImg()
+    {
+        $image_service = new ImageService();
+        $this->lastIdFile = $this->tempFilePath . 'subject_last_id';
+        //$this->lastIdFile = 'D:/tmpfile/subject_last_id';
+        //读取上一次处理的id
+        if (!file_exists($this->lastIdFile)) { //打开文件
+            $lastId = 0;
+            $fpLastIdFile = fopen($this->lastIdFile, 'w');
+        } else {
+            $fpLastIdFile = fopen($this->lastIdFile, 'r+');
+        }
+        if (!flock($fpLastIdFile, LOCK_EX | LOCK_NB)) { //加锁
+            fclose($fpLastIdFile);
+            return;
+        }
+
+        if (!isset($lastId)) { //获取last_id
+            $lastId .= fread($fpLastIdFile, 1024);
+            $lastId = intval($lastId);
+        }
+
+        $subjectData = new \mia\miagroup\Data\Subject\Subject();
+        $data = $subjectData->query('select id, ext_info from group_subjects where ext_info != "" and id > '.$lastId.' limit 10');
+        if (empty($data)) {
+            echo '没有匹配数据';exit;
+        }
+        foreach ($data as $value) {
+            $beauty = [];
+            $beauty_image = [];
+            if (isset($maxId)) { //获取最大event_id
+                $maxId = $value['id'] > $maxId ? $value['id'] : $maxId;
+            } else {
+                $maxId = $value['id'];
+            }
+            $ext_info = json_decode($value['ext_info'], true);
+            $image_list = $ext_info['image'];
+            if(empty($image_list)) {
+                continue;
+            }
+            foreach ($image_list as $image) {
+                if(!empty($image['url'])) {
+                    $image_url = $image_service->beautyImage($image['url'])['data'];
+                    if(empty($image_url)){
+                        continue;
+                    }
+                    $beauty['url'] = $image_url;
+                    $beauty['width'] = $image['width'];
+                    $beauty['height'] = $image['height'];
+                }
+                $beauty_image[] = $beauty;
+            }
+            $ext_info['beauty_image'] = $beauty_image;
+            $res = $subjectData->query('update group_subjects set ext_info = \''.json_encode($ext_info) . '\' where id = '.$value['id']);
+            if(!empty($res)) {
+                if (isset($maxId)) {
+                    fseek($fpLastIdFile, 0, SEEK_SET);
+                    ftruncate($fpLastIdFile, 0);
+                    fwrite($fpLastIdFile, $maxId);
+                    echo "当前操作id为：".$maxId."\r\n";
+                }
+            }
+        }
+        flock($fpLastIdFile, LOCK_UN);
+        fclose($fpLastIdFile);
     }
 }
