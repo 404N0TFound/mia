@@ -110,6 +110,8 @@ class Subject extends \FD_Daemon {
     {
         $image_service = new ImageService();
         $this->lastIdFile = $this->tempFilePath . 'subject_last_id';
+        $succFile = '/home/xiekun/succ_img_id';
+        $fp = fopen($succFile, 'a+');
         //$this->lastIdFile = 'D:/tmpfile/subject_last_id';
         //读取上一次处理的id
         if (!file_exists($this->lastIdFile)) { //打开文件
@@ -141,6 +143,14 @@ class Subject extends \FD_Daemon {
             } else {
                 $maxId = $value['id'];
             }
+            if(!empty($value['id'])) {
+                if (isset($maxId)) {
+                    fseek($fpLastIdFile, 0, SEEK_SET);
+                    ftruncate($fpLastIdFile, 0);
+                    fwrite($fpLastIdFile, $maxId);
+                    echo "当前操作id：".$value['id']."\r\n";
+                }
+            }
             $ext_info = json_decode($value['ext_info'], true);
             $image_list = $ext_info['image'];
             if(empty($image_list)) {
@@ -161,12 +171,7 @@ class Subject extends \FD_Daemon {
             $ext_info['beauty_image'] = $beauty_image;
             $res = $subjectData->query('update group_subjects set ext_info = \''.json_encode($ext_info) . '\' where id = '.$value['id']);
             if(!empty($res)) {
-                if (isset($maxId)) {
-                    fseek($fpLastIdFile, 0, SEEK_SET);
-                    ftruncate($fpLastIdFile, 0);
-                    fwrite($fpLastIdFile, $maxId);
-                    echo "当前操作id为：".$maxId."\r\n";
-                }
+                fwrite($fp, $value['id']."\n");
             }
         }
         flock($fpLastIdFile, LOCK_UN);
