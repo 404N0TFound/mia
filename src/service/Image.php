@@ -50,7 +50,8 @@ class Image extends \mia\miagroup\Lib\Service
         // 上传图片
         $post = $this->handleImgData()['data'];
         $path = $this->image->uploadImage($post, $newUrl);
-        return $this->succ($path);
+        $return_url = substr($this->img_server, 0, strrpos($this->img_server, '/')) . $path;
+        return $this->succ($return_url);
     }
 
     /*
