@@ -106,13 +106,15 @@ class Image extends \mia\miagroup\Lib\Service
         }
         //临时图片保存路径
         $temp_url = $img_info['saveDir'].'/'.$img_info['fileName'];
-        $new_Dir = $img_info['saveDir'].'/beauty';
+        $new_Dir = $this->imageTempUrl.'/beauty';
         if (!file_exists($new_Dir)) {
             mkdir($new_Dir, 0777, true);
         }
         $newUrl = $new_Dir.'/'.$img_info['fileName'];
         $this->image->beauty($temp_url, $newUrl);
-        echo 'OK';exit;
         // 上传图片
+        $post = $this->handleImgData()['data'];
+        $path = $this->image->uploadImage($post, $newUrl);
+        return $this->succ($path);
     }
 }
