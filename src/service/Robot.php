@@ -114,14 +114,26 @@ class Robot extends \mia\miagroup\Lib\Service {
                     } 
                     $tmp_item['name'] = $item['item_name'];
                     $tmp_item['is_outer'] = $item['is_outer'];
+                    if (!empty($item['brand_id'])) {
+                        $tmp_item['brand_id'] = $item['brand_id'];
+                    }
                     if (!empty($item['brand_name'])) {
                         $tmp_item['brand_name'] = $item['brand_name'];
+                    }
+                    if (!empty($item['category_id'])) {
+                        $tmp_item['category_id'] = $item['category_id'];
                     }
                     if (!empty($item['category_name'])) {
                         $tmp_item['category_name'] = $item['category_name'];
                     }
                     if (!empty($item['item_pic'])) {
                         $tmp_item['item_pic'] = $item['item_pic'];
+                    }
+                    if (!empty($item['item_price'])) {
+                        $tmp_item['item_price'] = $item['item_price'];
+                    }
+                    if (!empty($item['redirect'])) {
+                        $tmp_item['redirect'] = $item['redirect'];
                     }
                 } else {
                     if ($item['item_id'] > 0) {
