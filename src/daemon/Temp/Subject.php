@@ -11,8 +11,13 @@ use mia\miagroup\Service\Image as ImageService;
  
 class Subject extends \FD_Daemon {
 
+    private $lastIdFile;
+    private $tempFilePath;
     public function __construct() {
         $this->subjectData = new SubjectData();
+        //加载定时脚本临时文件存放地址
+        $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
+        $this->tempFilePath = $runFilePath . '/subject/';
     }
 
     public function execute() {
