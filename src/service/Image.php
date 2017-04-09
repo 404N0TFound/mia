@@ -80,6 +80,11 @@ class Image extends \mia\miagroup\Lib\Service
     public function downLoad($url)
     {
         if(empty(strstr($url, 'http'))) {
+            // 判断url首部是否带/
+            $flag = strpos($url, '/');
+            if($flag != 0) {
+                $url = '/'.$url;
+            }
             $url = substr($this->img_server, 0, strrpos($this->img_server, '/')) . $url;
         }
         // 图片名唯一
