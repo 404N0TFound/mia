@@ -83,6 +83,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (empty($editor_subject_info['material_id']) || empty($editor_subject_info['content']) || empty($editor_subject_info['pub_user']) || empty($editor_subject_info['op_admin'])) {
             $this->error(500);
         }
+        $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
         $insert_data = array();
         $ext_info = array();
         //素材ID
@@ -132,8 +133,16 @@ class Robot extends \mia\miagroup\Lib\Service {
                     if (!empty($item['item_price'])) {
                         $tmp_item['item_price'] = $item['item_price'];
                     }
-                    if (!empty($item['redirect'])) {
-                        $tmp_item['redirect'] = $item['redirect'];
+                    switch ($item['redirect']) {
+                        case 'brand':
+                            $tmp_item['redirect'] = sprintf($app_mapping_config['category_detail'], $tmp_item['brand_id'], 'brand', $tmp_item['brand_name']);
+                            break;
+                        case 'category':
+                            $tmp_item['redirect'] = sprintf($app_mapping_config['category_detail'], $tmp_item['category_id'], 'category', $tmp_item['category_name']);
+                            break;
+                        default:
+                            $tmp_item['redirect'] = sprintf($app_mapping_config['search_result'], $tmp_item['name'], $tmp_item['brand_id'], $tmp_item['category_id']);
+                            break;
                     }
                 } else {
                     if ($item['item_id'] > 0) {
@@ -263,6 +272,9 @@ class Robot extends \mia\miagroup\Lib\Service {
         $data = array();
         $data['id'] = $import_data['id'];
         $data['avatar'] = $import_data['link'];
+        if (!empty($import_data['category'])) {
+            $data['category'] = $import_data['category'];
+        }
         $data['create_time'] = date('Y-m-d H:i:s');
         $result = $this->robotModel->addAvatarMaterial($data);
         return $this->succ($result);
@@ -314,6 +326,21 @@ class Robot extends \mia\miagroup\Lib\Service {
         //$data['create_time'] = date('Y-m-d H:i:s');
         
         $result = $this->robotModel->addSubjectMaterial($data);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 导入昵称素材
+     */
+    public function importNicknameMaterial($import_data) {
+        if (empty($import_data['id'])) {
+            return $this->error(500);
+        }
+        $data = array();
+        $data['text'] = $import_data['nickname'];
+        $data['type'] = 'nickname';
+        $data['category'] = $import_data['category'];
+        $result = $this->robotModel->addTextMaterial($data);
         return $this->succ($result);
     }
     
