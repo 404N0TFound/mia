@@ -45,9 +45,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             //获取口碑信息，验证是否该口碑已经发布过
             $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id'], strval($koubeiData['item_size']));
-            if(!empty($koubeiInfo)){
+            /*if(!empty($koubeiInfo)){
                 return $this->error(6103);
-            }
+            }*/
         }
 
         //保存口碑
@@ -67,6 +67,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels = array();
         $labels['label'] = array();
         $labels['image'] = array();
+
         // 5.3 新增发布类型（针对封测报告）
         if(isset($koubeiData['type']) && $koubeiData['type'] == 'pick') {
             // 封测报告默认是没有评分的
@@ -88,12 +89,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         // 5.3 口碑新增 甄选商品印象标签(三个维度)
         $labels['selection_label'] = array();
+        $noRecommend_arr = \F_Ice::$ins->workApp->config->get('busconf.koubei.norecommend_flag');
         if(!empty($koubeiData['selection_labels'])) {
             $no_recommend_ident = 0;
             foreach($koubeiData['selection_labels'] as $selection_label) {
                 $labels['selection_label'][] = $selection_label['tag_name'];
                 // 1:推荐 2:不推荐
-                if($selection_label['positive'] == 2) {
+                if($selection_label['positive'] == 2 && in_array($selection_label['tag_name'], $noRecommend_arr)) {
                     $no_recommend_ident += 1;
                 }
             }
@@ -103,6 +105,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             // 默认蜜芽圈封测标签
             $labels['label'][] = '封测报告';
+        }
+
+        // 5.3 新增需求，验证是普通口碑还是封测报告(0:为口碑，1:封测报告)
+        $koubeiSetData['type']  = "0";
+        if (!empty($koubeiSetData['order_id'])){
+            //获取订单信息
+            $orderService = new OrderService();
+            $orderInfos = $orderService->getOrderInfoByIds([$koubeiSetData['order_id']])['data'];
+            if($orderInfos[$koubeiSetData['order_id']]['from_type'] == 8) {
+                $koubeiSetData['type']  = "1";
+            }
         }
 
         // 排序权重新增封测报告逻辑
