@@ -976,6 +976,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         switch ($issue_type) {
             case 'subject':
                 # 帖子
+                $issue_info = \F_Ice::$ins->workApp->config->get('batchdiff.subject_issue')['issue'];
+                $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($issue_info, $issue_type);
                 $label_service = new LabelService();
                 $labels = $label_service->getRecommendLabels()['data'];
                 $return_Info['labels'] = $labels;
@@ -987,7 +989,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 if(empty($check_res)) {
                     // 首评
                     $batch_info = $this->koubeiConfig['shouping'];
-                    $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
+                    $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info, $issue_type);
                 }
 
                 // 甄选商品
