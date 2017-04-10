@@ -1296,6 +1296,10 @@ $selection_price_labels = array(
             'positive' => 2,
         ),
         array(
+            'tag_name' => '定价太高',
+            'positive' => 2,
+        ),
+        array(
             'tag_name' => '不太值',
             'positive' => 2,
         ),
@@ -1383,3 +1387,14 @@ $selection_cate = array(
     10261 => 'R',
     10266 => 'S',
 );
+
+
+/**
+ * 封测报告不推荐标签
+ */
+$norecommend_flag = array(
+    '定价太高',
+    '物流巨慢',
+    '质量很差',
+);
+
