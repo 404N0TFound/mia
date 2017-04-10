@@ -27,13 +27,13 @@ class ShumeiUtil
         $params['type'] = $this->_config['type'];
         $params['data']['text'] = $text;
         $params['data']['tokenId'] = strval($this->session_info['dvc_id']);
-        $post_data = json_encode($params);
+        $post_data = json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         $result = $remote_curl->curl_remote('', $post_data);
 
         $return = true;
 
-        if ($result['code'] = !1100 || $result['riskLevel'] != "PASS") {
+        if ($result['code'] != 1100 || $result['riskLevel'] != "PASS") {
             $reason = json_decode($result['detail'], true);
             $return = $reason['description'] ? $reason['description'] : "内容不合法";
         }
