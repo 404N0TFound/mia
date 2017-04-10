@@ -255,7 +255,7 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         $activeIds = array($activeId);
         $subjectArrs = $this->activeModel->getBatchActiveSubjects($activeIds, $type, $page, $limit);
-        if(empty($subjectArrs) || empty($subjectArrs['$activeId'])){
+        if(empty($subjectArrs) || empty($subjectArrs[$activeId])){
             return $this->succ($data);
         }
         $subjectIds = array_column($subjectArrs[$activeId], 'subject_id');
