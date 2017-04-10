@@ -126,4 +126,20 @@ class Robot extends \mia\miagroup\Lib\Service {
         $result['count'] = $avatar_material_list['count'];
         return $this->succ($result);
     }
+    
+    /**
+     * 获取素材抓取来源
+     */
+    public function getSubjectMaterialSources() {
+        $result = $this->robotModel->getSubjectMaterialSource();
+        return $this->succ($result);
+    }
+    
+    /**
+     * 获取素材内容分类
+     */
+    public function getSubjectMaterialCategorys() {
+        $result = $this->robotModel->getSubjectMaterialCategory();
+        return $this->succ($result);
+    }
 }
