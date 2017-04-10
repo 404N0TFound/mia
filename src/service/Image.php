@@ -50,7 +50,8 @@ class Image extends \mia\miagroup\Lib\Service
         // 上传图片
         $post = $this->handleImgData()['data'];
         $path = $this->image->uploadImage($post, $newUrl);
-        return $this->succ($path);
+        $return_url = substr($this->img_server, 0, strrpos($this->img_server, '/')) . $path;
+        return $this->succ($return_url);
     }
 
     /*
@@ -79,6 +80,11 @@ class Image extends \mia\miagroup\Lib\Service
     public function downLoad($url)
     {
         if(empty(strstr($url, 'http'))) {
+            // 判断url首部是否带/
+            $flag = strpos($url, '/');
+            if($flag != 0) {
+                $url = '/'.$url;
+            }
             $url = substr($this->img_server, 0, strrpos($this->img_server, '/')) . $url;
         }
         // 图片名唯一
@@ -105,13 +111,15 @@ class Image extends \mia\miagroup\Lib\Service
         }
         //临时图片保存路径
         $temp_url = $img_info['saveDir'].'/'.$img_info['fileName'];
-        $new_Dir = $img_info['saveDir'].'/beauty';
+        $new_Dir = $this->imageTempUrl.'/beauty';
         if (!file_exists($new_Dir)) {
             mkdir($new_Dir, 0777, true);
         }
         $newUrl = $new_Dir.'/'.$img_info['fileName'];
         $this->image->beauty($temp_url, $newUrl);
-        echo 'OK';exit;
         // 上传图片
+        $post = $this->handleImgData()['data'];
+        $path = $this->image->uploadImage($post, $newUrl);
+        return $this->succ($path);
     }
 }

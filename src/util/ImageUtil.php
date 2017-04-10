@@ -158,7 +158,7 @@ class ImageUtil
         if ($type) {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 50);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
             $file = curl_exec($ch);
@@ -193,11 +193,11 @@ class ImageUtil
     {
         $img = $this->imgSource->make($path);
         // 亮度 10
-        $img->brightness(8);
+        $img->brightness(7);
         // 对比度 15
-        $img->contrast(8);
+        $img->contrast(7);
         // 锐化 30
-        $img->sharpen(16);
+        $img->sharpen(14);
         $img->save($newPath);
     }
 }
