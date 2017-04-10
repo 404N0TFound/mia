@@ -55,15 +55,14 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (!empty($params['op_admin'])) {
             $condition['op_admin'] = $params['op_admin'];
         }
-        if (in_array($params['status'], $this->robotConfig['subject_material_status'])) {
+        if (isset($params['status']) && in_array($params['status'], $this->robotConfig['subject_material_status'])) {
             $condition['status'] = $params['status'];
         }
         $offset = ($page - 1) * $limit;
         $subject_material_list = $this->robotModel->getSubjectMaterialData($condition, $offset, $limit, $orderBy)['list'];
-        
         //获取结果集数据
         $robot_service = new \mia\miagroup\Service\Robot();
-        $result['list'] = $robot_service->getBatchSubjectMaterial($subject_material_list['list']);
+        $result['list'] = $robot_service->getBatchSubjectMaterial($subject_material_list);
         $result['count'] = $subject_material_list['count'];
         return $this->succ($result);
     }
