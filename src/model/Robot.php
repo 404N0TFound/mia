@@ -6,11 +6,13 @@ class Robot {
     private $avatarMaterialData;
     private $editorSubjectData;
     private $subjectMaterialData;
+    private $textMaterialData;
     
     public function __construct() {
         $this->avatarMaterialData = new \mia\miagroup\Data\Robot\AvatarMaterial();
         $this->editorSubjectData = new \mia\miagroup\Data\Robot\EditorSubject();
         $this->subjectMaterialData = new \mia\miagroup\Data\Robot\SubjectMaterial();
+        $this->textMaterialData = new \mia\miagroup\Data\Robot\TextMaterial();
     }
     
     /**
@@ -77,6 +79,14 @@ class Robot {
             $this->subjectMaterialData->updateSubjectMaterialById($subject_material_info['id'], $subject_material_info);
         }
         return $subject_material_info['id'];
+    }
+    
+    /**
+     * 新增文本素材
+     */
+    public function addTextMaterial($text_material_info) {
+        $result = $this->textMaterialData->addTextMaterail($text_material_info);
+        return $result;
     }
     
     /**

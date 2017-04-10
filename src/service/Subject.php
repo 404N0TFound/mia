@@ -467,7 +467,27 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }
-            if (!empty($subjectInfo['ext_info']['image'])) {
+            // 美化图片
+            if (!empty($subjectInfo['ext_info']['beauty_image'])) {
+                $imageInfos = $subjectInfo['ext_info']['beauty_image'];
+                if (is_array($imageInfos) && !empty($imageInfos)) {
+                    foreach ($imageInfos as $key => $image) {
+                        if(!empty($image['width'])){
+                            $img_info = NormalUtil::buildImgUrl($image['url'],'watermark',$image['width'],$image['height']);
+                            $imageUrl[$key]['width'] = $img_info['width'];
+                            $imageUrl[$key]['height'] = $img_info['height'];
+                            $imageUrl[$key]['url'] = $img_info['url'];
+                            $smallImageUrl[$key] = NormalUtil::buildImgUrl($image['url'],'small')['url'];
+                            $bigImageUrl[$key] = $img_info['url'];
+                            $small_img_info = NormalUtil::buildImgUrl($image['url'],'koubeismall',$image['width'],$image['height']);
+                            $smallImageInfos[$key]['width'] = $small_img_info['width'];
+                            $smallImageInfos[$key]['height'] = $small_img_info['height'];
+                            $smallImageInfos[$key]['url'] = $small_img_info['url'];
+                        }
+                    }
+                }
+            }
+            if (!empty($subjectInfo['ext_info']['image']) && empty($subjectInfo['ext_info']['beauty_image'])) {
                 $imageInfos = $subjectInfo['ext_info']['image'];
                 if (is_array($imageInfos) && !empty($imageInfos)) {
                     foreach ($imageInfos as $key => $image) {

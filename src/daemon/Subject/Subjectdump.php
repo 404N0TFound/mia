@@ -168,15 +168,20 @@ class Subjectdump extends \FD_Daemon {
             $dumpdata['id'] = $subject['id'];
             //用户ID
             $dumpdata['user_id'] = $subject['user_id'];
-            //帖子类型
-            if (intval($subject['koubei_id']) > 0) {
-                $dumpdata['subject_type'] = 'koubei';
-            } else if (!empty($subject['album_article'])) {
-                $dumpdata['subject_type'] = 'album_article';
-            } else if (!empty($subject['video_info'])) {
-                $dumpdata['subject_type'] = 'video';
-            } else {
-                $dumpdata['subject_type'] = 'normal';
+            //帖子来源
+            switch ($subject['source']) {
+                case 1:
+                    $dumpdata['subject_source'] = 'normal';
+                    break;
+                case 2:
+                    $dumpdata['subject_source'] = 'koubei';
+                    break;
+                case 4:
+                    $dumpdata['subject_source'] = 'editor';
+                    break;
+                default:
+                    $dumpdata['subject_source'] = 'normal';
+                    break;
             }
             //帖子图片张数
             $dumpdata['image_count'] = count($subject['image_infos']);
