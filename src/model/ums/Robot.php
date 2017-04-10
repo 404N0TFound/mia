@@ -124,4 +124,34 @@ class Robot extends \DB_Query {
         $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
         return $result;
     }
+    
+    /**
+     * 查询帖子素材抓取来源
+     */
+    public function getSubjectMaterialSource() {
+        $this->tableName = $this->tableSubjectMaterial;
+        $sql = "SELECT DISTINCT(`source`) from {$this->tableName}";
+        $data = $this->query($sql);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[] = $v['source'];
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * 查询帖子素材抓取来源
+     */
+    public function getSubjectMaterialCategory() {
+        $this->tableName = $this->tableSubjectMaterial;
+        $sql = "SELECT DISTINCT(`category`) from {$this->tableName}";
+        $data = $this->query($sql);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[] = $v['category'];
+            }
+        }
+        return $result;
+    }
 }
