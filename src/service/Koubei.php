@@ -45,9 +45,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             //获取口碑信息，验证是否该口碑已经发布过
             $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id'], strval($koubeiData['item_size']));
-            /*if(!empty($koubeiInfo)){
+            if(!empty($koubeiInfo)){
                 return $this->error(6103);
-            }*/
+            }
         }
 
         //保存口碑
@@ -67,7 +67,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels = array();
         $labels['label'] = array();
         $labels['image'] = array();
-
         // 5.3 新增发布类型（针对封测报告）
         if(isset($koubeiData['type']) && $koubeiData['type'] == 'pick') {
             // 封测报告默认是没有评分的
