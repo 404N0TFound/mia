@@ -415,18 +415,28 @@ class Koubei {
     /**
      * 首评口碑奖励及图片提示
      */
-    public function getBatchKoubeiByDefaultInfo($batch_info = array()){
+    public function getBatchKoubeiByDefaultInfo($batch_info = array(), $issue_type = 'koubei'){
         $res = array();
         if(!empty($batch_info)){
             $issue_img      = $batch_info['issue_img'];
             $issue_skip_url = $batch_info['issue_skip_url'];
             $res['issue_reward'] = $batch_info['issue_reward'];
         }
-        // banner 结构体
-        $res['issue_tip_url']['pic']['url']   = $issue_img;
-        $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
-        $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
-        $res['issue_tip_url']['url']          = $issue_skip_url;
+        switch ($issue_type) {
+            case 'subject':
+                // banner 结构体
+                $res['issue_tip_url']['url']          = $issue_skip_url;
+                break;
+
+            default:
+                // banner 结构体
+                $res['issue_tip_url']['pic']['url']   = $issue_img;
+                $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
+                $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
+                $res['issue_tip_url']['url']          = $issue_skip_url;
+                break;
+        }
+
         return $res;
     }
 
