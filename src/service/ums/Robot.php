@@ -62,7 +62,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         $subject_material_list = $this->robotModel->getSubjectMaterialData($condition, $offset, $limit, $orderBy)['list'];
         //获取结果集数据
         $robot_service = new \mia\miagroup\Service\Robot();
-        $result['list'] = $robot_service->getBatchSubjectMaterial($subject_material_list);
+        $result['list'] = $robot_service->getBatchSubjectMaterial($subject_material_list)['data'];
         $result['count'] = $subject_material_list['count'];
         return $this->succ($result);
     }
