@@ -207,7 +207,7 @@ class Item extends \mia\miagroup\Lib\Service {
         $category_path = $this->getParentCatePath($catgory_id_ng)['data'];
         $parent_cate_id = explode('-', $category_path);
         if(!empty($parent_cate_id)) {
-            $parent_category_id = $parent_cate_id[$level - 1];
+            $parent_category_id = $parent_cate_id[$level];
         }
         return $this->succ($parent_category_id);
     }
