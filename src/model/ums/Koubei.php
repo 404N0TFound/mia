@@ -8,7 +8,7 @@ class Koubei extends \DB_Query {
     protected $dbResource = 'miagroupums';
     //口碑
     protected $tableKoubei = 'koubei';
-    protected $indexKoubei = array('id', 'item_id', 'user_id', 'rank_score', 'order_id', 'subject_id', 'created_time','supplier_id');
+    protected $indexKoubei = array('id', 'item_id', 'user_id', 'rank_score', 'order_id', 'subject_id', 'created_time','supplier_id','self_sale');
     //口碑相关蜜芽贴
     protected $tableKoubeiSubjects = 'koubei_subjects';
     protected $tableKoubeiItem = 'group_subject_point_tags';
@@ -28,46 +28,44 @@ class Koubei extends \DB_Query {
         if (!empty($cond)) {
             //检查是否使用索引，没有索引强制加
             if (empty(array_intersect(array_keys($cond), $this->indexKoubei))) {
-                $where[] = [':ge','created_time', date('Y-m-d H:i:s', time() - 86400 * 90)];
+                $where[] = [':ge',$this->tableName. '.created_time', date('Y-m-d H:i:s', time() - 86400 * 90)];
             }
-            $fileds = "*";
+            $orderBy = $this->tableName. '.id desc';
+            $fileds = $this->tableName. '.*';
             $join = null;
-            $orderBy = "id desc";
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
                     case 'status':
-                        $where[] = [$k, $v];
+                        $where[] = [$this->tableName. '.'.$k, $v];
                         if ($v == 2) {
-                            $where[] = [':ne','subject_id', 0];
+                            $where[] = [':ne',$this->tableName. '.subject_id', 0];
                         }
                         break;
                     case 'comment_style':
                         if($v == 1){
-                            $where[] = [':ge','comment_id', $v];
-                            $where[] = [':ge','comment_supplier_id', $v];
+                            $where[] = [':ge',$this->tableName. '.comment_id', $v];
+                            $where[] = [':ge',$this->tableName. '.comment_supplier_id', $v];
                             break;
                         }else{
-                            $where[] = [':gt','comment_id', $v];
-                            $where[] = ['comment_supplier_id', $v];
+                            $where[] = [':gt',$this->tableName. '.comment_id', $v];
+                            $where[] = [$this->tableName. '.comment_supplier_id', $v];
                             break;
                         }
                     case 'start_time':
-                        $where[] = [':ge','created_time', $v];
+                        $where[] = [':ge',$this->tableName. '.created_time', $v];
                         break;
                     case 'end_time':
-                        $where[] = [':le','created_time', $v];
+                        $where[] = [':le',$this->tableName. '.created_time', $v];
                         break;
                     case 'comment_start_time':
-                        $where[] = [':ge','comment_time', $v];
+                        $where[] = [':ge',$this->tableName. '.comment_time', $v];
                         break;
                     case 'comment_end_time':
-                        $where[] = [':le','comment_time', $v];
+                        $where[] = [':le',$this->tableName. '.comment_time', $v];
                         break;
                     case 'self_sale':
                         if (in_array($v,array(0,1))) {
-                            $orderBy = $this->tableName. '.id desc';
-                            $fileds = $this->tableName. '.*';
                             //非自主包括（自营和未开通回复权限的商家）、自主为开通回复权限的商家
                             if($v == 0){
                                 $where[] = [':isnull','sm.supplier_id'];
