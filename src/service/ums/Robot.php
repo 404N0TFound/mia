@@ -52,6 +52,9 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (!empty($params['source'])) {
             $condition['source'] = $params['source'];
         }
+        if (!empty($params['after_id'])) {
+            $condition['after_id'] = $params['after_id'];
+        }
         if (!empty($params['op_admin'])) {
             $condition['op_admin'] = $params['op_admin'];
         }

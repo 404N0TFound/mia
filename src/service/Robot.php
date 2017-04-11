@@ -292,7 +292,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         $data['title'] = $import_data['title'];
         $data['text'] = $import_data['text'];
         if (mb_strlen($import_data['text'], 'utf8') > 30) {
-            $data['short_text'] = mb_substr($import_data['text'], 0, 30, 'utf8');
+            $data['short_text'] = mb_substr($import_data['text'], 0, 60, 'utf8');
         } else {
             $data['short_text'] = $import_data['text'];
         }
