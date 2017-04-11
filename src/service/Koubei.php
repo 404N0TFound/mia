@@ -1817,10 +1817,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
     }
 
     /*
-     * 封测报告列表
-     * $type 获取列表的类型（1：展示推荐，2：正常获取列表）
+     * 封测报告展示列表
+     * $type 获取列表的类型
+     * 默认好评不给展示
      * */
-    public function getSelectionKoubei($itemId, $page=1, $count=20, $type = 2, $userId = 0)
+    public function getSelectionKoubei($itemId, $page=1, $count=20, $userId = 0)
     {
         $koubei_res = array("koubei_info" => array());
         //获取商品的关联商品或者套装单品
@@ -1844,15 +1845,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
 
-        if(!empty($type) && $type == 1) {
-            // 展示推荐3条封测报告(如果第一屏没有符合要求，不展示)
-            foreach($koubei_infos as $k => $koubei) {
-                $extr_info = $koubei['item_koubei']['extr_info'];
-                if(!empty($extr_info)) {
-                    $extr_info = json_decode($extr_info, true);
-                    if(empty($extr_info['selection'])) {
-                        unset($koubei_infos[$k]);
-                    }
+        // 展示推荐3条封测报告(如果第一屏没有符合要求，不展示)
+        foreach($koubei_infos as $k => $koubei) {
+            $extr_info = $koubei['item_koubei']['extr_info'];
+            if(!empty($extr_info)) {
+                $extr_info = json_decode($extr_info, true);
+                if(empty($extr_info['selection'])) {
+                    unset($koubei_infos[$k]);
                 }
             }
         }
