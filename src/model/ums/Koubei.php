@@ -32,7 +32,7 @@ class Koubei extends \DB_Query {
             }
             $fileds = "*";
             $join = null;
-            $orderBy = "id";
+            $orderBy = "id desc";
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
@@ -66,7 +66,7 @@ class Koubei extends \DB_Query {
                         break;
                     case 'self_sale':
                         if (in_array($v,array(0,1))) {
-                            $orderBy = $this->tableName. '.id';
+                            $orderBy = $this->tableName. '.id desc';
                             $fileds = $this->tableName. '.*';
                             //非自主包括（自营和未开通回复权限的商家）、自主为开通回复权限的商家
                             if($v == 0){
