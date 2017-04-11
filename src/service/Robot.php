@@ -323,7 +323,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         $data['keyword'] = $import_data['keyword'];
         $data['brand'] = $import_data['brand'];
         $data['source'] = $import_data['source'];
-        //$data['create_time'] = date('Y-m-d H:i:s');
+        $data['create_time'] = date('Y-m-d H:i:s');
         
         $result = $this->robotModel->addSubjectMaterial($data);
         return $this->succ($result);
