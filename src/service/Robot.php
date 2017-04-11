@@ -333,7 +333,7 @@ class Robot extends \mia\miagroup\Lib\Service {
      * 导入昵称素材
      */
     public function importNicknameMaterial($import_data) {
-        if (empty($import_data['id'])) {
+        if (empty($import_data['nickname'])) {
             return $this->error(500);
         }
         $data = array();
