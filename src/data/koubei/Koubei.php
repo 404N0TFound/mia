@@ -98,7 +98,7 @@ class Koubei extends \DB_Query {
             $where[] = ['status', $status];
         }
 
-        $fields = 'id,subject_id,rank_score,created_time,title,content,score,machine_score,rank,immutable_score,item_size,extr_info,item_id,comment_id,user_id,status,order_id,work_order,auto_evaluate';
+        $fields = 'id,subject_id,rank_score,created_time,title,content,score,machine_score,rank,immutable_score,item_size,extr_info,item_id,comment_id,user_id,status,order_id,work_order,auto_evaluate,type';
         $data = $this->getRows($where,$fields);
         
         if (!empty($data)) {

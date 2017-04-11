@@ -153,14 +153,28 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $subjectInfo['image_infos'] = $imageInfos;
         $labelInfos = array();
         if(!empty($labels['label'])) {
-            $labels = $labels['label'];
-            foreach($labels as $label) {
+            //$labels = $labels['label'];
+            foreach($labels['label'] as $label) {
                 $labelInfos[] = array('title' => $label);
             }
         }
+        // 5.3 封测报告标签
+        $selectionLabelInfo = array();
+        if(!empty($labels['selection_label'])) {
+            foreach($labels['selection_label'] as $label) {
+                $selectionLabelInfo[] = array('tag_name' => $label);
+            }
+        }
+
+        // 5.3 封测报告是否推荐
+        $selection = array();
+        if(!empty($labels['selection'])) {
+            $selection['selection'] = $labels['selection'];
+        }
+
         $pointInfo[0] = array( 'item_id' => $koubeiSetData['item_id']);
         
-        $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiInsertId)['data'];
+        $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiInsertId,0,$selectionLabelInfo,$selection)['data'];
         //#############end
         //将帖子id回写到口碑表中
         if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
@@ -432,6 +446,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'comment_id' => $koubei['comment_id'],
                 'auto_evaluate' => $koubei['auto_evaluate'],
                 'extr_info' => $koubei['extr_info'],
+                'type' => $koubei['type']
             );
             //获取口碑订单id，用于获取订单编号(order_code)
             if(!empty($koubei['order_id'])){
@@ -473,7 +488,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
                 }
                 $selection_label = array();
-                // 把口碑甄选商品标签拼到口碑信息中
+                // 封测报告标签拼到口碑信息中
                 if(!empty($value['extr_info'])) {
                     $extr_arr = json_decode($value['extr_info'], true);
                     if(!empty($extr_arr['selection_label'])) {
@@ -482,10 +497,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }
                 $subjectRes['data'][$key]['item_koubei']['selection_label'] = $selection_label;
                 // 是否为封测报告（0：不是，1：是）
-                $subjectRes['data'][$key]['item_koubei']['closed_report'] = '0';
-                if(!empty($orderInfos[$value['order_id']]['from_type']) && $orderInfos[$value['order_id']]['from_type'] == 8) {
-                    $subjectRes['data'][$key]['item_koubei']['closed_report'] = '1';
-                }
+                $subjectRes['data'][$key]['item_koubei']['closed_report'] = $value['type'];
+
                 //拼口碑官方回复信息
                 if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
                     $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
