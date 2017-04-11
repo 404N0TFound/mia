@@ -1797,10 +1797,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
             $selection_info[$item_id]['total_count'] = $koubei_nums;
             foreach($koubei_infos as $koubei) {
-                $extr_info = json_decode($koubei['item_koubei']['extr_info'], true);
-                if(!empty($extr_info['selection'])) {
+                if($koubei['item_koubei']['auto_evaluate'] == 1) {
+                    // 默认好评算推荐
                     $recommend_count += 1;
+                }else {
+                    $extr_info = json_decode($koubei['item_koubei']['extr_info'], true);
+                    if(!empty($extr_info['selection'])) {
+                        $recommend_count += 1;
+                    }
                 }
+
             }
             $selection_info[$item_id]['recommend_count'] =  $recommend_count;
             if(!empty($koubei_nums)) {
