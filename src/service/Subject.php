@@ -521,31 +521,15 @@ class Subject extends \mia\miagroup\Lib\Service
                 } else if (!empty($subjectInfo['ext_info']['koubei_id'])) {
                     $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei_id'];
                 }
-                // 5.3 甄选
-                $koubeiServer = new KoubeiService();
-                $koubei_info = $koubeiServer->getOriKoubeiByIds([$subjectRes[$subjectInfo['id']]['koubei_id']])['data'];
-                $order_id = $koubei_info[$subjectRes[$subjectInfo['id']]['koubei_id']]['order_id'];
-
-                // 封测标识
-                if(!empty($order_id)){
-                    // 获取口碑订单信息
-                    $orderService = new OrderService();
-                    $orderInfos = $orderService->getOrderInfoByIds([$order_id])['data'];
-                    $subjectRes[$subjectInfo['id']]['item_koubei']['closed_report'] = 0;
-                    if(!empty($orderInfos[$order_id]['from_type']) && $orderInfos[$order_id]['from_type'] == 8) {
-                        $subjectRes[$subjectInfo['id']]['item_koubei']['closed_report'] = '1';
-                    }
-                }
-
-                // 封测标签
-                $subjectRes[$subjectInfo['id']]['item_koubei']['selection_label'] = [];
-                if(!empty($koubei_info[$subjectRes[$subjectInfo['id']]['koubei_id']]['extr_info'])) {
-                    $extr_info = json_decode($koubei_info[$subjectRes[$subjectInfo['id']]['koubei_id']]['extr_info'], true);
-                    if(!empty($extr_info['selection_label'])) {
-                        $subjectRes[$subjectInfo['id']]['item_koubei']['selection_label'] = $extr_info['selection_label'];
-                    }
-                }
             }
+            // 获取封测报告展示标签
+            $subjectRes[$subjectInfo['id']]['closed_report'] = "0";
+            if (!empty($subjectInfo['ext_info']['selection_label']) || !empty($subjectInfo['ext_info']['selection_label'])) {
+                $subjectRes[$subjectInfo['id']]['selection_label'] = $subjectInfo['ext_info']['selection_label'];
+                //不走订单表查询逻辑
+                $subjectRes[$subjectInfo['id']]['closed_report'] = "1";
+            }
+
             if (!empty($subjectInfo['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['video_info'] = $subjectInfo['video_info'];
             }

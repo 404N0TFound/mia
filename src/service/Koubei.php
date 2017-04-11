@@ -72,7 +72,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             // 封测报告默认是没有评分的
             $koubeiSetData['score'] = 0;
         }
-        // 5.3 口碑新增 甄选商品用户推荐（默认）
+        // 封测报告推荐标识
         $labels['selection'] = "1";
 
         if(!empty($koubeiData['labels'])) {
