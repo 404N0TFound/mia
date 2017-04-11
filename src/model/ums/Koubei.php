@@ -78,7 +78,7 @@ class Koubei extends \DB_Query {
                         }
                         break;
                     default:
-                        $where[] = [$k, $v];
+                        $where[] = [$this->tableName . '.' . $k, $v];
                 }
             }
         }
