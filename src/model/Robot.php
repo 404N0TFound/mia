@@ -6,11 +6,13 @@ class Robot {
     private $avatarMaterialData;
     private $editorSubjectData;
     private $subjectMaterialData;
+    private $textMaterialData;
     
     public function __construct() {
         $this->avatarMaterialData = new \mia\miagroup\Data\Robot\AvatarMaterial();
         $this->editorSubjectData = new \mia\miagroup\Data\Robot\EditorSubject();
         $this->subjectMaterialData = new \mia\miagroup\Data\Robot\SubjectMaterial();
+        $this->textMaterialData = new \mia\miagroup\Data\Robot\TextMaterial();
     }
     
     /**
@@ -46,6 +48,14 @@ class Robot {
     }
     
     /**
+     * 根据ID获取头像素材
+     */
+    public function getAvatarMaterialById($avatar_material_id) {
+        $result = $this->avatarMaterialData->getAvatarMaterialById($avatar_material_id);
+        return $result;
+    }
+    
+    /**
      * 新增头像素材
      */
     public function addAvatarMaterial($avatar_material_info) {
@@ -72,6 +82,14 @@ class Robot {
     }
     
     /**
+     * 新增文本素材
+     */
+    public function addTextMaterial($text_material_info) {
+        $result = $this->textMaterialData->addTextMaterail($text_material_info);
+        return $result;
+    }
+    
+    /**
      * 新增运营编辑帖子
      */
     public function addEditorSubject($editor_subject_info) {
@@ -88,10 +106,26 @@ class Robot {
     }
     
     /**
-     * 批量修改帖子素材
+     * 根据操作人修改帖子素材状态
      */
     public function updateSubjectMaterialByOpadmin($update_status, $op_admin, $current_status) {
         $result = $this->subjectMaterialData->updateSubjectMaterialByOpadmin($update_status, $op_admin, $current_status);
+        return $result;
+    }
+    
+    /**
+     * 更新运营帖子信息
+     */
+    public function updateEditorSubjectById($editor_subject_id, $update_data) {
+        $result = $this->editorSubjectData->updateEditorSubjectById($editor_subject_id, $update_data);
+        return $result;
+    }
+    
+    /**
+     * 更新头像素材信息
+     */
+    public function updateAvatarMaterialById($avatar_material_id, $update_data) {
+        $result = $this->avatarMaterialData->updateAvatarMaterialById($avatar_material_id, $update_data);
         return $result;
     }
 }

@@ -54,7 +54,7 @@ class SubjectMaterial extends \DB_Query
             if (in_array($k, ['title', 'text'])) {
                 $insert_data[$k] = $emojiUtil->emoji_unified_to_html($v);
             }
-            if (in_array($k, ['pics'])) {
+            if (in_array($k, ['pics', 'draft'])) {
                 $insert_data[$k] = json_encode($v);
             }
         }
@@ -75,7 +75,7 @@ class SubjectMaterial extends \DB_Query
             if (in_array($k, ['title', 'text'])) {
                 $v = $emojiUtil->emoji_unified_to_html($v);
             }
-            if (in_array($k, ['pics'])) {
+            if (in_array($k, ['pics', 'draft'])) {
                 $v = json_encode($v);
             }
             $set_data[] = array($k, $v);
@@ -90,11 +90,14 @@ class SubjectMaterial extends \DB_Query
      */
     public function updateSubjectMaterialByOpadmin($update_status, $op_admin, $current_status) {
         $materialStatusConfig = \F_Ice::$ins->workApp->config->get('busconf.robot.subject_material_status');
-        if (empty($op_admin) || !in_array($update_status, $materialStatusConfig) || !in_array($current_status, [0, 1, 2, 3])) {
+        if (empty($op_admin) || !in_array($update_status, $materialStatusConfig) || !in_array($current_status, $materialStatusConfig)) {
             return false;
         }
         $set_data = [];
         $set_data[] = ['status', $update_status];
+        if ($update_status == $materialStatusConfig['unused']) {
+            $set_data[] = ['op_admin', null];
+        }
         $where[] = ['status', $current_status];
         $where[] = ['op_admin', $op_admin];
         $data = $this->update($set_data, $where);
@@ -107,6 +110,12 @@ class SubjectMaterial extends \DB_Query
         $row_data['text'] = $emojiUtil->emoji_html_to_unified($row_data['text']);
         if (isset($row_data['pics'])) {
             $row_data['pics'] = json_decode($row_data['pics'], true);
+        }
+        if (isset($row_data['draft'])) {
+            $row_data['draft'] = json_decode($row_data['draft'], true);
+        }
+        if ($row_data['status'] == 1) {
+            $row_data['op_admin'] = '';
         }
         return $row_data;
     }

@@ -12,6 +12,8 @@ class Robot extends \DB_Query {
     protected $tableSubjectMaterial = 'group_robot_subject_materials';
     //编辑帖子表
     protected $tableEditorSubject = 'group_robot_editor_subject';
+    //文本素材表
+    protected $tableTextMaterial = 'group_robot_text_material';
     
     /**
      * 查询帖子素材表
@@ -24,6 +26,9 @@ class Robot extends \DB_Query {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
+                    case 'after_id';
+                        $where[] = [':gt','id', $v];
+                        break;
                     default:
                         $where[] = [$k, $v];
                 }
@@ -33,7 +38,12 @@ class Robot extends \DB_Query {
         if (intval($result['count']) <= 0) {
             return $result;
         }
-        $result['list'] = $this->getRows($where, 'id', $limit, $offset, $orderBy);
+        $data = $this->getRows($where, 'id', $limit, $offset, $orderBy);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result['list'][] = $v['id'];
+            }
+        }
         return $result;
     }
     
@@ -88,6 +98,63 @@ class Robot extends \DB_Query {
             return $result;
         }
         $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        return $result;
+    }
+    
+    /**
+     * 查询文本素材表
+     */
+    public function getTextMaterialData($cond, $offset = 0, $limit = 50, $orderBy = '') {
+        $this->tableName = $this->tableTextMaterial;
+        $result = array('count' => 0, 'list' => array());
+        $where = array();
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'text':
+                        $where[] = [':like_literal','text', "%$v%"];
+                        break;
+                    default:
+                        $where[] = [$k, $v];
+                }
+            }
+        }
+        $result['count'] = $this->count($where);
+        if (intval($result['count']) <= 0) {
+            return $result;
+        }
+        $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        return $result;
+    }
+    
+    /**
+     * 查询帖子素材抓取来源
+     */
+    public function getSubjectMaterialSource() {
+        $this->tableName = $this->tableSubjectMaterial;
+        $sql = "SELECT DISTINCT(`source`) from {$this->tableName}";
+        $data = $this->query($sql);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[] = $v['source'];
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * 查询帖子素材抓取来源
+     */
+    public function getSubjectMaterialCategory() {
+        $this->tableName = $this->tableSubjectMaterial;
+        $sql = "SELECT DISTINCT(`category`) from {$this->tableName}";
+        $data = $this->query($sql);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[] = $v['category'];
+            }
+        }
         return $result;
     }
 }

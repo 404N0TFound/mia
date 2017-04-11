@@ -2,6 +2,8 @@
 namespace mia\miagroup\Service\Ums;
 
 use mia\miagroup\Model\Ums\Item as ItemModel;
+use mia\miagroup\Service\Search;
+use mia\miagroup\Service\Item as ItemService;
 
 class Item extends \mia\miagroup\Lib\Service {
     
@@ -42,5 +44,25 @@ class Item extends \mia\miagroup\Lib\Service {
         }
         return $this->succ(array_values($result));
     }
-    
+
+    /**
+     * UMS 商品搜索
+     * @param $param
+     * @return mixed
+     */
+    public function itemSearch($param)
+    {
+        if (is_numeric($param['key']) && $param['key'] > 99999) {
+            $itemIds = [intval($param['key'])];
+        } else {
+            $searchService = new Search();
+            $itemIds = $searchService->itemSearch($param)['data']['item_ids'];
+            if(empty($itemIds)) {
+                return $this->succ([]);
+            }
+        }
+        $itemService = new ItemService();
+        $res = $itemService->getItemList($itemIds)['data'];
+        return $this->succ(array_values($res));
+    }
 }

@@ -59,7 +59,11 @@ class Contentanalys extends \FD_Daemon {
                 continue;
             }
             //好评差评识别
-            $cmd = "{$this->python_bin} {$this->negative_path}wordseg_client_notes.py {$this->negative_path}new_model_3 '{$value['title']}{$value['text']}'  {$this->negative_path}new_top_a_good";
+            $analys_content = "{$value['title']}{$value['text']}";
+            $analys_content = str_replace("\r\n", ' ', $analys_content);
+            $analys_content = str_replace("\n", ' ', $analys_content);
+            $analys_content = str_replace("'", '"', $analys_content);
+            $cmd = "{$this->python_bin} {$this->negative_path}wordseg_client_notes.py {$this->negative_path}new_model_3 '{$analys_content}'  {$this->negative_path}new_top_a_good";
             $analys_result = system($cmd);
             switch ($analys_result) {
                 case 1:

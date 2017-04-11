@@ -55,7 +55,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         }
         
         //获取我关注用户的帖子列表
-        $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.default'), \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei')];
+        $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.default'), \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'), \F_Ice::$ins->workApp->config->get('busconf.subject.source.editor')];
         $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source);
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid)['data'];
