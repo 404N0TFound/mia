@@ -26,6 +26,9 @@ class Robot extends \DB_Query {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
+                    case 'after_id';
+                        $where[] = [':gt','id', $v];
+                        break;
                     default:
                         $where[] = [$k, $v];
                 }
