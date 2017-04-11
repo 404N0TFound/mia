@@ -765,7 +765,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * @param unknown $labelInfos
      * @param unknown $koubeiId
      */
-    public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0, $isValidate = 0) {
+    public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0, $isValidate = 0, $selectionLabelInfo = array(), $selection = array()) {
         if (empty($subjectInfo)) {
             return $this->error(500);
         }
@@ -820,7 +820,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
         }
-        
+
         $subjectSetInfo = array();
         $subjectSetInfo['active_id'] = 0;
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
@@ -883,6 +883,12 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         $subjectSetInfo['image_url'] = implode("#", $imgUrl);
         $subjectSetInfo['ext_info']['image'] = $imageInfo;
+
+        // 封测报告标签
+        $subjectSetInfo['ext_info']['selection_label'] = $selectionLabelInfo;
+
+        // 封测报告推荐
+        $subjectSetInfo['ext_info']['selection'] = $selection;
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         
@@ -921,7 +927,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
         }
-        
+
         $insertSubjectRes = $this->subjectModel->addSubject($subjectSetInfo);
         unset($subjectSetInfo['image_url']);
         unset($subjectSetInfo['ext_info']);
