@@ -68,7 +68,7 @@ class Label extends \mia\miagroup\Lib\Service {
     /**
      * 批量获取标签下的帖子
      */
-    public function getBatchSubjectIdsByLabelIds($labelIds,$currentUid=0,$page=1,$limit=10,$is_recommend=0,$fields=array('user_info', 'count', 'comment', 'praise_info','share_info'))
+    public function getBatchSubjectIdsByLabelIds($labelIds,$currentUid=0,$page=1,$limit=10,$is_recommend=0,$fields=array('user_info', 'count', 'comment', 'content_format', 'praise_info','share_info'))
     {
         if(!is_array($labelIds)){
             return $this->succ(array());
