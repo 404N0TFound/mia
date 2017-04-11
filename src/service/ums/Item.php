@@ -52,10 +52,14 @@ class Item extends \mia\miagroup\Lib\Service {
      */
     public function itemSearch($param)
     {
-        $searchService = new Search();
-        $itemIds = $searchService->itemSearch($param)['data']['item_ids'];
-        if(empty($itemIds)) {
-            return $this->succ([]);
+        if (is_numeric($param['key']) && $param['key'] > 99999) {
+            $itemIds = [intval($param['key'])];
+        } else {
+            $searchService = new Search();
+            $itemIds = $searchService->itemSearch($param)['data']['item_ids'];
+            if(empty($itemIds)) {
+                return $this->succ([]);
+            }
         }
         $itemService = new ItemService();
         $res = $itemService->getItemList($itemIds)['data'];
