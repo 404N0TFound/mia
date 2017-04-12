@@ -54,12 +54,13 @@ class Robot extends \mia\miagroup\Lib\Service {
         $material_info = $this->robotModel->getAvatarMaterialById($avatar_material_id);
         //检查素材状态是否正确
         if (empty($material_info) || $material_info['status'] == $this->robotConfig['avatar_material_status']['create_user']) {
-            $this->error(500);
+            return $this->error(500);
+
         }
 
         $text_info = $this->robotModel->getTextMaterailById($text_material_id);
         if (empty($text_info) || $text_info['status'] == $this->robotConfig['text_material_status']['used']) {
-            $this->error(500);
+            return $this->error(500);
         }
         //生成马甲用户
         $user_info['username'] = 'miagroup_robot_' . $avatar_material_id;
@@ -71,7 +72,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         $userService = new \mia\miagroup\Service\User();
         $result = $userService->addMiaUser($user_info);
         if ($result['code'] > 0) {
-            $this->error($result['code']);
+            return $this->error($result['code']);
         }
         //素材表数据更新
         $update_info['nickname'] = $text_info['text'];
