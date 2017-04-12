@@ -315,8 +315,21 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($item_ids)) {
             return $this->succ($koubei_res);
         }
-        //获取口碑数量
-        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids);
+
+        // 获取商品是否为甄选商品
+        $item_info = $item_service->getItemList([$itemId])['data'];
+        if(!empty($item_info[$itemId]['is_pick'])) {
+            $is_pick = $item_info[$itemId]['is_pick'];
+        }
+
+        $conditions = array();
+        if(!empty($is_pick) && $is_pick == 1) {
+            // 封测报告列表不展示默认好评(甄选商品)
+            $conditions = array("auto_evaluate" => 0);
+        }
+
+        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $conditions);
+
         if($koubei_nums <=0){
             return $this->succ($koubei_res);
         }
@@ -336,7 +349,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset);
+        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $conditions);
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
         $koubei_res['koubei_info'] = !empty($koubei_infos) ? array_values($koubei_infos) : array();
@@ -1789,13 +1802,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if (empty($item_rel_ids)) {
                 $this->succ([]);
             }
-            //获取封测报告数（包括删除的）
+            //获取封测报告数（包括删除的封测报告）
             $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_rel_ids, 0, array(), 1);
-            //通过商品id获取口碑id
+            //通过商品id获取口碑id(包括删除的封测报告)
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0, 0, array(), 1);
-            //获取口碑信息
-            $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, 0)['data'];
-
+            //获取口碑信息(包括删除封测报告)
+            $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, 0, ['user_info', 'count', 'koubei_reply', 'group_labels', 'praise_info', 'item' , 'order_info', 'content_format'], array(0,2))['data'];
             $selection_info[$item_id]['total_count'] = $koubei_nums;
             foreach($koubei_infos as $koubei) {
                 if($koubei['item_koubei']['auto_evaluate'] == 1) {
@@ -1803,12 +1815,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $recommend_count += 1;
                 }else {
                     $extr_info = json_decode($koubei['item_koubei']['extr_info'], true);
+                    var_dump($extr_info);
                     if(!empty($extr_info['selection'])) {
                         $recommend_count += 1;
                     }
                 }
-
             }
+            var_dump($recommend_count);exit;
             $selection_info[$item_id]['recommend_count'] =  $recommend_count;
             if(!empty($koubei_nums)) {
                 $selection_info[$item_id]['rate'] = round($recommend_count / $koubei_nums, 2);

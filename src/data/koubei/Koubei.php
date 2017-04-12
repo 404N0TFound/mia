@@ -25,9 +25,10 @@ class Koubei extends \DB_Query {
         }
         $where = array();
         $where[] = ['item_id', $itemIds];
-        $where[] = ['status', 2];
         if(!empty($type) && $type == 1) {
             $where[] = ['status', [0,2]];
+        }else {
+            $where[] = ['status', 2];
         }
         $where[] = [':gt','subject_id',0];
         if (isset($condition["koubei_id"])) {
