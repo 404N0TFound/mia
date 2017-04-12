@@ -320,16 +320,16 @@ class User extends \mia\miagroup\Lib\Service {
      */
     public function addMiaUser($user_info) {
         if (empty($user_info['username']) || empty($user_info['nickname'])) {
-            $this->error(500);
+            return $this->error(500);
         }
         $insert_info = array();
-        $is_exist = $this->userModel->getUidByNickName($user_info['username']);
+        $is_exist = $this->userModel->getUidByUserName($user_info['username']);
         if ($is_exist) {
-            $this->error(40001);
+            return $this->error(40001);
         }
-        $is_exist = $this->userModel->getUidByUserName($user_info['nickname']);
+        $is_exist = $this->userModel->getUidByNickName($user_info['nickname']);
         if ($is_exist) {
-            $this->error(40002);
+            return $this->error(40002);
         }
         $insert_info['username'] = $user_info['username'];
         $insert_info['nickname'] = $user_info['nickname'];
