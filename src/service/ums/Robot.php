@@ -82,7 +82,7 @@ class Robot extends \mia\miagroup\Lib\Service {
     /**
      * 获取马甲列表
      */
-    public function getAvatarMaterialList($params, $page = 1, $limit = 20) {
+    public function getAvatarMaterialList($params, $page = 1, $limit = false) {
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
         //初始化入参
@@ -98,6 +98,7 @@ class Robot extends \mia\miagroup\Lib\Service {
             $condition['status'] = $params['status'];
         }
         $offset = ($page - 1) * $limit;
+
         $avatar_material_list = $this->robotModel->getAvatarMaterialData($condition, $offset, $limit, $orderBy);
         $result['list'] = $avatar_material_list['list'];
         $result['count'] = $avatar_material_list['count'];
