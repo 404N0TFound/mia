@@ -525,9 +525,9 @@ class Subject extends \mia\miagroup\Lib\Service
             // 获取封测报告展示标签
             $subjectRes[$subjectInfo['id']]['closed_report'] = "0";
             if (!empty($subjectInfo['ext_info']['selection_label']) || !empty($subjectInfo['ext_info']['selection_label'])) {
-                $subjectRes[$subjectInfo['id']]['selection_label'] = $subjectInfo['ext_info']['selection_label'];
+                $subjectRes[$subjectInfo['id']]['item_koubei']['selection_label'] = $subjectInfo['ext_info']['selection_label'];
                 //不走订单表查询逻辑
-                $subjectRes[$subjectInfo['id']]['closed_report'] = "1";
+                $subjectRes[$subjectInfo['id']]['item_koubei']['closed_report'] = "1";
             }
 
             if (!empty($subjectInfo['video_info'])) {
