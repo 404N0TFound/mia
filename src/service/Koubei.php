@@ -162,7 +162,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $selectionLabelInfo = array();
         if(!empty($labels['selection_label'])) {
             foreach($labels['selection_label'] as $label) {
-                $selectionLabelInfo[] = array('tag_name' => $label);
+                $selectionLabelInfo[] = $label;
             }
         }
 
@@ -1772,6 +1772,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /*
  * 甄选封测商品
  * 批量获取口碑数，封测推荐测评数
+ * 封测报告删除也需要统计，type [0: 正常口碑，1：封测报告]
  * */
     public function getSelectionKoubeiInfo($item_ids)
     {
@@ -1788,10 +1789,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if (empty($item_rel_ids)) {
                 $this->succ([]);
             }
-            //获取口碑数量
-            $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_rel_ids);
+            //获取封测报告数（包括删除的）
+            $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_rel_ids, 0, array(), 1);
             //通过商品id获取口碑id
-            $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0);
+            $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0, 0, array(), 1);
             //获取口碑信息
             $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, 0)['data'];
 

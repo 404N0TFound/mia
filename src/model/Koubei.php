@@ -49,14 +49,15 @@ class Koubei {
      * 获取商品口碑ids列表
      * @param array $itemIds 商品id
      * @param $limit
+     * @param $type 口碑类型[0：正常口碑，1：封测报告]
      * @param $offset
      */
-    public function getKoubeiIdsByItemIds($itemIds, $limit = 10, $offset = 0, $condition = array()){
+    public function getKoubeiIdsByItemIds($itemIds, $limit = 10, $offset = 0, $condition = array(), $type = 0){
         if (empty($itemIds)) {
             return array();
         }
         $orderBy = 'is_bottom asc, auto_evaluate asc, rank_score desc, created_time desc';
-        $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy, $condition);
+        $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy, $condition, $type);
         return $koubeiData;
     }
     
@@ -113,9 +114,10 @@ class Koubei {
      * 获取口碑数量
      * @param $itemIds 商品id
      * @param $withPic
+     * @param $type 口碑类型 [0:正常口碑，1：封测报告]
      * @return int
      */
-    public function getItemKoubeiNums($itemIds, $withPic = 0, $conditions = array()){
+    public function getItemKoubeiNums($itemIds, $withPic = 0, $conditions = array(), $type = 0){
         if (empty($itemIds)) {
             return 0;
         }
@@ -124,6 +126,9 @@ class Koubei {
         $where['item_id'] = $itemIds;
         $where['subject_id'] = 0;
         $where['status'] = 2;
+        if(!empty($type) && $type == 1) {
+            $where['status'] = array(0,2);
+        }
         if ($withPic == 1) {
             $where['with_pic'] = 1;
         }
