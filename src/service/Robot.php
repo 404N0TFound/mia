@@ -48,17 +48,24 @@ class Robot extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 生成机器人账户
+     * 生成机器人账户 $category, $nickname
      */
-    public function generateRobotAccout($avatar_material_id, $category, $nickname) {
+    public function generateRobotAccout($avatar_material_id,$text_material_id) {
         $material_info = $this->robotModel->getAvatarMaterialById($avatar_material_id);
         //检查素材状态是否正确
         if (empty($material_info) || $material_info['status'] == $this->robotConfig['avatar_material_status']['create_user']) {
             $this->error(500);
         }
+
+        $text_info = $this->robotModel->getTextMaterailById($text_material_id);
+        if (empty($text_info) || $text_info['status'] == $this->robotConfig['text_material_status']['used']) {
+            $this->error(500);
+        }
         //生成马甲用户
         $user_info['username'] = 'miagroup_robot_' . $avatar_material_id;
-        $user_info['nickname'] = $nickname;
+
+
+        $user_info['nickname'] = $text_info['text'];
         $user_info['password'] = 'a255220a91378ba2f4aad17300ed8ab7';
         $user_info['icon'] = $material_info['avatar'];
         $userService = new \mia\miagroup\Service\User();
@@ -67,12 +74,17 @@ class Robot extends \mia\miagroup\Lib\Service {
             $this->error($result['code']);
         }
         //素材表数据更新
-        $update_info['nickname'] = $nickname;
-        $update_info['category'] = $category;
+        $update_info['nickname'] = $text_info['text'];
+        $update_info['category'] = $text_info['category'];
         $update_info['user_id'] = $result['data'];
         $update_info['generate_time'] = date('Y-m-d H:i:s');
         $update_info['status'] = 2;
         $this->robotModel->updateAvatarMaterialById($avatar_material_id, $update_info);
+
+        //文本素材表更新
+        $text_update_info['status'] = 1;
+        $this->robotModel->updateTextMaterailById($text_material_id, $text_update_info);
+
         return $this->succ($user_info);
     }
     
