@@ -1815,13 +1815,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $recommend_count += 1;
                 }else {
                     $extr_info = json_decode($koubei['item_koubei']['extr_info'], true);
-                    var_dump($extr_info);
                     if(!empty($extr_info['selection'])) {
                         $recommend_count += 1;
                     }
                 }
             }
-            var_dump($recommend_count);exit;
             $selection_info[$item_id]['recommend_count'] =  $recommend_count;
             if(!empty($koubei_nums)) {
                 $selection_info[$item_id]['rate'] = round($recommend_count / $koubei_nums, 2);
