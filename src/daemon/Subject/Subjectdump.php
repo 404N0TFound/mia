@@ -123,7 +123,10 @@ class Subjectdump extends \FD_Daemon {
         }
         //获取帖子信息
         $subjectService = new \mia\miagroup\Service\Subject();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('count', 'group_labels', 'item', 'album'))['data'];
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('count', 'group_labels', 'album'))['data'];
+        //获取帖子关联商品
+        $pointTag = new \mia\miagroup\Service\PointTags();
+        $subjectItemIds = $pointTag->getBatchSubjectItmeIds($subjectIds)['data'];
         //获取口碑信息
         $koubeiData = new \mia\miagroup\Data\Koubei\Koubei();
         $koubeiDatas = $koubeiData->getBatchKoubeiByIds($koubeiIds);
@@ -208,12 +211,8 @@ class Subjectdump extends \FD_Daemon {
                 $dumpdata['labels'] = 'NULL';
             }
             //帖子关联sku
-            if (!empty($subject['items'])) {
-                $dumpdata['items'] = array();
-                foreach ($subject['items'] as $item) {
-                    $dumpdata['items'][] = $item['item_id'];
-                }
-                $dumpdata['items'] = implode(',', $dumpdata['items']);
+            if (!empty($subjectItemIds[$subject['id']])) {
+                $dumpdata['items'] = implode(',', $subjectItemIds[$subject['id']]);
             } else {
                 $dumpdata['items'] = 'NULL';
             }
