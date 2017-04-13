@@ -179,6 +179,10 @@ class Robot extends \mia\miagroup\Lib\Service {
         if ($editor_subject_info['is_recommend'] == 1) {
             $ext_info['is_recommend'] = 1;
         }
+        //是否推荐
+        if ($editor_subject_info['koubei_sync'] == 1) {
+            $ext_info['koubei_sync'] = 1;
+        }
         //发布用户
         $insert_data['pub_user'] = $editor_subject_info['pub_user'];
         //编辑人
@@ -240,12 +244,16 @@ class Robot extends \mia\miagroup\Lib\Service {
         }
         $point_info = array();
         $outer_items = array();
+        $koubei_item_id = 0;
         if (!empty($editor_subject_info['relate_item'])) {
             foreach($editor_subject_info['relate_item'] as $item) {
                 if (isset($item['is_outer']) && $item['is_outer'] == 1) {
                     $outer_items[] = $item;
                 } elseif ($item['item_id'] > 0) {
                     $point_info[] = array('item_id' => $item['item_id']);
+                    if (!$koubei_item_id) {
+                        $koubei_item_id = $item['item_id'];
+                    }
                 }
             }
         }
@@ -259,6 +267,10 @@ class Robot extends \mia\miagroup\Lib\Service {
         $subject = $result['data'];
         if ($editor_subject_info['ext_info']['is_recommend'] == 1) {
             $subject_service->subjectAddFine($subject['id']);
+        }
+        if ($editor_subject_info['ext_info']['koubei_sync'] == 1 && $koubei_item_id > 0) {
+            $koubei_service = new \mia\miagroup\Service\Koubei();
+            $koubei_service->setSubjectToKoubei($subject['id'], $koubei_item_id);
         }
         return $this->succ($subject);
     }

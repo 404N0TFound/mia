@@ -766,12 +766,9 @@ class Subject extends \mia\miagroup\Lib\Service
             //启用数美验证
             if(!empty($subjectInfo['title'])){
                 //过滤敏感词
-                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'], 1)['data'];
-                if ($sensitive_res['code'] == 1127) {
-                    return $this->error(1127);
-                }
-                if(!empty($sensitive_res['sensitive_words'])){
-                    return $this->error(1112);
+                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'], 1);
+                if ($sensitive_res['code'] > 0) {
+                    return $this->error($sensitive_res['code'], $sensitive_res['msg']);
                 }
                 //过滤xss、过滤html标签
                 $subjectInfo['title'] = strip_tags($subjectInfo['title'], '<span><p>');
@@ -779,11 +776,8 @@ class Subject extends \mia\miagroup\Lib\Service
             if(!empty($subjectInfo['text'])){
                 //过滤敏感词
                 $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'], 1)['data'];
-                if ($sensitive_res['code'] == 1127) {
-                    return $this->error(1127);
-                }
-                if(!empty($sensitive_res['sensitive_words'])){
-                    return $this->error(1112);
+                if ($sensitive_res['code'] > 0) {
+                    return $this->error($sensitive_res['code'], $sensitive_res['msg']);
                 }
                 //过滤脚本
                 $subjectInfo['text'] = strip_tags($subjectInfo['text'], '<span><p>');
@@ -795,11 +789,8 @@ class Subject extends \mia\miagroup\Lib\Service
                 //过滤敏感词
                 if(!empty($labelStr)){
                     $sensitive_res = $audit->checkSensitiveWords($labelStr, 1)['data'];
-                    if ($sensitive_res['code'] == 1127) {
-                        return $this->error(1127);
-                    }
-                    if(!empty($sensitive_res['sensitive_words'])){
-                        return $this->error(1112);
+                    if ($sensitive_res['code'] > 0) {
+                        return $this->error($sensitive_res['code'], $sensitive_res['msg']);
                     }
                 }
             }

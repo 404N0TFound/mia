@@ -17,10 +17,19 @@ class AlbumPermission extends \DB_Query {
     public function getAlbumPermissionByUserId($user_id) {
         $where = array();
         $where[] = array(':eq', 'status', '1');
-        $where[] = array(':eq', 'user_id', $user_id);
-        
-        $data = $this->getRow($where, 'id');
-        return $data;
+        $where[] = array('user_id', $user_id);
+        if (is_array($user_id)) {
+            $result = array();
+            $data = $this->getRows($where, 'user_id, id');
+            if (!empty($data)) {
+                foreach ($data as $v) {
+                    $result[$v['user_id']] = $v;
+                }
+            }
+        } else {
+            $result = $this->getRow($where, 'id');
+        }
+        return $result;
     }
 
     /**

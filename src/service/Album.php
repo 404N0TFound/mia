@@ -815,4 +815,18 @@ class Album extends \mia\miagroup\Lib\Service {
         return $this->succ($affect);
     }
     
+    /**
+     * 获取用户发布专栏权限
+     */
+    public function getAlbumPermissionByUserId($user_ids) {
+        if (empty($user_ids) || !is_array($user_ids)) {
+            return $this->succ(array());
+        }
+        $result = array();
+        $data = $this->abumModel->getAlbumPermissionByUserId($user_ids);
+        foreach ($user_ids as $uid) {
+            $result[$uid] = !empty($data[$uid]) ? 1 : 0;
+        }
+        return $this->succ($result);
+    }
 }

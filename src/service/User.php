@@ -63,6 +63,9 @@ class User extends \mia\miagroup\Lib\Service {
         // 批量获取直播权限
         $liveService = new Live();
         $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
+        // 批量获取达人网站发布权限
+        $albumService = new Album();
+        $publishPermissions = $albumService->getAlbumPermissionByUserId($userIds)['data'];
         // 批量获取发视频权限
         $videoPermissions = $this->userModel->getVideoPermissionByUids($userIds);
         //批量获取推荐信息
@@ -74,6 +77,7 @@ class User extends \mia\miagroup\Lib\Service {
             $userInfo['is_experts'] = !empty($expertInfos[$userInfo['id']]) ? 1 : 0; // 用户是否是专家
             $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; // 用户是否是供应商
             $userInfo['is_have_permission'] = !empty($videoPermissions[$userInfo['id']]) ? 1 : 0; // 用户是否有发视频权限
+            $userInfo['is_have_publish_permission'] = !empty($publishPermissions[$userInfo['id']]) ? 1 : 0; // 用户是否有web发布权限
             $userInfo['doozer_intro'] = !empty($recommendInfos[$userInfo['id']]) ? $recommendInfos[$userInfo['id']]['intro'] : '';
             if ($expertInfos[$userInfo['id']]) {
                 $expertInfos[$userInfo['id']]['desc'] = !empty(trim($expertInfos[$userInfo['id']]['desc'])) ? explode('#', trim($expertInfos[$userInfo['id']]['desc'], "#")) : array();
