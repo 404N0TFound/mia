@@ -15,17 +15,6 @@ $koubeibatch = array(
     ),
 );
 
-/*
- * 发帖初始化信息
- * */
-$subject_issue = array(
-    'issue' => array(
-        'issue_img' => '',
-        'issue_reward' => '怎么晒？正确晒单姿势看这里-->',
-        'issue_skip_url' => 'm.mia.com'
-    ),
-);
-
 /**
  * 头条视频栏目ID
  */
