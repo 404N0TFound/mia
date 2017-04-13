@@ -289,6 +289,8 @@ $yuer_labels = ["育儿手记", "我的顺产经", "家有二宝", "致敬奶爸
 $subject_issue = array(
     'issue' => array(
         'issue_img' => 'http://image1.miyabaobei.com/image/2017/04/13/32aec4563186419a739d4576b167f70da.jpg',
+        'issue_img_width' => 750,
+        'issue_img_height' => 100,
         'issue_reward' => '怎么晒？正确晒单姿势看这里-->',
         'issue_skip_url' => 'm.mia.com'
     ),
