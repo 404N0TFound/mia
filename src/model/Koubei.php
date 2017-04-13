@@ -429,6 +429,7 @@ class Koubei {
         switch ($issue_type) {
             case 'subject':
                 // banner 结构体
+                $res['issue_tip_url']['pic']['url']   = $issue_img;
                 $res['issue_tip_url']['url']          = $issue_skip_url;
                 break;
 
