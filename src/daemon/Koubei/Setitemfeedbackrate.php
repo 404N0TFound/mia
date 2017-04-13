@@ -105,6 +105,7 @@ class Setitemfeedbackrate extends \FD_Daemon {
             $where = array();
             $where['item_id'] = $itemIds;
             $where['status'] = 2;
+            $where['score'] = 1;
             
             $totalNums = $this->koubeiData->getItemInvolveNums($filed, $where);
             //4、获取商品4分以上的评分口碑数量

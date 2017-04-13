@@ -19,7 +19,7 @@ class TextMaterial extends \DB_Query
     }
     
     /**
-     * 根据id获取头像素材
+     * 根据id获取素材
      */
     public function getTextMaterailById($id) {
         if (empty($id)) {

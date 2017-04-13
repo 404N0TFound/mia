@@ -39,7 +39,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $orderInfo = $orderService->getOrderInfoByOrderCode(array($koubeiData['order_code']))['data'][$koubeiData['order_code']];
             $orderId = $orderInfo['id'];
             $finishTime = strtotime($orderInfo['finish_time']) ;
-            if($orderInfo['status'] != 5  || (time()- $finishTime) > 15 * 86400 )
+            if($orderInfo['status'] != 5  || (time()- $finishTime) > 16 * 86400 )
             {
                 return $this->error(6102);
             }
@@ -430,7 +430,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 根据口碑ID获取口碑信息
      */
-    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'koubei_reply', 'group_labels', 'praise_info', 'item' , 'order_info', 'content_format'), $status = array(2)) {
+    public function getBatchKoubeiByIds($koubeiIds, $userId = 0, $field = array('user_info', 'count', 'koubei_reply', 'group_labels', 'praise_info', 'item' , 'order_info'), $status = array(2)) {
         if (empty($koubeiIds)) {
             return $this->succ(array());
         }

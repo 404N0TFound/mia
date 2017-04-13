@@ -10,6 +10,14 @@ $avatar_material_status = [
 ];
 
 /**
+ * 文本素材状态，0未使用 1已编辑
+ */
+$text_material_status = [
+    'unused' => 0,
+    'used' => 1
+];
+
+/**
  * 帖子素材状态，0待编辑 1列表锁定 2编辑中 3已编辑
  */
 $subject_material_status = [

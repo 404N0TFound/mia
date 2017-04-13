@@ -104,7 +104,7 @@ class Active extends \mia\miagroup\Lib\Service {
         $condition = array('current_time' => date('Y-m-d H:i:s',time()));
         $activeRes = array();
         // 获取活动基本信息
-        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 20, array(1), $condition);
+        $activeInfos = $this->activeModel->getActiveByActiveIds(false, 0, array(1), $condition);
         if (empty($activeInfos)) {
             return $this->succ(array());
         }
@@ -211,6 +211,70 @@ class Active extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $result = $this->activeModel->deleteActive($activeId,$oprator);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 新增活动帖子关联数据
+     */
+    public function addActiveSubjectRelation($relationSetInfo){
+        if (empty($relationSetInfo)) {
+            return $this->error(500);
+        }
+        $insertActiveRes = $this->activeModel->addActiveSubjectRelation($relationSetInfo);
+        
+        if($insertActiveRes > 0){
+            return $this->succ(true);
+        }else{
+            return $this->succ(false);
+        }
+    }
+    
+    /**
+     * 根据帖子id获取活动帖子信息
+     */
+    public function getActiveSubjectBySids($subjectIds, $status=array(1)) {
+        if(empty($subjectIds)){
+            return $this->error(500);
+        }
+        $subjectArrs = $this->activeModel->getActiveSubjectBySids($subjectIds, $status);
+        return $this->succ($subjectArrs);
+    }
+    
+    /**
+     * 获取某活动下的所有/精华帖子
+     */
+    public function getActiveSubjects($activeId, $type='all', $currentId = 0, $page=1, $limit=20){
+        $data = array('subject_lists'=>array());
+        if($type == 'recommend'){
+            //如果是结束活动的精华帖子，需要跟进行中的进行区分
+            $activeInfo = $this->getSingleActiveById($activeId)['data'];
+            if($activeInfo['end_time'] < date('Y-m-d H:i:s',time())){
+                $type = 'active_over';
+            }
+        }
+        $activeIds = array($activeId);
+        $subjectArrs = $this->activeModel->getBatchActiveSubjects($activeIds, $type, $page, $limit);
+        if(empty($subjectArrs) || empty($subjectArrs[$activeId])){
+            return $this->succ($data);
+        }
+        $subjectIds = array_column($subjectArrs[$activeId], 'subject_id');
+        if(!empty($subjectIds)) {
+            $subjectService = new SubjectService();
+            $subjects = $subjectService->getBatchSubjectInfos($subjectIds,$currentId)['data'];
+            $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
+        }
+        return $this->succ($data);
+    }
+    
+    /**
+     * 更新活动帖子信息
+     */
+    public function upActiveSubject($relationData, $relationId){
+        if(empty($relationId)){
+            return $this->error(500);
+        }
+        $result = $this->activeModel->upActiveSubject($relationData, $relationId);
         return $this->succ($result);
     }
     

@@ -59,5 +59,6 @@ $shumei_text = array(
     'url' => 'http://api.fengkongcloud.com/v2/saas/anti_fraud/text',
     //'url' => 'http://notes.search.miaidc.com/notes/api.php',
     'method' => 'post',
-    'result_format' => false
+    'result_format' => false,
+    'log_response' => true
 );

@@ -147,11 +147,14 @@ class Robot extends \DB_Query {
      * 查询帖子素材抓取来源
      */
     public function getSubjectMaterialCategory() {
-        $this->tableName = $this->tableSubjectMaterial;
-        $sql = "SELECT DISTINCT(`category`) from {$this->tableName}";
+        $this->tableName = $this->tableAvatarMaterial;
+        $sql = "SELECT DISTINCT(`category`) from {$this->tableName} WHERE category IS NOT NULL";
         $data = $this->query($sql);
         if (!empty($data)) {
             foreach ($data as $v) {
+                if(empty($v['category'])) {
+                    continue;
+                }
                 $result[] = $v['category'];
             }
         }

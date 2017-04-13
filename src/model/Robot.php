@@ -128,4 +128,21 @@ class Robot {
         $result = $this->avatarMaterialData->updateAvatarMaterialById($avatar_material_id, $update_data);
         return $result;
     }
+
+    /**
+     * 获取文本素材
+     */
+    public function getTextMaterailById($id) {
+        $result = $this->textMaterialData->getTextMaterailById($id);
+        return $result;
+    }
+
+
+    /**
+     * 更新文本素材信息
+     */
+    public function updateTextMaterailById($text_material_id, $update_data) {
+        $result = $this->textMaterialData->updateTextMaterailById($text_material_id, $update_data);
+        return $result;
+    }
 }
