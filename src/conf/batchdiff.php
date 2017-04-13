@@ -20,6 +20,7 @@ $koubeibatch = array(
  * */
 $subject_issue = array(
     'issue' => array(
+        'issue_img' => '',
         'issue_reward' => '怎么晒？正确晒单姿势看这里-->',
         'issue_skip_url' => 'm.mia.com'
     ),
