@@ -176,10 +176,10 @@ class Item extends \mia\miagroup\Lib\Service {
     public function getCategoryFourIds($three_cate, $flag)
     {
         if (empty($three_cate) || empty($flag)) {
-            return array();
+            return $this->succ(array());
         }
         $result = $this->itemModel->getCategoryFourList($three_cate, $flag);
-        return $this->succ($result);;
+        return $this->succ($result);
     }
 
     /*
@@ -188,7 +188,7 @@ class Item extends \mia\miagroup\Lib\Service {
     public function getRelationBrandName($brand_ids)
     {
         if(empty($brand_ids)) {
-            return array();
+            return $this->succ(array());
         }
         $result = $this->itemModel->getRelationBrandNameList($brand_ids);
         return $this->succ($result);
@@ -200,7 +200,7 @@ class Item extends \mia\miagroup\Lib\Service {
     public function getRelationCateId($item_id, $level)
     {
         if(empty($item_id)) {
-            return '';
+            return $this->succ();
         }
         $parent_category_id = '';
         $catgory_id_ng = $this->getCategoryIdNgByItem($item_id)['data'];
@@ -218,7 +218,7 @@ class Item extends \mia\miagroup\Lib\Service {
     public function getCategoryIdNgByItem($item_id)
     {
         if(empty($item_id)) {
-            return '';
+            return $this->succ();
         }
         $catgory_id_ng = $this->itemModel->itemCategoryIdNg($item_id);
         return $this->succ($catgory_id_ng);
@@ -230,7 +230,7 @@ class Item extends \mia\miagroup\Lib\Service {
     public function getParentCatePath($category_id_ng)
     {
         if(empty($category_id_ng)) {
-            return '';
+            return $this->succ();
         }
         $catgory_path = $this->itemModel->parentCatePath($category_id_ng);
         return $this->succ($catgory_path);
