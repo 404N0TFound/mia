@@ -1790,7 +1790,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     public function getSelectionKoubeiInfo($item_ids)
     {
         if(empty($item_id)) {
-            $this->succ([]);
+            return $this->succ([]);
         }
         $selection_info = array();
         foreach($item_ids as $item_id) {
@@ -1800,12 +1800,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $item_service = new ItemService();
             $item_rel_ids = $item_service->getRelateItemById($item_id);
             if (empty($item_rel_ids)) {
-                $this->succ([]);
+                return $this->succ([]);
             }
             //获取封测报告数（包括删除的封测报告）
-            $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_rel_ids, 0, array(), 1);
+            $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_rel_ids, 0, array('status'=>[0,2]));
             //通过商品id获取口碑id(包括删除的封测报告)
-            $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0, 0, array(), 1);
+            $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0, array('type'=>1,'status'=>[0,2]));
             //获取口碑信息(包括删除封测报告)
             $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, 0, ['user_info', 'count', 'koubei_reply', 'group_labels', 'praise_info', 'item' , 'order_info', 'content_format'], array(0,2))['data'];
             $selection_info[$item_id]['total_count'] = $koubei_nums;
