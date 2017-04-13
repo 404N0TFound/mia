@@ -318,7 +318,7 @@ class Koubei extends \DB_Query {
 
 
     /*
-     * 查看口碑首评
+     * 查看口碑首评(新增封测报告逻辑)
      * */
     public function checkFirstComment($order_id, $item_id, $user_id){
         $where = array();
