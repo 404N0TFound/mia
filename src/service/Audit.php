@@ -259,7 +259,7 @@ class Audit extends \mia\miagroup\Lib\Service {
             preg_match_all("/".$sensitiveWord."/i", $textArray, $match);
             if (isset($match[0]) && !empty($match[0])) {
                 $matchList = $match[0];
-                $msg = $matchList[0];
+                $msg = implode("','", $matchList);
             }
         } else if (is_array($textArray)) {
             foreach ($textArray as $text) {
@@ -270,14 +270,14 @@ class Audit extends \mia\miagroup\Lib\Service {
                 $key = md5($text);
                 preg_match_all("/".$sensitiveWord."/i", $text, $match);
                 if (isset($match[0]) && !empty($match[0])) {
-                    $matchList[$key] = $match[0];
+                    $matchList = array_merge($matchList, $match[0]);
                 }
             }
-            $msg = array_values($matchList)[0];
+            $msg = implode("','", $matchList);
         }
         //单条返回一维数组，多条返回二维数组
         if(!empty($matchList)) {
-            return $this->error(1127,'"'.$msg.'"为敏感词');
+            return $this->error(1127,"'".$msg."'为敏感词");
         }
         return $this->succ(array('sensitive_words' => $matchList));
     }

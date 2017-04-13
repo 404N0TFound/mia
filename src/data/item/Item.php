@@ -30,7 +30,7 @@ class Item extends \DB_Query {
         }
         $data = $this->getRows($where);
         $result = array();
-        if (!empty($data)) {
+        if (!empty($data) && is_array($data)) {
             //批量获取图片信息
             $itemPic = new ItemPic();
             $imgInfo = $itemPic->getBatchItemPicList($itemIds);
