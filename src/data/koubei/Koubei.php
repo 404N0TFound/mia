@@ -15,19 +15,18 @@ class Koubei extends \DB_Query {
     /**
      * 根据商品id批量获取商品口碑id
      * @param array() $itemIds 商品id
-     * @param $type 口碑类型[0：正常口碑，1：封测报告]
      * @return array()
      */
-    public function getKoubeiIdsByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false ,$condition = array(), $type = 0) {
+    public function getKoubeiIdsByItemIds($itemIds, $limit = 20, $offset = 0, $orderBy = false ,$condition = array()) {
         $result = array();
         if (empty($itemIds)) {
             return $result;
         }
         $where = array();
         $where[] = ['item_id', $itemIds];
-        if(!empty($type) && $type == 1) {
-            $where[] = ['status', [0,2]];
-        }else {
+        if(isset($condition["status"])) {
+            $where[] = ['status', $condition['status']];
+        }else{
             $where[] = ['status', 2];
         }
         $where[] = [':gt','subject_id',0];
