@@ -27,4 +27,12 @@ class Order extends \mia\miagroup\Lib\Service {
         $orderData = $this->orderModel->getOrderInfoByIds($orderIds);
         return $this->succ($orderData);
     }
+
+    /*
+     * 根据订单编号获取退货信息
+     * */
+    public function getReturnByOrderCode($order_code, $item_id) {
+        $orderData = $this->orderModel->getReturnOrderInfo($order_code, $item_id);
+        return $this->succ($orderData);
+    }
 }
