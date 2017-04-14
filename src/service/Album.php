@@ -753,6 +753,7 @@ class Album extends \mia\miagroup\Lib\Service {
             //设置专栏发布权限
             $permissionArr = array();
             $permissionArr['user_id'] = $article['user_id'];
+            $permissionArr['type'] = 'album';
             $permissionArr['source'] = 'system';
             $permissionArr['reason'] = 'headline_crawl';
             
