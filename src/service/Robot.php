@@ -94,7 +94,7 @@ class Robot extends \mia\miagroup\Lib\Service {
      */
     public function generateEditorSubject($editor_subject_info) {
         if (empty($editor_subject_info['material_id']) || empty($editor_subject_info['content']) || empty($editor_subject_info['pub_user']) || empty($editor_subject_info['op_admin'])) {
-            $this->error(500);
+            return $this->error(500);
         }
         $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
         $insert_data = array();
@@ -203,7 +203,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         //发布帖子
         $result = $this->publishEditorSubject($insert_id);
         if ($result['code'] > 0) {
-            $this->error($result['code']);
+            return $this->error($result['code']);
         }
         $subject = $result['data'];
         //更新状态
@@ -260,7 +260,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (!empty($outer_items)) {
             $subject_info['ext_info']['outer_items'] = $outer_items;
         }
-        $result = $subject_service->issue($subject_info, $point_info, $label_infos, 0, 1);
+        $result = $subject_service->issue($subject_info, $point_info, $label_infos);
         if ($result['code'] > 0) {
             $this->error($result['code']);
         }
