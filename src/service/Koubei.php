@@ -71,6 +71,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(isset($koubeiData['type']) && $koubeiData['type'] == 'pick') {
             // 封测报告默认是没有评分的
             $koubeiSetData['score'] = 0;
+            // 封测报告标识
+            $koubeiSetData['type']  = 1;
         }
         // 封测报告推荐标识
         $labels['selection'] = "1";
@@ -104,17 +106,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             // 默认蜜芽圈封测标签
             $labels['label'][] = '封测报告';
-        }
-
-        // 5.3 新增需求，验证是普通口碑还是封测报告(0:为口碑，1:封测报告)
-        $koubeiSetData['type']  = "0";
-        if (!empty($koubeiSetData['order_id'])){
-            //获取订单信息
-            $orderService = new OrderService();
-            $orderInfos = $orderService->getOrderInfoByIds([$koubeiSetData['order_id']])['data'];
-            if($orderInfos[$koubeiSetData['order_id']]['from_type'] == 8) {
-                $koubeiSetData['type']  = "1";
-            }
         }
 
         // 排序权重新增封测报告逻辑(新增封测报告逻辑)
@@ -181,8 +172,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $this->koubeiModel->addSubjectIdToKoubei($koubeiInsertId,$subjectIssue['id']);
         }
 
-        // 首评代金券
-        if(!empty($koubeiData['issue_reward'])) {
+        // 首评代金券(封测报告不作首评数据)
+        if(!empty($koubeiData['issue_reward']) && $koubeiSetData['type'] != 1) {
             if ((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])) {
                 $couponRemote = new CouponRemote();
                 $batch_code = $this->koubeiConfig['batch_code']['test'];

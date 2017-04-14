@@ -125,9 +125,6 @@ class Koubei {
         $where['item_id'] = $itemIds;
         $where['subject_id'] = 0;
         $where['status'] = 2;
-        if(!empty($conditions['status'])) {
-            $where['status'] = $conditions['status'];
-        }
         if ($withPic == 1) {
             $where['with_pic'] = 1;
         }
