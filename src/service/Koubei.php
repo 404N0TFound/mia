@@ -371,8 +371,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
         }
         // 甄选商品推荐率
-        $selection_info = $this->getSelectionKoubeiInfo([$itemId])['data'];
-        $koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
+        //$selection_info = $this->getSelectionKoubeiInfo([$itemId])['data'];
+        //$koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
         return $this->succ($koubei_res);
     }
     
