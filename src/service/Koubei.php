@@ -5,6 +5,7 @@ use mia\miagroup\Model\Koubei as KoubeiModel;
 use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
+use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
 use mia\miagroup\Remote\Coupon as CouponRemote;
@@ -66,6 +67,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels = array();
         $labels['label'] = array();
         $labels['image'] = array();
+        // 5.3 新增发布类型（针对封测报告）
+        if(isset($koubeiData['type']) && $koubeiData['type'] == 'pick') {
+            // 封测报告默认是没有评分的
+            $koubeiSetData['score'] = 0;
+            // 封测报告标识
+            $koubeiSetData['type']  = 1;
+        }
+        // 封测报告推荐标识
+        $labels['selection'] = "1";
+
         if(!empty($koubeiData['labels'])) {
             foreach($koubeiData['labels'] as $label) {
                 $labels['label'][] = $label['title'];
@@ -76,19 +87,41 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $labels['image'][] = $image;
             }
         }
+
+        // 5.3 口碑新增 甄选商品印象标签(三个维度)
+        $labels['selection_label'] = array();
+        $noRecommend_arr = \F_Ice::$ins->workApp->config->get('busconf.koubei.norecommend_flag');
+        if(!empty($koubeiData['selection_labels'])) {
+            $no_recommend_ident = 0;
+            foreach($koubeiData['selection_labels'] as $selection_label) {
+                $labels['selection_label'][] = $selection_label['tag_name'];
+                // 1:推荐 2:不推荐
+                if($selection_label['positive'] == 2 && in_array($selection_label['tag_name'], $noRecommend_arr)) {
+                    $no_recommend_ident += 1;
+                }
+            }
+            // 甄选商品三个维度，不推荐个取一个
+            if($no_recommend_ident == 3) {
+                $labels['selection'] = "0";
+            }
+            // 默认蜜芽圈封测标签
+            $labels['label'][] = '封测报告';
+        }
+
+        // 排序权重新增封测报告逻辑(新增封测报告逻辑)
+        $koubeiSetData['extr_info'] = json_encode($labels);
         $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
         //供应商ID获取
         $itemService = new ItemService();
         $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
         $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
-        $koubeiSetData['extr_info'] = json_encode($labels);
         //####end
         $koubeiInsertId = $this->koubeiModel->saveKoubei($koubeiSetData);
         if(!$koubeiInsertId) {
             return $this->error(6101);
         }
-        
+
         //发口碑同时发布蜜芽圈帖子
         //#############start
         $subjectInfo = array();
@@ -111,18 +144,46 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $subjectInfo['image_infos'] = $imageInfos;
         $labelInfos = array();
         if(!empty($labels['label'])) {
-            $labels = $labels['label'];
-            foreach($labels as $label) {
+            //$labels = $labels['label'];
+            foreach($labels['label'] as $label) {
                 $labelInfos[] = array('title' => $label);
             }
         }
+        // 5.3 封测报告标签
+        $selectionLabelInfo = array();
+        if(!empty($labels['selection_label'])) {
+            foreach($labels['selection_label'] as $label) {
+                $selectionLabelInfo[] = $label;
+            }
+        }
+
+        // 5.3 封测报告是否推荐
+        $selection = array();
+        if(!empty($labels['selection'])) {
+            $selection['selection'] = $labels['selection'];
+        }
+
         $pointInfo[0] = array( 'item_id' => $koubeiSetData['item_id']);
         
-        $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiInsertId)['data'];
+        $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiInsertId,0,$selectionLabelInfo,$selection)['data'];
         //#############end
         //将帖子id回写到口碑表中
         if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
             $this->koubeiModel->addSubjectIdToKoubei($koubeiInsertId,$subjectIssue['id']);
+        }
+
+        // 首评代金券(封测报告不作首评数据)
+        if(!empty($koubeiData['issue_reward']) && $koubeiSetData['type'] != 1) {
+            if ((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])) {
+                $couponRemote = new CouponRemote();
+                $batch_code = $this->koubeiConfig['batch_code']['test'];
+                if (!empty($batch_code)) {
+                    $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+                    if (!$bindCouponRes) {
+                        $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
+                    }
+                }
+            }
         }
 
         //发蜜豆
@@ -131,21 +192,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $param['to_user_id'] = $koubeiData['user_id'];
         $param['relation_type'] = "send_koubei";
         $param['relation_id'] = $koubeiInsertId;
-
-//因客户端问题，首评代金券暂时由daemon程序控制发放
-//         //首评奖励(绑定代金券)
-//         if(!empty($koubeiData['issue_reward'])) {
-//             if ((mb_strlen($koubeiSetData['content']) > 20) && !empty($koubeiData['image_infos'])) {
-//                 $couponRemote = new CouponRemote();
-//                 $batch_code = $this->koubeiConfig['batch_code']['test'];
-//                 if (!empty($batch_code)) {
-//                     $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
-//                     if (!$bindCouponRes) {
-//                         $bindCouponRes = $couponRemote->bindCouponByBatchCode($koubeiSetData['user_id'], $batch_code);
-//                     }
-//                 }
-//             }
-//         }
 
         //保存口碑相关图片信息
         if(!empty($koubeiData['image_infos'])){
@@ -260,8 +306,21 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($item_ids)) {
             return $this->succ($koubei_res);
         }
-        //获取口碑数量
-        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids);
+
+        // 获取商品是否为甄选商品
+        $item_info = $item_service->getItemList([$itemId])['data'];
+        if(!empty($item_info[$itemId]['is_pick'])) {
+            $is_pick = $item_info[$itemId]['is_pick'];
+        }
+
+        $conditions = array();
+        if(!empty($is_pick) && $is_pick == 1) {
+            // 封测报告列表不展示默认好评(甄选商品)
+            $conditions = array("auto_evaluate" => 0);
+        }
+
+        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $conditions);
+
         if($koubei_nums <=0){
             return $this->succ($koubei_res);
         }
@@ -281,9 +340,23 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset);
+        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $conditions);
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
+
+        // 封测报告推荐展示三条(排序靠前的3条不符合，不展示)
+        if($page == 1 && $count == 3) {
+            foreach($koubei_infos as $k => $koubei) {
+                $extr_info = $koubei['item_koubei']['extr_info'];
+                if(!empty($extr_info)) {
+                    $extr_info = json_decode($extr_info, true);
+                    if(empty($extr_info['selection'])) {
+                        unset($koubei_infos[$k]);
+                    }
+                }
+            }
+        }
+
         $koubei_res['koubei_info'] = !empty($koubei_infos) ? array_values($koubei_infos) : array();
 
         //如果综合评分和蜜粉推荐都为0，且当页无口碑，则返回空数组，如果当页有口碑，则返回口碑记录
@@ -297,6 +370,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if($page == 1){
             $koubei_res['tag_list'] = $this->getItemTagList($itemId, $field = ["normal", "collect"])['data'];
         }
+        // 甄选商品推荐率
+        //$selection_info = $this->getSelectionKoubeiInfo([$itemId])['data'];
+        //$koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
         return $this->succ($koubei_res);
     }
     
@@ -386,6 +462,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'status' => $koubei['status'],
                 'order_id' => $koubei['order_id'],
                 'comment_id' => $koubei['comment_id'],
+                'auto_evaluate' => $koubei['auto_evaluate'],
+                'extr_info' => $koubei['extr_info'],
+                'type' => $koubei['type']
             );
             //获取口碑订单id，用于获取订单编号(order_code)
             if(!empty($koubei['order_id'])){
@@ -406,8 +485,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $commentInfos = $commentService->getBatchComments($commentIds, array('user_info'))['data'];
         }
 
+        // 封测报告，包含帖子删除，也获取数据
+        $subject_status = [1, 3];
+        if(in_array(0, $status)) {
+            // 口碑包含删除的逻辑，帖子也要包含
+            $subject_status[] = 0;
+        }
+
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
-        $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field, array(1, 3));
+        $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field, $subject_status);
         foreach ($itemKoubei as $key => $value) {
             if (!empty($subjectRes['data'][$key])) {
                 if (!empty($subjectRes['data'][$key]['items'])) {
@@ -426,6 +512,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 if (in_array('order_info', $field) && intval($value['order_id']) > 0) {
                     $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
                 }
+                $selection_label = array();
+                // 封测报告标签拼到口碑信息中
+                if(!empty($value['extr_info'])) {
+                    $extr_arr = json_decode($value['extr_info'], true);
+                    if(!empty($extr_arr['selection_label'])) {
+                        $selection_label = $extr_arr['selection_label'];
+                    }
+                }
+                $subjectRes['data'][$key]['item_koubei']['selection_label'] = $selection_label;
+                // 是否为封测报告（0：不是，1：是）
+                $subjectRes['data'][$key]['item_koubei']['closed_report'] = $value['type'];
+
                 //拼口碑官方回复信息
                 if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
                     $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
@@ -574,7 +672,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         //蜜芽圈同步8分，权重1
         $immutable_score += (($data['source'] == 1 ? 8 : 0) * 1);
-        
+
+        //封测报告，权重（上下浮动2分）
+        if(!empty($data['extr_info'])) {
+            $extr_arr = json_decode($data['extr_info'], true);
+            if(!empty($extr_arr['selection']) && $extr_arr['selection'] == 1) {
+                $immutable_score += 3;
+            }else {
+                $immutable_score -= 3;
+            }
+        }
         return $immutable_score;
     }
     
@@ -902,26 +1009,57 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
 
     /**
-     * solr 分类检索口碑列表
-     * @param $order_code     订单编号
-     * @param $item_id        商品SKU
-     * @ return issue_reward  口碑发布奖励
-     * @ return issue_tip_url 口碑发布图片提升
+     * solr 口碑发布初始化
+     * @param $order_id       可选
+     * @param $item_id        可选
+     * @param $issue_type[default:koubei]  发布类型
      */
-    public function issueinit($order_code = 0, $item_id = 0){
-        //$order_code = 1;
-        //$item_id = 1005598;
-        // 验证是否为首评
-        if(empty($item_id)){
-            return $this->error(500);
+    public function issueinit($order_id = 0, $item_id = 0, $issue_type = 'koubei'){
+
+        // 发布口碑传入，帖子不需要传
+        if($issue_type == 'koubei') {
+            if(empty($order_id) || empty($item_id)) {
+                return $this->error(500);
+            }
         }
-        $check_res = $this->koubeiModel->getCheckFirstComment($order_code, $item_id);
-        if(empty($check_res)){
-            $batch_info = $this->koubeiConfig['shouping'];
-            $shouping_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info);
-            return $this->succ($shouping_Info);
+        $return_Info = array();
+        switch ($issue_type) {
+            case 'subject':
+                # 帖子
+                $issue_info = \F_Ice::$ins->workApp->config->get('busconf.subject')['subject_issue']['issue'];
+                $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($issue_info, $issue_type);
+                $label_service = new LabelService();
+                $labels = $label_service->getRecommendLabels()['data'];
+                $return_Info['labels'] = $labels;
+                break;
+
+            default:
+                # 口碑
+                $check_res = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
+                if(empty($check_res)) {
+                    // 首评
+                    $batch_info = $this->koubeiConfig['shouping'];
+                    $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info, $issue_type);
+                }
+
+                // 甄选商品
+                $item_service = new ItemService();
+                $parent_cate_id = $item_service->getRelationCateId($item_id, 1)['data'];
+                $selection_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_cate');
+                $relation = $selection_labels[$parent_cate_id];
+                $q_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_quality_labels_'.$relation);
+                $p_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_price_labels');
+                $e_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_exper_labels');
+                $return_Info['selection_labels'][] = $q_labels;
+                $return_Info['selection_labels'][] = $p_labels;
+                $return_Info['selection_labels'][] = $e_labels;
+
+                // 商品信息
+                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+                $return_Info['item_info'] = $item_info[$item_id];
+                break;
         }
-        return $this->error(1126);
+        return $this->succ($return_Info);
     }
 
     /**
@@ -1640,6 +1778,76 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId,$arrParams);
         return $this->succ($res);
     }
-    
-    
+
+    /*
+     * 甄选封测商品
+     * 维度：用户，订单，商品
+     * 用户购买的商品是否已评价
+     * */
+    public function checkItemKoubeiStatus($data)
+    {
+        //$user_id, $item_id, $order_id
+        if(empty($data) || !is_array($data)) {
+            return $this->succ([]);
+        }
+        $return = array();
+        foreach($data as $info){
+            $order_id = $info['order_id'];
+            $item_id  = $info['item_id'];
+            $user_id  = $info['user_id'];
+            if(empty($order_id) || empty($item_id) || empty($user_id)) {
+                return $this->succ([]);
+            }
+            $count = $this->koubeiModel->getCheckFirstComment($order_id, $item_id, $user_id);
+            empty($count) ? $flag = 0 : $flag = 1;
+            $return[$order_id] = $flag;
+        }
+        return $this->succ($return);
+    }
+
+    /*
+ * 甄选封测商品
+ * 批量获取口碑数，封测推荐测评数
+ * 封测报告删除也需要统计
+ * */
+    public function getSelectionKoubeiInfo($item_ids)
+    {
+        if(empty($item_ids)) {
+            return $this->succ([]);
+        }
+        $selection_info = array();
+        foreach($item_ids as $item_id) {
+            $recommend_count = 0;
+
+            // 获取关联商品ID
+            $item_service = new ItemService();
+            $item_rel_ids = $item_service->getRelateItemById($item_id);
+            if (empty($item_rel_ids)) {
+                return $this->succ([]);
+            }
+            //获取封测报告数（包括删除的封测报告）
+            $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_rel_ids, 0, array('status'=>[0,2]));
+            //通过商品id获取口碑id(包括删除的封测报告)
+            $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0, 0, array('status'=>[0,2]));
+            //获取口碑信息(包括删除封测报告,帖子)
+            $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, 0, array(), array(0,2))['data'];
+            $selection_info[$item_id]['total_count'] = $koubei_nums;
+            foreach($koubei_infos as $koubei) {
+                if($koubei['item_koubei']['auto_evaluate'] == 1) {
+                    // 默认好评算推荐
+                    $recommend_count += 1;
+                }else {
+                    $extr_info = json_decode($koubei['item_koubei']['extr_info'], true);
+                    if(!empty($extr_info['selection'])) {
+                        $recommend_count += 1;
+                    }
+                }
+            }
+            $selection_info[$item_id]['recommend_count'] =  $recommend_count;
+            if(!empty($koubei_nums)) {
+                $selection_info[$item_id]['rate'] = round($recommend_count / $koubei_nums, 2);
+            }
+        }
+        return $this->succ($selection_info);
+    }
 }

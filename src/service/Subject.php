@@ -16,6 +16,7 @@ use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Service\Feed as FeedServer;
+use mia\miagroup\Service\Order as OrderService;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -521,6 +522,14 @@ class Subject extends \mia\miagroup\Lib\Service
                     $subjectRes[$subjectInfo['id']]['koubei_id'] = $subjectInfo['ext_info']['koubei_id'];
                 }
             }
+            // 获取封测报告展示标签
+            $subjectRes[$subjectInfo['id']]['closed_report'] = "0";
+            if (!empty($subjectInfo['ext_info']['selection_label']) || !empty($subjectInfo['ext_info']['selection_label'])) {
+                $subjectRes[$subjectInfo['id']]['item_koubei']['selection_label'] = $subjectInfo['ext_info']['selection_label'];
+                //不走订单表查询逻辑
+                $subjectRes[$subjectInfo['id']]['item_koubei']['closed_report'] = "1";
+            }
+
             if (!empty($subjectInfo['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['video_info'] = $subjectInfo['video_info'];
             }
@@ -653,7 +662,7 @@ class Subject extends \mia\miagroup\Lib\Service
         /*蜜芽帖、口碑贴相关逻辑结束*/
         
         /*专栏、头条相关逻辑开始*/
-        if (!empty($subjectInfo['album_article'])) { 
+        if (!empty($subjectInfo['album_article'])) {
             $con = [
                 'user_id'   => $subjectInfo['user_id'],
                 'iPageSize' => 5,
@@ -740,7 +749,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * @param unknown $labelInfos
      * @param unknown $koubeiId
      */
-    public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0, $isValidate = 0) {
+    public function issue($subjectInfo, $pointInfo = array(), $labelInfos = array(), $koubeiId = 0, $isValidate = 0, $selectionLabelInfo = array(), $selection = array()) {
         if (empty($subjectInfo)) {
             return $this->error(500);
         }
@@ -786,7 +795,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
         }
-        
+
         $subjectSetInfo = array();
         $subjectSetInfo['active_id'] = 0;
         if (!isset($subjectInfo['user_info']) || empty($subjectInfo['user_info'])) {
@@ -849,6 +858,12 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         $subjectSetInfo['image_url'] = implode("#", $imgUrl);
         $subjectSetInfo['ext_info']['image'] = $imageInfo;
+
+        // 封测报告标签
+        $subjectSetInfo['ext_info']['selection_label'] = $selectionLabelInfo;
+
+        // 封测报告推荐
+        $subjectSetInfo['ext_info']['selection'] = $selection;
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         
@@ -890,7 +905,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
         }
-        
+
         $insertSubjectRes = $this->subjectModel->addSubject($subjectSetInfo);
         unset($subjectSetInfo['image_url']);
         unset($subjectSetInfo['ext_info']);
