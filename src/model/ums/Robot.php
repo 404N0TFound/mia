@@ -144,10 +144,10 @@ class Robot extends \DB_Query {
     }
     
     /**
-     * 查询帖子素材抓取来源
+     * 查询帖子素材抓取分类
      */
     public function getSubjectMaterialCategory() {
-        $this->tableName = $this->tableAvatarMaterial;
+        $this->tableName = $this->tableSubjectMaterial;
         $sql = "SELECT DISTINCT(`category`) from {$this->tableName} WHERE category IS NOT NULL";
         $data = $this->query($sql);
         if (!empty($data)) {

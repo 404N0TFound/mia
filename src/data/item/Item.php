@@ -30,7 +30,7 @@ class Item extends \DB_Query {
         }
         $data = $this->getRows($where);
         $result = array();
-        if (!empty($data)) {
+        if (!empty($data) && is_array($data)) {
             //批量获取图片信息
             $itemPic = new ItemPic();
             $imgInfo = $itemPic->getBatchItemPicList($itemIds);
@@ -113,5 +113,21 @@ class Item extends \DB_Query {
         $where[] = ['id', $itemId];
         $data = $this->update($itemInfo, $where);
         return $data;
+    }
+
+    /*
+     * 获取商品的四级分类（new）
+     * */
+    public function getItemNewCategory($item_id)
+    {
+        if (empty($item_id)) {
+            return false;
+        }
+        $where[] = ['id', $item_id];
+        $where[] = ['status', 1];
+        $fields = 'category_id_ng';
+        $data = $this->getRows($where, $fields);
+        $category_id_ng = $data[0]['category_id_ng'];
+        return $category_id_ng;
     }
 }

@@ -113,10 +113,11 @@ class Koubei {
      * 获取口碑数量
      * @param $itemIds 商品id
      * @param $withPic
+     * @param $type 口碑类型 [0:正常口碑，1：封测报告]
      * @return int
      */
-    public function getItemKoubeiNums($itemIds, $withPic = 0){
-        if(empty($itemIds)){
+    public function getItemKoubeiNums($itemIds, $withPic = 0, $conditions = array()){
+        if (empty($itemIds)) {
             return 0;
         }
         $filed = ' count(distinct(koubei.id)) as nums ';
@@ -127,8 +128,13 @@ class Koubei {
         if ($withPic == 1) {
             $where['with_pic'] = 1;
         }
+        if(!empty($conditions)) {
+            foreach($conditions as $k => $v) {
+                $where[$k] = $v;
+            }
+        }
         $koubeiNums = $this->koubeiData->getItemInvolveNums($filed, $where);
-        return $koubeiNums;    
+        return $koubeiNums;
     }
 
     /**
@@ -410,27 +416,40 @@ class Koubei {
     /**
      * 首评口碑奖励及图片提示
      */
-    public function getBatchKoubeiByDefaultInfo($batch_info = array()){
+    public function getBatchKoubeiByDefaultInfo($batch_info = array(), $issue_type = 'koubei'){
         $res = array();
         if(!empty($batch_info)){
             $issue_img      = $batch_info['issue_img'];
             $issue_skip_url = $batch_info['issue_skip_url'];
             $res['issue_reward'] = $batch_info['issue_reward'];
         }
-        // banner 结构体
-        $res['issue_tip_url']['pic']['url']   = $issue_img;
-        $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
-        $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
-        $res['issue_tip_url']['url']          = $issue_skip_url;
+        switch ($issue_type) {
+            case 'subject':
+                // banner 结构体
+                $res['issue_tip_url']['pic']['url']   = $issue_img;
+                $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
+                $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
+                $res['issue_tip_url']['url']          = $issue_skip_url;
+                break;
+
+            default:
+                // banner 结构体
+                $res['issue_tip_url']['pic']['url']   = $issue_img;
+                $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
+                $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
+                $res['issue_tip_url']['url']          = $issue_skip_url;
+                break;
+        }
+
         return $res;
     }
 
     /*
      * 首评验证
      * */
-    public function getCheckFirstComment($order_id, $item_id){
+    public function getCheckFirstComment($order_id, $item_id, $user_id = 0 ){
         $koubeiData = new KoubeiData();
-        $result = $koubeiData->checkFirstComment($order_id, $item_id);
+        $result = $koubeiData->checkFirstComment($order_id, $item_id, $user_id);
         return $result;
     }
 
