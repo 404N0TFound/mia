@@ -64,12 +64,9 @@ class User extends \mia\miagroup\Lib\Service {
         $liveService = new Live();
         $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
         // 批量获取达人网站发布权限
-        $albumService = new Album();
-        $publishPermissions = $albumService->getAlbumPermissionByUserId($userIds)['data'];
+        $publishPermissions = $this->getBatchPermissionUserInfo($userIds, 'album')['data'];
         // 批量获取发视频权限
         $videoPermissions = $this->getBatchPermissionUserInfo($userIds, 'video')['data'];
-        // 批量获取发专栏权限
-        $albumPermissions = $this->getBatchPermissionUserInfo($userIds, 'album')['data'];
         //批量获取推荐信息
         $recommendInfos = $this->getBatchCategoryUserInfo($userIds,'doozer')['data'];
 
