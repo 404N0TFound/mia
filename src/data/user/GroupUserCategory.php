@@ -4,7 +4,7 @@ namespace mia\miagroup\Data\User;
 use \DB_Query;
 
 /**
- * 蜜芽圈专家表
+ * 蜜芽圈用户分类表
  *
  * @author user
  */
@@ -14,53 +14,88 @@ class GroupUserCategory extends DB_Query {
 
     protected $dbResource = 'miagroup';
 
-    protected $mapping = array(
-        'user_id' => 'i', 
-        'desc' => 's', 
-        'label' => 's', 
-        'status' => 'i', 
-        'last_modify' => 's', 
-        'modify_author' => 'i', 
-        'answer_nums' => 'i'
-    );
-    
     /**
      * 新增用户类型
      */
-    public function addExpert($expertInfo) {
-        $data = $this->insert($expertInfo);
+    public function addCategory($userInfo) {
+        $data = $this->insert($userInfo);
         return $data;
     }
     
-//     /**
-//      * 批量获取专家信息
-//      */ 
-//     public function getBatchExpertInfoByUids($userIds) {
-//         $result = array();
+    /**
+     * 批量获取分类用户信息
+     */ 
+    public function getBatchUserInfoByUids($conditions, $type) {
+        $result = array();
+        $where = array();
         
-//         $where[] = ['status', 1];
-//         $where[] = ['user_id', $userIds];
-        
-//         $experts = $this->getRows($where);
-
-//         if (!empty($experts)) {
-//             foreach ($experts as $expert) {
-//                 $result[$expert['user_id']] = $expert;
-//             }
-//         }
-//         return $result;
-//     }
+        $where[] = ['status', 1];
+        $where[] = ['type',$type];
+        if (!empty($conditions) && isset($conditions['user_id'])) {
+            $where[] = ['user_id', $conditions['user_id']];
+        }
+        $users = $this->getRows($where);
+        if (!empty($users)) {
+            foreach ($users as $user) {
+                $result[$user['user_id']] = $user;
+                if(!empty($user['ext_info'])){
+                    $extInfo = json_decode($user['ext_info'],true);
+                    if(isset($extInfo['intro']) && !empty($extInfo['intro'])){
+                        $result[$user['user_id']]['intro'] = $extInfo['intro'];
+                    }
+                    if(isset($extInfo['desc']) && !empty($extInfo['desc'])){
+                        $result[$user['user_id']]['desc'] = $extInfo['desc'];
+                    }
+                    if(isset($extInfo['label']) && !empty($extInfo['label'])){
+                        $result[$user['user_id']]['label'] = $extInfo['label'];
+                    }
+                    if(isset($extInfo['last_modify']) && !empty($extInfo['last_modify'])){
+                        $result[$user['user_id']]['last_modify'] = $extInfo['last_modify'];
+                    }
+                    if(isset($extInfo['modify_author']) && !empty($extInfo['modify_author'])){
+                        $result[$user['user_id']]['modify_author'] = $extInfo['modify_author'];
+                    }
+                    if(isset($extInfo['answer_nums']) && !empty($extInfo['answer_nums'])){
+                        $result[$user['user_id']]['answer_nums'] = $extInfo['answer_nums'];
+                    }
+                }
+                unset($result[$user['user_id']]['ext_info']);
+            }
+        }
+        return $result;
+    }
     
-//     /**
-//      * 修改专家信息
-//      */
-//     public function updateExpertInfoByUid($userId, $setData) {
-//         if (empty($userId)) {
-//             return false;
-//         }
-//         $where = array();
-//         $where[] = array('user_id', $userId);
-//         $data = $this->update($setData, $where);
-//         return $data;
-//     }
+    /**
+     * 修改用户分类信息
+     */
+    public function updateUserInfoByUid($userId, $type, $userInfo) {
+        if (empty($userId)) {
+            return false;
+        }
+        $where = array();
+        $where[] = ['user_id', $userId];
+        $where[] = ['type', $type];
+        $data = $this->update($userInfo, $where);
+        return $data;
+    }
+    
+    /**
+     *批量获取分类用户id
+     * @return array() 推荐列表
+     */
+    public function getGroupUserIdList($type, $count=10) {
+        $where = array();
+        $where[] = ['status', 1];
+        $where[] = ['type', $type];
+        $orderBy = ['create_time DESC'];
+        $userIdRes = $this->getRows($where, array('user_id'), $count, 0, $orderBy);
+        $userIdArr = array();
+        if ($userIdRes) {
+            foreach ($userIdRes as $value) {
+                $userIdArr[] = $value['user_id'];
+            }
+        }
+        return $userIdArr;
+    }
+    
 }

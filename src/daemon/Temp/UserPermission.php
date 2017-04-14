@@ -13,7 +13,7 @@ use mia\miagroup\Data\User\GroupUserPermission as PermissionData;
 class UserPermission extends \FD_Daemon {
 
     public function execute() {
-        $this->setUserPermission('live');
+        $this->setUserPermission('video');
         //$this->setUserCategory('doozer');
     }
 
@@ -83,7 +83,7 @@ class UserPermission extends \FD_Daemon {
                 }
                 $setData['ext_info'] = json_encode($extInfo);
                 //将用户信息导入到用户分类表
-                $categoryData->addExpert($setData);
+                $categoryData->addCategory($setData);
             }
         }
         return true;

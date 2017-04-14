@@ -56,7 +56,7 @@ class User extends \mia\miagroup\Lib\Service {
             $userArticleCount = $albumService->getArticleNum($userIds)['data'];//用户文章数
         }
         // 批量获取专家信息
-        $expertInfos = $this->getBatchExpertInfoByUids($userIds)['data'];
+        $expertInfos = $this->getBatchCategoryUserInfo($userIds,'expert')['data'];
         // 批量获取是否是供应商
         $itemService = new \mia\miagroup\Service\Item();
         $supplierInfos = $itemService->getBatchUserSupplierMapping($userIds)['data'];
@@ -64,9 +64,11 @@ class User extends \mia\miagroup\Lib\Service {
         $liveService = new Live();
         $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
         // 批量获取发视频权限
-        $videoPermissions = $this->userModel->getVideoPermissionByUids($userIds);
+        $videoPermissions = $this->getBatchPermissionUserInfo($userIds, 'video')['data'];
+        // 批量获取发专栏权限
+        $albumPermissions = $this->getBatchPermissionUserInfo($userIds, 'album')['data'];
         //批量获取推荐信息
-        $recommendInfos = $this->userModel->getUserRecommendInfo($userIds);
+        $recommendInfos = $this->getBatchCategoryUserInfo($userIds,'doozer')['data'];
 
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
@@ -203,7 +205,7 @@ class User extends \mia\miagroup\Lib\Service {
      */
     public function expertsInfo($userId, $currentId){
         $result = array();
-        $expertsinfo = $this->userModel->getBatchExpertInfoByUids([$userId])[$userId];
+        $expertsinfo = $this->getBatchCategoryUserInfo(array($userId),'expert')['data'][$userId];
         $userInfo = $this->getUserInfoByUserId($userId,array("relation","count"),$currentId)['data'];
         $result['user_info'] = $userInfo;
         if(!empty($expertsinfo)){
@@ -253,7 +255,7 @@ class User extends \mia\miagroup\Lib\Service {
             $setData[] = array('icon', $avatar);
             $this->userModel->updateUserById($userId, $setData);
             //更新专家信息
-            $this->userModel->updateExpertInfoByUid($userId, array('desc' => array($desc)));
+            $this->updateUserCategory($userId, 'expert', array('desc' => array($desc)));
             //用户归类
             $this->userModel->setHeadlineUserCategory($userId, $category);
             return $this->succ(array('uid' => $userId, 'is_exist' => 1));
@@ -267,7 +269,18 @@ class User extends \mia\miagroup\Lib\Service {
         $userInfo['relation'] = 3;
         $userInfo['create_date'] = date('Y-m-d H:i:s');
         $userId = $this->userModel->addUser($userInfo);
-        $this->userModel->addExpert(array('user_id' => $userId, 'last_modify' => date('Y-m-d H:i:s'), 'status' => 1));
+        
+        //同步到专家表
+        $expertInfo = array();
+        
+        $expertInfo['user_id'] = $userId;
+        $expertInfo['type'] = 'expert';
+        $expertInfo['status'] = 1;
+        $expertInfo['create_time'] = $userInfo['create_date'];
+        $expertInfo['last_modify'] = $userInfo['create_date'];
+        
+        $this->addCategory($expertInfo);
+        
         \DB_Query::switchCluster($preNode);
         if (intval($userId) > 0) {
             //用户归类
@@ -306,7 +319,15 @@ class User extends \mia\miagroup\Lib\Service {
         }
         
         //升级为专家用户
-        $this->userModel->addExpert(array('user_id' => $user_id, 'last_modify' => date('Y-m-d H:i:s'), 'status' => 1));
+        $expertInfo = array();
+        
+        $expertInfo['user_id'] = $userId;
+        $expertInfo['type'] = 'expert';
+        $expertInfo['status'] = 1;
+        $expertInfo['create_time'] = $userInfo['create_date'];
+        $expertInfo['last_modify'] = $userInfo['create_date'];
+        
+        $this->addCategory($expertInfo);
         
         //商家用户与蜜芽圈用户绑定
         $itemService = new \mia\miagroup\Service\Item();
@@ -355,6 +376,172 @@ class User extends \mia\miagroup\Lib\Service {
      */
     public function getGroupDoozerList($count = 10)
     {
-        return $this->userModel->getGroupDoozerList($count);
+        $result = array();
+        $userArr = $this->userModel->getGroupUserIdList('doozer',$count);
+        if(!empty($userArr)){
+            $result = $userArr;
+        }
+        return $this->succ($result);
     }
+    
+    // 批量获取分类用户（专家、达人）信息
+    public function getBatchCategoryUserInfo($userIds, $type) {
+        if (empty($userIds)) {
+            return $this->error(500);
+        }
+    
+        $conditions = array();
+        $conditions['user_id'] = $userIds;
+        $data = $this->userModel->getBatchUserCategory($conditions, $type);
+        return $this->succ($data);
+    }
+    
+    // 批量获取用户权限（专栏、视频）信息
+    public function getBatchPermissionUserInfo($userIds, $type) {
+        if (empty($userIds)) {
+            return $this->error(500);
+        }
+    
+        $conditions = array();
+        $conditions['user_id'] = $userIds;
+        $data = $this->userModel->getBatchUserPermission($conditions, $type);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 新增用户权限
+     */
+    public function addPermission($userInfo) {
+        if(empty($userInfo['user_id'])){
+            return $this->error(500);
+        }
+        $permissionInfo = array();
+        $extInfo = array();
+        
+        $permissionInfo['user_id'] = $userInfo['user_id'];
+        $permissionInfo['type'] = $userInfo['type'];
+        $permissionInfo['source'] = isset($userInfo['source']) ? $userInfo['source'] : '';
+        $permissionInfo['status'] = 1;
+        $permissionInfo['create_time'] = $userInfo['create_date'];
+        
+        $extInfo['reason'] = isset($userInfo['reason']) ? $userInfo['reason'] : '';
+        $permissionInfo['ext_info'] = json_encode($extInfo);
+        unset($userInfo);
+        
+        $data = $this->userModel->addPermission($permissionInfo);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 新增用户分类
+     */
+    public function addCategory($userInfo) {
+        if(empty($userInfo['user_id'])){
+            return $this->error(500);
+        }
+        $catgoryInfo = array();
+        $extInfo = array();
+        
+        $catgoryInfo['user_id'] = $userInfo['user_id'];
+        $catgoryInfo['type'] = $userInfo['type'];
+        $catgoryInfo['status'] = 1;
+        $catgoryInfo['create_time'] = $userInfo['create_time'];
+        $catgoryInfo['operator'] = $userInfo['operator'] ? $userInfo['operator'] : 0;
+        if($userInfo['type'] == 'doozer'){
+            $extInfo['intro'] = isset($userInfo['intro']) ? $userInfo['intro'] : '';
+        }else{
+            $extInfo['desc'] = isset($userInfo['desc']) ? implode('#', $userInfo['desc']) : '';
+            $extInfo['label'] = isset($userInfo['label']) ? implode('#', $userInfo['label']) : '';
+            $extInfo['modify_author'] = isset($userInfo['modify_author']) ? $userInfo['modify_author'] : 0;
+            $extInfo['answer_nums'] = isset($userInfo['answer_nums']) ? $userInfo['answer_nums'] : 0;
+            $extInfo['last_modify'] = $userInfo['create_time'];
+        }
+        
+        if(!empty($extInfo)){
+            $catgoryInfo['ext_info'] = json_encode($extInfo);
+        }
+        unset($userInfo);
+        
+        $data = $this->userModel->addCategory($catgoryInfo);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 更新用户权限信息
+     */
+    public function updateUserPermission($userId, $type, $updata) {
+        if (empty($userId) || empty($updata)){
+            return $this->error(500);
+        }
+    
+        $result = array();
+        $conditions = array();
+        $conditions['user_id'] = array($userId);
+        $userInfo = $this->userModel->getBatchUserPermission($conditions, $type)[$userId];
+        if(empty($userInfo)){
+            $this->succ($result);
+        }
+        $setData = array();
+        $extInfo = array();
+    
+        if (isset($updata['status'])) {
+            $setData[] = array('status', $updata['status']);
+        }
+        if (isset($updata['operator'])) {
+            $setData[] = array('operator', $updata['operator']);
+        }
+        $userInfo['ext_info'] = json_decode($userInfo['ext_info']);
+        $extInfo['reason'] = isset($updata['reason']) ? $updata['reason'] : $userInfo['reason'];
+        if(!empty($extInfo)){
+            $extInfo = json_encode($extInfo);
+            $setData[] = array('ext_info', $extInfo);
+        }
+    
+        $result = $this->userModel->updateUserPermission($userId, $type, $setData);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 更新用户分类信息
+     */
+    public function updateUserCategory($userId, $type, $updata) {
+        if (empty($userId) || empty($updata)){
+            return $this->error(500);
+        }
+        $result = array();
+        $conditions = array();
+        $conditions['user_id'] = array($userId);
+        $userInfo = $this->userModel->getBatchUserCategory($conditions, $type)[$userId];
+        if(empty($userInfo)){
+            $this->succ($result);
+        }
+        $setData = array();
+        $extInfo = array();
+    
+        if (isset($updata['status'])) {
+            $setData[] = array('status', $updata['status']);
+        }
+        if (isset($updata['operator'])) {
+            $setData[] = array('operator', $updata['operator']);
+        }
+        $userInfo['ext_info'] = json_decode($userInfo['ext_info']);
+        if($type=='doozer'){
+            $extInfo['intro'] = isset($updata['intro']) ? $updata['intro'] : $userInfo['intro'];
+        }else{
+            $extInfo['desc'] = isset($updata['desc']) ? implode('#', $updata['desc']) : $userInfo['desc'];
+            $extInfo['label'] = isset($updata['label']) ? implode('#', $updata['label']) : $userInfo['label'];
+            $extInfo['modify_author'] = isset($updata['modify_author']) ? $updata['modify_author'] : $userInfo['modify_author'];
+            $extInfo['answer_nums'] = isset($updata['answer_nums']) ? $updata['answer_nums'] : $userInfo['answer_nums'];
+            $extInfo['last_modify'] = date('Y-m-d H:i:s');
+        }
+        
+        if(!empty($extInfo)){
+            $extInfo = json_encode($extInfo);
+            $setData[] = array('ext_info', $extInfo);
+        }
+        $result = $this->userModel->updateUserCategory($userId, $type, $setData);
+        return $this->succ($result);
+    }
+    
+    
 }

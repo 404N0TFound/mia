@@ -78,7 +78,7 @@ class Album extends \mia\miagroup\Lib\Service {
             }
         }
         $User = new \mia\miagroup\Service\User();
-        $userIdRes = $User->getGroupDoozerList();
+        $userIdRes = $User->getGroupDoozerList()['data'];
 
         $userInfo = $User->getUserInfoByUids($userIdRes,$user_id);
         $users = array();
@@ -751,7 +751,12 @@ class Album extends \mia\miagroup\Lib\Service {
             $this->updateAlbumArticle($data);
         } else { //不存在新增
             //设置专栏发布权限
-            $this->abumModel->addAlbumPermission($article['user_id'], 'system', 'headline_crawl');
+            $permissionArr = array();
+            $permissionArr['user_id'] = $article['user_id'];
+            $permissionArr['source'] = 'system';
+            $permissionArr['reason'] = 'headline_crawl';
+            
+            $this->userService->addPermission($permissionArr);
             //获取"未分类"专辑id
             $albumId = $this->abumModel->addAlbumFile(array('user_id' => $article['user_id'], 'title' => '未分类'));
             //入article表

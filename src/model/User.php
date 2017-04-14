@@ -8,6 +8,10 @@ use mia\miagroup\Data\User\HeadLineUserCategory as HeadLineUserCategoryData;
 use mia\miagroup\Data\User\GroupSubjectVideoPermission;
 use mia\miagroup\Data\User\GroupDoozer as GroupDoozerData;
 
+use mia\miagroup\Data\User\GroupUserCategory as UserCategoryData;
+use mia\miagroup\Data\User\GroupUserPermission as UserPermissionData;
+
+
 class User
 {
 
@@ -43,7 +47,7 @@ class User
         $data = $userExperts->getVideoPermissionByUids($userIds);
         return $data;
     }
-
+    
     /**
      * 根据userid 获取是否需要发送push
      *
@@ -189,5 +193,79 @@ class User
     public function getGroupDoozerList($count = 10)
     {
         return $this->groupDoozerData->getGroupDoozerList($count);
+    }
+    
+    /**
+     * 获取分类用户id列表
+     * @params array()
+     * @return array() 推荐用户列表
+     */
+    public function getGroupUserIdList($type, $count)
+    {
+        $userCategory = new UserCategoryData();
+        $data = $userCategory->getGroupUserIdList($type, $count);
+        return $data;
+    }
+    
+    /**
+     * 批量获取分类用户信息
+     */
+    public function getBatchUserCategory($conditions, $type) {
+        $userCategory = new UserCategoryData();
+        $data = $userCategory->getBatchUserInfoByUids($conditions, $type);
+        return $data;
+    }
+    
+    /**
+     * 新增用户分类
+     */
+    public function addCategory($userInfo) {
+        $userCategory = new UserCategoryData();
+        $data = $userCategory->addCategory($userInfo);
+        return $data;
+    }
+    
+    /**
+     * 更新用户分类信息
+     */
+    public function updateUserCategory($userId, $type, $updata) {
+        if (empty($userId)) {
+            return false;
+        }
+        
+        $userCategory = new UserCategoryData();
+        $result = $userCategory->updateUserInfoByUid($userId, $type, $setData);
+        return $result;
+    }
+    
+    /**
+     * 批量获取用户权限信息
+     */
+    public function getBatchUserPermission($conditions, $type) {
+        $userPermission = new UserPermissionData();
+        $data = $userPermission->getUserPermissionByUids($conditions, $type);
+        return $data;
+    }
+    
+    /**
+     * 新增用户权限
+     */
+    public function addPermission($userInfo) {
+        $userPermission = new UserPermissionData();
+        $data = $userPermission->addPermission($userInfo);
+        return $data;
+    }
+
+    /**
+     * 更新用户权限信息
+     */
+    public function updateUserPermission($userId, $type, $updata) {
+        if (empty($userId)) {
+            return false;
+        }
+    
+        $userPermission = new UserPermissionData();
+        $data = $userPermission->updatePermissionByUid($userId, $type, $userInfo);
+        return $data;
     }
 }
