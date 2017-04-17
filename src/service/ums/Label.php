@@ -73,6 +73,15 @@ class Label extends Service{
             $condition['is_top'] = $params['is_top'];
         }
         
+        if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
+            //起始时间
+            $condition['start_time'] = $params['start_time'];
+        }
+        if (strtotime($params['end_time']) > 0 && intval($condition['id']) <= 0) {
+            //结束时间
+            $condition['end_time'] = $params['end_time'];
+        }
+        
         if(empty($condition)){
             $condition['label_id'] = $params['id'];
         }
