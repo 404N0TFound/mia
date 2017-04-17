@@ -145,4 +145,36 @@ class Robot extends \mia\miagroup\Lib\Service {
         $result = $this->robotModel->getSubjectMaterialCategory();
         return $this->succ($result);
     }
+
+    /**
+     * 删除用户素材，物理删除
+     * @param $id
+     * @return array
+     */
+    public function delAvatarData($id)
+    {
+        if (empty($id)) {
+            return $this->error(500);
+        }
+        $result = $this->robotModel->delAvatarData($id);
+        if($result === false) {
+            return $this->error(500);
+        }
+        return $this->succ($result);
+    }
+
+    /**
+     * 删除帖子素材，物理删除
+     */
+     public function delMaterial($id)
+     {
+         if (empty($id)) {
+             return $this->error(500);
+         }
+         $result = $this->robotModel->delMaterial($id);
+         if($result === false) {
+             return $this->error(500);
+         }
+         return $this->succ($result);
+     }
 }

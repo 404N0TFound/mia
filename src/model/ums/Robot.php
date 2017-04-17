@@ -160,4 +160,35 @@ class Robot extends \DB_Query {
         }
         return $result;
     }
+
+    /**
+     * 删除用户素材
+     * @param $id
+     * @return array
+     */
+    public function delAvatarData($id) {
+        $this->tableName = $this->tableAvatarMaterial;
+        if (empty($id)) {
+            return false;
+        }
+        $where[] = ["id", $id];
+        $res = $this->delete($where);
+        return $res;
+    }
+
+    /**
+     * 删除帖子素材
+     * @param $id
+     * @return array
+     */
+    public function delMaterial($id)
+    {
+        $this->tableName = $this->tableSubjectMaterial;
+        if (empty($id)) {
+            return false;
+        }
+        $where[] = ["id", $id];
+        $res = $this->delete($where);
+        return $res;
+    }
 }
