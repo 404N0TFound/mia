@@ -24,7 +24,11 @@ class Koubei extends \DB_Query {
         }
         $where = array();
         $where[] = ['item_id', $itemIds];
-        $where[] = ['status', 2];
+        if(isset($condition["status"])) {
+            $where[] = ['status', $condition['status']];
+        }else{
+            $where[] = ['status', 2];
+        }
         $where[] = [':gt','subject_id',0];
         if (isset($condition["koubei_id"])) {
             $where[] = ['id', $condition["koubei_id"]];
@@ -32,6 +36,10 @@ class Koubei extends \DB_Query {
 
         if (isset($condition["score"])) {
             $where[] = [":ge",'score', $condition["score"]];
+        }
+
+        if (isset($condition["auto_evaluate"])) {
+            $where[] = [":eq",'auto_evaluate', $condition["auto_evaluate"]];
         }
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
@@ -94,7 +102,7 @@ class Koubei extends \DB_Query {
             $where[] = ['status', $status];
         }
 
-        $fields = 'id,subject_id,rank_score,created_time,title,content,score,machine_score,rank,immutable_score,item_size,extr_info,item_id,comment_id,user_id,status,order_id,work_order';
+        $fields = 'id,subject_id,rank_score,created_time,title,content,score,machine_score,rank,immutable_score,item_size,extr_info,item_id,comment_id,user_id,status,order_id,work_order,auto_evaluate,type';
         $data = $this->getRows($where,$fields);
         
         if (!empty($data)) {
@@ -123,6 +131,9 @@ class Koubei extends \DB_Query {
         }
         if(isset($con['score'])){
             $where[] = [':ge','score',$con['score']];
+        }
+        if(isset($con['auto_evaluate'])){
+            $where[] = [':eq','auto_evaluate',$con['auto_evaluate']];
         }
 
         $order_by = FALSE;
@@ -307,17 +318,22 @@ class Koubei extends \DB_Query {
 
 
     /*
-     * 查看口碑首评
+     * 查看口碑首评(新增封测报告逻辑)
      * */
-    public function checkFirstComment($order_id, $item_id){
-        if (empty($item_id) || empty($order_id)) {
-            return false;
-        }
+    public function checkFirstComment($order_id, $item_id, $user_id){
         $where = array();
         $where[] = ['status', 2];
-        $where[] = ['item_id', $item_id];
-        $result = $this->getRows($where);
-        return count($result);
+        if(!empty($item_id)) {
+            $where[] = ['item_id', $item_id];
+        }
+        if(!empty($user_id)) {
+            $where[] = ['user_id', $user_id];
+        }
+        if(!empty($order_id)) {
+            $where[] = ['order_id', $order_id];
+        }
+        $result = $this->count($where);
+        return $result;
     }
 
     public function getBatchBestKoubeiIds($itemIds){

@@ -19,8 +19,9 @@ class Robot extends \mia\miagroup\Lib\Service {
         $robot_service = new \mia\miagroup\Service\Robot();
         $order_by = 'id asc';
         //获取编辑中的素材
-        $cond = ['status' => 2, 'op_admin' => $current_op_admin];
-        $editing_materials = $this->robotModel->getSubjectMaterialData($cond, 0, 5, $order_by)['list'];
+        //$cond = ['status' => 2, 'op_admin' => $current_op_admin];
+        //$editing_materials = $this->robotModel->getSubjectMaterialData($cond, 0, 5, $order_by)['list'];
+        $editing_materials = array();
         //查询锁定解除
         $robot_service->unLockSelectSubjectMaterial($current_op_admin);
         //获取待处理的素材
