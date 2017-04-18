@@ -431,7 +431,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $text = str_replace("\r\n", ' ', $text);
                 $text = str_replace("\n", ' ', $text);
                 if (mb_strlen($text, 'utf8') > 50) {
-                    $text = mb_substr($text, 0, 50, 'utf8');
+                    $text = mb_substr($text, 0, 50, 'utf8') . '...';
                 }
                 $subjectRes[$subjectInfo['id']]['text'] = $text;
             } else {
