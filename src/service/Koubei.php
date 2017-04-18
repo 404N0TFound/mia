@@ -39,7 +39,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $orderInfo = $orderService->getOrderInfoByOrderCode(array($koubeiData['order_code']))['data'][$koubeiData['order_code']];
             $orderId = $orderInfo['id'];
             $finishTime = strtotime($orderInfo['finish_time']) ;
-            if($orderInfo['status'] != 5  || (time()- $finishTime) > 16 * 86400 )
+            //退货订单没有发口碑权限
+            $orderCode = $orderInfo['order_code'];
+            $return = $orderService->getReturnByOrderCode($orderCode, $koubeiData['item_id'])['data'];
+            if($orderInfo['status'] != 5  || (time()- $finishTime) > 16 * 86400 || count($return) > 0)
             {
                 return $this->error(6102);
             }
@@ -1079,16 +1082,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         foreach ($itemIds as $value) {
             $item_ids = $item_service->getRelateItemById($value);
             if(!empty($item_ids)){
-                // 5.3 逻辑  新增精品口碑逻辑
                 $condition = array();
                 $condition['score'] = array(4, 5);
                 $condition['machine_score'] = 3;
-                $condition['rank'] = 1;
                 $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, 20);
-                if (empty($koubei_ids)) {
-                    unset($condition['rank']);
-                    $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, 20);
-                }
                 if(!empty($koubei_ids)) {
                     $res = $this->getBatchKoubeiByIds(array($koubei_ids[0]));
                     foreach($res['data'] as $v){
