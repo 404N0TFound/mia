@@ -121,13 +121,13 @@ class SubjectLabelRelation extends \DB_Query {
      * @param unknown $is_recommend
      * @param unknown $user_id
      */
-    public function addLabelRelation($subject_id,$label_id,$is_recommend,$user_id){
+    public function addLabelRelation($subject_id,$label_id,$is_recommend,$user_id,$create_time){
         $setData = array(
             'label_id'              =>  $label_id,
             'subject_id'            =>  $subject_id,
             'is_recommend'          =>  $is_recommend,//标签下的精华贴子
             'recom_time'            =>  date('Y-m-d H:i:d',time()),
-            'create_time'           =>  date('Y-m-d H:i:d',time()), //添加时间
+            'create_time'           =>  $create_time, //添加时间
             'user_id'               =>  0,  //0 为后台创建者
             'status'                =>  1,
             'operator'              =>  $user_id,
