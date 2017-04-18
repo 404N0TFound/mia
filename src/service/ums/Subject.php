@@ -48,6 +48,10 @@ class Subject extends \mia\miagroup\Lib\Service {
             //用户昵称
             $condition['user_id'] = $koubeiCondtion['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
         }
+        if (!empty($params['title'])) {
+            //标题搜索
+            $condition['title'] = $params['title'];
+        }
         if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1)) && intval($condition['id']) <= 0) {
             //帖子状态
             $condition['status'] = $params['status'];
