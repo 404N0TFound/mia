@@ -1077,20 +1077,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ(array());
         }
         $transfer_koubei = array();
-        $item_service = new ItemService();
         //通过商品id获取口碑id
-        foreach ($itemIds as $value) {
-            $item_ids = $item_service->getRelateItemById($value);
-            if(!empty($item_ids)){
-                $condition = array();
-                $condition['auto_evaluate'] = 0;
-                $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, 20);
-                if(!empty($koubei_ids)) {
-                    $res = $this->getBatchKoubeiByIds(array($koubei_ids[0]));
-                    foreach($res['data'] as $v){
-                        $transfer_koubei[$value] = $v;
-                    }
-                }
+        foreach ($itemIds as $item_id) {
+            if(empty($item_id)){
+                continue;
+            }
+            $res = $this->getItemKoubeiList($item_id)['data'];
+            if(!empty($res) && !empty($res['koubei_info'])) {
+                $transfer_koubei[$item_id] = $res['koubei_info'][0];
             }
         }
         return $this->succ($transfer_koubei);
