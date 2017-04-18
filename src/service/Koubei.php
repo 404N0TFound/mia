@@ -1083,8 +1083,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $item_ids = $item_service->getRelateItemById($value);
             if(!empty($item_ids)){
                 $condition = array();
-                $condition['score'] = array(4, 5);
-                $condition['machine_score'] = 3;
+                $condition['auto_evaluate'] = 0;
                 $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, 20);
                 if(!empty($koubei_ids)) {
                     $res = $this->getBatchKoubeiByIds(array($koubei_ids[0]));
