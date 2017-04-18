@@ -85,7 +85,7 @@ $album = array(
  /**
   * 帖子加水印的图片域名
   */
- $img_watermark_url = 'https://img05.miyabaobei.com';
+ $img_watermark_url = 'https://img.miyabaobei.com';
  
  $img_format = array(
      'subject' => array(
@@ -93,7 +93,8 @@ $album = array(
              'width' => 640,
              'height' => 640,
              'suffix' => '.jpg',
-             'file_type' => '@style@watermark640new',
+             //'file_type' => '@style@watermark640new',
+             'file_type' => '',
              'limit_width' => true,
              'limit_height' => false,
          ),
@@ -101,14 +102,16 @@ $album = array(
              'width' => 320,
              'height' => 320,
              'suffix' => '.jpg',
-             'file_type' => '@style@koubeilist',
+             //'file_type' => '@style@koubeilist',
+             'file_type' => '',
              'limit_width' => true,
              'limit_height' => true,
          ),
          'koubeismall' => array(
              'width' => 320,
              'suffix' => '.jpg',
-             'file_type' => '@style@koubeismall',
+             //'file_type' => '@style@koubeismall',
+             'file_type' => '',
              'limit_width' => true,
              'limit_height' => false,
          ),
@@ -292,6 +295,6 @@ $subject_issue = array(
         'issue_img_width' => 750,
         'issue_img_height' => 100,
         'issue_reward' => '怎么晒？正确晒单姿势看这里-->',
-        'issue_skip_url' => 'https://m.mia.com'
+        'issue_skip_url' => 'https://m.mia.com/special/module/index/17757/app/'
     ),
 );
