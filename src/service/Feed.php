@@ -30,7 +30,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取我发布的帖子列表
         $subjectIds = $this->feedModel->getSubjectListByUids([$userId],$page,$count);
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid);
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid,array('user_info', 'count', 'praise_info', 'album'));
         return $this->succ($subjectsList['data']);
     }
     
