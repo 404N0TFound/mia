@@ -202,7 +202,7 @@ $cron_list['koubei_feedback_rate'] = array(
 
 //发布口碑，首评代金券奖励
 $cron_list['koubei_issue_reward'] = array(
-    'enable' => false,
+    'enable' => true,
     'engine' => 'php',
     'cli_args' => "--class=koubei --action=issuereward",
     'start_time' => '2017-01-22 18:15:00',
