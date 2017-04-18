@@ -85,7 +85,7 @@ $album = array(
  /**
   * 帖子加水印的图片域名
   */
- $img_watermark_url = 'https://img.miyabaobei.com';
+ $img_watermark_url = 'https://img05.miyabaobei.com';
  
  $img_format = array(
      'subject' => array(
@@ -93,8 +93,7 @@ $album = array(
              'width' => 640,
              'height' => 640,
              'suffix' => '.jpg',
-             //'file_type' => '@style@watermark640new',
-             'file_type' => '',
+             'file_type' => '@style@watermark640new',
              'limit_width' => true,
              'limit_height' => false,
          ),
@@ -102,16 +101,14 @@ $album = array(
              'width' => 320,
              'height' => 320,
              'suffix' => '.jpg',
-             //'file_type' => '@style@koubeilist',
-             'file_type' => '',
+             'file_type' => '@style@koubeilist',
              'limit_width' => true,
              'limit_height' => true,
          ),
          'koubeismall' => array(
              'width' => 320,
              'suffix' => '.jpg',
-             //'file_type' => '@style@koubeismall',
-             'file_type' => '',
+             'file_type' => '@style@koubeismall',
              'limit_width' => true,
              'limit_height' => false,
          ),
