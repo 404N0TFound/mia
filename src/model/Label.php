@@ -322,8 +322,8 @@ class Label {
      * @param unknown $is_recommend
      * @param unknown $user_id
      */
-    public function addLabelRelation($subject_id,$label_id,$is_recommend,$user_id){
-        $data = $this->labelRelation->addLabelRelation($subject_id, $label_id, $is_recommend, $user_id);
+    public function addLabelRelation($subject_id,$label_id,$is_recommend,$user_id,$create_time){
+        $data = $this->labelRelation->addLabelRelation($subject_id, $label_id, $is_recommend, $user_id,$create_time);
         return $data;
     }
     
