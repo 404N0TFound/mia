@@ -358,6 +358,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * ums口碑商家自主回复监控
      */
     public function getSupplierKoubeiMonitorList($params) {
+        @ini_set('memory_limit', '512M');
         $result = array();
         $condition = array();
         //初始化入参
