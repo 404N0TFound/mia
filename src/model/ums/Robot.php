@@ -78,26 +78,27 @@ class Robot extends \DB_Query {
         $this->tableName = $this->tableEditorSubject;
         $result = array('count' => 0, 'list' => array());
         $where = array();
+        $orderBy = $this->tableName. '.id desc';
+        $field = "{$this->tableName}.*,{$this->tableSubjectMaterial}.category,{$this->tableSubjectMaterial}.source";
+        $join = "left join {$this->tableSubjectMaterial} on {$this->tableName}.material_id = {$this->tableSubjectMaterial}.id ";
         if (!empty($cond)) {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
-                    case 'create_start_time':
-                        $where[] = [':ge','create_time', $v];
-                        break;
-                    case 'create_end_time':
-                        $where[] = [':le','create_time', $v];
+                    case 'category':
+                    case 'source':
+                        $where[] = [$this->tableSubjectMaterial. '.'.$k, $v];
                         break;
                     default:
-                        $where[] = [$k, $v];
+                        $where[] = [$this->tableName . '.' . $k, $v];
                 }
             }
         }
-        $result['count'] = $this->count($where);
+        $result['count'] = $this->count($where, $join, 1);
         if (intval($result['count']) <= 0) {
             return $result;
         }
-        $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        $result['list'] = $this->getRows($where, $field, $limit, $offset, $orderBy, $join);
         return $result;
     }
     
