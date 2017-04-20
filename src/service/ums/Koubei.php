@@ -80,7 +80,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //是否是精品
             $solrCond['rank'] = $params['rank'];
         }
-        if ((is_array($params['score']) || (isset($params['score']) && !is_array($params['score']) && intval($params['score']) >= 0)) && intval($solrCond['id']) <= 0) {
+        if ((is_array($params['score']) || (isset($params['score']) && !is_array($params['score']) && $params['score'] != -1)) && intval($solrCond['id']) <= 0) {
             //用户评分
             $solrCond['score'] = $params['score'];
         }
@@ -146,6 +146,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (intval($params['comment_supplier_id']) && intval($solrCond['id']) <= 0) {
             $solrCond['comment_supplier_id'] = intval($params['comment_supplier_id']);
         }
+        //商家回复监控操作
+        if($params['op']){
+            $solrCond['op'] = $params['op'];
+        }
+        
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');
             $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);
