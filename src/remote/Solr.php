@@ -335,7 +335,6 @@ class Solr
      */
     public function getKoubeiList($conditon, $field = 'id', $page = 1, $count = 20, $order_by = 'rank_score desc')
     {
-
         $solr_info = [
             'q'         => '*:*',
             'fq'        => array(),
@@ -391,8 +390,29 @@ class Solr
         if(isset($conditon['auto_evaluate']) && in_array($conditon['auto_evaluate'],array(0,1))){
             $solr_info['fq'][]   = 'auto_evaluate:'. $conditon['auto_evaluate'];
         }
-        if(isset($conditon['score']) && $conditon['score'] >= 0){
-            $solr_info['fq'][]   = 'score:'. $conditon['score'];
+        if(isset($conditon['score']) && $conditon['score'] > 0){
+            if(is_array($conditon['score'])){
+                if(count($conditon['score']) > 1){
+                    $maxScore = current($conditon['score']);
+                    $minScore = end($conditon['score']);
+                    $solr_info['fq'][]   = 'score:[' . $minScore . ' TO ' . $maxScore . ']';
+                }else{
+                    $solr_info['fq'][]   = 'score:'. $conditon['score'][0];
+                }
+            }else{
+                $solr_info['fq'][]   = 'score:'. $conditon['score'];
+            }
+        }
+        if(isset($conditon['op']) && in_array($conditon['op'],array('koubei_nums','lscore_nums','mscore_nums'))){
+            $solr_info['fq'][]   = 'status:[1 TO 2]';
+            if($conditon['op'] == 'lscore_nums'){
+                $solr_info['fq'][]   = 'score:[1 TO 3]';
+            }elseif($conditon['op'] == 'mscore_nums'){
+                $solr_info['fq'][]   = 'machine_score:1';
+                $solr_info['fq'][]   = 'score:[4 TO 5]';
+            }else{
+                $solr_info['fq'][]   = 'score:[1 TO 5]';
+            }
         }
         if(!empty($conditon['item_id'])){
             $solr_info['fq'][]   = 'item_id:'.$conditon['item_id'];
