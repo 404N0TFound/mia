@@ -149,6 +149,7 @@ class RecommendNote
         if ($result['totalcount'] == 0 || $result['msg'] == 'error' || $result === false) {
             //去redis 取数据
             $redis = new Redis('recommend/default');
+            $tabName = explode(",",$tabName)[0];
             //取分类下热门文章，这时候的刷新操作有问题
             $res = $redis->get(sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.recommendCateSubjectKey'), $tabName));
 
