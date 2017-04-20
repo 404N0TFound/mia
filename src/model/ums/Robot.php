@@ -143,6 +143,24 @@ class Robot extends \DB_Query {
         }
         return $result;
     }
+
+    /**
+     * 查询运营帖子编辑人
+     */
+    public function getEditorSubjectAdmin() {
+        $this->tableName = $this->tableEditorSubject;
+        $sql = "SELECT DISTINCT(`op_admin`) from {$this->tableName} WHERE op_admin IS NOT NULL and op_admin != ''";
+        $data = $this->query($sql);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                if(empty($v['op_admin'])) {
+                    continue;
+                }
+                $result[] = $v['op_admin'];
+            }
+        }
+        return $result;
+    }
     
     /**
      * 查询帖子素材抓取分类

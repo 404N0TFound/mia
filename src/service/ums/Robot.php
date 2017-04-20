@@ -185,6 +185,15 @@ class Robot extends \mia\miagroup\Lib\Service {
         $result = $this->robotModel->getSubjectMaterialCategory();
         return $this->succ($result);
     }
+    
+    /**
+     * 获取全部编辑人
+     */
+    public function getEditorSubjectAdmin() {
+        $result = $this->robotModel->getEditorSubjectAdmin();
+        return $this->succ($result);
+    }
+    
 
     /**
      * 删除用户素材，物理删除
