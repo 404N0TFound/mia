@@ -65,11 +65,11 @@ class Setitemfeedbackrate extends \FD_Daemon {
             $itemIds = $this->itemService->getRelateItemById($itemInfo['id']);
             $itemIds = array_unique($itemIds);
             //3、获取商品全部评分口碑数量
-            $filed = ' count(*) as nums ';
+            $filed = ' count(distinct(koubei.id)) as nums ';
             $where = array();
             $where['item_id'] = $itemIds;
             $where['status'] = 2;
-            $where['score'] = 1;
+            $where['subject_id'] = 0;
             $totalNums = $this->koubeiData->getItemInvolveNums($filed, $where);
             //4、获取商品4分以上的评分口碑数量
             $where['score'] = 4;

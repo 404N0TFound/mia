@@ -48,13 +48,20 @@ class Subject extends \mia\miagroup\Lib\Service {
             //用户昵称
             $condition['user_id'] = $koubeiCondtion['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
         }
-        if ($params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1)) && intval($condition['id']) <= 0) {
+        if (!empty($params['title'])) {
+            //标题搜索
+            $condition['title'] = $params['title'];
+        }
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && intval($condition['id']) <= 0) {
             //帖子状态
             $condition['status'] = $params['status'];
         }
         
-        if ($params['source'] !== null && $params['source'] !== '' && in_array($params['source'], array(1, 2, 3)) && intval($condition['id']) <= 0) {
+        if ($params['source'] !== null && $params['source'] !== '' && in_array($params['source'], array(0, 1, 2, 4)) && intval($condition['id']) <= 0) {
             //帖子来源
+            if($params['source'] == 0){
+                $params['source'] = array(1, 2, 4);
+            }
             $condition['source'] = $params['source'];
         }
         

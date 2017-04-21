@@ -10,6 +10,8 @@ class Subject extends \DB_Query {
     //帖子
     protected $tableSubject = 'group_subjects';
     protected $indexSubject = array('id', 'user_id', 'created', 'status', 'is_top', 'is_fine');
+    //帖子草稿
+    protected $tableSubjectDraft = 'group_subject_draft';
 
     protected $tabData = null;
     protected $tabOpeationData = null;
@@ -33,6 +35,9 @@ class Subject extends \DB_Query {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
+                    case 'title':
+                        $where[] = [':like_literal','title', "%$v%"];
+                        break;
                     case 'start_time':
                         $where[] = [':ge','created', $v];
                         break;
@@ -81,4 +86,27 @@ class Subject extends \DB_Query {
         return $result;
     }
     
+    /**
+     * 获取帖子草稿列表
+     */
+    public function getSubjectDraftList($cond, $offset = 0, $limit = 50, $orderBy = '') {
+        $this->tableName = $this->tableSubjectDraft;
+        $result = array('count' => 0, 'list' => array());
+        $where = array();
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    default:
+                        $where[] = [$k, $v];
+                }
+            }
+        }
+        $result['count'] = $this->count($where);
+        if (intval($result['count']) <= 0) {
+            return $result;
+        }
+        $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        return $result;
+    }
 }

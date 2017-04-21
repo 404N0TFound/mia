@@ -78,26 +78,27 @@ class Robot extends \DB_Query {
         $this->tableName = $this->tableEditorSubject;
         $result = array('count' => 0, 'list' => array());
         $where = array();
+        $orderBy = $this->tableName. '.id desc';
+        $field = "{$this->tableName}.*,{$this->tableSubjectMaterial}.category,{$this->tableSubjectMaterial}.source";
+        $join = "left join {$this->tableSubjectMaterial} on {$this->tableName}.material_id = {$this->tableSubjectMaterial}.id ";
         if (!empty($cond)) {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
-                    case 'create_start_time':
-                        $where[] = [':ge','create_time', $v];
-                        break;
-                    case 'create_end_time':
-                        $where[] = [':le','create_time', $v];
+                    case 'category':
+                    case 'source':
+                        $where[] = [$this->tableSubjectMaterial. '.'.$k, $v];
                         break;
                     default:
-                        $where[] = [$k, $v];
+                        $where[] = [$this->tableName . '.' . $k, $v];
                 }
             }
         }
-        $result['count'] = $this->count($where);
+        $result['count'] = $this->count($where, $join, 1);
         if (intval($result['count']) <= 0) {
             return $result;
         }
-        $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        $result['list'] = $this->getRows($where, $field, $limit, $offset, $orderBy, $join);
         return $result;
     }
     
@@ -142,6 +143,24 @@ class Robot extends \DB_Query {
         }
         return $result;
     }
+
+    /**
+     * 查询运营帖子编辑人
+     */
+    public function getEditorSubjectAdmin() {
+        $this->tableName = $this->tableEditorSubject;
+        $sql = "SELECT DISTINCT(`op_admin`) from {$this->tableName} WHERE op_admin IS NOT NULL and op_admin != ''";
+        $data = $this->query($sql);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                if(empty($v['op_admin'])) {
+                    continue;
+                }
+                $result[] = $v['op_admin'];
+            }
+        }
+        return $result;
+    }
     
     /**
      * 查询帖子素材抓取分类
@@ -159,5 +178,36 @@ class Robot extends \DB_Query {
             }
         }
         return $result;
+    }
+
+    /**
+     * 删除用户素材
+     * @param $id
+     * @return array
+     */
+    public function delAvatarData($id) {
+        $this->tableName = $this->tableAvatarMaterial;
+        if (empty($id)) {
+            return false;
+        }
+        $where[] = ["id", $id];
+        $res = $this->delete($where);
+        return $res;
+    }
+
+    /**
+     * 删除帖子素材
+     * @param $id
+     * @return array
+     */
+    public function delMaterial($id)
+    {
+        $this->tableName = $this->tableSubjectMaterial;
+        if (empty($id)) {
+            return false;
+        }
+        $where[] = ["id", $id];
+        $res = $this->delete($where);
+        return $res;
     }
 }

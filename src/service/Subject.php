@@ -432,7 +432,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $text = str_replace("\r\n", ' ', $text);
                 $text = str_replace("\n", ' ', $text);
                 if (mb_strlen($text, 'utf8') > 50) {
-                    $text = mb_substr($text, 0, 50, 'utf8');
+                    $text = mb_substr($text, 0, 50, 'utf8') . '...';
                 }
                 $subjectRes[$subjectInfo['id']]['text'] = $text;
             } else {
@@ -505,6 +505,11 @@ class Subject extends \mia\miagroup\Lib\Service
                         }
                     }
                 }
+            }
+            if (!empty($subjectInfos['ext_info']['cover_image'])) {
+                $subjectRes[$subjectInfo['id']]['cover_image'] = $subjectInfos['ext_info']['cover_image'];
+            } else if (!empty($imageUrl[0])) {
+                $subjectRes[$subjectInfo['id']]['cover_image'] = $imageUrl[0];
             }
             $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
             $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
@@ -856,8 +861,12 @@ class Subject extends \mia\miagroup\Lib\Service
                 $imageInfo[] = $image;
             }
         }
-        $subjectSetInfo['image_url'] = implode("#", $imgUrl);
         $subjectSetInfo['ext_info']['image'] = $imageInfo;
+        //封面图
+        if (isset($subjectInfo['cover_image'])) {
+            $subjectSetInfo['ext_info']['cover_image'] = $subjectInfo['cover_image'];
+        }
+        $subjectSetInfo['image_url'] = implode("#", $imgUrl);
 
         // 封测报告标签
         $subjectSetInfo['ext_info']['selection_label'] = $selectionLabelInfo;

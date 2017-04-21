@@ -299,7 +299,7 @@ class Label extends \mia\miagroup\Lib\Service {
      * 选择标签，添加关联关系
      * 从后台给帖子添加关联标签
      */
-    public function addSubjectLabelRelation($subject_id,$label_id,$user_id){
+    public function addSubjectLabelRelation($subject_id,$label_id,$user_id,$create_time){
         //判断数量是否已经达到 6 个
         $relation_info = $this->labelModel->getBatchSubjectLabelIds([$subject_id])[$subject_id];
         if(count($relation_info) >= 6){
@@ -310,7 +310,7 @@ class Label extends \mia\miagroup\Lib\Service {
         if(!empty($relation_res)){
             return $this->error(90001,'对应关系已经存在');
         }
-        $res = $this->labelModel->addLabelRelation($subject_id, $label_id, 0, $user_id);
+        $res = $this->labelModel->addLabelRelation($subject_id, $label_id, 0, $user_id,$create_time);
         return $this->succ($res);
     }
     
@@ -318,7 +318,7 @@ class Label extends \mia\miagroup\Lib\Service {
      * UMS
      * 输入标签添加关联关系
      */
-    public function addSubjectLabelRelationInput($subject_id,$label_title,$user_id){
+    public function addSubjectLabelRelationInput($subject_id,$label_title,$user_id,$create_time){
         if (mb_strlen($label_title,'utf-8') > 20 || strlen($label_title) <= 0) {
             return $this->error(90002,'标签名字长度不符合要求');
         }
@@ -328,7 +328,7 @@ class Label extends \mia\miagroup\Lib\Service {
         }else{
             $label_id = $label_info['id'];
         }
-        $resutl = $this->addSubjectLabelRelation($subject_id, $label_id, $user_id);
+        $resutl = $this->addSubjectLabelRelation($subject_id, $label_id, $user_id, $create_time);
         if($resutl['code'] == 0){
             return $this->succ($label_id);            
         }else{

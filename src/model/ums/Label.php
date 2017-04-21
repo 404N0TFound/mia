@@ -44,7 +44,16 @@ class Label extends \DB_Query{
     
         //组装where条件
         foreach ($cond as $k => $v) {
-            $where[] = [$k, $v];
+            switch ($k) {
+                case 'start_time':
+                    $where[] = [':ge','create_time', $v];
+                    break;
+                case 'end_time':
+                    $where[] = [':le','create_time', $v];
+                    break;
+                default:
+                    $where[] = [$k, $v];
+            }
         }
         
         $result['count'] = $this->count($where,false,'distinct subject_id');
