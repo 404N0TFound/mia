@@ -211,7 +211,7 @@ class Audit extends \mia\miagroup\Lib\Service {
             return $this->succ(array('sensitive_words' => []));
         }
         //数美检测
-        if ($shumei == 1) {
+        if ($shumei == 1 && !empty($this->ext_params)) {
             $shumeiService = new Util\ShumeiUtil($this->ext_params);
             if (is_string($textArray)) {
                 $checkResult = $shumeiService->checkText($textArray);
