@@ -373,9 +373,19 @@ class Solr
             //是否带图
             $solr_info['fq'][]   = $conditon['koubei_with_pic'] === true ? 'local_url:*' : '-(local_url:*)';
         }
-        if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
+        /*if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
             //自营非自营
             $solr_info['fq'][]   = $conditon['self_sale'] == 0 ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
+        }*/
+        if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
+            //自营非自营
+            if($conditon['self_sale'] == 0) {
+                // 非自主
+                $solr_info['fq'][]   = '(supplier_id:0) OR (-supplier_status:1)';
+            }else {
+                // 自主
+                $solr_info['fq'][]   = '(supplier_id:[1 TO *]) OR (supplier_status:1)';
+            }
         }
         if (!empty($conditon['warehouse_type'])) {
             //所属仓库
