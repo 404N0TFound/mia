@@ -459,6 +459,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $itemKoubei[$koubei['subject_id']] = array(
                 'id' => $koubei['id'],
                 'rank' => $koubei['rank'],
+                'machine_score' => $koubei['machine_score'],
                 'score' => $koubei['score'],
                 'item_id' => $koubei['item_id'],
                 'item_size' => $koubei['item_size'],
@@ -1084,7 +1085,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             $res = $this->getItemKoubeiList($item_id)['data'];
             if(!empty($res) && !empty($res['koubei_info'])) {
-                $transfer_koubei[$item_id] = $res['koubei_info'][0];
+                // 排序过滤（根据分值）
+                $first = $res['koubei_info'][0];
+                if($first['item_koubei']['score'] >=4 && $first['item_koubei']['machine_score'] ==3) {
+                    $transfer_koubei[$item_id] = $first;
+                }
             }
         }
         return $this->succ($transfer_koubei);
