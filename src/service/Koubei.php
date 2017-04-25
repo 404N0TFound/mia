@@ -1087,7 +1087,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if(!empty($res) && !empty($res['koubei_info'])) {
                 // 排序过滤（根据分值）
                 $first = $res['koubei_info'][0];
-                if($first['item_koubei']['score'] >=4 && $first['item_koubei']['machine_score'] ==3) {
+                if($first['item_koubei']['score'] >=4 &&
+                    $first['item_koubei']['machine_score'] ==3 &&
+                    $first['item_koubei']['auto_evaluate'] == 0) {
                     $transfer_koubei[$item_id] = $first;
                 }
             }

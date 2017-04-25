@@ -446,13 +446,17 @@ class Solr
         if(!empty(intval($conditon['id']))){
             $solr_info['fq'][]   = 'id:'. $conditon['id'];
         }
-        if (strtotime($conditon['start_time']) > 0) {
+        if (strtotime($conditon['start_time']) > 0 && empty(strtotime($conditon['end_time']))) {
             //起始时间
             $solr_info['fq'][]   = "created_time:[".strtotime($conditon['start_time']) ." TO *]";
         }
-        if (strtotime($conditon['end_time']) > 0) {
+        if (strtotime($conditon['end_time']) > 0 && empty(strtotime($conditon['start_time']))) {
             //结束时间
             $solr_info['fq'][]   =  "created_time:[* TO ". strtotime($conditon['end_time']) ."]";
+        }
+        if (strtotime($conditon['start_time']) > 0 && strtotime($conditon['end_time']) > 0) {
+            //结束时间
+            $solr_info['fq'][]   =  "created_time:[".strtotime($conditon['start_time'])." TO ". strtotime($conditon['end_time']) ."]";
         }
         //商家id
         if(!empty(intval($conditon['supplier_id']))){
