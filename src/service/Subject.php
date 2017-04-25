@@ -981,12 +981,13 @@ class Subject extends \mia\miagroup\Lib\Service
         $koubeiService = new KoubeiService();
         $koubeiService->addKoubeiSubject($koubeiSubject);
         
-        //插入标记
-        if(!empty($pointInfo[0])){
+        //插入帖子标记信息
+        if(!empty($pointInfo)){
+            $pointItemIds = array();
             foreach ($pointInfo as $itemPoint) {
-                //插入帖子标记信息
-                $this->tagsService->saveSubjectTags($subjectId,$itemPoint);
+                $pointItemIds[] = $itemPoint['item_id'];
             }
+            $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds);
         }
         
         //组装活动帖子关联表信息
@@ -1165,6 +1166,10 @@ class Subject extends \mia\miagroup\Lib\Service
             if(empty($data['data'])){
                 $data = $mibean->add($param);
             }
+        }
+        //推荐更新入队列
+        foreach ($subjectId as $v) {
+            $this->subjectModel->addSubjectUpdateQueue($v);
         }
         return $this->succ($data);
     }
@@ -1563,6 +1568,8 @@ class Subject extends \mia\miagroup\Lib\Service
         $albumService = new \mia\miagroup\Service\Album();
         $albumService->cacelRecommentBySubjectId($subjectId)['code'];
         $affect = $this->subjectModel->cacelSubjectIsFine($subjectId);
+        //推荐更新入队列
+        $this->subjectModel->addSubjectUpdateQueue($subjectId);
         return $this->succ($affect);
     }
     

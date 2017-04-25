@@ -12,15 +12,6 @@ class PointTags {
     
     /**
      * 保存蜜芽圈帖子标记信息
-     * @param $tagsInfo array() 帖子标记信息
-     */
-    public function saveSubjectTags($tagsInfo){
-        $data = $this->tagsData->saveSubjectTags($tagsInfo);
-        return $data;
-    }
-    
-    /**
-     * 保存蜜芽圈帖子标记信息
      * @param $subjectId 帖子id
      * @param itemIds array() 帖子标记信息
      */
@@ -54,4 +45,14 @@ class PointTags {
         return $this->tagsData->delSubjectTagById($subjectId, $itemIds);
     }
     
+    /**
+     * 关联修改入帖子更新队列
+     */
+    public function addSubjectUpdateQueue($subject_id) {
+        // 获取rediskey
+        $key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_update_record.key');
+        $redis = new \mia\miagroup\Lib\Redis();
+        $redis->lpush($key, $subject_id);
+        return true;
+    }
 }
