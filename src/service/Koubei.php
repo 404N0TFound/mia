@@ -42,7 +42,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //退货订单没有发口碑权限
             $orderCode = $orderInfo['order_code'];
             $return = $orderService->getReturnByOrderCode($orderCode, $koubeiData['item_id'])['data'];
-            if($orderInfo['status'] != 5  || (time()- $finishTime) > 16 * 86400 || count($return) > 0)
+            if(count($return) > 0) {
+                return $this->error(6109);
+            }
+            if($orderInfo['status'] != 5  || (time()- $finishTime) > 16 * 86400)
             {
                 return $this->error(6102);
             }
