@@ -469,4 +469,15 @@ class Subject {
         $data = $this->tabOpeationData->getNoteByRelationId($relation_id, $relation_type);
         return $data;
     }
+    
+    /**
+     * 帖子关键数据修改入帖子更新队列
+     */
+    public function addSubjectUpdateQueue($subject_id) {
+        // 获取rediskey
+        $key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_update_record.key');
+        $redis = new \mia\miagroup\Lib\Redis();
+        $redis->lpush($key, $subject_id);
+        return true;
+    }
 }

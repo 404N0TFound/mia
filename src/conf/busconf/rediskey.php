@@ -140,9 +140,12 @@ $headLineKey = array(
 
 //帖子相关rediskey
 $subjectKey = [
-    'subject_read_num' => [//使用List数据结构
+    'subject_read_num' => [//帖子阅读数处理队列，使用List数据结构
         'key' => $subjectServicePrefix . 'read_num',
         'expire_time' => 86400 * 30,
+    ],
+    'subject_update_record' => [//帖子关键数据更新处理队列，使用List数据结构
+        'key' => $subjectServicePrefix . 'update_record',
     ],
 ];
 
