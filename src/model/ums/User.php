@@ -84,7 +84,7 @@ class User extends \DB_Query {
         }
         $where[] = [$this->tableName.'.status', 1];
         $where[] = [$this->tableName.'.type', $type];
-        $orderBy = [$this->tableName.'.create_time DESC'];
+        $orderBy = [$this->tableName.'.id DESC'];
     
         $userIdRes = $this->getRows($where, array($this->tableName.'.user_id as user_id'), $limit, $page, $orderBy, $join);
         $userIdArr = array();
