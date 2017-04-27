@@ -144,6 +144,10 @@ $subjectKey = [
         'key' => $subjectServicePrefix . 'read_num',
         'expire_time' => 86400 * 30,
     ],
+    'subject_fine_push_num' => [
+        'key' => $subjectServicePrefix . 'fine_push_num_%d',
+        'expire_time' => 86400 * 30,
+    ]
 ];
 
 //笔记推荐服务相关，string格式，用空格分隔

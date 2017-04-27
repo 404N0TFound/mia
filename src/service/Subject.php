@@ -17,6 +17,8 @@ use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Service\Feed as FeedServer;
 use mia\miagroup\Service\Order as OrderService;
+use mia\miagroup\Service as Service;
+use mia\miagroup\Lib\Redis;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -416,6 +418,33 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
         }
+        //站外商品信息
+        $outItemsInfo = [];
+        $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
+        if (in_array('out_item', $field)) {
+            foreach ($subjectInfos as $v) {
+                if (empty($v["ext_info"])) {
+                    continue;
+                }
+                $extInfo = $v["ext_info"];
+                if (empty($extInfo["outer_items"])) {
+                    continue;
+                } else {
+                    $outArr = [];
+                    foreach ($extInfo["outer_items"] as $outInfo) {
+                        $redirect = sprintf($app_mapping_config['search_result'], $outInfo['name'], $outInfo['brand_id'], $outInfo['category_id']);
+                        $outArr[] = [
+                            "item_name" => $outInfo["name"],
+                            "redirect" => $redirect,
+                            "is_outer" => 1,
+                            "item_img" => $outInfo["item_pic"] ? NormalUtil::buildImgUrl($outInfo["item_pic"], "normal")["url"] : "",
+                        ];
+                    }
+                    $outItemsInfo[$v["id"]] = $outArr;
+                }
+            }
+        }
+
         $subjectRes = array();
         // 拼装结果集
         foreach ($subjectIds as $subjectId) {
@@ -561,8 +590,13 @@ class Subject extends \mia\miagroup\Lib\Service
                     $subjectRes[$subjectInfo['id']]['album_article'] = $albumArticles[$subjectInfo['id']];
                 }
             }
+            //站内关联商品
             if (in_array('item', $field)) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
+            }
+            //站外关联商品
+            if (in_array('out_item', $field)) {
+                $subjectRes[$subjectInfo['id']]['out_items'] =  is_array($outItemsInfo[$subjectId]) ? array_values($outItemsInfo[$subjectId]) : array();
             }
             if (in_array('koubei', $field) && intval($subjectInfos[$subjectId]['koubei_id']) > 0) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
@@ -1145,13 +1179,16 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectId = is_array($subjectId) ? $subjectId : [$subjectId];
         //查询图片信息
         $subjects_info = $this->subjectModel->getSubjectByIds($subjectId);
-        
+
         $affect = $this->subjectModel->setSubjectRecommendStatus($subjectId);
         if(!$affect){
             return $this->error(201,'帖子加精失败!');
         }
-        //送蜜豆
+        //送蜜豆及发送消息推送
         $mibean = new \mia\miagroup\Remote\MiBean();
+        $push = new Service\Push();
+        $redis = new Redis();
+
         foreach($subjects_info as $subject_info){
             $param = array(
                 'user_id'           => $subject_info['user_id'],//操作人
@@ -1162,8 +1199,16 @@ class Subject extends \mia\miagroup\Lib\Service
             );
             //验证是否送过
             $data = $mibean->check($param);
-            if(empty($data['data'])){
+            if (empty($data['data'])) {
                 $data = $mibean->add($param);
+            }
+            //发送消息推送，每天发三次
+            $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
+            $push_num = $redis->get($push_num_key);
+            if ($push_num < 3) {
+                $push->pushMsg($subject_info['user_id'], "您分享的" . $subject_info['title'] . "的帖子被加精华啦，帖子会有更多展示机会，再奉上5蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
+                $redis->incrBy($push_num_key, 1);
+                $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
             }
         }
         return $this->succ($data);
