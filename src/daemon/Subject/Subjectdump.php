@@ -140,9 +140,16 @@ class Subjectdump extends \FD_Daemon {
         $source_config = \F_Ice::$ins->workApp->config->get('busconf.subject.source');
         $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor']]];
         $where[] = ['status', 1];
-        $data = $this->subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys', 1000);
+        $data = $this->subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys, created', 1000);
         if (empty($data)) {
             return ;
+        }
+        foreach ($data as $k => $v) {
+            //发布不过3分钟的不处理，重新扔回队列
+            if ((time() - strtotime($v['created'])) <= 180) {
+                $redis->lpush($key, $v['id']);
+                unset($data[$k]);
+            }
         }
         
         $this->dump_subject($data);
