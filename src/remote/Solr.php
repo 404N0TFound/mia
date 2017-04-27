@@ -373,9 +373,19 @@ class Solr
             //是否带图
             $solr_info['fq'][]   = $conditon['koubei_with_pic'] === true ? 'local_url:*' : '-(local_url:*)';
         }
-        if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
+        /*if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
             //自营非自营
             $solr_info['fq'][]   = $conditon['self_sale'] == 0 ? 'supplier_id:0' : 'supplier_id:[1 TO *]';
+        }*/
+        if (isset($conditon['self_sale']) && in_array($conditon['self_sale'],array(0,1))) {
+            //自营非自营
+            if($conditon['self_sale'] == 0) {
+                // 非自主
+                $solr_info['fq'][]   = '(supplier_id:0 OR (*:* NOT supplier_status:1))';
+            }else {
+                // 自主
+                $solr_info['fq'][]   = '(supplier_id:[1 TO *] AND supplier_status:1)';
+            }
         }
         if (!empty($conditon['warehouse_type'])) {
             //所属仓库
@@ -436,13 +446,17 @@ class Solr
         if(!empty(intval($conditon['id']))){
             $solr_info['fq'][]   = 'id:'. $conditon['id'];
         }
-        if (strtotime($conditon['start_time']) > 0) {
+        if (strtotime($conditon['start_time']) > 0 && empty(strtotime($conditon['end_time']))) {
             //起始时间
             $solr_info['fq'][]   = "created_time:[".strtotime($conditon['start_time']) ." TO *]";
         }
-        if (strtotime($conditon['end_time']) > 0) {
+        if (strtotime($conditon['end_time']) > 0 && empty(strtotime($conditon['start_time']))) {
             //结束时间
             $solr_info['fq'][]   =  "created_time:[* TO ". strtotime($conditon['end_time']) ."]";
+        }
+        if (strtotime($conditon['start_time']) > 0 && strtotime($conditon['end_time']) > 0) {
+            //结束时间
+            $solr_info['fq'][]   =  "created_time:[".strtotime($conditon['start_time'])." TO ". strtotime($conditon['end_time']) ."]";
         }
         //商家id
         if(!empty(intval($conditon['supplier_id']))){

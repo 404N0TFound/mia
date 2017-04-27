@@ -18,53 +18,12 @@ class PointTags extends \mia\miagroup\Lib\Service {
     /**
      * 保存蜜芽圈帖子标记信息
      * @param $subjectId 帖子id
-     * @param $tagsData array() 帖子标记信息
-     */
-    public function saveSubjectTags($subjectId,$tagInfo){
-        if(intval($tagInfo['item_id']) < 0){
-            return $this->error(6105);
-        }
-        $itemInfo = $this->itemService->getItemList([$tagInfo['item_id']])['data'][$tagInfo['item_id']];
-        //品牌id
-        $resourceId = 0;
-        if (isset($itemInfo['brand_id']) && intval($itemInfo['brand_id']) > 0) {
-            $resourceId = intval($itemInfo['brand_id']);
-        }
-        //商品id
-        $itemId = 0;
-        if (isset($itemInfo['id']) && intval($itemInfo['id']) > 0) {
-            $itemId = intval($itemInfo['id']);
-        }
-        //商品名称 ---title
-        $title = "";
-        if (isset($itemInfo['name']) && !empty($itemInfo['name']) ) {
-            $title = $itemInfo['name'];
-        }
-        
-        $tagSetInfo = array(
-            "point_id" => 0,
-            "title"       => $title,
-            "type"        => 'sku',
-            "resource_id" => $resourceId,
-            "subject_id" => $subjectId,
-            "item_id"     => $itemId,
-            "product_type"   => 1,
-            "is_spu"      => 0,
-        );
-        $insertId = $this->tagsModel->saveSubjectTags($tagSetInfo);
-        if(!$insertId){
-            return $this->succ();
-        }
-        return $this->succ($insertId);
-    }
-    
-    /**
-     * 保存蜜芽圈帖子标记信息
-     * @param $subjectId 帖子id
      * @param itemIds array() 帖子标记信息
      */
-    public function saveBatchSubjectTags($subjectId,$itemIds){
-        
+    public function saveBatchSubjectTags($subjectId, $itemIds, $action = null){
+        if (empty($subjectId) || empty($itemIds)) {
+            return $this->error(500);
+        }
         //判断是否已经存在过
         $info = $this->tagsModel->getInfoByIds($subjectId, $itemIds);
         $res_item_id = array_column($info, 'item_id');
@@ -87,14 +46,11 @@ class PointTags extends \mia\miagroup\Lib\Service {
             $setData[] = $tagSetInfo;
         }
         $data = $this->tagsModel->saveBatchSubjectTags($setData);
+        if ($action == 'ums_add_point') {
+            //关联更新入队列
+            $this->tagsModel->addSubjectUpdateQueue($subjectId);
+        }
         return $this->succ($data);
-    }
-    
-    /**
-     * 删除标记
-     */
-    public function delSubjectTag($point_id){
-        
     }
     
     /**
@@ -112,9 +68,8 @@ class PointTags extends \mia\miagroup\Lib\Service {
      */
     public function delSubjectTagById($subjectId,$itemIds){
         $data = $this->tagsModel->delSubjectTagById($subjectId, $itemIds);
+        //关联更新入队列
+        $this->tagsModel->addSubjectUpdateQueue($subjectId);
         return $this->succ($data);
     }
-    
-    
-    
 }
