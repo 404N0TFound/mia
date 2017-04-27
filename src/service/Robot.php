@@ -276,7 +276,6 @@ class Robot extends \mia\miagroup\Lib\Service {
                     if (intval($label_id) > 0) {
                         $labelService->changeLabelRelationRecommend($subject['id'], $label_id, 1);
                     }
-                    $label_infos[] = array('title' => $label);
                 }
             }
             //活动加精
