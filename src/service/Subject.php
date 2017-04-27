@@ -417,11 +417,11 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }
-        }
-        //站外商品信息
-        $outItemsInfo = [];
-        $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
-        if (in_array('out_item', $field)) {
+
+            //站外商品信息
+            $outItemsInfo = [];
+            $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
+
             foreach ($subjectInfos as $v) {
                 if (empty($v["ext_info"])) {
                     continue;
@@ -590,14 +590,12 @@ class Subject extends \mia\miagroup\Lib\Service
                     $subjectRes[$subjectInfo['id']]['album_article'] = $albumArticles[$subjectInfo['id']];
                 }
             }
-            //站内关联商品
+            //站内关联商品,站外关联商品
             if (in_array('item', $field)) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
-            }
-            //站外关联商品
-            if (in_array('out_item', $field)) {
                 $subjectRes[$subjectInfo['id']]['out_items'] =  is_array($outItemsInfo[$subjectId]) ? array_values($outItemsInfo[$subjectId]) : array();
             }
+
             if (in_array('koubei', $field) && intval($subjectInfos[$subjectId]['koubei_id']) > 0) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
             }
@@ -1199,11 +1197,12 @@ class Subject extends \mia\miagroup\Lib\Service
             );
             //验证是否送过
             $data = $mibean->check($param);
-            if (empty($data['data'])) {
+            if(empty($data['data'])){
                 $data = $mibean->add($param);
             }
             //发送消息推送，每天发三次
             $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
+
             $push_num = $redis->get($push_num_key);
             if ($push_num < 3) {
                 $push->pushMsg($subject_info['user_id'], "您分享的" . $subject_info['title'] . "的帖子被加精华啦，帖子会有更多展示机会，再奉上5蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
