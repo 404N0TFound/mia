@@ -25,12 +25,15 @@ class GroupUserCategory extends DB_Query {
     /**
      * 批量获取分类用户信息
      */ 
-    public function getBatchUserInfoByUids($conditions, $type) {
+    public function getBatchUserInfoByUids($conditions, $type, $category="") {
         $result = array();
         $where = array();
         
         $where[] = ['status', 1];
         $where[] = ['type',$type];
+        if(!empty($category)){
+            $where[] = ['category',$category];
+        }
         if (!empty($conditions) && isset($conditions['user_id'])) {
             $where[] = ['user_id', $conditions['user_id']];
         }
@@ -40,9 +43,6 @@ class GroupUserCategory extends DB_Query {
                 $result[$user['user_id']] = $user;
                 if(!empty($user['ext_info'])){
                     $extInfo = json_decode($user['ext_info'],true);
-                    if(isset($extInfo['intro']) && !empty($extInfo['intro'])){
-                        $result[$user['user_id']]['intro'] = $extInfo['intro'];
-                    }
                     if(isset($extInfo['desc']) && !empty($extInfo['desc'])){
                         $result[$user['user_id']]['desc'] = $extInfo['desc'];
                     }

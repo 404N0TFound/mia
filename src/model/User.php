@@ -210,9 +210,9 @@ class User
     /**
      * 批量获取分类用户信息
      */
-    public function getBatchUserCategory($conditions, $type) {
+    public function getBatchUserCategory($conditions, $type, $category) {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getBatchUserInfoByUids($conditions, $type);
+        $data = $userCategory->getBatchUserInfoByUids($conditions, $type, $category);
         return $data;
     }
     
