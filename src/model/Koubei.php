@@ -55,7 +55,7 @@ class Koubei {
         if (empty($itemIds)) {
             return array();
         }
-        $orderBy = 'is_bottom asc, auto_evaluate asc, rank_score desc, created_time desc';
+        $orderBy = 'is_bottom asc, auto_evaluate asc, rank_score desc, score desc, created_time desc';
         $koubeiData = $this->koubeiData->getKoubeiIdsByItemIds($itemIds, $limit, $offset, $orderBy, $condition);
         return $koubeiData;
     }
@@ -67,7 +67,7 @@ class Koubei {
         if (empty($item_ids)) {
             return array();
         }
-        $order_by = 'is_bottom asc, auto_evaluate asc, rank_score desc, created_time desc';
+        $order_by = 'is_bottom asc, auto_evaluate asc, rank_score desc, score desc, created_time desc';
         $koubei_data = $this->koubeiData->getKoubeiByItemIdsAndCondition($item_ids, $conditon, $limit, $offset, $order_by);
         return $koubei_data;
     }
