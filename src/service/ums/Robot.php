@@ -97,6 +97,12 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (!empty($params['op_admin'])) {
             $condition['op_admin'] = $params['op_admin'];
         }
+        if (!empty($params['start_time'])) {
+            $condition['start_time'] = $params['start_time'];
+        }
+        if (!empty($params['end_time'])) {
+            $condition['end_time'] = $params['end_time'];
+        }
         $condition['status'] = $this->robotConfig['editor_subject_status']['create_subject'];
         $offset = ($page - 1) * $limit;
         $editor_subject_list = $this->robotModel->getEditorSubjectData($condition, $offset, $limit, $orderBy);
