@@ -97,6 +97,12 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (!empty($params['op_admin'])) {
             $condition['op_admin'] = $params['op_admin'];
         }
+        if (!empty($params['start_time'])) {
+            $condition['start_time'] = $params['start_time'];
+        }
+        if (!empty($params['end_time'])) {
+            $condition['end_time'] = $params['end_time'];
+        }
         $condition['status'] = $this->robotConfig['editor_subject_status']['create_subject'];
         $offset = ($page - 1) * $limit;
         $editor_subject_list = $this->robotModel->getEditorSubjectData($condition, $offset, $limit, $orderBy);
@@ -108,7 +114,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         }
         //获取结果集数据
         $subject_service = new \mia\miagroup\Service\Subject();
-        $subjects = $subject_service->getBatchSubjectInfos($subject_ids, array('user_info', 'count','content_format', 'share_info'), array())['data'];
+        $subjects = $subject_service->getBatchSubjectInfos($subject_ids, 0, array('user_info', 'count','content_format', 'share_info'), array())['data'];
         if (!empty($editor_subject_list['list'])) {
             foreach ($editor_subject_list['list'] as $k => $v) {
                 $editor_subject_list['list'][$k]['subject'] = $subjects[$v['subject_id']];

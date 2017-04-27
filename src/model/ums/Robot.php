@@ -89,6 +89,12 @@ class Robot extends \DB_Query {
                     case 'source':
                         $where[] = [$this->tableSubjectMaterial. '.'.$k, $v];
                         break;
+                    case 'start_time':
+                        $where[] = [':ge',$this->tableName. '.create_time', $v];
+                        break;
+                    case 'end_time':
+                        $where[] = [':le',$this->tableName. '.create_time', $v];
+                        break;
                     default:
                         $where[] = [$this->tableName . '.' . $k, $v];
                 }
