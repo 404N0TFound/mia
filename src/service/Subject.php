@@ -18,6 +18,7 @@ use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Service\Feed as FeedServer;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service as Service;
+use mia\miagroup\Lib\Redis;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -1186,6 +1187,8 @@ class Subject extends \mia\miagroup\Lib\Service
         //送蜜豆及发送消息推送
         $mibean = new \mia\miagroup\Remote\MiBean();
         $push = new Service\Push();
+        $redis = new Redis();
+
         foreach($subjects_info as $subject_info){
             $param = array(
                 'user_id'           => $subject_info['user_id'],//操作人
@@ -1196,11 +1199,17 @@ class Subject extends \mia\miagroup\Lib\Service
             );
             //验证是否送过
             $data = $mibean->check($param);
-            if(empty($data['data'])){
+            if (empty($data['data'])) {
                 $data = $mibean->add($param);
             }
-            //发送消息推送
-            $push->pushMsg($subject_info['user_id'], "您分享的" . $subject_info['title'] . "的帖子被加精华啦，帖子会有更多展示机会，再奉上5蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
+            //发送消息推送，每天发三次
+            $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
+            $push_num = $redis->get($push_num_key);
+            if ($push_num < 3) {
+                $push->pushMsg($subject_info['user_id'], "您分享的" . $subject_info['title'] . "的帖子被加精华啦，帖子会有更多展示机会，再奉上5蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
+                $redis->incrBy($push_num_key, 1);
+                $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
+            }
         }
         return $this->succ($data);
     }
