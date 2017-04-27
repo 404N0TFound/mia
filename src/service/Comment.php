@@ -190,7 +190,7 @@ class Comment extends \mia\miagroup\Lib\Service {
             }
         }
         //判断用户是否是专家
-        $expert = $this->userService->getBatchCategoryUserInfo(array($user_id), 'expert');
+        $expert = $this->userService->getBatchExpertInfoByUids(array($user_id));
         $is_expert = 0;
         if(isset($expert['data']) && count($expert['data'])>0)
             $is_expert = 1;
