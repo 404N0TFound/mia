@@ -266,7 +266,20 @@ class Robot extends \mia\miagroup\Lib\Service {
         }
         $subject = $result['data'];
         if ($editor_subject_info['ext_info']['is_recommend'] == 1) {
+            //帖子加精
             $subject_service->subjectAddFine($subject['id']);
+            //标签帖子加精
+            if(!empty($editor_subject_info['relate_tag'])) {
+                $labelService = new \mia\miagroup\Service\Label();
+                foreach($editor_subject_info['relate_tag'] as $label) {
+                    $label_id = $labelService->addLabel($label)['data'];
+                    if (intval($label_id) > 0) {
+                        $labelService->changeLabelRelationRecommend($subject['id'], $label_id, 1);
+                    }
+                    $label_infos[] = array('title' => $label);
+                }
+            }
+            //活动加精
         }
         if ($editor_subject_info['ext_info']['koubei_sync'] == 1 && $koubei_item_id > 0) {
             $koubei_service = new \mia\miagroup\Service\Koubei();
