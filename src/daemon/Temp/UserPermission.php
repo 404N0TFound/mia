@@ -13,8 +13,8 @@ use mia\miagroup\Data\User\GroupUserPermission as PermissionData;
 class UserPermission extends \FD_Daemon {
 
     public function execute() {
-        $this->setUserPermission('video');
-        //$this->setUserCategory('doozer');
+        //$this->setUserPermission('video');
+        $this->setUserCategory('expert');
     }
 
     //将有专栏，视频及直播权限的用户导入蜜芽圈用户权限表
@@ -23,7 +23,7 @@ class UserPermission extends \FD_Daemon {
         $userArrs = $this->getCategoryUser($category);
         $permissionData = new PermissionData();
         
-        if(!empty($userArrs) && in_array($category, array("video","album","live"))){
+        if(!empty($userArrs) && in_array($category, array("video","album"))){
             foreach($userArrs as $userArr){
                 //组织将有专栏，视频及直播权限的用户数据
                 $setData = array();
@@ -34,15 +34,7 @@ class UserPermission extends \FD_Daemon {
                 $setData['create_time'] = $userArr['create_time'];
                 $setData['operator'] = $userArr['operator'];
                 $extInfo = array();
-                if($category == 'video' || $category == 'album'){
-                    $extInfo['reason'] = $userArr['reason'];
-                }else{
-                    $extInfo['live_id'] = $userArr['live_id'];
-                    $extInfo['chat_room_id'] = $userArr['chat_room_id'];
-                    $extInfo['subject_id'] = $userArr['subject_id'];
-                    $extInfo['settings'] = $userArr['settings'];
-                    $extInfo['latest_live_id'] = $userArr['latest_live_id'];
-                }
+                $extInfo['reason'] = $userArr['reason'];
                 $setData['ext_info'] = json_encode($extInfo);
                 //将用户信息导入到用户权限表
                 $permissionData->addPermission($setData);
@@ -63,20 +55,22 @@ class UserPermission extends \FD_Daemon {
                 $setData = array();
                 $setData['user_id'] = $userArr['user_id'];
                 $setData['status'] = $userArr['status'];
-                $setData['type'] = $category;
-                $setData['category'] = '';
                 
                 $extInfo = array();
                 if($category == 'doozer'){
-                    $extInfo['intro'] = $userArr['intro'];
+                    $extInfo['desc'] = $userArr['intro'];
                     $setData['operator'] = $userArr['operator'];
                     $setData['create_time'] = $userArr['create_time'];
+                    $setData['type'] = $category;
+                    $setData['category'] = '';
                 }else{
                     $extInfo['desc'] = $userArr['desc'];
                     $extInfo['label'] = $userArr['label'];
                     $extInfo['last_modify'] = $userArr['last_modify'] ;
                     $extInfo['modify_author'] = $userArr['modify_author'];
                     $extInfo['answer_nums'] = $userArr['answer_nums'];
+                    $setData['type'] = "doozer";
+                    $setData['category'] = $category;
                     
                     $setData['operator'] = $userArr['modify_author'];
                     $setData['create_time'] = $userArr['last_modify'];
