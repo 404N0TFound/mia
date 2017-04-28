@@ -1047,7 +1047,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $batch_info = $this->koubeiConfig['shouping'];
                 }else {
                     // 代金券发放规则
-                    $data = $this->getCouponRule([$item_id], 1, 1)['data'];
+                    $condition['field'] = 'ext_info';
+                    $data = $this->getCouponRule([$item_id], 1, 1, $condition)['data'];
                     $coupon_info = $data[$item_id];
                     if(!empty($coupon_info)) {
                         $ext_info = json_decode($coupon_info['ext_info'],true);
@@ -1857,24 +1858,28 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /*
      * 5.4 代金券奖励规则设置
      * */
-    public function getCouponRule($itemIds, $page=1, $count=1)
+    public function getCouponRule($itemIds, $page=1, $count=1, $condition = array())
     {
-        if(empty($itemIds)) {
-            return $this->succ([]);
-        }
         $coupons = [];
-        $item_service = new ItemService();
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        foreach($itemIds as $item_id) {
-            $param = [];
-            $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
-            $param['brand_id'] = $item_info[$item_id]['brand_id'];
-            // 类目投放维度
-            $param['category_id'] = $item_info[$item_id]['category_id_ng'];
-            // 代金券发放匹配
-            $param['item_id'] = $item_id;
-            $coupon_info = $this->koubeiModel->getCouponInfo($param, $count, $offset);
-            $coupons[$item_id] = $coupon_info;
+
+        if(empty($itemIds)) {
+            // list
+            $coupons = $this->koubeiModel->getCouponInfo([], $count, $offset, $condition);
+        } else if (is_array($itemIds)) {
+            // 初始化,最新
+            $item_service = new ItemService();
+            foreach($itemIds as $item_id) {
+                $param = [];
+                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+                $param['brand_id'] = $item_info[$item_id]['brand_id'];
+                // 类目投放维度
+                $param['category_id'] = $item_info[$item_id]['category_id_ng'];
+                // 代金券发放匹配
+                $param['item_id'] = $item_id;
+                $coupon_info = $this->koubeiModel->getCouponInfo($param, $count, $offset, $condition);
+                $coupons[$item_id] = $coupon_info[0];
+            }
         }
         return $this->succ($coupons);
     }

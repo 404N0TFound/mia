@@ -599,7 +599,7 @@ class Subject extends \mia\miagroup\Lib\Service
             if (in_array('koubei', $field) && intval($subjectInfos[$subjectId]['koubei_id']) > 0) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
             }
-            if (in_array('share_info', $field)  || in_array('issue_share_info', $field) {
+            if (in_array('share_info', $field)  || in_array('issue_share_info', $field)) {
                 // 分享内容
                 $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
                 $share = $shareConfig['groupShare'];

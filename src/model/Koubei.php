@@ -758,13 +758,10 @@ class Koubei {
     /*
      * 获取代金券发放关系
      * */
-    public function getCouponInfo($param = array(), $limit = 0, $offset = 0)
+    public function getCouponInfo($itemId = array(), $limit = 0, $offset = 0, $condition = array())
     {
-        if (empty($param) || empty($param['item_id'])) {
-            return [];
-        }
         $order_by = 'created_time desc';
-        $res = $this->koubeiCouponRuleData->koubeiCouponRule($param, $order_by, $offset, $limit);
+        $res = $this->koubeiCouponRuleData->koubeiCouponRule($itemId, $order_by, $offset, $limit, $condition);
         return $res;
     }
 
