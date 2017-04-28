@@ -8,6 +8,7 @@ use \mia\miagroup\Data\Koubei\KoubeiAppeal as KoubeiAppealData;
 use mia\miagroup\Data\Koubei\KoubeiTags;
 use mia\miagroup\Data\Koubei\KoubeiTagsLayer;
 use mia\miagroup\Data\Koubei\KoubeiTagsRelation;
+use mia\miagroup\Data\Koubei\KoubeiCouponRule;
 
 class Koubei {
     
@@ -17,6 +18,7 @@ class Koubei {
     private $koubeiTagsData;
     private $koubeiTagsLayerData;
     private $koubeiTagsRelationData;
+    private $koubeiCouponRuleData;
 
     public function __construct() {
         $this->koubeiData = new KoubeiData();
@@ -25,6 +27,7 @@ class Koubei {
         $this->koubeiTagsData = new KoubeiTags();
         $this->koubeiTagsLayerData = new KoubeiTagsLayer();
         $this->koubeiTagsRelationData = new KoubeiTagsRelation();
+        $this->koubeiCouponRuleData = new KoubeiCouponRule();
     }
     
     /**
@@ -421,7 +424,16 @@ class Koubei {
         if(!empty($batch_info)){
             $issue_img      = $batch_info['issue_img'];
             $issue_skip_url = $batch_info['issue_skip_url'];
-            $res['issue_reward'] = $batch_info['issue_reward'];
+            // 发布首评奖励优先
+            if(!empty($batch_info['issue_reward'])) {
+                $res['issue_reward'] = $batch_info['issue_reward'];
+            }
+            if(!empty($batch_info['char_count'])) {
+                $res['char_count'] = $batch_info['char_count'];
+            }
+            if(!empty($batch_info['image_count'])) {
+                $res['image_count'] = $batch_info['image_count'];
+            }
         }
         switch ($issue_type) {
             case 'subject':
@@ -429,7 +441,7 @@ class Koubei {
                 $res['issue_tip_url']['pic']['url']   = $issue_img;
                 $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
                 $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
-                $res['issue_tip_url']['url']          = $issue_skip_url;
+                $res['issue_tip_url']['url']          = !empty($issue_skip_url) ? $issue_skip_url : '';
                 break;
 
             default:
@@ -437,7 +449,7 @@ class Koubei {
                 $res['issue_tip_url']['pic']['url']   = $issue_img;
                 $res['issue_tip_url']['pic']['width'] = $batch_info['issue_img_width'];
                 $res['issue_tip_url']['pic']['height'] = $batch_info['issue_img_height'];
-                $res['issue_tip_url']['url']          = $issue_skip_url;
+                $res['issue_tip_url']['url']          = !empty($issue_skip_url) ? $issue_skip_url : '';
                 break;
         }
 
@@ -742,5 +754,16 @@ class Koubei {
         $res = $this->koubeiTagsLayerData->showTrees();
         return $res;
     }
+
+    /*
+     * 获取代金券发放关系
+     * */
+    public function getCouponInfo($itemId = array(), $limit = 0, $offset = 0, $condition = array())
+    {
+        $order_by = 'created_time desc';
+        $res = $this->koubeiCouponRuleData->koubeiCouponRule($itemId, $order_by, $offset, $limit, $condition);
+        return $res;
+    }
+
 
 }

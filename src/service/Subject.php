@@ -599,7 +599,7 @@ class Subject extends \mia\miagroup\Lib\Service
             if (in_array('koubei', $field) && intval($subjectInfos[$subjectId]['koubei_id']) > 0) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
             }
-            if (in_array('share_info', $field)) {
+            if (in_array('share_info', $field)  || in_array('issue_share_info', $field)) {
                 // 分享内容
                 $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
                 $share = $shareConfig['groupShare'];
@@ -626,9 +626,19 @@ class Subject extends \mia\miagroup\Lib\Service
                 
                 } else { //普通帖子
                     $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                    $shareImage = $shareDefault['img_url'];
+                    if(in_array('share_info', $field)) {
+                        $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                    }
+                    if(in_array('issue_share_info', $field)) {
+                        $shareDefault = $shareConfig['defaultShareInfo']['issue_subject'];
+                        if(!empty($subjectRes[$subjectInfo['id']]['image_url'])) {
+                            $shareImage = $subjectRes[$subjectInfo['id']]['image_url'][0];
+                        }
+                    }
+
                     $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
-                    $shareImage = $shareDefault['img_url'];
                     $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
                 }
                 // 替换搜索关联数组
@@ -1032,7 +1042,13 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectSetInfo['id'] = $subjectId;
         $subjectSetInfo['status'] = 1;
         $subjectSetInfo['user_info'] = $this->userService->getUserInfoByUserId($subjectSetInfo['user_id'])['data'];
-        
+
+        // 5.4 分享信息
+        $field = array('count', 'group_labels', 'item', 'praise_info', 'album','issue_share_info');
+        $subject_info = $this->getSingleSubjectById($subjectId, 0, $field)['data'];
+        $share_info = $subject_info['share_info'];
+        $subjectSetInfo['share_info'] = $share_info;
+
         return $this->succ($subjectSetInfo);
     }
 
