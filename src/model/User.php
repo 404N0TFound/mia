@@ -210,9 +210,9 @@ class User
     /**
      * 批量获取分类用户信息
      */
-    public function getBatchUserCategory($conditions, $type, $category) {
+    public function getBatchUserCategory($conditions) {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getBatchUserInfoByUids($conditions, $type, $category);
+        $data = $userCategory->getBatchUserInfoByUids($conditions);
         return $data;
     }
     
@@ -241,9 +241,9 @@ class User
     /**
      * 批量获取用户权限信息
      */
-    public function getBatchUserPermission($conditions, $type) {
+    public function getBatchUserPermission($conditions) {
         $userPermission = new UserPermissionData();
-        $data = $userPermission->getUserPermissionByUids($conditions, $type);
+        $data = $userPermission->getUserPermissionByUids($conditions);
         return $data;
     }
     

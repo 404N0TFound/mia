@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Service\Ums;
 
+use \F_Ice;
 use mia\miagroup\Lib\Service;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Service\User as UserService;
@@ -131,5 +132,11 @@ class User extends Service{
         return $this->succ($result);
     }
 
-    
+    /**
+     * 获取用户的一级类目和二级类目
+     */
+    public function getUserCategory() {
+        $userCategory = F_Ice::$ins->workApp->config->get('busconf.user.userCategory');
+        return $this->succ($userCategory);
+    }
 }
