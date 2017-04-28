@@ -260,7 +260,7 @@ class User extends \mia\miagroup\Lib\Service {
             $setData[] = array('icon', $avatar);
             $this->userModel->updateUserById($userId, $setData);
             //更新专家信息
-            $this->updateUserCategory($userId, 'expert', array('desc' => array($desc)));
+            $this->updateUserCategory($userId, array('desc' => array($desc)));
             //用户归类
             $this->userModel->setHeadlineUserCategory($userId, $category);
             return $this->succ(array('uid' => $userId, 'is_exist' => 1));
@@ -279,7 +279,8 @@ class User extends \mia\miagroup\Lib\Service {
         $expertInfo = array();
         
         $expertInfo['user_id'] = $userId;
-        $expertInfo['type'] = 'expert';
+        $expertInfo['type'] = 'doozer';
+        $expertInfo['category'] = 'expert';
         $expertInfo['status'] = 1;
         $expertInfo['create_time'] = $userInfo['create_date'];
         $expertInfo['last_modify'] = $userInfo['create_date'];
@@ -327,7 +328,8 @@ class User extends \mia\miagroup\Lib\Service {
         $expertInfo = array();
         
         $expertInfo['user_id'] = $userId;
-        $expertInfo['type'] = 'expert';
+        $expertInfo['type'] = 'doozer';
+        $expertInfo['category'] = 'expert';
         $expertInfo['status'] = 1;
         $expertInfo['create_time'] = $userInfo['create_date'];
         $expertInfo['last_modify'] = $userInfo['create_date'];
@@ -449,6 +451,7 @@ class User extends \mia\miagroup\Lib\Service {
         
         $catgoryInfo['user_id'] = $userInfo['user_id'];
         $catgoryInfo['type'] = $userInfo['type'];
+        $catgoryInfo['category'] = $userInfo['category'];
         $catgoryInfo['status'] = 1;
         $catgoryInfo['create_time'] = $userInfo['create_time'];
         $catgoryInfo['operator'] = $userInfo['operator'] ? $userInfo['operator'] : 0;
@@ -544,7 +547,7 @@ class User extends \mia\miagroup\Lib\Service {
             $extInfo = json_encode($extInfo);
             $setData[] = array('ext_info', $extInfo);
         }
-        $result = $this->userModel->updateUserCategory($userId, $type, $setData);
+        $result = $this->userModel->updateUserCategory($userId, $setData);
         return $this->succ($result);
     }
     
