@@ -626,16 +626,14 @@ class Subject extends \mia\miagroup\Lib\Service
                 
                 } else { //普通帖子
                     $shareDefault = $shareConfig['defaultShareInfo']['subject'];
+                    $shareImage = $shareDefault['img_url'];
                     if(in_array('share_info', $field)) {
                         $shareDefault = $shareConfig['defaultShareInfo']['subject'];
-                        $shareImage = $shareDefault['img_url'];
                     }
                     if(in_array('issue_share_info', $field)) {
                         $shareDefault = $shareConfig['defaultShareInfo']['issue_subject'];
                         if(!empty($subjectRes[$subjectInfo['id']]['image_url'])) {
                             $shareImage = $subjectRes[$subjectInfo['id']]['image_url'][0];
-                        }else {
-                            $shareImage = $shareDefault['img_url'];
                         }
                     }
 
