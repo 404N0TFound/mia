@@ -436,14 +436,4 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($result);
     }
-
-    /*
-     * 5.4 代金券奖励规则设置
-     * */
-    public function getCouponRule($page=1, $count=1, $condition = array())
-    {
-        $offset = intval($page) > 1 ? (intval($page) - 1) * $count : 0;
-        $coupons = $this->koubeiModel->getCouponInfo($count, $offset, $condition);
-        return $this->succ($coupons);
-    }
 }

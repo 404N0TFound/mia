@@ -337,40 +337,4 @@ class Koubei extends \DB_Query {
     
         return $resArr;
     }
-
-    /*
-     * 获取代金券发放关系
-     * */
-    public function getCouponInfo($limit = 0, $offset = 0, $condition = array())
-    {
-        $this->tableName = $this->tableCoupon;
-        $order_by = 'created_time desc';
-        $where = [];
-        $field = '*';
-        if(!empty($condition)) {
-            foreach ($condition as $k => $v) {
-                switch ($k) {
-                    case 'start_time':
-                        $where[] = [':ge','created_time', $v];
-                        break;
-                    case 'end_time':
-                        $where[] = [':le','created_time', $v];
-                        break;
-                    case 'category_id':
-                        $where[] = [':eq','category_id', $v];
-                        break;
-                    case 'brand_id':
-                        $where[] = [':eq','brand_id', $v];
-                        break;
-                    case 'item_id':
-                        $where[] = [':eq','item_id', $v];
-                        break;
-                    default:
-                        $where[] = [':eq','status', $v];
-                }
-            }
-        }
-        $data = $this->getRows($where, $field, $limit, $offset, $order_by);
-        return $data;
-    }
 }
