@@ -41,6 +41,10 @@ class Koubei extends \DB_Query {
         if (isset($condition["auto_evaluate"])) {
             $where[] = [":eq",'auto_evaluate', $condition["auto_evaluate"]];
         }
+
+        if(isset($condition["type"])) {
+            $where[] = [":eq",'type', $condition["type"]];
+        }
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
         if (!empty($data)) {
@@ -134,6 +138,9 @@ class Koubei extends \DB_Query {
         }
         if(isset($con['auto_evaluate'])){
             $where[] = [':eq','auto_evaluate',$con['auto_evaluate']];
+        }
+        if(isset($con['type'])){
+            $where[] = [':eq','type',$con['type']];
         }
 
         $order_by = FALSE;
