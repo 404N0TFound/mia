@@ -183,6 +183,10 @@ class Robot extends \mia\miagroup\Lib\Service {
         if ($editor_subject_info['koubei_sync'] == 1) {
             $ext_info['koubei_sync'] = 1;
         }
+        //同步活动
+        if (!empty($editor_subject_info['active_id'])) {
+            $ext_info['active_id'] = $editor_subject_info['active_id'];
+        }
         //发布用户
         $insert_data['pub_user'] = $editor_subject_info['pub_user'];
         //编辑人
@@ -260,6 +264,9 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (!empty($outer_items)) {
             $subject_info['ext_info']['outer_items'] = $outer_items;
         }
+        if(isset($editor_subject_info['ext_info']['active_id']) && !empty($editor_subject_info['ext_info']['active_id'])) {
+            $subject_info['active_id'] = $editor_subject_info['ext_info']['active_id'];
+        }
         $result = $subject_service->issue($subject_info, $point_info, $label_infos);
         if ($result['code'] > 0) {
             $this->error($result['code']);
@@ -284,6 +291,7 @@ class Robot extends \mia\miagroup\Lib\Service {
             $koubei_service = new \mia\miagroup\Service\Koubei();
             $koubei_service->setSubjectToKoubei($subject['id'], $koubei_item_id);
         }
+        
         return $this->succ($subject);
     }
     
