@@ -480,4 +480,26 @@ class Subject {
         $redis->lpush($key, $subject_id);
         return true;
     }
+    
+    /**
+     * 判断帖子是否有重复提交
+     */
+    public function checkReSubmit($subject_info) {
+        if (is_array($subject_info)) {
+            $md5_text = md5(json_encode($subject_info));
+        } else {
+            $md5_text = md5($subject_info);
+        }
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.key'), $md5_text);
+        $redis = new \mia\miagroup\Lib\Redis();
+        $result = $redis->get($key);
+        if ($result == 1) {
+            return true;
+        } else {
+            $redis->set($key, $md5_text);
+            $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.expire_time'));
+            return false;
+        }
+    }
 }

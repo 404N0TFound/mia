@@ -147,6 +147,10 @@ $subjectKey = [
     'subject_update_record' => [//帖子关键数据更新处理队列，使用List数据结构
         'key' => $subjectServicePrefix . 'update_record',
     ],
+    'subject_check_resubmit' => [//帖子重复提交标记，使用List数据结构
+        'key' => $subjectServicePrefix . 'check_resubmit',
+        'expire_time' => 3600,
+    ],
 ];
 
 //笔记推荐服务相关，string格式，用空格分隔
