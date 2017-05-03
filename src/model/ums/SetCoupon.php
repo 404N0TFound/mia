@@ -50,7 +50,8 @@ class SetCoupon extends \DB_Query {
      * */
     public function addCoupon($data)
     {
-        if(empty($data)) {
+        $item_ids = explode(',', $data['item_ids']);
+        if(empty($item_ids)) {
             return 0;
         }
         $ext_info = '';
@@ -58,7 +59,6 @@ class SetCoupon extends \DB_Query {
         $ext_param = array();
         $date = date("Y-m-d H:i:s", time());
         $this->tableName = $this->defaultTable;
-        $item_ids = explode(',', $data['item_ids']);
         $start_time = !empty($data['start_time']) ? $data['start_time'] : '';
         $end_time = !empty($data['end_time']) ? $data['end_time'] : '';
         $created_time = !empty($data['created_time']) ? $data['created_time'] : $date;
@@ -90,7 +90,6 @@ class SetCoupon extends \DB_Query {
         if(!empty($ext_param)) {
             $ext_info = json_encode($ext_param);
         }
-
         foreach($item_ids as $key => $item_id) {
             $insert[$key]['item_id'] = $item_id;
             $insert[$key]['ext_info'] = $ext_info;
