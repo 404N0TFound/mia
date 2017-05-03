@@ -399,7 +399,7 @@ class Search extends Service
         $userService = new UserService();
         $userIdRes = $userService->getGroupDoozerList($count);
         $currentUid = $this->ext_params['current_uid'];
-        $userList = $userService->getUserInfoByUids($userIdRes, $currentUid)['data'];
+        $userList = $userService->getUserInfoByUids($userIdRes['data'], $currentUid)['data'];
         $return = array_values($userList);
         return $this->succ(['user_list' => $return]);
     }
