@@ -717,11 +717,11 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 分页获取笔记的相关笔记
      */
-    public function getRelatedNoteList($subjectId, $page = 1, $count = 10) {
+    public function getRelatedNoteList($subjectId, $page = 1, $count = 10, $current_uid = 0) {
         //获取相关帖子
         $noteRecommendService = new \mia\miagroup\Remote\RecommendNote($this->ext_params);
         $relatedIds = $noteRecommendService->getRelatedNote($subjectId, $page, $count);
-        $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
+        $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, $current_uid, array('user_info', 'count'))['data'];
         if (!empty($relatedSubjects)) {
             return $this->succ(array_values($relatedSubjects));
         } else {
@@ -765,6 +765,11 @@ class Subject extends \mia\miagroup\Lib\Service
             if($is_shield['is_shield']){
                 return $this->error(1104);
             }
+        }
+        //判断是否重复提交
+        $isReSubmit = $this->subjectModel->checkReSubmit($subjectInfo);
+        if ($isReSubmit === true) {
+            return $this->error(1128);
         }
         //口碑不经过数美验证
         if ($isValidate == 1) {
