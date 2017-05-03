@@ -497,7 +497,7 @@ class Subject {
         if ($result == 1) {
             return true;
         } else {
-            $redis->set($key, $md5_text);
+            $redis->set($key, 1);
             $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.expire_time'));
             return false;
         }

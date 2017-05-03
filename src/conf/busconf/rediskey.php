@@ -148,7 +148,7 @@ $subjectKey = [
         'key' => $subjectServicePrefix . 'update_record',
     ],
     'subject_check_resubmit' => [//帖子重复提交标记，使用List数据结构
-        'key' => $subjectServicePrefix . 'check_resubmit',
+        'key' => $subjectServicePrefix . 'check_resubmit_%s',
         'expire_time' => 3600,
     ],
 ];
