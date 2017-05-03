@@ -55,8 +55,8 @@ class User extends \mia\miagroup\Lib\Service {
             $userSubjectsCount = $subjectService->getBatchUserSubjectCounts($userIds)['data']; // 用户发布数
             $userArticleCount = $albumService->getArticleNum($userIds)['data'];//用户文章数
         }
-        // 批量获取专家信息或达人信息
-        $userCate = $this->getBatchCategoryUserInfo($userIds)['data']['doozer'];
+        // 批量获取用户分类信息
+        $userCate = $this->getBatchCategoryUserInfo($userIds)['data'];
 //         print_r($userCate);exit;
         // 批量获取是否是供应商
         $itemService = new \mia\miagroup\Service\Item();
@@ -65,31 +65,31 @@ class User extends \mia\miagroup\Lib\Service {
         $liveService = new Live();
         $liveAuths = $liveService->checkLiveAuthByUserIds($userIds)['data'];
         // 批量获取达人网站发布权限或发视频权限
-        $userPermissions = $this->getBatchPermissionUserInfo($userIds, 'album')['data'];
+        $userPermissions = $this->getBatchPermissionUserInfo($userIds)['data'];
 
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
-            $userInfo['is_experts'] = $userCate[$userInfo['id']]['is_expert'] ? 1 : 0; // 用户是否是专家
+            $userInfo['is_experts'] = $userCate['doozer'][$userInfo['id']]['is_expert'] ? 1 : 0; // 用户是否是专家
             $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; // 用户是否是供应商
             $userInfo['is_have_permission'] = !empty($userPermissions['video'][$userInfo['id']]) ? 1 : 0; // 用户是否有发视频权限
             $userInfo['is_have_publish_permission'] = !empty($userPermissions['album'][$userInfo['id']]) ? 1 : 0; // 用户是否有web发布权限
-            if ($userCate[$userInfo['id']]) {
-				$expertInfos[$userInfo['id']]['type'] = $userCate[$userInfo['id']]['type'];
-                $expertInfos[$userInfo['id']]['category'] = $userCate[$userInfo['id']]['category'];
-                if($userCate[$userInfo['id']]['is_expert']){
-                    $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate[$userInfo['id']]['desc'])) ? explode('#', trim($userCate[$userInfo['id']]['desc'], "#")) : array();
+            if ($userCate['doozer'][$userInfo['id']]) {
+				$expertInfos[$userInfo['id']]['type'] = $userCate['doozer'][$userInfo['id']]['type'];
+                $expertInfos[$userInfo['id']]['category'] = $userCate['doozer'][$userInfo['id']]['category'];
+                if($userCate['doozer'][$userInfo['id']]['is_expert']){
+                    $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate['doozer'][$userInfo['id']]['desc'])) ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'], "#")) : array();
                 }else{
-                    $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate[$userInfo['id']]['desc'])) ? array($userCate[$userInfo['id']]['desc']) : array();
+                    $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate['doozer'][$userInfo['id']]['desc'])) ? array($userCate['doozer'][$userInfo['id']]['desc']) : array();
                 }
                 
-                if ($expertInfos[$userInfo['id']] && !empty(trim($userCate[$userInfo['id']]['label'], "#"))) {
-                    $expert_label_ids = explode('#', trim($userCate[$userInfo['id']]['label'], "#"));
+                if ($expertInfos[$userInfo['id']] && !empty(trim($userCate['doozer'][$userInfo['id']]['label'], "#"))) {
+                    $expert_label_ids = explode('#', trim($userCate['doozer'][$userInfo['id']]['label'], "#"));
                     $expertInfos[$userInfo['id']]['label'] = array_values($labelService->getBatchLabelInfos($expert_label_ids)['data']);
                 } else {
                     $expertInfos[$userInfo['id']]['label'] = [];
                 }
-                $userInfo['doozer_intro'] = $userCate[$userInfo['id']]['desc'];
+                $userInfo['doozer_intro'] = $userCate['doozer'][$userInfo['id']]['desc'];
                 $userInfo['experts_info'] = $expertInfos[$userInfo['id']];
             }
             
@@ -114,6 +114,9 @@ class User extends \mia\miagroup\Lib\Service {
             }
             if (!in_array('cell_phone', $fields)) {
                 unset($userInfo['cell_phone']);
+            }
+            if(!empty($userCate)){
+                $userInfo['user_cate'] = $userCate;
             }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
         }

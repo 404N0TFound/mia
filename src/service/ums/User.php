@@ -74,7 +74,7 @@ class User extends Service{
             }
         }
         //用户分类查询（全部、达人）
-        if(!empty($params['category']) && in_array($params['category'],array("doozer"))  && !isset($userId)){
+        if(!empty($params['category']) && in_array($params['category'],array("doozer","majia","company"))  && !isset($userId)){
             //如果选择了权限筛选项，则查询这些类别的权限
             if(!empty($params['permission']) && in_array($params['permission'],array("video","album","live"))){
                 if($params['permission'] == "live"){
