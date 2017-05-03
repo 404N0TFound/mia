@@ -192,7 +192,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             return $this->succ($data);
         }
         $userService = new UserService();
-        $expertUserIds = $userService->getBatchCategoryUserInfo($userIds)['data'];
+        $expertUserIds = $userService->getBatchCategoryUserInfo($userIds)['data']['doozer'];
         if(empty($expertUserIds)){
             return $this->succ($data);
         }
