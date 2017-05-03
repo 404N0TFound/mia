@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Service\Ums;
 
+use \F_Ice;
 use mia\miagroup\Lib\Service;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Service\User as UserService;
@@ -73,7 +74,7 @@ class User extends Service{
             }
         }
         //用户分类查询（全部、达人）
-        if(!empty($params['category']) && in_array($params['category'],array("doozer"))  && !isset($userId)){
+        if(!empty($params['category']) && in_array($params['category'],array("doozer","majia","company"))  && !isset($userId)){
             //如果选择了权限筛选项，则查询这些类别的权限
             if(!empty($params['permission']) && in_array($params['permission'],array("video","album","live"))){
                 if($params['permission'] == "live"){
@@ -131,5 +132,11 @@ class User extends Service{
         return $this->succ($result);
     }
 
-    
+    /**
+     * 获取用户的一级类目和二级类目
+     */
+    public function getUserCategory() {
+        $userCategory = F_Ice::$ins->workApp->config->get('busconf.user.userCategory');
+        return $this->succ($userCategory);
+    }
 }

@@ -25,12 +25,11 @@ class GroupUserPermission extends DB_Query {
     /**
      * 批量获取用户权限
      */ 
-    public function getUserPermissionByUids($conditions, $type) {
+    public function getUserPermissionByUids($conditions) {
         $result = array();
         $where = array();
         
         $where[] = ['status', 1];
-        $where[] = ['type', $type];
         
         if (!empty($conditions) && isset($conditions['user_id'])) {
             $where[] = ['user_id', $conditions['user_id']];
@@ -40,14 +39,14 @@ class GroupUserPermission extends DB_Query {
 
         if (!empty($data)) {
             foreach ($data as $v) {
-                $result[$v['user_id']] = $v;
+                $result[$v['type']][$v['user_id']] = $v;
                 if(!empty($v['ext_info'])){
                     $extInfo = json_decode($v['ext_info'],true);
                     if(!empty($extInfo['reason'])){
-                        $result[$v['user_id']]['reason'] = $extInfo['reason'];
+                        $result[$v['type']][$v['user_id']]['reason'] = $extInfo['reason'];
                     }
                 }
-                unset($result[$v['user_id']]['ext_info']);
+                unset($result[$v['type']][$v['user_id']]['ext_info']);
             }
         }
         return $result;

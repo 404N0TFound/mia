@@ -64,12 +64,15 @@ class Audit extends \mia\miagroup\Lib\Service {
      * @param string $deviceToken
      * @param array $delContent
      */
-    public function shieldUser($userInfo, $deviceToken, $delContent) {
-        //1、如果登录用户不是白名单用户，则没有权限操作
-        $whiteStatus = $this->checkIsWhiteUser($userInfo['operator'],$deviceToken);
-        if($whiteStatus['data']['is_white'] === false){
-            return $this->error(1125);
+    public function shieldUser($userInfo, $deviceToken, $delContent, $platform = null) {
+        if(!$platform){
+            //1、如果登录用户不是白名单用户，则没有权限操作
+            $whiteStatus = $this->checkIsWhiteUser($userInfo['operator'],$deviceToken);
+            if($whiteStatus['data']['is_white'] === false){
+                return $this->error(1125);
+            }
         }
+        
         //2、检查该用户是否被屏蔽过
         $shieldStatus = $this->auditModel->checkIsShieldUserByUid($userInfo['user_id']);
         if(!empty($shieldStatus)){

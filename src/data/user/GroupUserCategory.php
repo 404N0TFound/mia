@@ -25,43 +25,43 @@ class GroupUserCategory extends DB_Query {
     /**
      * 批量获取分类用户信息
      */ 
-    public function getBatchUserInfoByUids($conditions, $type, $category="") {
+    public function getBatchUserInfoByUids($conditions) {
         $result = array();
         $where = array();
         
         $where[] = ['status', 1];
-        $where[] = ['type',$type];
-        if(!empty($category)){
-            $where[] = ['category',$category];
-        }
         if (!empty($conditions) && isset($conditions['user_id'])) {
             $where[] = ['user_id', $conditions['user_id']];
         }
         $users = $this->getRows($where);
         if (!empty($users)) {
             foreach ($users as $user) {
-                $result[$user['user_id']] = $user;
+                $result[$user['type']][$user['user_id']] = $user;
+                if($user['category'] == '专家'){
+                    $result[$user['type']][$user['user_id']]['is_expert'] = 1;
+                }
                 if(!empty($user['ext_info'])){
                     $extInfo = json_decode($user['ext_info'],true);
                     if(isset($extInfo['desc']) && !empty($extInfo['desc'])){
-                        $result[$user['user_id']]['desc'] = $extInfo['desc'];
+                        $result[$user['type']][$user['user_id']]['desc'] = $extInfo['desc'];
                     }
                     if(isset($extInfo['label']) && !empty($extInfo['label'])){
-                        $result[$user['user_id']]['label'] = $extInfo['label'];
+                        $result[$user['type']][$user['user_id']]['label'] = $extInfo['label'];
                     }
                     if(isset($extInfo['last_modify']) && !empty($extInfo['last_modify'])){
-                        $result[$user['user_id']]['last_modify'] = $extInfo['last_modify'];
+                        $result[$user['type']][$user['user_id']]['last_modify'] = $extInfo['last_modify'];
                     }
                     if(isset($extInfo['modify_author']) && !empty($extInfo['modify_author'])){
-                        $result[$user['user_id']]['modify_author'] = $extInfo['modify_author'];
+                        $result[$user['type']][$user['user_id']]['modify_author'] = $extInfo['modify_author'];
                     }
                     if(isset($extInfo['answer_nums']) && !empty($extInfo['answer_nums'])){
-                        $result[$user['user_id']]['answer_nums'] = $extInfo['answer_nums'];
+                        $result[$user['type']][$user['user_id']]['answer_nums'] = $extInfo['answer_nums'];
                     }
                 }
-                unset($result[$user['user_id']]['ext_info']);
+                unset($result[$user['type']][$user['user_id']]['ext_info']);
             }
         }
+        //print_r($result);exit;
         return $result;
     }
     
@@ -80,13 +80,13 @@ class GroupUserCategory extends DB_Query {
     }
     
     /**
-     *批量获取分类用户id
-     * @return array() 推荐列表
+     *批量获取达人用户id
+     * @return array() 达人用户id列表
      */
-    public function getGroupUserIdList($type, $count=10) {
+    public function getGroupUserIdList($count=10) {
         $where = array();
         $where[] = ['status', 1];
-        $where[] = ['type', $type];
+        $where[] = ['type', 'doozer'];
         $orderBy = ['create_time DESC'];
         $userIdRes = $this->getRows($where, array('user_id'), $count, 0, $orderBy);
         $userIdArr = array();
