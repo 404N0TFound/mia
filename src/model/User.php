@@ -200,10 +200,10 @@ class User
      * @params array()
      * @return array() 推荐用户列表
      */
-    public function getGroupUserIdList($type, $count)
+    public function getGroupUserIdList($count)
     {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getGroupUserIdList($type, $count);
+        $data = $userCategory->getGroupUserIdList($count);
         return $data;
     }
     

@@ -393,7 +393,7 @@ class Search extends Service
      * @param int $count
      * @return mixed
      */
-    public function userHotList($count = 20)
+    public function userHotList($count = 10)
     {
         //推荐池数据
         $userService = new UserService();
