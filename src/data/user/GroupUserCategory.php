@@ -88,7 +88,7 @@ class GroupUserCategory extends DB_Query {
         $where = array();
         $where[] = ['status', 1];
         $where[] = ['type', 'doozer'];
-        $where[] = ['category', ''];
+//         $where[] = ['category', ''];
         $orderBy = ['create_time DESC'];
         $userIdRes = $this->getRows($where, array('user_id'), $count, 0, $orderBy);
         $userIdArr = array();
