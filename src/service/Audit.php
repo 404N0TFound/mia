@@ -2,9 +2,9 @@
 namespace mia\miagroup\Service;
 
 use mia\miagroup\Model\Audit as AuditModel;
-use mia\miagroup\service\User as UserService;
-use mia\miagroup\service\Subject as SubjectService;
-use mia\miagroup\service\Comment as CommentService;
+use mia\miagroup\Service\User as UserService;
+use mia\miagroup\Service\Subject as SubjectService;
+use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Util;
 
 /**
@@ -211,6 +211,12 @@ class Audit extends \mia\miagroup\Lib\Service {
     {
         $passUid = \F_Ice::$ins->workApp->config->get('busconf.subject.dump_exclude_uids');
         if (in_array($this->ext_params['current_uid'], $passUid)) {
+            return $this->succ(array('sensitive_words' => []));
+        }
+        //达人过滤
+        $userService = new UserService();
+        $res = $userService->isDoozer($this->ext_params['current_uid']);
+        if ($res['data'] === true) {
             return $this->succ(array('sensitive_words' => []));
         }
         //数美检测
