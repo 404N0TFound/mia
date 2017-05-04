@@ -27,7 +27,7 @@ class SetCoupon extends \mia\miagroup\Lib\Service {
      * */
     public function add($data = array())
     {
-        if(empty($data) || empty($data['image']) || empty($data['item_id'])) {
+        if(empty($data) || empty($data['image'])) {
             return $this->succ(0);
         }
         $params = array();
