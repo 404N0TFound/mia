@@ -18,11 +18,15 @@ class KoubeiCouponRule extends \DB_Query {
     {
         $where = [];
         $field = '*';
+        $where[] = ['status', 1];
         if(!empty($param)) {
-            $where[] = ['status', 1];
-            foreach($param as $k => $v) {
-                $where[] = [$k, $v];
-            }
+            $where [] = [
+                ':and', [
+                    ['brand_id', $param['brand_id']],
+                    [':or', ['item_id', $param['item_id']]],
+                    [':or', ['category_id', $param['category_id']]]
+                ]
+            ];
         }
         if(!empty($condition)) {
             if(!empty($condition['where'])) {
