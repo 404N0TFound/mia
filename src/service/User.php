@@ -77,7 +77,7 @@ class User extends \mia\miagroup\Lib\Service {
             if ($userCate['doozer'][$userInfo['id']]) {
 				$expertInfos[$userInfo['id']]['type'] = $userCate['doozer'][$userInfo['id']]['type'];
                 $expertInfos[$userInfo['id']]['category'] = $userCate['doozer'][$userInfo['id']]['category'];
-                if($userCate['doozer'][$userInfo['id']]['is_expert']){
+                if($userCate['doozer'][$userInfo['id']]['category'] != ''){
                     $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate['doozer'][$userInfo['id']]['desc'])) ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'], "#")) : array();
                 }else{
                     $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate['doozer'][$userInfo['id']]['desc'])) ? array($userCate['doozer'][$userInfo['id']]['desc']) : array();
@@ -387,7 +387,7 @@ class User extends \mia\miagroup\Lib\Service {
     public function getGroupDoozerList($count = 10)
     {
         $result = array();
-        $userArr = $this->userModel->getGroupUserIdList('doozer',$count);
+        $userArr = $this->userModel->getGroupUserIdList($count);
         if(!empty($userArr)){
             $result = $userArr;
         }
