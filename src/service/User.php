@@ -115,8 +115,21 @@ class User extends \mia\miagroup\Lib\Service {
             if (!in_array('cell_phone', $fields)) {
                 unset($userInfo['cell_phone']);
             }
+            //拼接用户分类类型（用于后台）
             if(!empty($userCate)){
-                $userInfo['user_cate'] = $userCate;
+                if($userCate['doozer']){
+                    $userInfo['category'] = "达人";
+                    if(!empty($userCate['doozer'][$userInfo['id']]['category'])){
+                        $userInfo['category'] .= "/".$userCate['doozer'][$userInfo['id']]['category'];
+                    }
+                }elseif($userCate['majia']){
+                    $userInfo['category'] = "马甲";
+                    if(!empty($userCate['majia'][$userInfo['id']]['category'])){
+                        $userInfo['category'] .= "/".$userCate['majia'][$userInfo['id']]['category'];
+                    }
+                }elseif($userCate['company']){
+                    $userInfo['category'] = "商家";
+                }
             }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
         }
