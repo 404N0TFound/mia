@@ -80,11 +80,16 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         }
         //是否首次关注
         $data = $this->userRelationModel->isExistRelation($userId, $relationUserId);
-        $isFirst = $data === false ? true : false;
+        if (empty($data)) {
+            $isFirst = true;
+        } else {
+            $isFirst = false;
+        }
+        //$isFirst = $data === false ? true : false;
         
         //加关注
         $userRelation = $this->userRelationModel->addRelation($userId,$relationUserId, $source);
-        
+
         if ($relationUserId != 1026069 && $source == 1 && $isFirst) { //蜜芽小天使账号不赠送蜜豆，不接收消息
             //送蜜豆
             $mibean = new \mia\miagroup\Remote\MiBean();
@@ -93,7 +98,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             $param['relation_id'] = $relationUserId;
             $param['to_user_id'] = $relationUserId;
             $mibean->add($param);
-            
+
             //发消息
             $type = 'single'; //消息类型
             $resourceType = 'group';//消息资源
