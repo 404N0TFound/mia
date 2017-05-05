@@ -315,6 +315,6 @@ $subject_issue = array(
         'issue_img_width' => 750,
         'issue_img_height' => 100,
         'issue_reward' => '怎么晒？正确晒单姿势看这里-->',
-        'issue_skip_url' => 'https://m.mia.com/special/module/index/17757/app/'
+        'issue_skip_url' => 'https://m.mia.com/special/module/index/17840/app/'
     ),
 );
