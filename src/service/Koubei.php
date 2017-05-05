@@ -1047,10 +1047,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $batch_info = $this->koubeiConfig['shouping'];
                 }else {
                     // 代金券发放规则
-                    $condition['field'] = 'ext_info';
+                    $condition['field'] = 'ext_info, start_time, end_time';
                     $data = $this->getCouponRule([$item_id], 1, 1, $condition)['data'];
                     $coupon_info = $data[$item_id];
-                    if(!empty($coupon_info)) {
+                    $date = date("Y-m-d H:i:s", time());
+                    if(!empty($coupon_info) && $coupon_info['start_time'] <= $date && $date <= $coupon_info['end_time']) {
                         $ext_info = json_decode($coupon_info['ext_info'],true);
                         $batch_info['issue_img'] = $ext_info['image']['url'];
                         $batch_info['issue_img_width'] = $ext_info['image']['width'];
@@ -1908,7 +1909,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $data = $this->getCouponRule([$item_id]);
         if(!empty($data)) {
             $coupon_info = $data['data'][$item_id];
-            if(!empty($coupon_info['ext_info'])) {
+            $date = date("Y-m-d H:i:s", time());
+            if(!empty($coupon_info['ext_info']) && $coupon_info['start_time'] <= $date && $date <= $coupon_info['end_time']) {
                 $ext_info = json_decode($coupon_info['ext_info'], true);
                 if($char_count >= $ext_info['chat_count'] && $image_count >= $ext_info['image_count']) {
                     $return['title'] = $ext_info['prompt'];
