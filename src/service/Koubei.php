@@ -1099,6 +1099,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $first['item_koubei']['auto_evaluate'] == 0 ) {
                     $transfer_koubei[$item_id] = $first;
                 }
+                if(!empty($transfer_koubei)) {
+                    $transfer_koubei['feedback_rate'] = $res['feedback_rate'];
+                    $transfer_koubei['total_count'] = $res['total_count'];
+                    $transfer_koubei['recom_count'] = $res['recom_count'];
+                }
             }
         }
         return $this->succ($transfer_koubei);
