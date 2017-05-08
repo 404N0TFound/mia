@@ -1100,9 +1100,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $transfer_koubei[$item_id] = $first;
                 }
                 if(!empty($transfer_koubei)) {
-                    $transfer_koubei['feedback_rate'] = $res['feedback_rate'];
-                    $transfer_koubei['total_count'] = $res['total_count'];
-                    $transfer_koubei['recom_count'] = $res['recom_count'];
+                    $transfer_koubei[$item_id]['feedback_rate'] = $res['feedback_rate'];
+                    $transfer_koubei[$item_id]['total_count'] = $res['total_count'];
+                    $transfer_koubei[$item_id]['recom_count'] = $res['recom_count'];
                 }
             }
         }
