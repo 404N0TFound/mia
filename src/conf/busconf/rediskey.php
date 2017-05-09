@@ -144,6 +144,10 @@ $subjectKey = [
         'key' => $subjectServicePrefix . 'read_num',
         'expire_time' => 86400 * 30,
     ],
+    'subject_fine_push_num' => [
+        'key' => $subjectServicePrefix . 'fine_push_num_%d',
+        'expire_time' => 86400 * 30,
+    ],
     'subject_update_record' => [//帖子关键数据更新处理队列，使用List数据结构
         'key' => $subjectServicePrefix . 'update_record',
     ],
