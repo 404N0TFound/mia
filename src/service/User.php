@@ -437,7 +437,20 @@ class User extends \mia\miagroup\Lib\Service {
         $data = $this->userModel->getBatchUserCategory($conditions);
         return $this->succ($data);
     }
-    
+
+    //判断用户是否是达人
+    public function isDoozer($userId)
+    {
+        if (empty($userId)) {
+            return $this->succ(false);
+        }
+        $res = $this->getBatchCategoryUserInfo([$userId]);
+        if(isset($res["data"]["doozer"][$userId])) {
+            return $this->succ(true);
+        }
+        return $this->succ(false);
+    }
+
     // 批量获取用户权限（专栏、视频）信息
     public function getBatchPermissionUserInfo($userIds,$status=array(1)) {
         if (empty($userIds)) {

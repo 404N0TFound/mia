@@ -17,6 +17,8 @@ use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Service\Feed as FeedServer;
 use mia\miagroup\Service\Order as OrderService;
+use mia\miagroup\Service as Service;
+use mia\miagroup\Lib\Redis;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -415,7 +417,34 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }
+
+            //站外商品信息
+            $outItemsInfo = [];
+            $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
+
+            foreach ($subjectInfos as $v) {
+                if (empty($v["ext_info"])) {
+                    continue;
+                }
+                $extInfo = $v["ext_info"];
+                if (empty($extInfo["outer_items"])) {
+                    continue;
+                } else {
+                    $outArr = [];
+                    foreach ($extInfo["outer_items"] as $outInfo) {
+                        $redirect = sprintf($app_mapping_config['search_result'], $outInfo['name'], $outInfo['brand_id'], $outInfo['category_id']);
+                        $outArr[] = [
+                            "item_name" => $outInfo["name"],
+                            "redirect" => $redirect,
+                            "is_outer" => 1,
+                            "item_img" => $outInfo["item_pic"] ? NormalUtil::buildImgUrl($outInfo["item_pic"], "normal")["url"] : "",
+                        ];
+                    }
+                    $outItemsInfo[$v["id"]] = $outArr;
+                }
+            }
         }
+
         $subjectRes = array();
         // 拼装结果集
         foreach ($subjectIds as $subjectId) {
@@ -561,9 +590,12 @@ class Subject extends \mia\miagroup\Lib\Service
                     $subjectRes[$subjectInfo['id']]['album_article'] = $albumArticles[$subjectInfo['id']];
                 }
             }
+            //站内关联商品,站外关联商品
             if (in_array('item', $field)) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
+                $subjectRes[$subjectInfo['id']]['out_items'] =  is_array($outItemsInfo[$subjectId]) ? array_values($outItemsInfo[$subjectId]) : array();
             }
+
             if (in_array('koubei', $field) && intval($subjectInfos[$subjectId]['koubei_id']) > 0) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
             }
@@ -1006,7 +1038,37 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectSetInfo['id'] = $subjectId;
         $subjectSetInfo['status'] = 1;
         $subjectSetInfo['user_info'] = $this->userService->getUserInfoByUserId($subjectSetInfo['user_id'])['data'];
-        
+
+        // 5.4 分享信息
+        $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
+        $share = $shareConfig['groupShare'];
+        $shareDefault = $shareConfig['defaultShareInfo']['issue_subject'];
+        $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
+        $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
+        // 图片逻辑
+        if(!empty($subjectSetInfo['image_infos'])) {
+            $shareImage = $subjectSetInfo['image_infos'][0]['url'];
+        }else {
+            $shareImage = $shareDefault['img_url'];
+        }
+        $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
+        $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url, '{|extend_text|}' => $shareDefault['extend_text']);
+
+        // 进行替换操作
+        $share_image_lists = [];
+        if (!empty($subjectSetInfo['image_infos'])) {
+            foreach ($subjectSetInfo['image_infos'] as $image) {
+                $share_image_lists[] = $image['url'];
+            }
+        }
+        foreach ($share as $keys => $sh) {
+            $share[$keys] = NormalUtil::buildGroupShare($sh, $replace);
+            $share[$keys]['share_img_list'] = array();
+            if (!empty($share_image_lists)) {
+                $share[$keys]['share_img_list'] = $share_image_lists;
+            }
+        }
+        $subjectSetInfo['share_info'] = array_values($share);
         return $this->succ($subjectSetInfo);
     }
 
@@ -1151,13 +1213,17 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectId = is_array($subjectId) ? $subjectId : [$subjectId];
         //查询图片信息
         $subjects_info = $this->subjectModel->getSubjectByIds($subjectId);
-        
+
         $affect = $this->subjectModel->setSubjectRecommendStatus($subjectId);
         if(!$affect){
             return $this->error(201,'帖子加精失败!');
         }
-        //送蜜豆
+        //送蜜豆及发送消息推送
         $mibean = new \mia\miagroup\Remote\MiBean();
+        $push = new Service\Push();
+        $redis = new Redis();
+        $news = new \mia\miagroup\Service\News();
+
         foreach($subjects_info as $subject_info){
             $param = array(
                 'user_id'           => $subject_info['user_id'],//操作人
@@ -1171,6 +1237,16 @@ class Subject extends \mia\miagroup\Lib\Service
             if(empty($data['data'])){
                 $data = $mibean->add($param);
             }
+            //发送消息推送，每天发三次
+            $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
+            $push_num = $redis->get($push_num_key);
+            if ($push_num < 3) {
+                $push->pushMsg($subject_info['user_id'], "您分享的帖子被加精华啦，帖子会有更多展示机会，再奉上5蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
+                $redis->incrBy($push_num_key, 1);
+                $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
+            }
+            //发送站内信
+            $news->addNews('single', 'group', 'add_fine', \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['user_id'], $subject_info['id'])['data'];
         }
         //推荐更新入队列
         foreach ($subjectId as $v) {
