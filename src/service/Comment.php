@@ -210,7 +210,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'), array(1, 2))['data'];
         \DB_Query::switchCluster($preNode);
-        
+
         if (!empty($comment[$commentInfo['id']])) {
             $commentInfo = $comment[$commentInfo['id']];
         }
@@ -237,7 +237,7 @@ class Comment extends \mia\miagroup\Lib\Service {
                 $timeNow = time();
                 $period = $timeNow - $timeZero;
                 if (28800 < $period && $period < 82800) {
-                    $nickName = $comment["comment_user"]["nickname"] ? $comment["comment_user"]["nickname"] : $comment["comment_user"]["username"];
+                    $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
                     $push = new Service\Push();
                     $push->pushMsg($toUserId, $nickName . "评论了你的帖子", "miyabaobei://subject?id=" . $subjectId);
                 }
