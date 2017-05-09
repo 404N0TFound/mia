@@ -42,7 +42,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //退货订单没有发口碑权限
             $orderCode = $orderInfo['order_code'];
             $return = $orderService->getReturnByOrderCode($orderCode, $koubeiData['item_id'])['data'];
-            if($orderInfo['status'] != 5  || (time()- $finishTime) > 16 * 86400 || count($return) > 0)
+            if(count($return) > 0) {
+                return $this->error(6109);
+            }
+            if($orderInfo['status'] != 5  || (time()- $finishTime) > 16 * 86400)
             {
                 return $this->error(6102);
             }
@@ -459,6 +462,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $itemKoubei[$koubei['subject_id']] = array(
                 'id' => $koubei['id'],
                 'rank' => $koubei['rank'],
+                'machine_score' => $koubei['machine_score'],
                 'score' => $koubei['score'],
                 'item_id' => $koubei['item_id'],
                 'item_size' => $koubei['item_size'],
@@ -1103,7 +1107,22 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             $res = $this->getItemKoubeiList($item_id)['data'];
             if(!empty($res) && !empty($res['koubei_info'])) {
-                $transfer_koubei[$item_id] = $res['koubei_info'][0];
+                // 排序过滤（根据分值）
+                $first = $res['koubei_info'][0];
+                if($first['source'] == 1 && $first['item_koubei']['machine_score'] ==3 &&
+                $first['item_koubei']['auto_evaluate'] == 0 ) {
+                    $transfer_koubei[$item_id] = $first;
+                }
+                if($first['source'] != 1  && $first['item_koubei']['score'] >=4
+                    && $first['item_koubei']['machine_score'] ==3 &&
+                    $first['item_koubei']['auto_evaluate'] == 0 ) {
+                    $transfer_koubei[$item_id] = $first;
+                }
+                if(!empty($transfer_koubei[$item_id])) {
+                    $transfer_koubei[$item_id]['feedback_rate'] = $res['feedback_rate'];
+                    $transfer_koubei[$item_id]['total_count'] = $res['total_count'];
+                    $transfer_koubei[$item_id]['recom_count'] = $res['recom_count'];
+                }
             }
         }
         return $this->succ($transfer_koubei);

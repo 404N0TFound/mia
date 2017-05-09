@@ -19,10 +19,11 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 获取活动列表
      */
-    public function getActiveList($page, $limit, $fields = array('count')) {
+    public function getActiveList($page, $limit, $fields = array('count'), $status = [1])
+    {
         $activeRes = array();
         // 获取活动列表
-        $activeInfos = $this->activeModel->getActiveByActiveIds($page, $limit);
+        $activeInfos = $this->activeModel->getActiveByActiveIds($page, $limit, $status);
         if (empty($activeInfos)) {
             return $this->succ(array());
         }

@@ -20,6 +20,7 @@ class ReturnOrder extends \DB_Query {
         }
         $where[] = ['order_code', $order_code];
         $where[] = ['item_id', $item_id];
+        $where[] = [':ne','status', 0];
         $result = $this->getRows($where);
         return $result;
     }
