@@ -749,11 +749,11 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 分页获取笔记的相关笔记
      */
-    public function getRelatedNoteList($subjectId, $page = 1, $count = 10) {
+    public function getRelatedNoteList($subjectId, $page = 1, $count = 10, $current_uid = 0) {
         //获取相关帖子
         $noteRecommendService = new \mia\miagroup\Remote\RecommendNote($this->ext_params);
         $relatedIds = $noteRecommendService->getRelatedNote($subjectId, $page, $count);
-        $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
+        $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, $current_uid, array('user_info', 'count'))['data'];
         if (!empty($relatedSubjects)) {
             return $this->succ(array_values($relatedSubjects));
         } else {
@@ -797,6 +797,11 @@ class Subject extends \mia\miagroup\Lib\Service
             if($is_shield['is_shield']){
                 return $this->error(1104);
             }
+        }
+        //判断是否重复提交
+        $isReSubmit = $this->subjectModel->checkReSubmit($subjectInfo);
+        if ($isReSubmit === true) {
+            return $this->error(1128);
         }
         //口碑不经过数美验证
         if ($isValidate == 1) {
@@ -1013,12 +1018,13 @@ class Subject extends \mia\miagroup\Lib\Service
         $koubeiService = new KoubeiService();
         $koubeiService->addKoubeiSubject($koubeiSubject);
         
-        //插入标记
-        if(!empty($pointInfo[0])){
+        //插入帖子标记信息
+        if(!empty($pointInfo)){
+            $pointItemIds = array();
             foreach ($pointInfo as $itemPoint) {
-                //插入帖子标记信息
-                $this->tagsService->saveSubjectTags($subjectId,$itemPoint);
+                $pointItemIds[] = $itemPoint['item_id'];
             }
+            $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds);
         }
         
         //组装活动帖子关联表信息
@@ -1241,6 +1247,10 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             //发送站内信
             $news->addNews('single', 'group', 'add_fine', \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['user_id'], $subject_info['id'])['data'];
+        }
+        //推荐更新入队列
+        foreach ($subjectId as $v) {
+            $this->subjectModel->addSubjectUpdateQueue($v);
         }
         return $this->succ($data);
     }
@@ -1639,6 +1649,8 @@ class Subject extends \mia\miagroup\Lib\Service
         $albumService = new \mia\miagroup\Service\Album();
         $albumService->cacelRecommentBySubjectId($subjectId)['code'];
         $affect = $this->subjectModel->cacelSubjectIsFine($subjectId);
+        //推荐更新入队列
+        $this->subjectModel->addSubjectUpdateQueue($subjectId);
         return $this->succ($affect);
     }
     

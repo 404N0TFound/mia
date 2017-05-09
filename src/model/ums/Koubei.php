@@ -77,12 +77,26 @@ class Koubei extends \DB_Query {
                             }
                         }
                         break;
+                    case 'op':
+                        //生成口碑、差评口碑、差评机选口碑(默认生成口碑)
+                        $where[] = [':ge',$this->tableName.'.status',1];
+                        $where[] = [':le',$this->tableName.'.status',2];
+                        if($v == 'lscore_nums'){
+                            $where[] = [':ge',$this->tableName.'.score',1];
+                            $where[] = [':le',$this->tableName.'.score',3];
+                        }elseif($v == 'mscore_nums'){
+                            $where[] = [':ge',$this->tableName.'.score',4];
+                            $where[] = [$this->tableName.'.machine_score',1];
+                        }else{
+                            $where[] = [':gt', $this->tableName.'.score',0];
+                        }
+                        break;
                     default:
                         $where[] = [$this->tableName . '.' . $k, $v];
                 }
             }
         }
-        
+            
         $result['count'] = $this->count($where, $join, 1);
         if (intval($result['count']) <= 0) {
             return $result;

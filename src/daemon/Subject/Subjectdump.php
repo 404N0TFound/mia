@@ -14,10 +14,12 @@ class Subjectdump extends \FD_Daemon {
     private $mode;
     private $python_bin;
     private $negative_path;
+    private $subjectData;
 
     public function __construct() {
         $this->python_bin = \F_Ice::$ins->workApp->config->get('app.daemon_python_bin');
         $this->negative_path = '/home/work/negative_notes/bin/';
+        $this->subjectData = new \mia\miagroup\Data\Subject\Subject();
     }
 
     public function execute() {
@@ -47,17 +49,12 @@ class Subjectdump extends \FD_Daemon {
                 $this->dumpSubjectFile = $folderPath . 'dump_subject_file_do_not_delete';
                 $this->dumpUserFile = $folderPath . 'dump_user_file_do_not_delete';
                 $this->dump_data();
-                if ($this->mode == 'incremental_dump') { //增量导出数据后，记录时间戳
-                    if (!file_exists($this->dumpSubjectFile) || filesize($this->dumpSubjectFile) <=0) {
-                        rmdir($folderPath);
-                    } else {
-                        file_put_contents($folderPath . 'done', date('Y-m-d H:i:s'));
-                    }
-                
-                }
+                file_put_contents($folderPath . 'done', date('Y-m-d H:i:s')); //增量导出数据后，记录时间戳
+                //继续更新数据导出
+                $this->dumpSubjectFile = $folderPath . 'dump_update_subject_do_not_delete';
+                $this->dump_update_data();
                 break;
         }
-        
     }
     
     private function dump_data() {
@@ -98,17 +95,67 @@ class Subjectdump extends \FD_Daemon {
         }
         
         //拉取新发布的帖子
-        $subjectData = new \mia\miagroup\Data\Subject\Subject();
         $where = [];
         $where[] = [':gt','id', $lastId];
         $source_config = \F_Ice::$ins->workApp->config->get('busconf.subject.source');
         $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor']]];
         $where[] = ['status', 1];
         $where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-3 minute"))];
-        $data = $subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys', 1000);
+        $data = $this->subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys', 1000);
         if (empty($data)) {
             return ;
         }
+        
+        $maxId = $this->dump_subject($data, $lastId);
+        
+        //写入本次处理的最大event_id
+        if (isset($maxId)) {
+            fseek($fpLastIdFile, 0, SEEK_SET);
+            ftruncate($fpLastIdFile, 0);
+            fwrite($fpLastIdFile, $maxId);
+        }
+        flock($fpLastIdFile, LOCK_UN);
+        fclose($fpLastIdFile);
+    }
+    
+    private function dump_update_data() {
+        //拉取有修改的帖子
+        $key = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_update_record.key');
+        // 执行redis指令
+        $redis = new \mia\miagroup\Lib\Redis();
+        $subject_ids = array();
+        for ($i = 0; $i < 1000; $i ++) {
+            $subject_id = $redis->lpop($key);
+            if ($subject_id) {
+                $subject_ids[] = $subject_id;
+            } else {
+                break;
+            }
+        }
+        if (empty($subject_ids)) {
+            return ;
+        }
+        $where = [];
+        $where[] = ['id', $subject_ids];
+        $source_config = \F_Ice::$ins->workApp->config->get('busconf.subject.source');
+        $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor']]];
+        $where[] = ['status', 1];
+        $data = $this->subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys, created', 1000);
+        if (empty($data)) {
+            return ;
+        }
+        foreach ($data as $k => $v) {
+            //发布不过3分钟的不处理，重新扔回队列
+            if ((time() - strtotime($v['created'])) <= 180) {
+                $redis->lpush($key, $v['id']);
+                unset($data[$k]);
+            }
+        }
+        
+        $this->dump_subject($data);
+    }
+    
+    private function dump_subject($data, $lastId = null) {
         //收集帖子ID、用户ID、口碑ID
         $subjectIds = array();
         $userIds = array();
@@ -137,16 +184,19 @@ class Subjectdump extends \FD_Daemon {
             }
         }
         //获取帖子作者
-        $where = [];
-        $where[] = [':le','id', $lastId];
-        $where[] = ['source', [1, 2]];
-        $where[] = ['status', 1];
-        $where[] = ['user_id', $userIds];
-        $existUids = $subjectData->getRows($where, 'distinct(user_id)');
-        $existUids = array_column($existUids, 'user_id');
-        $userIds = array_diff($userIds, $existUids);
-        $userService = new \mia\miagroup\Service\User();
-        $userInfos = $userService->getUserInfoByUids($userIds, 0, array('count'))['data'];
+        if ($lastId !== null) {
+            $where = [];
+            $where[] = [':le','id', $lastId];
+            $where[] = ['source', [1, 2]];
+            $where[] = ['status', 1];
+            $where[] = ['user_id', $userIds];
+            $existUids = $this->subjectData->getRows($where, 'distinct(user_id)');
+            $existUids = array_column($existUids, 'user_id');
+            $userIds = array_diff($userIds, $existUids);
+            $userService = new \mia\miagroup\Service\User();
+            $userInfos = $userService->getUserInfoByUids($userIds, 0, array('count'))['data'];
+        }
+        
         $excludeUids = \F_Ice::$ins->workApp->config->get('busconf.subject.dump_exclude_uids');
         foreach ($data as $value) {
             if (isset($maxId)) { //获取最大event_id
@@ -268,15 +318,7 @@ class Subjectdump extends \FD_Daemon {
                 file_put_contents($this->dumpUserFile, $put_content . "\n", FILE_APPEND);
             }
         }
-        
-        //写入本次处理的最大event_id
-        if (isset($maxId)) {
-            fseek($fpLastIdFile, 0, SEEK_SET);
-            ftruncate($fpLastIdFile, 0);
-            fwrite($fpLastIdFile, $maxId);
-        }
-        flock($fpLastIdFile, LOCK_UN);
-        fclose($fpLastIdFile);
+        return $maxId;
     }
     
     /**
