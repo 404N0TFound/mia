@@ -81,6 +81,51 @@ class Robot extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 获取运营帖子列表
+     */
+    public function getEditorSubjectList($params, $page = 1, $limit = 20) {
+        $result = array('list' => array(), 'count' => 0);
+        $condition = array();
+        //初始化入参
+        $orderBy = 'id asc'; //默认排序
+        if (!empty($params['category'])) {
+            $condition['category'] = $params['category'];
+        }
+        if (!empty($params['source'])) {
+            $condition['source'] = $params['source'];
+        }
+        if (!empty($params['op_admin'])) {
+            $condition['op_admin'] = $params['op_admin'];
+        }
+        if (!empty($params['start_time'])) {
+            $condition['start_time'] = $params['start_time'];
+        }
+        if (!empty($params['end_time'])) {
+            $condition['end_time'] = $params['end_time'];
+        }
+        $condition['status'] = $this->robotConfig['editor_subject_status']['create_subject'];
+        $offset = ($page - 1) * $limit;
+        $editor_subject_list = $this->robotModel->getEditorSubjectData($condition, $offset, $limit, $orderBy);
+        $subject_ids = array();
+        if (!empty($editor_subject_list['list'])) {
+            foreach ($editor_subject_list['list'] as $v) {
+                $subject_ids[] = $v['subject_id'];
+            }
+        }
+        //获取结果集数据
+        $subject_service = new \mia\miagroup\Service\Subject();
+        $subjects = $subject_service->getBatchSubjectInfos($subject_ids, 0, array('user_info', 'count','content_format', 'share_info'), array())['data'];
+        if (!empty($editor_subject_list['list'])) {
+            foreach ($editor_subject_list['list'] as $k => $v) {
+                $editor_subject_list['list'][$k]['subject'] = $subjects[$v['subject_id']];
+            }
+        }
+        $result['list'] = $editor_subject_list['list'];
+        $result['count'] = $editor_subject_list['count'];
+        return $this->succ($result);
+    }
+    
+    /**
      * 获取马甲列表
      */
     public function getAvatarMaterialList($params, $page = 1, $limit = false) {
@@ -146,6 +191,15 @@ class Robot extends \mia\miagroup\Lib\Service {
         $result = $this->robotModel->getSubjectMaterialCategory();
         return $this->succ($result);
     }
+    
+    /**
+     * 获取全部编辑人
+     */
+    public function getEditorSubjectAdmin() {
+        $result = $this->robotModel->getEditorSubjectAdmin();
+        return $this->succ($result);
+    }
+    
 
     /**
      * 删除用户素材，物理删除

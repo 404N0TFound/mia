@@ -191,14 +191,21 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         if(empty($userId)){
             return $this->error(500);
         }
+        $data = array();
         $userIds = $this->getAllAttentionUser($userId)['data'];
-        $expertUserIds = $this->userRelationModel->getAttentionExpertList($userIds);
+        if(empty($userIds)){
+            return $this->succ($data);
+        }
+        $userService = new UserService();
+        $expertUserIds = $userService->getBatchCategoryUserInfo($userIds)['data']['doozer'];
+        if(empty($expertUserIds)){
+            return $this->succ($data);
+        }
         foreach ($userIds as $key => $value) {
             if(isset($expertUserIds[$key])){
                 $data[$key] = $expertUserIds[$key];
             }
         }
-        $data = !empty($data) ? $data : array();
         return $this->succ($data);
     }
 
