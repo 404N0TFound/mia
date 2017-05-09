@@ -10,7 +10,11 @@ class RecommendNote
     {
         $this->session_info = $session_info;
         if (empty($this->session_info['dvc_id'])) { //兼容H5调用
-            $this->session_info['dvc_id'] = $this->session_info['current_uid'];
+            if ($this->session_info['current_uid']) {
+                $this->session_info['dvc_id'] = $this->session_info['current_uid'];
+            } else {
+                $this->session_info['dvc_id'] = date("YmdH");
+            }
         }
         if (empty($this->session_info['bi_session_id'])) {
             $this->session_info['bi_session_id'] = $this->session_info['dvc_id'].date("YmdH");
