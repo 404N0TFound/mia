@@ -102,6 +102,7 @@ class Image extends \mia\miagroup\Lib\Service
     * */
     public function beautyImage($url)
     {
+        @ini_set('memory_limit', '512M');
         if(empty($url)) {
             return $this->succ();
         }
@@ -120,6 +121,15 @@ class Image extends \mia\miagroup\Lib\Service
         // 上传图片
         $post = $this->handleImgData()['data'];
         $path = $this->image->uploadImage($post, $newUrl);
+
+        // 删除图片路径
+        if(is_file($temp_url)) {
+            unlink($temp_url);
+        }
+        if(is_file($newUrl)) {
+            unlink($newUrl);
+        }
+
         return $this->succ($path);
     }
 }

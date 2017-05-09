@@ -226,3 +226,12 @@ $cron_list['active_subject_hotvalue'] = array(
     'start_time' => '2017-03-30 15:00:00',
     'interval' => 3600
 );
+
+//美化帖子图片
+$cron_list['subject_beauty_image'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=imagebeauty",
+    'start_time' => '2017-05-08 18:00:00',
+    'interval' => 3600
+);
