@@ -228,13 +228,13 @@ class User
     /**
      * 更新用户分类信息
      */
-    public function updateUserCategory($userId, $type, $updata) {
+    public function updateUserCategory($userId, $updata) {
         if (empty($userId)) {
             return false;
         }
         
         $userCategory = new UserCategoryData();
-        $result = $userCategory->updateUserInfoByUid($userId, $type, $setData);
+        $result = $userCategory->updateUserInfoByUid($userId, $updata);
         return $result;
     }
     
@@ -259,13 +259,13 @@ class User
     /**
      * 更新用户权限信息
      */
-    public function updateUserPermission($userId, $type, $updata) {
+    public function updateUserPermission($userId, $updata, $type) {
         if (empty($userId)) {
             return false;
         }
     
         $userPermission = new UserPermissionData();
-        $data = $userPermission->updatePermissionByUid($userId, $type, $userInfo);
+        $data = $userPermission->updatePermissionByUid($userId, $updata, $type);
         return $data;
     }
 }

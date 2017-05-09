@@ -29,7 +29,7 @@ class GroupUserPermission extends DB_Query {
         $result = array();
         $where = array();
         
-        $where[] = ['status', 1];
+        $where[] = ['status', $conditions['status']];
         
         if (!empty($conditions) && isset($conditions['user_id'])) {
             $where[] = ['user_id', $conditions['user_id']];
@@ -55,30 +55,18 @@ class GroupUserPermission extends DB_Query {
     /**
      * 修改用户分类信息
      */
-    public function updatePermissionByUid($userId, $type, $userInfo) {
+    public function updatePermissionByUid($userId, $userInfo, $type=null) {
         if (empty($userId)) {
             return false;
-        }
-        $setData = array();
-        $extInfo = array();
-    
-        if (isset($userInfo['status'])) {
-            $setData[] = array('status', $userInfo['status']);
-        }
-    
-        if (isset($userInfo['reason'])) {
-            $extInfo['reason'] = $userInfo['reason'];
-        }
-        
-        if(!empty($extInfo)){
-            $extInfo = json_encode($extInfo);
-            $setData[] = array('ext_info', $extInfo);
         }
     
         $where = array();
         $where[] = ['user_id', $userId];
-        $where[] = ['type', $type];
-        $data = $this->update($setData, $where);
+        if($type){
+            $where[] = ['type', $type];
+        }
+        
+        $data = $this->update($userInfo, $where);
         return $data;
     }
 
