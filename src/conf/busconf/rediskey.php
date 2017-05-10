@@ -11,6 +11,10 @@ $couponServicePrefix = $basePrefix . 'coupon_';
 $headLineServicePrefix = $basePrefix . 'headline_';
 //帖子相关key前缀
 $subjectServicePrefix = $basePrefix . 'subject_';
+//标签相关key前缀
+$labelServicePrefix = $basePrefix . 'label_';
+//活动相关key前缀
+$activeServicePrefix = $basePrefix . 'active_';
 
 /**
  * 直播相关的redisKey
@@ -154,6 +158,22 @@ $subjectKey = [
     'subject_check_resubmit' => [//帖子重复提交标记，使用List数据结构
         'key' => $subjectServicePrefix . 'check_resubmit_%s',
         'expire_time' => 3600,
+    ],
+];
+
+//标签相关rediskey
+$labelKey = [
+    'label_subject_read_session' => [//标签页已读标记，使用List数据结构
+        'key' => $labelServicePrefix . 'label_subject_read_session_%s_%s_%s',
+        'expire_time' => 1800,
+    ],
+];
+
+//活动相关rediskey
+$activeKey = [
+    'active_subject_read_session' => [//活动页已读标记，使用List数据结构
+        'key' => $activeServicePrefix . 'active_subject_read_session_%s_%s_%s',
+        'expire_time' => 1800,
     ],
 ];
 

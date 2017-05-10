@@ -5,6 +5,7 @@ use \mia\miagroup\Data\Label\SubjectLabel;
 use mia\miagroup\Data\Label\SubjectLabelRelation;
 use mia\miagroup\Data\Label\UserLabelRelation;
 use mia\miagroup\Data\Label\SubjectLabelCategoryRelation;
+use mia\miagroup\Lib\Redis;
 class Label {
 
     public $labelData = null;
@@ -130,11 +131,49 @@ class Label {
     /**
      * 根据标签ID获取帖子列表
      */
-    public function getSubjectListByLableIds($lableIds,$page=1,$limit=10,$is_recommend=0)
+    public function getSubjectListByLableIds($lableId,$page=1,$limit=10,$is_recommend=0)
     {
+        if (empty($lableId)) {
+            return array();
+        }
+        //如果没有session信息，直接返回翻页结果
+        if (empty(\F_Ice::$ins->runner->request->ext_params['dvc_id'])) {
+            $start = ($page-1)*$limit;
+            $data = $this->labelRelation->getSubjectListByLableIds($lableId,$start,$limit,$is_recommend);
+            return $data;
+        }
+        $label = is_array($lableId) ? implode('-', $lableId) : $lableId;
+        $redis_key =  sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.labelKey.label_subject_read_session.key'), $label, $is_recommend, \F_Ice::$ins->runner->request->ext_params['dvc_id']);
+        $redis = new Redis();
+        //如果是第一页，刷新已读缓存
+        if ($page == 1) { 
+            $redis->del($redis_key);
+        }
         $start = ($page-1)*$limit;
-        $data = $this->labelRelation->getSubjectListByLableIds($lableIds,$start,$limit,$is_recommend);
-        return $data;
+        $data = $this->labelRelation->getSubjectListByLableIds($lableId,$start,$limit,$is_recommend);
+        if (empty($data)) {
+            return array();
+        }
+        //获取已读数据
+        $read_data = [];
+        $read_count = 0;
+        if ($redis->exists($redis_key)) {
+            $read_count = $redis->llen($redis_key);
+            $read_data = $redis->lrange($redis_key, 0, $read_count);
+        }
+        //去重
+        $diff_data = array_diff($data, $read_data);
+        if (empty($diff_data)) {
+            return array();
+        }
+        //记录本次已读数据
+        if ($read_count < 1000) {
+            foreach ($diff_data as $v) {
+                $r = $redis->lpush($redis_key, $v);
+            }
+            $redis->expire($redis_key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.labelKey.label_subject_read_session.expire_time'));
+        }
+        return $diff_data;
     }
     
     
