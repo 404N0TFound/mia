@@ -419,7 +419,7 @@ class Subject {
      * 获取活动的帖子（全部/精华）
      */
     public function getSubjectIdsByActiveId($activeId, $type, $page = 1, $limit = 20){
-        if (empty($lableId)) {
+        if (empty($activeId)) {
             return array();
         }
         //如果没有session信息，直接返回翻页结果
