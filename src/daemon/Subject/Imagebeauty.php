@@ -114,7 +114,7 @@ class Imagebeauty extends \FD_Daemon
         $date = date("Y-m-d",time()-86400);
         $startTime = $date . " 00:00:00";
         $endTime = $date . " 23:59:59";
-        $data = $subjectData->query('SELECT id,ext_info FROM group_subjects WHERE ext_info != "" AND image_url != "" AND status = 1 AND created >= "' . $startTime . '" AND created <= "'.$endTime. '" limit 1');
+        $data = $subjectData->query('SELECT id,ext_info FROM group_subjects WHERE ext_info != "" AND image_url != "" AND status = 1 AND created >= "' . $startTime . '" AND created <= "'.$endTime. '"');
         if (!empty($data)) {
             foreach ($data as $value) {
                 $subject_id = $value['id'];
