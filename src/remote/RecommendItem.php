@@ -37,7 +37,11 @@ class RecommendItem
                 $post_params['recs_id'] = '3000103';
                 break;
         }
-        list($os, $version) = explode('_', $this->session_info['version'], 2);
+        if (!empty($this->session_info['version'])) {
+            list($os, $version) = explode('_', $this->session_info['version'], 2);
+        } else {
+            $os = 'ios';
+        }
         $post_params['device'] = $os;
         $post_params['nums'] = $count;
         $post_params['click'] = !empty($viewed_items) ? implode(',', $viewed_items) : '';
