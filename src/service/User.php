@@ -57,7 +57,6 @@ class User extends \mia\miagroup\Lib\Service {
         }
         // 批量获取用户分类信息
         $userCate = $this->getBatchCategoryUserInfo($userIds)['data'];
-//         print_r($userCate);exit;
         // 批量获取是否是供应商
         $itemService = new \mia\miagroup\Service\Item();
         $supplierInfos = $itemService->getBatchUserSupplierMapping($userIds)['data'];
@@ -117,18 +116,37 @@ class User extends \mia\miagroup\Lib\Service {
             }
             //拼接用户分类类型（用于后台）
             if(!empty($userCate)){
-                if($userCate['doozer']){
+                if($userCate['doozer'][$userInfo['id']]){
+                    $userInfo['en_category'] = $userCate['doozer'][$userInfo['id']]['type'];
                     $userInfo['category'] = "达人";
+                    $userInfo['rec_desc'] = $userCate['doozer'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'],'#')) : '';
+                    $userInfo['rec_label'] = $userCate['doozer'][$userInfo['id']]['label'] ? trim($userCate['doozer'][$userInfo['id']]['label'],'#') : '';
                     if(!empty($userCate['doozer'][$userInfo['id']]['category'])){
                         $userInfo['category'] .= "/".$userCate['doozer'][$userInfo['id']]['category'];
+                        $userInfo['sub_category'] = $userCate['doozer'][$userInfo['id']]['category'];
                     }
-                }elseif($userCate['majia']){
+                }elseif($userCate['majia'][$userInfo['id']]){
+                    $userInfo['en_category'] = $userCate['majia'][$userInfo['id']]['type'];
                     $userInfo['category'] = "马甲";
+                    $userInfo['rec_desc'] = $userCate['majia'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['majia'][$userInfo['id']]['desc'],'#')) : '';
+                    $userInfo['rec_label'] = $userCate['majia'][$userInfo['id']]['label'] ? trim($userCate['majia'][$userInfo['id']]['label'],'#') : '';
                     if(!empty($userCate['majia'][$userInfo['id']]['category'])){
                         $userInfo['category'] .= "/".$userCate['majia'][$userInfo['id']]['category'];
+                        $userInfo['sub_category'] = $userCate['majia'][$userInfo['id']]['category'];
                     }
-                }elseif($userCate['company']){
+                }elseif($userCate['company'][$userInfo['id']]){
+                    $userInfo['en_category'] = $userCate['company'][$userInfo['id']]['type'];
                     $userInfo['category'] = "商家";
+                    $userInfo['rec_desc'] = $userCate['company'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['company'][$userInfo['id']]['desc'],'#')) : '';
+                    $userInfo['rec_label'] = $userCate['company'][$userInfo['id']]['label'] ? trim($userCate['company'][$userInfo['id']]['label'],'#') : '';
+                    if(!empty($userCate['company'][$userInfo['id']]['category'])){
+                        $userInfo['category'] .= "/".$userCate['company'][$userInfo['id']]['category'];
+                        $userInfo['sub_category'] = $userCate['company'][$userInfo['id']]['category'];
+                    }
+                }
+                if(!empty($userInfo['rec_label'])){
+                    $label_ids = explode('#', $userInfo['rec_label']);
+                    $userInfo['labels'] = array_values($labelService->getBatchLabelInfos($label_ids)['data']);
                 }
             }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
@@ -167,8 +185,10 @@ class User extends \mia\miagroup\Lib\Service {
         }
         if ($userInfo['icon'] != '' && !preg_match("/^(http|https):\/\//", $userInfo['icon'])) {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('app')['url']['img_url'] . $userInfo['icon'];
+            $userInfo['is_default_icon'] = 0;
         } else if($userInfo['icon'] == '') {
             $userInfo['icon'] = F_Ice::$ins->workApp->config->get('busconf.user.defaultIcon');
+            $userInfo['is_default_icon'] = 1;
         }
         $userInfo['username'] = preg_replace('/(miya[\d]{3}|mobile_[\d]{3})([\d]{4})([\d]{4})/', "$1****$3", $userInfo['username']);
         if (!$userInfo['nickname']) {
@@ -408,13 +428,14 @@ class User extends \mia\miagroup\Lib\Service {
     }
     
     // 批量获取分类用户（专家、达人）信息
-    public function getBatchCategoryUserInfo($userIds) {
+    public function getBatchCategoryUserInfo($userIds,$status=array(1)) {
         if (empty($userIds)) {
             return $this->error(500);
         }
     
         $conditions = array();
         $conditions['user_id'] = $userIds;
+        $conditions['status'] = $status;
         $data = $this->userModel->getBatchUserCategory($conditions);
         return $this->succ($data);
     }
@@ -433,13 +454,14 @@ class User extends \mia\miagroup\Lib\Service {
     }
 
     // 批量获取用户权限（专栏、视频）信息
-    public function getBatchPermissionUserInfo($userIds) {
+    public function getBatchPermissionUserInfo($userIds,$status=array(1)) {
         if (empty($userIds)) {
             return $this->error(500);
         }
     
         $conditions = array();
         $conditions['user_id'] = $userIds;
+        $conditions['status'] = $status;
         $data = $this->userModel->getBatchUserPermission($conditions);
         return $this->succ($data);
     }
@@ -448,23 +470,25 @@ class User extends \mia\miagroup\Lib\Service {
      * 新增用户权限
      */
     public function addPermission($userInfo) {
-        if(empty($userInfo['user_id'])){
+        if(empty($userInfo['user_id']) || empty($userInfo['type'])){
             return $this->error(500);
         }
         $permissionInfo = array();
         $extInfo = array();
         
         $permissionInfo['user_id'] = $userInfo['user_id'];
-        $permissionInfo['type'] = $userInfo['type'];
         $permissionInfo['source'] = isset($userInfo['source']) ? $userInfo['source'] : '';
         $permissionInfo['status'] = 1;
-        $permissionInfo['create_time'] = $userInfo['create_date'];
+        $permissionInfo['create_time'] = $userInfo['create_time'];
         
         $extInfo['reason'] = isset($userInfo['reason']) ? $userInfo['reason'] : '';
         $permissionInfo['ext_info'] = json_encode($extInfo);
-        unset($userInfo);
+        $permissionInfo['type'] = $userInfo['type'];
+        $permissionInfo['operator'] = $userInfo['operator'];
         
         $data = $this->userModel->addPermission($permissionInfo);
+
+        unset($userInfo);
         return $this->succ($data);
     }
     
@@ -479,20 +503,16 @@ class User extends \mia\miagroup\Lib\Service {
         $extInfo = array();
         
         $catgoryInfo['user_id'] = $userInfo['user_id'];
-        $catgoryInfo['type'] = $userInfo['type'];
-        $catgoryInfo['category'] = $userInfo['category'];
+        $catgoryInfo['type'] = $userInfo['type'] ? $userInfo['type'] : '';
+        $catgoryInfo['category'] = $userInfo['category'] ? $userInfo['category'] : '';
         $catgoryInfo['status'] = 1;
         $catgoryInfo['create_time'] = $userInfo['create_time'];
         $catgoryInfo['operator'] = $userInfo['operator'] ? $userInfo['operator'] : 0;
-        if($userInfo['type'] == 'doozer'){
-            $extInfo['desc'] = isset($userInfo['intro']) ? $userInfo['intro'] : '';
-        }else{
-            $extInfo['desc'] = isset($userInfo['desc']) ? implode('#', $userInfo['desc']) : '';
-            $extInfo['label'] = isset($userInfo['label']) ? implode('#', $userInfo['label']) : '';
-            $extInfo['modify_author'] = isset($userInfo['modify_author']) ? $userInfo['modify_author'] : 0;
-            $extInfo['answer_nums'] = isset($userInfo['answer_nums']) ? $userInfo['answer_nums'] : 0;
-            $extInfo['last_modify'] = $userInfo['create_time'];
-        }
+        
+        $extInfo['desc'] = isset($userInfo['desc']) ? $userInfo['desc'] : '';
+        $extInfo['modify_author'] = isset($userInfo['modify_author']) ? $userInfo['modify_author'] : 0;
+        $extInfo['answer_nums'] = isset($userInfo['answer_nums']) ? $userInfo['answer_nums'] : 0;
+        $extInfo['last_modify'] = $userInfo['create_time'];
         
         if(!empty($extInfo)){
             $catgoryInfo['ext_info'] = json_encode($extInfo);
@@ -506,52 +526,49 @@ class User extends \mia\miagroup\Lib\Service {
     /**
      * 更新用户权限信息
      */
-    public function updateUserPermission($userId, $type, $updata) {
-        if (empty($userId) || empty($updata)){
+    public function updateUserPermission($userId,$update,$type=null) {
+        if (empty($userId) || empty($update)){
             return $this->error(500);
         }
     
         $result = array();
         $conditions = array();
-        $conditions['user_id'] = array($userId);
-        $userInfo = $this->userModel->getBatchUserPermission($conditions, $type)[$userId];
-        if(empty($userInfo)){
-            $this->succ($result);
-        }
+        $conditions['user_id'] = $userId;
+        
         $setData = array();
         $extInfo = array();
     
-        if (isset($updata['status'])) {
-            $setData[] = array('status', $updata['status']);
+        if (isset($update['status'])) {
+            $setData[] = array('status', $update['status']);
         }
-        if (isset($updata['operator'])) {
-            $setData[] = array('operator', $updata['operator']);
+        if (isset($update['operator'])) {
+            $setData[] = array('operator', $update['operator']);
         }
-        $userInfo['ext_info'] = json_decode($userInfo['ext_info']);
-        $extInfo['reason'] = isset($updata['reason']) ? $updata['reason'] : $userInfo['reason'];
+        
+        if(isset($update['type'])){
+            $setData[] = ['type',$update['type']];
+        }
+        $extInfo['reason'] = isset($update['reason']) ? $update['reason'] : '';
         if(!empty($extInfo)){
             $extInfo = json_encode($extInfo);
             $setData[] = array('ext_info', $extInfo);
         }
+        $result = $this->userModel->updateUserPermission($userId, $setData, $type);
     
-        $result = $this->userModel->updateUserPermission($userId, $type, $setData);
         return $this->succ($result);
     }
     
     /**
      * 更新用户分类信息
      */
-    public function updateUserCategory($userId, $updata) {
-        if (empty($userId) || empty($updata)){
+    public function updateUserCategory($userId,$updata) {
+        if ($userId <= 0 || empty($updata)){
             return $this->error(500);
         }
         $result = array();
         $conditions = array();
-        $conditions['user_id'] = array($userId);
-        $userInfo = $this->userModel->getBatchUserCategory($conditions)[$userId];
-        if(empty($userInfo)){
-            $this->succ($result);
-        }
+        $conditions['user_id'] = $userId;
+
         $setData = array();
         $extInfo = array();
     
@@ -561,17 +578,16 @@ class User extends \mia\miagroup\Lib\Service {
         if (isset($updata['operator'])) {
             $setData[] = array('operator', $updata['operator']);
         }
-        $userInfo['ext_info'] = json_decode($userInfo['ext_info']);
-        if($type=='doozer'){
-            $extInfo['desc'] = isset($updata['intro']) ? $updata['intro'] : $userInfo['desc'];
-        }else{
-            $extInfo['desc'] = isset($updata['desc']) ? implode('#', $updata['desc']) : $userInfo['desc'];
-            $extInfo['label'] = isset($updata['label']) ? implode('#', $updata['label']) : $userInfo['label'];
-            $extInfo['modify_author'] = isset($updata['modify_author']) ? $updata['modify_author'] : $userInfo['modify_author'];
-            $extInfo['answer_nums'] = isset($updata['answer_nums']) ? $updata['answer_nums'] : $userInfo['answer_nums'];
-            $extInfo['last_modify'] = date('Y-m-d H:i:s');
+        if (isset($updata['type'])) {
+            $setData[] = array('type', $updata['type']);
         }
-        
+        if (isset($updata['category'])) {
+            $setData[] = array('category', $updata['category']);
+        }
+        $extInfo['desc'] = $updata['desc'] ? trim($updata['desc']) : '';
+        $extInfo['modify_author'] = $updata['modify_author'] ? $updata['modify_author'] :'';
+        $extInfo['answer_nums'] = $updata['answer_nums'] ? $updata['answer_nums'] : '';
+        $extInfo['last_modify'] = $updata['last_modify'];
         if(!empty($extInfo)){
             $extInfo = json_encode($extInfo);
             $setData[] = array('ext_info', $extInfo);

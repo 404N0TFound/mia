@@ -9,6 +9,13 @@ class RecommendNote
     public function __construct($session_info)
     {
         $this->session_info = $session_info;
+        if (empty($this->session_info['dvc_id'])) { //兼容H5调用
+            if ($this->session_info['current_uid']) {
+                $this->session_info['dvc_id'] = $this->session_info['current_uid'];
+            } else {
+                $this->session_info['dvc_id'] = date("YmdH");
+            }
+        }
         if (empty($this->session_info['bi_session_id'])) {
             $this->session_info['bi_session_id'] = $this->session_info['dvc_id'].date("YmdH");
         }

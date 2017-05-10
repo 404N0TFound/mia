@@ -1046,15 +1046,37 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
             default:
                 # 口碑
+                $item_service = new ItemService();
+                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+                $return_Info['item_info'] = $item_info[$item_id];
                 $check_res = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
                 if(empty($check_res)) {
                     // 首评
                     $batch_info = $this->koubeiConfig['shouping'];
+                }else {
+                    // 代金券发放规则
+                    $condition['field'] = 'ext_info, start_time, end_time';
+                    $data = $this->getCouponRule([$item_id], 1, 1, $condition)['data'];
+                    $coupon_info = $data[$item_id];
+                    $date = date("Y-m-d H:i:s", time());
+                    if(!empty($coupon_info) && $coupon_info['start_time'] <= $date && $date <= $coupon_info['end_time']) {
+                        $ext_info = json_decode($coupon_info['ext_info'],true);
+                        $batch_info['issue_img'] = $ext_info['image']['url'];
+                        $batch_info['issue_img_width'] = $ext_info['image']['width'];
+                        $batch_info['issue_img_height'] = $ext_info['image']['height'];
+                        $batch_info['char_count'] = $ext_info['chat_count'];
+                        $batch_info['image_count'] = $ext_info['image_count'];
+                    }
+                }
+                if(empty($batch_info)) {
+                    // 默认口碑引导信息
+                    $batch_info = \F_Ice::$ins->workApp->config->get('busconf.koubei')['koubei_issue']['issue'];
+                }
+                if(!empty($batch_info)) {
                     $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info, $issue_type);
                 }
 
                 // 甄选商品
-                $item_service = new ItemService();
                 $parent_cate_id = $item_service->getRelationCateId($item_id, 1)['data'];
                 $selection_labels = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_cate');
                 $relation = $selection_labels[$parent_cate_id];
@@ -1065,9 +1087,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $return_Info['selection_labels'][] = $p_labels;
                 $return_Info['selection_labels'][] = $e_labels;
 
-                // 商品信息
-                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
-                $return_Info['item_info'] = $item_info[$item_id];
                 break;
         }
         return $this->succ($return_Info);
@@ -1862,5 +1881,66 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         return $this->succ($selection_info);
+    }
+
+    /*
+     * 5.4 代金券奖励规则设置
+     * */
+    public function getCouponRule($itemIds, $page=1, $count=1, $condition = array())
+    {
+        $coupons = [];
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+
+        if(empty($itemIds)) {
+            // list
+            $coupons = $this->koubeiModel->getCouponInfo([], $count, $offset, $condition);
+        } else if (is_array($itemIds)) {
+            // 初始化,最新
+            $item_service = new ItemService();
+            foreach($itemIds as $item_id) {
+                $param = [];
+                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+                $param['brand_id'] = $item_info[$item_id]['brand_id'];
+                // 类目投放维度
+                $param['category_id'] = $item_info[$item_id]['category_id_ng'];
+                // 代金券发放匹配
+                $param['item_id'] = $item_id;
+                $coupon_info = $this->koubeiModel->getCouponInfo($param, $count, $offset, $condition);
+                $coupons[$item_id] = $coupon_info[0];
+            }
+        }
+        return $this->succ($coupons);
+    }
+
+    /*
+     * 5.4 口碑发布成功奖励弹层信息
+     * */
+    public function release_issue($koubeiData)
+    {
+        if(empty($koubeiData)) {
+            return $this->succ([]);
+        }
+        $item_id = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
+        //$item_id = 198309936;
+        $text = trim($this->emojiUtil->emoji_unified_to_html($koubeiData['text']));
+        $content = strip_tags($text, '<span><p>');
+        $char_count = mb_strlen($content, 'utf8');
+        if(!empty($koubeiData['image_infos'])) {
+            $image_count = count($koubeiData['image_infos']);
+        }
+        $return = [];
+        $data = $this->getCouponRule([$item_id]);
+        if(!empty($data)) {
+            $coupon_info = $data['data'][$item_id];
+            $date = date("Y-m-d H:i:s", time());
+            if(!empty($coupon_info['ext_info']) && $coupon_info['start_time'] <= $date && $date <= $coupon_info['end_time']) {
+                $ext_info = json_decode($coupon_info['ext_info'], true);
+                if($char_count >= $ext_info['chat_count'] && $image_count >= $ext_info['image_count']) {
+                    $return['title'] = $ext_info['prompt'];
+                    $return['content'] = $ext_info['intro'];
+                }
+            }
+        }
+        return $this->succ($return);
     }
 }

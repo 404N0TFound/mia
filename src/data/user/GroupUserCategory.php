@@ -28,8 +28,7 @@ class GroupUserCategory extends DB_Query {
     public function getBatchUserInfoByUids($conditions) {
         $result = array();
         $where = array();
-        
-        $where[] = ['status', 1];
+        $where[] = ['status', $conditions['status']];
         if (!empty($conditions) && isset($conditions['user_id'])) {
             $where[] = ['user_id', $conditions['user_id']];
         }
@@ -61,20 +60,18 @@ class GroupUserCategory extends DB_Query {
                 unset($result[$user['type']][$user['user_id']]['ext_info']);
             }
         }
-        //print_r($result);exit;
         return $result;
     }
     
     /**
      * 修改用户分类信息
      */
-    public function updateUserInfoByUid($userId, $type, $userInfo) {
+    public function updateUserInfoByUid($userId, $userInfo) {
         if (empty($userId)) {
             return false;
         }
         $where = array();
         $where[] = ['user_id', $userId];
-        $where[] = ['type', $type];
         $data = $this->update($userInfo, $where);
         return $data;
     }

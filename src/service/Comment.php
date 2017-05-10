@@ -7,6 +7,7 @@ use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Model\Comment as CommentModel;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Service\News;
+use mia\miagroup\Service as Service;
 
 class Comment extends \mia\miagroup\Lib\Service {
 
@@ -178,7 +179,9 @@ class Comment extends \mia\miagroup\Lib\Service {
                 $commentInfo['status'] = 2; //评论仅自己可见
             }
         }
-        
+        //判断是否是第一条回复
+        $commentNums = $this->getBatchCommentNums([$subjectId])["data"][$subjectId];
+
         //判断是否有父评论
         if (intval($commentInfo['fid']) > 0) {
             $parentInfo = $this->getBatchComments([$commentInfo['fid']])['data'][$commentInfo['fid']];
@@ -207,7 +210,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'), array(1, 2))['data'];
         \DB_Query::switchCluster($preNode);
-        
+
         if (!empty($comment[$commentInfo['id']])) {
             $commentInfo = $comment[$commentInfo['id']];
         }
@@ -227,6 +230,19 @@ class Comment extends \mia\miagroup\Lib\Service {
             $param['relation_id'] = $commentInfo['id'];
             $param['to_user_id'] = $toUserId;
             $mibean->add($param);
+
+            //第一条评论， 8：00-23：00发送评论，发push
+            if ($commentNums == 0) {
+                $timeZero = strtotime(date("Y-m-d"));
+                $timeNow = time();
+                $period = $timeNow - $timeZero;
+                if (28800 < $period && $period < 82800) {
+                    $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
+                    $push = new Service\Push();
+                    $push->pushMsg($toUserId, $nickName . "评论了你的帖子", "miyabaobei://subject?id=" . $subjectId);
+                }
+            }
+
         }
         // 如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {

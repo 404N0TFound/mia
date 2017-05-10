@@ -105,6 +105,7 @@ class Comment {
             $where['is_expert'] = array('is_expert', 1);
         }
         $where['subject_id'] = array(':eq', 'subject_id', $subjectId);
+        $where['status'] = array(':eq', 'status', 1);
         $offset = $page > 1 ? ($page - 1) * $limit : 0;
         $subjectComment = $this->subjectCommentData->getCommentListByCond($where, $offset, $limit, 'id desc');
         $result = array();

@@ -37,7 +37,11 @@ class RecommendItem
                 $post_params['recs_id'] = '3000103';
                 break;
         }
-        list($os, $version) = explode('_', $this->session_info['version'], 2);
+        if (!empty($this->session_info['version'])) {
+            list($os, $version) = explode('_', $this->session_info['version'], 2);
+        } else {
+            $os = 'ios';
+        }
         $post_params['device'] = $os;
         $post_params['nums'] = $count;
         $post_params['click'] = !empty($viewed_items) ? implode(',', $viewed_items) : '';
@@ -45,7 +49,7 @@ class RecommendItem
         if ($this->session_info['current_uid'] > 0) {
             $post_params['uid'] = $this->session_info['current_uid'];
         }
-        if ($this->session_info['dvc_id'] > 0) {
+        if (!empty($this->session_info['dvc_id'])) {
             $post_params['dvc_id'] = $this->session_info['dvc_id'];
         }
         $remote_curl = new RemoteCurl('item_recommend');
