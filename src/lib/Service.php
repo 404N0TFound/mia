@@ -10,6 +10,9 @@ class Service extends \FS_Service {
     function __construct() {
         parent::__construct();
         $this->startTime = gettimeofday(true);
+        if (empty($this->ext_params['dvc_id']) && !empty($this->ext_params['unique_key'])) {
+            $this->ext_params['dvc_id'] = $this->ext_params['unique_key'];
+        }
     }
     
     function __destruct() {
