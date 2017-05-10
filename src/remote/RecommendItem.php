@@ -49,7 +49,7 @@ class RecommendItem
         if ($this->session_info['current_uid'] > 0) {
             $post_params['uid'] = $this->session_info['current_uid'];
         }
-        if ($this->session_info['dvc_id'] > 0) {
+        if (!empty($this->session_info['dvc_id'])) {
             $post_params['dvc_id'] = $this->session_info['dvc_id'];
         }
         $remote_curl = new RemoteCurl('item_recommend');
