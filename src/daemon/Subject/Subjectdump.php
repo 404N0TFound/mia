@@ -164,7 +164,7 @@ class Subjectdump extends \FD_Daemon {
             $subjectIds[] = $value['id'];
             $userIds[] = $value['user_id'];
             $extInfo = json_decode($value['ext_info'], true);
-            if (intval($extInfo['koubei']['id']) > 0) {
+            if (isset($extInfo['koubei']['id']) && intval($extInfo['koubei']['id']) > 0) {
                 $koubeiIds[] = $extInfo['koubei']['id'];
             }
         }

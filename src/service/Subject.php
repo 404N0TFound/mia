@@ -1020,8 +1020,12 @@ class Subject extends \mia\miagroup\Lib\Service
         //插入帖子标记信息
         if(!empty($pointInfo)){
             $pointItemIds = array();
-            foreach ($pointInfo as $itemPoint) {
-                $pointItemIds[] = $itemPoint['item_id'];
+            if (isset($pointInfo['item_id'])) {
+                $pointItemIds[] = $pointInfo['item_id'];
+            } else {
+                foreach ($pointInfo as $itemPoint) {
+                    $pointItemIds[] = $itemPoint['item_id'];
+                }
             }
             $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds);
         }
