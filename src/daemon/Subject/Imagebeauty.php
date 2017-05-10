@@ -173,14 +173,12 @@ class Imagebeauty extends \FD_Daemon
                 }
                 $ext_info = json_decode($value['ext_info'], true);
                     if (!empty($ext_info['beauty_image'])) {
-                        echo 6;
                         continue;
                     }
                     $image_list = $ext_info['image'];
                     if(empty($image_list)) {
                         return $res;
                     }
-                    echo 7;
                     foreach ($image_list as $image) {
                         if (!empty($image['url'])) {
                             $image_url = $this->image_service->beautyImage($image['url'])['data'];
