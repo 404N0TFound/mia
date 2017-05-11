@@ -83,35 +83,32 @@ class Imagebeauty extends \FD_Daemon
 
         // 初始化
         if($lastId <= 0) {
-            switch ($this->mode) {
-                case 'full_dump':
-                    fseek($fpLastIdFile, 0, SEEK_SET);
-                    ftruncate($fpLastIdFile, 0);
-                    fwrite($fpLastIdFile, 1);
-                    break;
-                case 'incremental_dump':
-                    $subjectData = new \mia\miagroup\Data\Subject\Subject();
-                    $initId = $subjectData->getRow(array(), 'max(id) as maxid');
-                    $initId = intval($initId['maxid']);
-                    fseek($fpLastIdFile, 0, SEEK_SET);
-                    ftruncate($fpLastIdFile, 0);
-                    fwrite($fpLastIdFile, $initId);
-                    break;
-            }
+            $subjectData = new \mia\miagroup\Data\Subject\Subject();
+            $initId = $subjectData->getRow(array(), 'max(id) as maxid');
+            $initId = intval($initId['maxid']);
+            fseek($fpLastIdFile, 0, SEEK_SET);
+            ftruncate($fpLastIdFile, 0);
+            fwrite($fpLastIdFile, $initId);
             flock($fpLastIdFile, LOCK_UN);
             fclose($fpLastIdFile);
             return ;
         }
+
+        $orderBy = FALSE;
         $where = [];
         $where[] = ['status', 1];
-        $where[] = [':gt','id', $lastId];
+        if($this->mode == 'full_dump') {
+            $where[] = [':lt','id', $lastId];
+            $orderBy = 'id desc';
+        }else {
+            $where[] = [':gt','id', $lastId];
+        }
         $where[] = [':ne','ext_info', ''];
         $where[] = [':ne','image_url', ''];
-        //$where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-5 minute"))];
 
-        $offset = 500;
+        $limit = 500;
         $field = 'id, ext_info';
-        $data = $this->subjectData->getRows($where, $field, $offset);
+        $data = $this->subjectData->getRows($where, $field, $limit, 0, $orderBy);
         if (empty($data)) {
             return ;
         }
@@ -137,13 +134,25 @@ class Imagebeauty extends \FD_Daemon
         $fp = fopen($this->dumpErrorSubjectImageFile, 'a+');
         if (!empty($data)) {
             foreach ($data as $value) {
+                $where = [];
                 $subject_id = $value['id'];
 
-                if (isset($maxId)) { //获取最大event_id
-                    $maxId = $subject_id > $maxId ? $subject_id : $maxId;
+                if($this->mode == 'full_dump') {
+                    // 全量
+                    if (isset($logId)) { //获取最大event_id
+                        $logId = $subject_id < $logId ? $subject_id : $logId;
+                    } else {
+                        $logId = $subject_id;
+                    }
                 } else {
-                    $maxId = $subject_id;
+                    // 增量
+                    if (isset($logId)) { //获取最大event_id
+                        $logId = $subject_id > $logId ? $subject_id : $logId;
+                    } else {
+                        $logId = $subject_id;
+                    }
                 }
+
                 $beauty = array();
                 $beauty_image = array();
 
@@ -188,7 +197,7 @@ class Imagebeauty extends \FD_Daemon
                 $this->subjectData->update($setData, $where);
             }
         }
-        return $maxId;
+        return $logId;
     }
 
     /*
@@ -197,7 +206,9 @@ class Imagebeauty extends \FD_Daemon
     public function updateErrorSubImageIds()
     {
         $handle = @fopen($this->dumpErrorSubjectImageFile, "r");
-
+        if(!filesize($this->dumpErrorSubjectImageFile)){
+            return false;
+        }
         if (!file_exists($this->dumpUpdateErrorSubjectImageFile)) {
             $updateFile = fopen($this->dumpUpdateErrorSubjectImageFile, 'w');
         } else {
