@@ -107,7 +107,7 @@ class Imagebeauty extends \FD_Daemon
         $where[] = [':gt','id', $lastId];
         $where[] = [':ne','ext_info', ''];
         $where[] = [':ne','image_url', ''];
-        $where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-5 minute"))];
+        //$where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-5 minute"))];
 
         $offset = 500;
         $field = 'id, ext_info';

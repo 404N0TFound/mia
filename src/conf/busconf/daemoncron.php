@@ -233,7 +233,7 @@ $cron_list['beauty_data_sync'] = array(
     'engine' => 'php',
     'cli_args' => "--class=subject --action=imagebeauty full_dump",
     'start_time' => '2017-05-11 00:10:00',
-    'interval' => 86400
+    'interval' => 10
 );
 //图片增量美化
 $cron_list['beauty_data_incremental_sync'] = array(
@@ -241,5 +241,5 @@ $cron_list['beauty_data_incremental_sync'] = array(
     'engine' => 'php',
     'cli_args' => "--class=subject --action=imagebeauty incremental_dump",
     'start_time' => '2017-05-11 18:00:00',
-    'interval' => 600
+    'interval' => 5
 );
