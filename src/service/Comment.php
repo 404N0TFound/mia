@@ -138,7 +138,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         if (empty($commentInfo) || intval($subjectId) <= 0) {
             return $this->error(500);
         }
-        $commentInfo['comment'] = trim($this->emojiUtil->emoji_unified_to_html($commentInfo['comment']));
+        $commentInfo['comment'] = trim($commentInfo['comment']);
         if ($commentInfo['comment'] == "") {
             return $this->error(500);
         }

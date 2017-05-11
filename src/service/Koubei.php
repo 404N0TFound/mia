@@ -60,9 +60,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //组装插入口碑信息  ####start
         $koubeiSetData = array();
         $koubeiSetData['status'] = (isset($koubeiData['status'])) ? intval($koubeiData['status']) : 2;
-        $koubeiSetData['title'] = (isset($koubeiData['title']) ) ? trim($this->emojiUtil->emoji_unified_to_html($koubeiData['title'])) : "";
+        $koubeiSetData['title'] = (isset($koubeiData['title']) ) ? trim($koubeiData['title']) : "";
         $koubeiSetData['title'] = strip_tags($koubeiSetData['title'], '<span><p>');
-        $koubeiSetData['content'] = trim($this->emojiUtil->emoji_unified_to_html($koubeiData['text']));
+        $koubeiSetData['content'] = trim($koubeiData['text']);
         $koubeiSetData['content'] = strip_tags($koubeiSetData['content'], '<span><p>');
         $koubeiSetData['score'] = $koubeiData['score'];
         $koubeiSetData['item_id'] = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
@@ -570,7 +570,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['status'] = 2;
         $koubeiSetData['machine_score'] = 3;
         $koubeiSetData['title'] = (isset($subjectData['title'])) ? trim($subjectData['title']) : "";
-        $koubeiSetData['content'] = trim($this->emojiUtil->emoji_unified_to_html($subjectData['text']));
+        $koubeiSetData['content'] = trim($subjectData['text']);
         $koubeiSetData['item_id'] = $itemId;
         $koubeiSetData['user_id'] = $subjectData['user_id'];
         $koubeiSetData['subject_id'] = (isset($subjectData['id'])) ? trim($subjectData['id']) : '';
@@ -804,7 +804,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($comment) || intval($subjectId) <= 0) {
             return $this->error(500);
         }
-        $comment = trim($this->emojiUtil->emoji_unified_to_html($comment));
+        $comment = trim($comment);
         if ($comment == "") {
             return $this->error(500);
         }
@@ -1918,7 +1918,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $item_id = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
         //$item_id = 198309936;
-        $text = trim($this->emojiUtil->emoji_unified_to_html($koubeiData['text']));
+        $text = trim($koubeiData['text']);
         $content = strip_tags($text, '<span><p>');
         $char_count = mb_strlen($content, 'utf8');
         if(!empty($koubeiData['image_infos'])) {
