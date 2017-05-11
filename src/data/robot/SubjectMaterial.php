@@ -51,9 +51,6 @@ class SubjectMaterial extends \DB_Query
         }
         $emojiUtil = new \mia\miagroup\Util\EmojiUtil();
         foreach ($insert_data as $k => $v) {
-            if (in_array($k, ['title', 'text'])) {
-                $insert_data[$k] = $emojiUtil->emoji_unified_to_html($v);
-            }
             if (in_array($k, ['pics', 'draft'])) {
                 $insert_data[$k] = json_encode($v);
             }
@@ -72,9 +69,6 @@ class SubjectMaterial extends \DB_Query
         $set_data = array();
         $emojiUtil = new \mia\miagroup\Util\EmojiUtil();
         foreach ($update_data as $k => $v) {
-            if (in_array($k, ['title', 'text'])) {
-                $v = $emojiUtil->emoji_unified_to_html($v);
-            }
             if (in_array($k, ['pics', 'draft'])) {
                 $v = json_encode($v);
             }

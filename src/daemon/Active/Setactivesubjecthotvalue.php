@@ -8,7 +8,7 @@ use mia\miagroup\Data\Active\ActiveSubjectRelation as RelationData;
  * 定时任务：取出帖子的评论数、赞数、分享数和帖子的评分调节值，
  * 根据计算规则，计算出图片热度
  */
-class SetActiveSubjectHotvalue extends \FD_Daemon{
+class Setactivesubjecthotvalue extends \FD_Daemon{
     private $relationData;
     private $activeService;
     public function __construct(){

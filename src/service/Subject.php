@@ -163,7 +163,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $noteRemote = new RecommendNote($this->ext_params);
                 $userNoteListIds = $noteRemote->getYuerNoteList($this->config['yuer_labels'], $page, $count);
                 if (empty($userNoteListIds)) {
-                    $yuerSubjectIds = $this->labelService->getBatchSubjectIdsByLabelIds($this->config['yuer_label_ids'], 0, $page, $count, 0, [])['data'];
+                    $yuerSubjectIds = $this->labelService->getLableSubjects($this->config['yuer_label_ids'], $userId, $page, $count)['data'];
                     $yuerSubjectIds = array_keys($yuerSubjectIds);
                     if (empty($yuerSubjectIds)) {
                         $userNoteListIds = [];
@@ -871,13 +871,12 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectSetInfo['status'] = 2;
             }
         }
-        $emojiUtil = new \mia\miagroup\Util\EmojiUtil();
         $subjectSetInfo['user_id'] = $subjectInfo['user_info']['user_id'];
         if (isset($subjectInfo['title']) && trim($subjectInfo['title']) != "") {
-            $subjectSetInfo['title'] = trim($emojiUtil->emoji_unified_to_html($subjectInfo['title']));
+            $subjectSetInfo['title'] = trim($subjectInfo['title']);
         }
         if (isset($subjectInfo['text']) && trim($subjectInfo['text']) != "") {
-            $subjectSetInfo['text'] = trim($emojiUtil->emoji_unified_to_html($subjectInfo['text']));
+            $subjectSetInfo['text'] = trim($subjectInfo['text']);
         } else {
             $subjectSetInfo['text'] = '';
         }
@@ -1021,8 +1020,12 @@ class Subject extends \mia\miagroup\Lib\Service
         //插入帖子标记信息
         if(!empty($pointInfo)){
             $pointItemIds = array();
-            foreach ($pointInfo as $itemPoint) {
-                $pointItemIds[] = $itemPoint['item_id'];
+            if (isset($pointInfo['item_id'])) {
+                $pointItemIds[] = $pointInfo['item_id'];
+            } else {
+                foreach ($pointInfo as $itemPoint) {
+                    $pointItemIds[] = $itemPoint['item_id'];
+                }
             }
             $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds);
         }
