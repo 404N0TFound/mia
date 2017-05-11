@@ -52,6 +52,9 @@ class Subject extends \mia\miagroup\Lib\Service {
             //标题搜索
             $condition['title'] = $params['title'];
         }
+        if (!empty($params['uid_list']) && is_array($params['uid_list']) && intval($condition['user_id']) <= 0 && intval($condition['id']) <= 0) {
+            $condition['user_id'] = $params['uid_list'];
+        }
         if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && intval($condition['id']) <= 0) {
             //帖子状态
             $condition['status'] = $params['status'];
