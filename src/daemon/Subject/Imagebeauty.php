@@ -9,10 +9,13 @@ use mia\miagroup\Data\Subject\Subject as SubjectData;
  */
 class Imagebeauty extends \FD_Daemon
 {
+    private $mode;
     private $lastIdFile;
+    private $subjectData;
     private $tempFilePath;
     private $image_service;
-    private $subjectData;
+    private $dumpErrorSubjectImageFile;
+    private $dumpUpdateErrorSubjectImageFile;
 
     public function __construct()
     {
@@ -25,22 +28,46 @@ class Imagebeauty extends \FD_Daemon
 
     public function execute()
     {
-        $this->deltaImportSubjectImage();exit;
-        $this->fullImportSubjectImage();
+        // 切换模式
+        $this->mode = $this->request->argv[0];
+        if (empty($mode)) {
+            return ;
+        }
+        $imageCoreDir =  $this->tempFilePath.'image/';
+        $this->mk_dir($imageCoreDir);
+        $this->mode = 'incremental_dump';
+        switch ($this->mode) {
+            case 'full_dump':
+                $this->lastIdFile = $imageCoreDir . 'full_image_dump_last_id';
+                $this->dumpErrorSubjectImageFile = $imageCoreDir . 'full_dump_error_subject_image_id';
+                $this->beautySubjectImage();
+                //更新失败处理帖子
+                $this->dumpUpdateErrorSubjectImageFile = $imageCoreDir . 'full_dump_update_error_image';
+                $this->updateErrorSubImageIds();
+                break;
+            case 'incremental_dump':
+                $folderName = date('YmdHi');
+                $folderPath = $imageCoreDir . $folderName . '/';
+                $this->mk_dir($folderPath);
+                $this->lastIdFile = $imageCoreDir . 'incr_image_dump_delta_id';
+                $this->dumpErrorSubjectImageFile = $folderPath . 'incr_dump_error_subject_image_id';
+                $this->beautySubjectImage();
+                file_put_contents($folderPath . 'done', date('Y-m-d H:i:s'));
+                //更新失败处理帖子
+                $this->dumpUpdateErrorSubjectImageFile = $folderPath . 'incr_dump_update_error_image';
+                $this->updateErrorSubImageIds();
+                break;
+        }
     }
 
-    /*
-     * 全量美化图片
-     * */
-    public function fullImportSubjectImage()
+
+    public function beautySubjectImage()
     {
+        @ini_set('memory_limit', '512M');
         ini_set('gd.jpeg_ignore_warning', 1);
-        $this->lastIdFile = $this->tempFilePath . 'beauty_dump_last_id';
-        //$this->lastIdFile = 'd:/tmpfile/beauty_dump_last_id';
         //读取上一次处理的id
         if (!file_exists($this->lastIdFile)) { //打开文件
-            $data = $this->subjectData->query('SELECT max(id) as id FROM group_subjects WHERE ext_info != "" AND image_url != "" AND status = 1 limit 1');
-            $lastId = $data[0]['id'] +1;
+            $lastId = 0;
             $fpLastIdFile = fopen($this->lastIdFile, 'w');
         } else {
             $fpLastIdFile = fopen($this->lastIdFile, 'r+');
@@ -53,153 +80,166 @@ class Imagebeauty extends \FD_Daemon
             $lastId .= fread($fpLastIdFile, 1024);
             $lastId = intval($lastId);
         }
-        $data = $this->subjectData->query('SELECT id,ext_info FROM group_subjects WHERE ext_info != "" AND status = 1 AND image_url != "" AND id < ' . $lastId . ' order by id desc LIMIT 100');
-        $res = $this->handle_image($data, $fpLastIdFile);
+
+        // 初始化
+        if($lastId <= 0) {
+            switch ($this->mode) {
+                case 'full_dump':
+                    fseek($fpLastIdFile, 0, SEEK_SET);
+                    ftruncate($fpLastIdFile, 0);
+                    fwrite($fpLastIdFile, 1);
+                    break;
+                case 'incremental_dump':
+                    $subjectData = new \mia\miagroup\Data\Subject\Subject();
+                    $initId = $subjectData->getRow(array(), 'max(id) as maxid');
+                    $initId = intval($initId['maxid']);
+                    fseek($fpLastIdFile, 0, SEEK_SET);
+                    ftruncate($fpLastIdFile, 0);
+                    fwrite($fpLastIdFile, $initId);
+                    break;
+            }
+            flock($fpLastIdFile, LOCK_UN);
+            fclose($fpLastIdFile);
+            return ;
+        }
+        $where = [];
+        $where[] = ['status', 1];
+        $where[] = [':gt','id', $lastId];
+        $where[] = [':ne','ext_info', ''];
+        $where[] = [':ne','image_url', ''];
+        $where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-5 minute"))];
+
+        $offset = 500;
+        $field = 'id, ext_info';
+        $data = $this->subjectData->getRows($where, $field, $offset);
+        if (empty($data)) {
+            return ;
+        }
+
+        // 图片处理
+        $maxId = $this->handle_image($data);
+
+        //写入本次处理的最大event_id
+        if (isset($maxId)) {
+            fseek($fpLastIdFile, 0, SEEK_SET);
+            ftruncate($fpLastIdFile, 0);
+            fwrite($fpLastIdFile, $maxId);
+        }
         flock($fpLastIdFile, LOCK_UN);
         fclose($fpLastIdFile);
     }
 
     /*
-     * 增量美化图片
+     * 美化图片处理
      * */
-    public function deltaImportSubjectImage()
+    public function handle_image($data)
     {
-        ini_set('gd.jpeg_ignore_warning', 1);
-        $date = date("Y-m-d",time()-86400);
-        $startTime = $date . " 00:00:00";
-        $endTime = $date . " 23:59:59";
-        $data = $this->subjectData->query('SELECT id,ext_info FROM group_subjects WHERE ext_info != "" AND image_url != "" AND status = 1 AND created >= "' . $startTime . '" AND created <= "'.$endTime. '"');
-        $this->handle_image($data);
-    }
-
-
-
-    /*
-     * 批量处理美化图片
-     * */
-    public function batchBeautyByIds()
-    {
-
-        ini_set('gd.jpeg_ignore_warning', 1);
-        $image_service = new ImageService();
-        $succFile = '/home/xiekun/tmp_succes_image_id';
-        $fp = fopen($succFile, 'a+');
-        $handle = @fopen("/tmp/beauty_subject_id", "r");
-        //$handle = @fopen("D:/tmpfile/t1", "r");
-        $this->lastIdFile = $this->tempFilePath . 'tmp_beauty_id';
-        //$this->lastIdFile = 'D:/tmpfile/tmp_beauty_id';
-        if (!file_exists($this->lastIdFile)) { //打开文件
-            $fpLastIdFile = fopen($this->lastIdFile, 'w');
-        } else {
-            $fpLastIdFile = fopen($this->lastIdFile, 'r+');
-        }
-        if (!flock($fpLastIdFile, LOCK_EX | LOCK_NB)) { //加锁
-            fclose($fpLastIdFile);
-            return;
-        }
-        $subject_file_id = fgets($fpLastIdFile, 2048);
-        if ($handle) {
-            while (!feof($handle)) {
-                $subject_id = fgets($handle, 2048);
-                if (intval($subject_id) < intval($subject_file_id)) {
-                    continue;
-                }
-                echo 'current id:' . $subject_id;
-                fseek($fpLastIdFile, 0, SEEK_SET);
-                ftruncate($fpLastIdFile, 0);
-                fwrite($fpLastIdFile, $subject_id);
-                $subjectData = new \mia\miagroup\Data\Subject\Subject();
-                $data = $subjectData->query('SELECT ext_info FROM group_subjects WHERE ext_info != "" AND status = 1 AND image_url != "" AND id = ' . $subject_id);
-                if (!empty($data)) {
-                    foreach ($data as $value) {
-                        $beauty = [];
-                        $beauty_image = [];
-                        if (!empty($value['ext_info'])) {
-                            $ext_info = json_decode($value['ext_info'], true);
-                            if (!empty($ext_info['beauty_image'])) {
-                                continue;
-                            }
-                            $image_list = $ext_info['image'];
-                            if (!empty($image_list) || count($image_list) > 0) {
-                                foreach ($image_list as $image) {
-                                    if (!empty($image['url'])) {
-                                        $image_url = $image_service->beautyImage($image['url'])['data'];
-                                        if (!empty($image_url)) {
-                                            $beauty['url'] = $image_url;
-                                            if (!empty($image['width'])) {
-                                                $beauty['width'] = $image['width'];
-                                            }
-                                            if (!empty($image['height'])) {
-                                                $beauty['height'] = $image['height'];
-                                            }
-                                        }
-                                    }
-                                    $beauty_image[] = $beauty;
-                                }
-                            }
-                        }
-                        if (!empty($beauty_image)) {
-                            $ext_info['beauty_image'] = $beauty_image;
-                            $res = $subjectData->query('UPDATE group_subjects SET ext_info = \'' . json_encode($ext_info) . '\' WHERE id = ' . $subject_id);
-                            if (!empty($res)) {
-                                fwrite($fp, $subject_id);
-                                echo 'success id:' . $subject_id;
-                            }
-                        }
-                    }
-                }
-                flock($fpLastIdFile, LOCK_UN);
-                fclose($fpLastIdFile);
-            }
-        }
-    }
-
-    public function handle_image($data = array(), $fpLastIdFile)
-    {
-        $res = 0;
+        $fp = fopen($this->dumpErrorSubjectImageFile, 'a+');
         if (!empty($data)) {
             foreach ($data as $value) {
                 $subject_id = $value['id'];
-                $beauty = [];
-                $beauty_image = [];
-                // 日志记录
-                if(!empty($fpLastIdFile)) {
-                    fseek($fpLastIdFile, 0, SEEK_SET);
-                    ftruncate($fpLastIdFile, 0);
-                    fwrite($fpLastIdFile, $subject_id);
+
+                if (isset($maxId)) { //获取最大event_id
+                    $maxId = $subject_id > $maxId ? $subject_id : $maxId;
+                } else {
+                    $maxId = $subject_id;
                 }
+                $beauty = array();
+                $beauty_image = array();
+
+                // 不存在
                 if (empty($value['ext_info'])) {
-                    return $res;
+                    continue;
                 }
                 $ext_info = json_decode($value['ext_info'], true);
-                    if (!empty($ext_info['beauty_image'])) {
-                        continue;
-                    }
-                    $image_list = $ext_info['image'];
-                    if(empty($image_list)) {
-                        return $res;
-                    }
-                    foreach ($image_list as $image) {
-                        if (!empty($image['url'])) {
-                            $image_url = $this->image_service->beautyImage($image['url'])['data'];
-                            if (!empty($image_url)) {
-                                $beauty['url'] = $image_url;
-                                if (!empty($image['width'])) {
-                                    $beauty['width'] = $image['width'];
-                                }
-                                if (!empty($image['height'])) {
-                                    $beauty['height'] = $image['height'];
-                                }
-                            }
-                        }
-                        $beauty_image[] = $beauty;
-                    }
+
+                // 已经美化
+                if (!empty($ext_info['beauty_image'])) {
+                    continue;
                 }
-                if (!empty($beauty_image)) {
-                    $ext_info['beauty_image'] = $beauty_image;
-                    $res = $this->subjectData->query('UPDATE group_subjects SET ext_info = \'' . json_encode($ext_info) . '\' WHERE id = ' . $subject_id);
+                $ori_image_list = $ext_info['image'];
+
+                if(empty($ori_image_list)) {
+                    continue;
                 }
+                foreach ($ori_image_list as $image) {
+                    if(empty($image['url'])) {
+                        // 后续不处理
+                        break;
+                    }
+                    $image_url = $this->image_service->beautyImage($image['url'])['data'];
+                    if (!empty($image_url)) {
+                        $beauty['url'] = $image_url;
+                        $beauty['width'] = $image['width'];
+                        $beauty['height'] = $image['height'];
+                    }
+                    $beauty_image[] = $beauty;
+                }
+
+                if(empty($beauty_image)) {
+                    // 记录失败帖子ID
+                    fwrite($fp, $subject_id."\n");
+                    continue;
+                }
+                $ext_info['beauty_image'] = $beauty_image;
+                // 更新数据库
+                $where[] = ['id', $subject_id];
+                $setData[] = ['ext_info', json_encode($ext_info)];
+                $this->subjectData->update($setData, $where);
             }
-        return $res;
+        }
+        return $maxId;
+    }
+
+    /*
+     * 更新美化失败帖子
+     * */
+    public function updateErrorSubImageIds()
+    {
+        $handle = @fopen($this->dumpErrorSubjectImageFile, "r");
+
+        if (!file_exists($this->dumpUpdateErrorSubjectImageFile)) {
+            $updateFile = fopen($this->dumpUpdateErrorSubjectImageFile, 'w');
+        } else {
+            $updateFile = fopen($this->dumpUpdateErrorSubjectImageFile, 'a');
+        }
+
+        if ($handle) {
+            while (!feof($handle)) {
+                $subject_id = trim(fgets($handle, 2048));
+                $where = [];
+                $where[] = ['status', 1];
+                $where[] = [':eq','id', $subject_id];
+                $where[] = [':ne','ext_info', ''];
+                $where[] = [':ne','image_url', ''];
+
+                $field = 'id, ext_info';
+                $data = $this->subjectData->getRows($where, $field);
+                if(empty($data)) {
+                    continue;
+                }
+                $handleId = $this->handle_image($data);
+                // 更新成功id记录日志
+                fwrite($updateFile, $handleId."\n");
+            }
+        }
+        return true;
+    }
+
+
+    /**
+     * 检测路径是否存在并自动生成不存在的文件夹
+     */
+    private function mk_dir($path) {
+        if(is_dir($path)) return true;
+        if(empty($path)) return false;
+        $path = rtrim($path, '/');
+        $bpath = dirname($path);
+        if(!is_dir($bpath)) {
+            if(!$this->mk_dir($bpath)) return false;
+        }
+        if(!@chdir($bpath)) return false;
+        if(!@mkdir(basename($path))) return false;
+        return true;
     }
 }
