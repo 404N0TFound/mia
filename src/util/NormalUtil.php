@@ -338,7 +338,7 @@ class NormalUtil {
         if ($cha == 'utf-8') {
             return $str;
         }
-        preg_match_all("/u.{4}/", $str, $match);
+        preg_match_all("/\\\\?[uU].{4}/", $str, $match);
         foreach ($match[0] as $val) {
             $replace = "\\".trim($val,"\\");
             $str = str_replace($val,$replace,$str);
