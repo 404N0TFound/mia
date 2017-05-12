@@ -328,4 +328,21 @@ class NormalUtil {
         $num = number_format($num / 10000, 1, ".", "")."万";
         return $num;
     }
+
+    /*
+     * 把缺少/的Unicode加上/
+     */
+    function unicodeStr($str)
+    {
+        $cha = mb_detect_encoding($str);
+        if ($cha == 'utf-8') {
+            return $str;
+        }
+        preg_match_all("/u.{4}/", $str, $match);
+        foreach ($match[0] as $val) {
+            $replace = "\\".trim($val,"\\");
+            $str = str_replace($val,$replace,$str);
+        }
+        return json_decode('["'.$str.'"]',true)[0];
+    }
 }

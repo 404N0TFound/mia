@@ -434,7 +434,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     foreach ($extInfo["outer_items"] as $outInfo) {
                         $redirect = sprintf($app_mapping_config['search_result'], $outInfo['name'], $outInfo['brand_id'], $outInfo['category_id']);
                         $outArr[] = [
-                            "item_name" => $outInfo["name"],
+                            "item_name" => NormalUtil::unicodeStr($outInfo["name"]),
                             "redirect" => $redirect,
                             "is_outer" => 1,
                             "item_img" => $outInfo["item_pic"] ? NormalUtil::buildImgUrl($outInfo["item_pic"], "normal")["url"] : "",
