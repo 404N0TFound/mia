@@ -71,7 +71,7 @@ class Livetovideo extends \FD_Daemon {
             if(!$status){
                 return;
             }
-            //$mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
+            $mvToVideo = $qiniu->fetchBucke($liveToVideoValue['targetUrl'],'video',$liveToVideoValue['fileName']);
 
         }elseif ($liveInfo['source'] == 2) {
             //把金山的回放移到七牛上
