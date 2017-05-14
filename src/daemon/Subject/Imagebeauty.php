@@ -14,6 +14,7 @@ class Imagebeauty extends \FD_Daemon
     private $subjectData;
     private $tempFilePath;
     private $image_service;
+    private $subjectImageSuccessData;
     private $dumpErrorSubjectImageFile;
     private $dumpUpdateErrorSubjectImageFile;
 
@@ -35,7 +36,10 @@ class Imagebeauty extends \FD_Daemon
         }
         $imageCoreDir =  $this->tempFilePath.'image/';
         $this->mk_dir($imageCoreDir);
-        $this->mode = 'incremental_dump';
+        $folderName = date('Ymd');
+        $folderPath = $imageCoreDir . $folderName . '/';
+        $this->mk_dir($folderPath);
+        $this->subjectImageSuccessData = $folderPath . 'success_subject_image_id';
         switch ($this->mode) {
             case 'full_dump':
                 $this->lastIdFile = $imageCoreDir . 'full_image_dump_last_id';
@@ -43,19 +47,21 @@ class Imagebeauty extends \FD_Daemon
                 $this->beautySubjectImage();
                 //更新失败处理帖子
                 $this->dumpUpdateErrorSubjectImageFile = $imageCoreDir . 'full_dump_update_error_image';
-                $this->updateErrorSubImageIds();
+                $res = $this->updateErrorSubImageIds();
+                if(!empty($res)) {
+                    unlink($this->dumpErrorSubjectImageFile);
+                }
                 break;
             case 'incremental_dump':
-                $folderName = date('YmdHi');
-                $folderPath = $imageCoreDir . $folderName . '/';
-                $this->mk_dir($folderPath);
                 $this->lastIdFile = $imageCoreDir . 'incr_image_dump_delta_id';
-                $this->dumpErrorSubjectImageFile = $folderPath . 'incr_dump_error_subject_image_id';
+                $this->dumpErrorSubjectImageFile = $imageCoreDir . 'incr_dump_error_subject_image_id';
                 $this->beautySubjectImage();
-                file_put_contents($folderPath . 'done', date('Y-m-d H:i:s'));
                 //更新失败处理帖子
-                $this->dumpUpdateErrorSubjectImageFile = $folderPath . 'incr_dump_update_error_image';
-                $this->updateErrorSubImageIds();
+                $this->dumpUpdateErrorSubjectImageFile = $imageCoreDir . 'incr_dump_update_error_image';
+                $res = $this->updateErrorSubImageIds();
+                if(!empty($res)) {
+                    unlink($this->dumpErrorSubjectImageFile);
+                }
                 break;
         }
     }
@@ -129,9 +135,10 @@ class Imagebeauty extends \FD_Daemon
     /*
      * 美化图片处理
      * */
-    public function handle_image($data)
+    public function handle_image($data, $conditions = array())
     {
-        $fp = fopen($this->dumpErrorSubjectImageFile, 'a+');
+        $fp = fopen($this->dumpErrorSubjectImageFile, 'a');
+        $successFp = fopen($this->subjectImageSuccessData, 'a');
         if (!empty($data)) {
             foreach ($data as $value) {
                 $where = [];
@@ -184,17 +191,21 @@ class Imagebeauty extends \FD_Daemon
                     }
                     $beauty_image[] = $beauty;
                 }
-
                 if(empty($beauty_image)) {
                     // 记录失败帖子ID
-                    fwrite($fp, $subject_id."\n");
+                    if($conditions['action'] != 'update') {
+                        fwrite($fp, $subject_id."\n");
+                    }
                     continue;
                 }
                 $ext_info['beauty_image'] = $beauty_image;
                 // 更新数据库
                 $where[] = ['id', $subject_id];
                 $setData[] = ['ext_info', json_encode($ext_info)];
-                $this->subjectData->update($setData, $where);
+                $res = $this->subjectData->update($setData, $where);
+                if(!empty($res)) {
+                    fwrite($successFp, $subject_id."\n");
+                }
             }
         }
         return $logId;
@@ -205,8 +216,7 @@ class Imagebeauty extends \FD_Daemon
      * */
     public function updateErrorSubImageIds()
     {
-        $handle = @fopen($this->dumpErrorSubjectImageFile, "r");
-        if(!filesize($this->dumpErrorSubjectImageFile)){
+        if(empty(filesize($this->dumpErrorSubjectImageFile))){
             return false;
         }
         if (!file_exists($this->dumpUpdateErrorSubjectImageFile)) {
@@ -215,9 +225,14 @@ class Imagebeauty extends \FD_Daemon
             $updateFile = fopen($this->dumpUpdateErrorSubjectImageFile, 'a');
         }
 
+        $handle = @fopen($this->dumpErrorSubjectImageFile, "r");
+
         if ($handle) {
             while (!feof($handle)) {
                 $subject_id = trim(fgets($handle, 2048));
+                if(empty($subject_id)) {
+                    continue;
+                }
                 $where = [];
                 $where[] = ['status', 1];
                 $where[] = [':eq','id', $subject_id];
@@ -229,7 +244,7 @@ class Imagebeauty extends \FD_Daemon
                 if(empty($data)) {
                     continue;
                 }
-                $handleId = $this->handle_image($data);
+                $handleId = $this->handle_image($data, array('action' => 'update'));
                 // 更新成功id记录日志
                 fwrite($updateFile, $handleId."\n");
             }
