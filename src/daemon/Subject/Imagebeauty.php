@@ -31,7 +31,7 @@ class Imagebeauty extends \FD_Daemon
     {
         // 切换模式
         $this->mode = $this->request->argv[0];
-        if (empty($mode)) {
+        if (empty($this->mode)) {
             return ;
         }
         $imageCoreDir =  $this->tempFilePath.'image/';
