@@ -181,14 +181,17 @@ class Imagebeauty extends \FD_Daemon
                 foreach ($ori_image_list as $image) {
                     if(empty($image['url'])) {
                         // 后续不处理
+                        $beauty_image = array();
                         break;
                     }
                     $image_url = $this->image_service->beautyImage($image['url'])['data'];
-                    if (!empty($image_url)) {
-                        $beauty['url'] = $image_url;
-                        $beauty['width'] = $image['width'];
-                        $beauty['height'] = $image['height'];
+                    if (empty($image_url)) {
+                        $beauty_image = array();
+                        break;
                     }
+                    $beauty['url'] = $image_url;
+                    $beauty['width'] = $image['width'];
+                    $beauty['height'] = $image['height'];
                     $beauty_image[] = $beauty;
                 }
                 if(empty($beauty_image)) {
