@@ -193,11 +193,11 @@ class ImageUtil
     {
         $img = $this->imgSource->make($path);
         // 亮度 10
-        $img->brightness(7);
+        $img->brightness(5);
         // 对比度 15
-        $img->contrast(7);
+        $img->contrast(5);
         // 锐化 30
-        $img->sharpen(14);
+        $img->sharpen(10);
         $img->save($newPath);
     }
 }
