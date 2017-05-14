@@ -239,6 +239,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->error(6102);
         }
         $items = $koubeiData['items'];
+
+        if(empty($items)) {
+            return $this->error(6102);
+        }
         
         foreach ($items as $item) {
             $itemId = $item['item_id'];
