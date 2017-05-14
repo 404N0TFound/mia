@@ -112,6 +112,9 @@ class Image extends \mia\miagroup\Lib\Service
         }
         //临时图片保存路径
         $temp_url = $img_info['saveDir'].'/'.$img_info['fileName'];
+        if(empty(getimagesize($temp_url))) {
+            return $this->succ();
+        }
         $new_Dir = $this->imageTempUrl.'/beauty';
         if (!file_exists($new_Dir)) {
             mkdir($new_Dir, 0777, true);
