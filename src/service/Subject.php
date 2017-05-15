@@ -497,7 +497,8 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
             // 美化图片
-            if (!empty($subjectInfo['ext_info']['beauty_image'])) {
+            $daren_list = $this->config['daren_beautyimage_list'];
+            if (!empty($subjectInfo['ext_info']['beauty_image']) && !in_array($subjectInfo['user_id'], $daren_list)) {
                 $imageInfos = $subjectInfo['ext_info']['beauty_image'];
                 if (is_array($imageInfos) && !empty($imageInfos)) {
                     foreach ($imageInfos as $key => $image) {
@@ -516,7 +517,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }
-            if (!empty($subjectInfo['ext_info']['image']) && empty($subjectInfo['ext_info']['beauty_image'])) {
+            if (!empty($subjectInfo['ext_info']['image'])) {
                 $imageInfos = $subjectInfo['ext_info']['image'];
                 if (is_array($imageInfos) && !empty($imageInfos)) {
                     foreach ($imageInfos as $key => $image) {
@@ -1054,7 +1055,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }else {
             $shareImage = $shareDefault['img_url'];
         }
-        $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
+        $h5Url = sprintf($shareDefault['wap_url'], $subjectId);
         $replace = array('{|title|}' => $shareTitle, '{|desc|}' => $shareDesc, '{|image_url|}' => $shareImage, '{|wap_url|}' => $h5Url, '{|extend_text|}' => $shareDefault['extend_text']);
 
         // 进行替换操作
