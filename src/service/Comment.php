@@ -245,6 +245,16 @@ class Comment extends \mia\miagroup\Lib\Service {
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
             $toUserId = $commentInfo['parent_user']['user_id'];
             $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id'])['data'];
+            
+            //8：00-23：00发送评论，发push
+            $timeZero = strtotime(date("Y-m-d"));
+            $timeNow = time();
+            $period = $timeNow - $timeZero;
+            if (28800 < $period && $period < 82800) {
+                $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
+                $push = new Service\Push();
+                $push->pushMsg($toUserId, $nickName . "回复了你的评论", "miyabaobei://subject?id=" . $subjectId);
+            }
         }
         
         return $this->succ($commentInfo);
