@@ -432,7 +432,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 } else {
                     $outArr = [];
                     foreach ($extInfo["outer_items"] as $outInfo) {
-                        $redirect = sprintf($app_mapping_config['search_result'], $outInfo['name'], $outInfo['brand_id'], $outInfo['category_id']);
+                        $redirect = sprintf($app_mapping_config['search_result'], $outInfo['name'], "", "");
                         $outArr[] = [
                             "item_name" => NormalUtil::unicodeStr($outInfo["name"]),
                             "redirect" => $redirect,
