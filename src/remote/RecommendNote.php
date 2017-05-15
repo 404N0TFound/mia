@@ -167,7 +167,7 @@ class RecommendNote
         return $return;
     }
 
-    public function getRelatedNote($subjectId, $page = 1, $limit = 1)
+    public function getRelatedNote($subjectId, $page = 1, $limit = 10)
     {
         $remote_curl = new RemoteCurl('index_cate_recommend');
 
