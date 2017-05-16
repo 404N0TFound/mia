@@ -263,6 +263,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             // 口碑类型 5.3 0:koubei , 1:封测报告
             if(isset($item['is_pick']) && $item['is_pick'] == 1) {
                 $koubeiSetData['type'] = 1;
+                $koubeiSetData['score'] = 0;
             }
             //供应商ID获取
             $itemService = new ItemService();
@@ -399,8 +400,24 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($item_ids)) {
             return $this->succ($koubei_res);
         }
+
+        // 获取商品信息
+        $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
+
+        if(!empty($item_info['data'][$item_id]['is_pick'])) {
+            $is_pick = $item_info['data'][$item_id]['is_pick'];
+        }
+
+        $condition = array();
+        if(!empty($is_pick) && $is_pick == 1) {
+            // 封测报告列表不展示默认好评(甄选商品)
+            $condition['auto_evaluate'] = 0;
+            $condition['type'] =  1;
+        }
+
         //获取口碑数量
-        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids);
+        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);
+
         if($koubei_nums <=0){
             return $this->succ($koubei_res);
         }
@@ -410,8 +427,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //获取蜜粉推荐
         $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
 
-        $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
-
         //好评率
         $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
         if(!empty($feedbackRate)){
@@ -419,7 +434,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
 
         //通过商品id获取口碑id
-        $condition = array();
         $condition['with_pic'] = true;
         $condition['score'] = array(0, 4, 5);
         $condition['machine_score'] = 3;
