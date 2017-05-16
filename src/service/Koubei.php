@@ -324,11 +324,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!empty($item_info['data'][$itemId]['is_pick'])) {
             $is_pick = $item_info['data'][$itemId]['is_pick'];
         }
+
+        // 封测报告状态
+        if(!empty($item_info['data'][$itemId]['pick_status'])) {
+            $pick_status = $item_info['data'][$itemId]['pick_status'];
+        }
+
         $conditions = array();
         if(!empty($is_pick) && $is_pick == 1) {
             // 封测报告列表不展示默认好评(甄选商品)
-            $conditions['auto_evaluate'] = 0;
-            $conditions['type'] =  1;
+            if(in_array($pick_status, array(2,3))) {
+                $conditions['auto_evaluate'] = 0;
+                $conditions['type'] =  1;
+            }
         }
 
         $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $conditions);
@@ -408,11 +416,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $is_pick = $item_info['data'][$item_id]['is_pick'];
         }
 
-        $condition = array();
+        // 封测报告状态
+        if(!empty($item_info['data'][$itemId]['pick_status'])) {
+            $pick_status = $item_info['data'][$itemId]['pick_status'];
+        }
+
+        $conditions = array();
         if(!empty($is_pick) && $is_pick == 1) {
             // 封测报告列表不展示默认好评(甄选商品)
-            $condition['auto_evaluate'] = 0;
-            $condition['type'] =  1;
+            if(in_array($pick_status, array(2,3))) {
+                $conditions['auto_evaluate'] = 0;
+                $conditions['type'] =  1;
+            }
         }
 
         //获取口碑数量
