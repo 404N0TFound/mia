@@ -1473,6 +1473,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubei_res['total_count'] = $koubei_nums;//口碑数量
         //好评率
         $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
+
+        // 甄选处理
+        if(!empty($item_info['data'][$item_id]['is_pick'])) {
+            $is_pick = $item_info['data'][$item_id]['is_pick'];
+        }
+
+        $condition = array();
+        if(!empty($is_pick) && $is_pick == 1) {
+            // 封测报告列表不展示默认好评
+            $condition['is_pick'] = $is_pick;
+            $condition['auto_evaluate'] = 1;
+            $condition['type'] =  1;
+        }
+
         $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
         //获取用户评分
         $item_score = $this->koubeiModel->getItemUserScore($item_ids);
@@ -1490,7 +1504,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             switch ($tag_id) {
                 case 1 ://全部
                     //通过商品id获取口碑id
-                    $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset);
+                    $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $condition);
                     break;
                 case 2 ://有图
                     //通过商品id获取口碑id
