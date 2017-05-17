@@ -38,13 +38,16 @@ class Koubei extends \DB_Query {
             $where[] = [":ge",'score', $condition["score"]];
         }
 
-        if (isset($condition["auto_evaluate"])) {
-            $where[] = [":eq",'auto_evaluate', $condition["auto_evaluate"]];
+        // 封测报告
+        if(isset($condition['is_pick'])) {
+            $where [] = [
+                ':and', [
+                    [':or', [':ne', 'auto_evaluate', $condition['auto_evaluate']]],
+                    [':or', [':ne', 'type', $condition['type']]]
+                ]
+            ];
         }
 
-        if(isset($condition["type"])) {
-            $where[] = [":eq",'type', $condition["type"]];
-        }
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';
         $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
         if (!empty($data)) {
@@ -69,6 +72,20 @@ class Koubei extends \DB_Query {
         $where[] = ['koubei.status', 2];
         $where[] = [':gt','koubei.subject_id', 0];
         if (!empty($conditon)) {
+
+            // 封测报告
+            if(isset($conditon['is_pick'])) {
+                $where [] = [
+                    ':and', [
+                        [':or', [':ne', 'koubei.auto_evaluate', $conditon['auto_evaluate']]],
+                        [':or', [':ne', 'koubei.type', $conditon['type']]]
+                    ]
+                ];
+                unset($conditon['auto_evaluate']);
+                unset($conditon['type']);
+                unset($conditon['is_pick']);
+            }
+
             foreach ($conditon as $k => $v) {
                 switch ($k) {
                     case 'with_pic':
@@ -80,6 +97,7 @@ class Koubei extends \DB_Query {
                 }
             }
         }
+
         $data = $this->getRows($where, 'distinct(koubei.id) as id', $limit, $offset, $order_by, $join);
         if (!empty($data)) {
             foreach($data as $v){
@@ -136,11 +154,15 @@ class Koubei extends \DB_Query {
         if(isset($con['score'])){
             $where[] = [':ge','score',$con['score']];
         }
-        if(isset($con['auto_evaluate'])){
-            $where[] = [':eq','auto_evaluate',$con['auto_evaluate']];
-        }
-        if(isset($con['type'])){
-            $where[] = [':eq','type',$con['type']];
+
+        // 封测报告
+        if(isset($con['is_pick'])) {
+            $where [] = [
+                ':and', [
+                    [':or', [':ne', 'auto_evaluate', $con['auto_evaluate']]],
+                    [':or', [':ne', 'type', $con['type']]]
+                ]
+            ];
         }
 
         $order_by = FALSE;

@@ -325,21 +325,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $is_pick = $item_info['data'][$itemId]['is_pick'];
         }
 
-        // 封测报告状态
-        if(!empty($item_info['data'][$itemId]['pick_status'])) {
-            $pick_status = $item_info['data'][$itemId]['pick_status'];
-        }
-
-        $conditions = array();
+        $condition = array();
         if(!empty($is_pick) && $is_pick == 1) {
             // 封测报告列表不展示默认好评(甄选商品)
-            if(in_array($pick_status, array(2,3))) {
-                $conditions['auto_evaluate'] = 0;
-                $conditions['type'] =  1;
-            }
+            $condition['is_pick'] = $is_pick;
+            $condition['auto_evaluate'] = 1;
+            $condition['type'] =  1;
         }
 
-        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $conditions);
+        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);
 
         if($koubei_nums <=0){
             return $this->succ($koubei_res);
@@ -359,7 +353,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $conditions);
+        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $condition);
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
 
@@ -416,18 +410,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $is_pick = $item_info['data'][$item_id]['is_pick'];
         }
 
-        // 封测报告状态
-        if(!empty($item_info['data'][$itemId]['pick_status'])) {
-            $pick_status = $item_info['data'][$itemId]['pick_status'];
-        }
-
-        $conditions = array();
+        $condition = array();
         if(!empty($is_pick) && $is_pick == 1) {
             // 封测报告列表不展示默认好评(甄选商品)
-            if(in_array($pick_status, array(2,3))) {
-                $conditions['auto_evaluate'] = 0;
-                $conditions['type'] =  1;
-            }
+            $condition['is_pick'] = $is_pick;
+            $condition['auto_evaluate'] = 1;
+            $condition['type'] =  1;
         }
 
         //获取口碑数量
