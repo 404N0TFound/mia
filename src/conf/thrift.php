@@ -2,7 +2,7 @@
 $address = array(
     'MiBean' => array(
         'addresses' => array(
-            '172.16.104.182:3333',
+            '172.16.96.50:3333',
         ),
     ),
     'api' => array(

@@ -261,7 +261,7 @@ class Subject extends \mia\miagroup\Lib\Service
         
         //批量获取帖子信息
         if(!empty($subjectIds)){
-            $subjects = $this->getBatchSubjectInfos($subjectIds)['data'];
+            $subjects = $this->getBatchSubjectInfos($subjectIds, 0, ['user_info', 'count', 'content_format'])['data'];
         }
         
         //批量获取达人信息
@@ -351,7 +351,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * $field 包括 'user_info', 'count', 'comment', 'group_labels',
      * 'praise_info', 'share_info', 'item', 'koubei'
      */
-    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'content_format', 'praise_info', 'album'), $status = array(1, 2)) {
+    public function getBatchSubjectInfos($subjectIds, $currentUid = 0, $field = array('user_info', 'count', 'content_format', 'album'), $status = array(1, 2)) {
         if (empty($subjectIds) || !is_array($subjectIds)) {
             return $this->succ(array());
         }
@@ -432,9 +432,10 @@ class Subject extends \mia\miagroup\Lib\Service
                 } else {
                     $outArr = [];
                     foreach ($extInfo["outer_items"] as $outInfo) {
-                        $redirect = sprintf($app_mapping_config['search_result'], $outInfo['name'], $outInfo['brand_id'], $outInfo['category_id']);
+                        $itemName = NormalUtil::unicodeStr($outInfo["name"]);
+                        $redirect = sprintf($app_mapping_config['search_result'], $itemName, "", "");
                         $outArr[] = [
-                            "item_name" => NormalUtil::unicodeStr($outInfo["name"]),
+                            "item_name" => $itemName,
                             "redirect" => $redirect,
                             "is_outer" => 1,
                             "item_img" => $outInfo["item_pic"] ? NormalUtil::buildImgUrl($outInfo["item_pic"], "normal")["url"] : "",
@@ -594,7 +595,7 @@ class Subject extends \mia\miagroup\Lib\Service
             //站内关联商品,站外关联商品
             if (in_array('item', $field)) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
-                $subjectRes[$subjectInfo['id']]['out_items'] =  is_array($outItemsInfo[$subjectId]) ? array_values($outItemsInfo[$subjectId]) : array();
+                //$subjectRes[$subjectInfo['id']]['out_items'] =  is_array($outItemsInfo[$subjectId]) ? array_values($outItemsInfo[$subjectId]) : array();
             }
 
             if (in_array('koubei', $field) && intval($subjectInfos[$subjectId]['koubei_id']) > 0) {
