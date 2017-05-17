@@ -1554,6 +1554,22 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $item_service = new ItemService();
         $item_ids = $item_service->getRelateItemById($item_id);
 
+        // 获取商品是否为甄选商品
+        $item_info = $item_service->getItemList([$item_id]);
+
+        if(!empty($item_info['data'][$item_id]['is_pick'])) {
+            $is_pick = $item_info['data'][$item_id]['is_pick'];
+        }
+
+        $condition = array();
+        if(!empty($is_pick) && $is_pick == 1) {
+            // 封测报告列表不展示默认好评(甄选商品)
+            $condition['is_pick'] = $is_pick;
+            $condition['auto_evaluate'] = 1;
+            $condition['type'] =  1;
+        }
+
+
         $tagList = [];
         $normalTags = [];
         //聚合印象，内容数量小于3则不显示
@@ -1600,7 +1616,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //常规印象为：全部，有图，好评，内容数量小于3则不显示
         if (in_array('normal', $field)) {
             //全部
-            $totalNum = $this->koubeiModel->getItemKoubeiNums($item_ids);
+
+            $totalNum = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);
             $picNum = $this->koubeiModel->getItemKoubeiNums($item_ids, 1);
             $praiseNum = $this->koubeiModel->getItemRecNums($item_ids);
             if ($totalNum >= 1) {
