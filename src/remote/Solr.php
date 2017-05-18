@@ -291,7 +291,7 @@ class Solr
         $koubeiListKey = md5($category_cache.$brand_cache.$category_name.$page);
         $redis = new Redis();
         $result = $redis->get($koubeiListKey);
-        $koubei_list = json_decode($result, true);
+        $koubei_list = $result;
 
         if(empty($koubei_list)) {
 
@@ -338,7 +338,7 @@ class Solr
                 }
             }
             // 缓存
-            $redis->setex($koubeiListKey, json_encode($koubei_list), 20*60);
+            $redis->setex($koubeiListKey, $koubei_list, 20*60);
         }
         return $koubei_list;
     }
@@ -753,9 +753,9 @@ class Solr
         $brandListKey = md5($category_cache.$category_name);
         $redis = new Redis();
         $cache_brand_list = $redis->get($brandListKey);
-        $brand_ids = json_decode($cache_brand_list, true);
+        $brand_ids = $cache_brand_list;
 
-        if(empty($brand_list)){
+        if(empty($brand_ids)){
             $solrInfo = [
                 'q'           => '*:*',
                 'pageSize'    => '20',
@@ -789,7 +789,7 @@ class Solr
                 }
             }
             // 缓存
-            $redis->setex($brandListKey, json_encode($brand_ids), 20*60);
+            $redis->setex($brandListKey, $brand_ids, 20*60);
         }
         return $brand_ids;
     }
