@@ -171,7 +171,36 @@ class Solr
         return $solrData;
     }
 
-    public function httpGet($method, $parame){
+
+    private function httpGet($method, $parame) {
+
+        $url = $this->solrserver . $this->core."/".$method;
+        $data = "";
+        $wt = 'json';
+        if(empty($parame['wt']) == false) {
+            $wt = $parame['wt'];
+            unset($parame['wt']);
+        }
+        $url .= "?wt=".$wt;
+        foreach($parame as $key=>$value) {
+            $data .= "&". $key."=".$value;
+        }
+        $url .= $data;
+        //echo $url."\n";
+
+        //初始化
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        $result = curl_exec($ch);
+        //释放curl句柄
+        curl_close($ch);
+        return $result;
+    }
+
+    /*public function httpGet($method, $parame){
 
         try{
             $url = $this->solrserver . $this->core."/".$method;
@@ -186,7 +215,7 @@ class Solr
                 $data .= "&". $key."=".$value;
             }
             $url .= $data;
-            //echo $url."\n";
+            echo $url."\n";
             $request_startTime = gettimeofday(true);
             $result = file_get_contents($url);
             $request_endTime = gettimeofday(true);
@@ -216,7 +245,7 @@ class Solr
                 'trace'     => $e->getTraceAsString(),
             ));
         }
-    }
+    }*/
 
     /**
      * 删除索引
@@ -248,21 +277,23 @@ class Solr
     public function getHighQualityKoubeiByBrandId($category_id, $brand_id = 0, $page = 1, $category_name)
     {
 
-        /*if(is_array($category_id)){
-            $category_str = implode(",",$category_id);
+        $koubei_list = array();
+        if(is_array($category_id)){
+            $category_cache = implode(",",$category_id);
         }else{
-            $category_str = $category_id;
+            $category_cache = $category_id;
         }
         if(is_array($brand_id)){
-            $brand_str = implode(",",$brand_id);
+            $brand_cache = implode(",",$brand_id);
         }else{
-            $brand_str = $brand_id;
-        }*/
-        //$koubeiListKey = md5($category_str.$brand_str.$page);
-        //$redis = new Redis();
-        //$result = $redis->get($koubeiListKey);
+            $brand_cache = $brand_id;
+        }
+        $koubeiListKey = md5($category_cache.$brand_cache.$category_name.$page);
+        $redis = new Redis();
+        $result = $redis->get($koubeiListKey);
+        $koubei_list = $result;
 
-        //if(empty($result)) {
+        if(empty($koubei_list)) {
 
             $field = 'id,item_id';
             $sort = 'score desc,id desc,rank_score desc';
@@ -303,13 +334,13 @@ class Solr
                 //$sort_ids = $this->sortKoubeiId($res['list'], 'item_id', $res['count'], 20, $page);
                 if(!empty($res['docs'])){
                     $sort_ids = $this->anotherSortKoubeiId($res['docs'], 'item_id', $res['numFound'], 20, $page);
-                    $result = array('list' => $sort_ids, 'count' => $res['numFound']);
+                    $koubei_list = array('list' => $sort_ids, 'count' => $res['numFound']);
                 }
             }
             // 缓存
-            //$redis->setex($koubeiListKey, $result, 20*60);
-        //}
-        return $result;
+            $redis->setex($koubeiListKey, $koubei_list, 20*60);
+        }
+        return $koubei_list;
     }
     
     /**
@@ -713,16 +744,18 @@ class Solr
      */
     public function brandList($category_id, $category_name)
     {
-        /*$redis = new Redis();
+        $brand_ids = array();
         if(is_array($category_id)){
-            $category_str = implode(",",$category_id);
-            $brandListkey = md5($category_str);
+            $category_cache = implode(",",$category_id);
         }else{
-            $brandListkey = md5($category_id);
+            $category_cache = $category_id;
         }
-        $show_brand_ids = array();*/
-        //$new_brand_list = $redis->get($brandListkey);
-        //if(empty($new_brand_list)){
+        $brandListKey = md5($category_cache.$category_name);
+        $redis = new Redis();
+        $cache_brand_list = $redis->get($brandListKey);
+        $brand_ids = $cache_brand_list;
+
+        if(empty($brand_ids)){
             $solrInfo = [
                 'q'           => '*:*',
                 'pageSize'    => '20',
@@ -747,18 +780,18 @@ class Solr
             if($res['success'] == 1){
                 $facet_count = $res['data']['facet_counts']['facet_pivot']['brand_id'];
                 if(!empty($facet_count) && is_array($facet_count)){
-                    $show_brand_list = $facet_count;
+                    $brand_ids = $facet_count;
                     if(count($facet_count) > 20){
                         // 展示前20条品牌
-                        $show_brand_list = array_slice($facet_count, 0, 20);
+                        $brand_ids = array_slice($facet_count, 0, 20);
                     }
-                    $show_brand_ids = array_column($show_brand_list, 'value');
+                    $brand_ids = array_column($brand_ids, 'value');
                 }
             }
             // 缓存
-            //$redis->setex($brandListkey, $show_brand_ids, 20*60);
-        //}
-        return $show_brand_ids;
+            $redis->setex($brandListKey, $brand_ids, 20*60);
+        }
+        return $brand_ids;
     }
 
 
