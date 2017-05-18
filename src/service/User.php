@@ -125,18 +125,18 @@ class User extends \mia\miagroup\Lib\Service {
                         $userInfo['category'] .= "/".$userCate['doozer'][$userInfo['id']]['category'];
                         $userInfo['sub_category'] = $userCate['doozer'][$userInfo['id']]['category'];
                     }
-                }elseif($userCate['majia'][$userInfo['id']]){
-                    $userInfo['en_category'] = $userCate['majia'][$userInfo['id']]['type'];
-                    $userInfo['category'] = "马甲";
-                    $userInfo['rec_desc'] = $userCate['majia'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['majia'][$userInfo['id']]['desc'],'#')) : '';
-                    $userInfo['rec_label'] = $userCate['majia'][$userInfo['id']]['label'] ? trim($userCate['majia'][$userInfo['id']]['label'],'#') : '';
-                    if(!empty($userCate['majia'][$userInfo['id']]['category'])){
-                        $userInfo['category'] .= "/".$userCate['majia'][$userInfo['id']]['category'];
-                        $userInfo['sub_category'] = $userCate['majia'][$userInfo['id']]['category'];
+                }elseif($userCate['official_cert'][$userInfo['id']]){
+                    $userInfo['en_category'] = $userCate['official_cert'][$userInfo['id']]['type'];
+                    $userInfo['category'] = "官方认证";
+                    $userInfo['rec_desc'] = $userCate['official_cert'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['official_cert'][$userInfo['id']]['desc'],'#')) : '';
+                    $userInfo['rec_label'] = $userCate['official_cert'][$userInfo['id']]['label'] ? trim($userCate['official_cert'][$userInfo['id']]['label'],'#') : '';
+                    if(!empty($userCate['official_cert'][$userInfo['id']]['category'])){
+                        $userInfo['category'] .= "/".$userCate['official_cert'][$userInfo['id']]['category'];
+                        $userInfo['sub_category'] = $userCate['official_cert'][$userInfo['id']]['category'];
                     }
                 }elseif($userCate['company'][$userInfo['id']]){
                     $userInfo['en_category'] = $userCate['company'][$userInfo['id']]['type'];
-                    $userInfo['category'] = "商家";
+                    $userInfo['category'] = "商家/店铺";
                     $userInfo['rec_desc'] = $userCate['company'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['company'][$userInfo['id']]['desc'],'#')) : '';
                     $userInfo['rec_label'] = $userCate['company'][$userInfo['id']]['label'] ? trim($userCate['company'][$userInfo['id']]['label'],'#') : '';
                     if(!empty($userCate['company'][$userInfo['id']]['category'])){

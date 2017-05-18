@@ -39,18 +39,25 @@ $userCategory = array(
             0 =>array('id' => 1, 'name' => '专家'),
         ),
     ),
-    1 => array(
+//     1 => array(
+//         'id' => 1,
+//         'name' => 'majia',
+//         'cn_name' => '马甲',
+//         'sub_cate' => array(
+//             0 => array('id' => 1, 'name' => '育儿头条'),
+//         ),
+//     ),
+    1 =>array(
         'id' => 1,
-        'name' => 'majia',
-        'cn_name' => '马甲',
+        'name' => 'company',
+        'cn_name' => '商家/店铺',
         'sub_cate' => array(
-            0 => array('id' => 1, 'name' => '育儿头条'),
         ),
     ),
     2 =>array(
         'id' => 1,
-        'name' => 'company',
-        'cn_name' => '商家',
+        'name' => 'official_cert',
+        'cn_name' => '官方认证',
         'sub_cate' => array(
         ),
     ),
