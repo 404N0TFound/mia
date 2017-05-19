@@ -15,6 +15,8 @@ $subjectServicePrefix = $basePrefix . 'subject_';
 $labelServicePrefix = $basePrefix . 'label_';
 //活动相关key前缀
 $activeServicePrefix = $basePrefix . 'active_';
+//消息相关key前缀
+$newsServicePrefix = $basePrefix . 'news_';
 
 /**
  * 直播相关的redisKey
