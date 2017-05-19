@@ -854,6 +854,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $commentInfo['subject_id'] = $subjectId;
         $commentInfo['comment'] = $comment;
         $commentInfo['user_id'] = $userId;
+        $commentInfo['subject_uid'] = $subjectInfo['user_id'];
         $commentInfo['fid'] = $fid;
         $commentInfo['is_expert'] = 1;
         $commentInfo['id'] = $commentService->addComment($commentInfo)['id'];
