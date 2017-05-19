@@ -360,15 +360,14 @@ class User extends \mia\miagroup\Lib\Service {
             $this->userModel->updateUserById($user_id, $set_data);
         }
         
-        //升级为专家用户
+        //升级为企业用户
         $expertInfo = array();
         
-        $expertInfo['user_id'] = $userId;
-        $expertInfo['type'] = 'doozer';
-        $expertInfo['category'] = 'expert';
+        $expertInfo['user_id'] = $user_info['id'];
+        $expertInfo['type'] = 'company';
+        $expertInfo['category'] = '';
         $expertInfo['status'] = 1;
-        $expertInfo['create_time'] = $userInfo['create_date'];
-        $expertInfo['last_modify'] = $userInfo['create_date'];
+        $expertInfo['create_time'] = date('Y-m-d H:i:s');
         
         $this->addCategory($expertInfo);
         

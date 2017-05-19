@@ -36,7 +36,7 @@ class GroupUserCategory extends DB_Query {
         if (!empty($users)) {
             foreach ($users as $user) {
                 $result[$user['type']][$user['user_id']] = $user;
-                if($user['category'] == '专家'){
+                if(in_array($user['type'], array('company, doozer, official_cert'))){
                     $result[$user['type']][$user['user_id']]['is_expert'] = 1;
                 }
                 if(!empty($user['ext_info'])){
