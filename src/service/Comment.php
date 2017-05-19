@@ -393,6 +393,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         }
         $commentInfo['subject_id'] = $params['subject_id'];
         $commentInfo['user_id'] = $params['user_id'];
+        $commentInfo['subject_uid'] = $params['subject_uid'];
         $commentInfo['comment'] = $params['comment'];
         $commentInfo['fid'] = intval($params['fid']);
         $commentInfo['is_expert'] = $params['is_expert'];
