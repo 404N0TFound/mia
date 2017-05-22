@@ -1090,6 +1090,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
                 break;
         }
+        // 容错
+        if(empty($return_Info)) {
+            $return_Info = array();
+        }
         return $this->succ($return_Info);
     }
 
