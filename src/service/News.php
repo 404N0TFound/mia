@@ -52,60 +52,85 @@ class News extends \mia\miagroup\Lib\Service {
      *
      * @param $type 消息类型
      * ======================消息类型======================
-     * 'group'  圈活动
+     *
+     * ------社交------
+     *
      * 'img_comment'  图片评论
      * 'img_like'  图片赞
-     * 'mibean'  蜜豆消息
      * 'follow'  关注
-     * 'order'  订单
-     * 'score'  积分
-     * 'coupon'  优惠券
-     * 'productDetail'  商品详情
-     * 'freebuy'  0元抢
-     * 'special'  专题
-     * 'outletsList'  特卖
-     * 'wish_list_detail'  清单
-     * 'brand_info'  品牌页
-     * 'wish_like'  清单赞v3.4
-     * 'wish_comment'  清单评论v3.4
-     * 'wish_list_detail_app'  清单详情app用v3.4
-     * 'super_wish_list'  超级清单v3.4
-     * 'wish_list_category'  超级清单分类v3.4
-     * 'wish_list_rebate'  清单返利V3.5
-     * 'wish_list_reward'  清单打赏v3.5
-     * 'act_cute_like'  卖萌赞v3.5
-     * 'act_cute_comment'  卖萌评论v3.5
-     * 'act_cute_detail'  卖萌详情v3.5
-     * 'act_cute_detail_app'  卖萌详情appv3.5
-     * 'act_cute_record'  卖萌成果v3.5
      * 'add_fine' 帖子加精 v5.4
+     * 'group_coupon'  优惠券
+     * 'group_custom'  自定义 （跳转为自定义链接）
      *
-     * @param $user_id  int  消息所属用户id
-     * @param $send_user  int  消息所属用户id
-     * @param $source_id  int  消息相关资源id
-     * @param $content  string  消息内容
+     * ------特卖------
+     *
+     * 'order'  订单
+     * 'coupon'
+     * 'custom'  自定义 （跳转为自定义链接）
+     *
+     * @param $sendFromUserId    int  发送人ID
+     * @param $toUserId          int  接收用户ID
+     * @param $resourceId        int  消息相关资源id
+     * @param $content           array 消息内容
      *
      */
-    public function addUserNews($type, $user_id, $send_user, $source_id, $content)
+    public function addUserNews($type, $sendFromUserId, $toUserId = 0, $resourceId = 0, $content = [])
     {
 
     }
 
     /**
-     * 新增用户消息
+     * 新增系统消息，系统消息只给批量用户发，不会给单人发
      *
-     * @param $type 消息类型
+     * @param $type string 消息类型
      * ======================消息类型======================
-     * 'group'  蜜芽圈活动
      *
-     * 'outletsList'  特卖
-     * 'productDetail'  商品详情/单品
-     * 'custom'  自定义
+     * ------社交------
+     *
+     * 'img_comment'  图片评论
+     * 'img_like'  图片赞
+     * 'follow'  关注
+     * 'add_fine' 帖子加精 v5.4
+     * 'group_coupon'  优惠券
+     * 'group_custom'  自定义 （跳转为自定义链接）
+     *
+     * ------特卖------
+     *
+     * 'order'  订单
+     * 'coupon'  优惠券
+     * 'custom'  自定义 （跳转为自定义链接）
+     *
+     * @param $content_info array 消息内容（标题，图片，内容，url）
+     * @param $send_time string 发送时间
+     * @param $abandon_time string 失效时间
+     * @param $source_id int 相关资源ID
+     * @param $user_group string 用户组
      *
      */
-    public function addSystemNews($type, $user_id, $send_user, $source_id, $content)
+    public function addSystemNews($type, $content_info, $send_time, $abandon_time, $user_group = "")
     {
+        $insert_data = [];
+        $insert_data['type'] = $type;//一般为 custom
+        $insert_data['send_user'] = 0; //蜜芽兔/蜜芽小天使，读的时候指定
 
+        //标题，图片，内容，url
+        $title = $content_info['title'] ? $content_info['title'] : "";
+        $content = $content_info['content'] ? $content_info['content'] : "";
+        $photo = $content_info['photo'] ? $content_info['photo'] : "";
+        $url = $content_info['url'] ? $content_info['url'] : "";
+        $insert_data['ext_info'] = json_encode(["content" => $content, "title" => $title, "photo" => $photo, "url" => $url]);
+
+        if (strtotime($send_time) < (time() + 600)) {
+            return $this->error(500, '发送时间应在未来的十分钟之外！');
+        }
+        $insert_data['send_time'] = $send_time;
+
+        $insert_data['abandon_time'] = $abandon_time;//废弃时间，过了此时间用户不拉取该消息
+        $insert_data['user_group'] = $user_group;
+        $insert_data['create_time'] = date("Y-m-d H:i:s");
+        //添加消息
+        $insertNewsRes = $this->newsModel->addSystemNews($insert_data);
+        return $this->succ($insertNewsRes);
     }
 
     /**

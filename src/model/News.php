@@ -3,6 +3,8 @@ namespace mia\miagroup\Model;
 
 use mia\miagroup\Data\News\AppNewsInfo;
 use mia\miagroup\Data\News\AppUserNews;
+use mia\miagroup\Data\News\SystemNews;
+use mia\miagroup\Data\News\UserNews;
 
 class News {
 
@@ -13,6 +15,8 @@ class News {
     public function __construct() {
         $this->newsInfo = new AppNewsInfo();
         $this->userNewsRelation = new AppUserNews();
+        $this->systemNews = new SystemNews();
+        $this->userNews = new UserNews();
     }
 
     /**
@@ -91,9 +95,10 @@ class News {
     /**
      * 新增系统消息
      */
-    public function addSystemNews()
+    public function addSystemNews($insertData)
     {
-
+        $res = $this->systemNews->addSystemNews($insertData);
+        return $res;
     }
 
     /**
