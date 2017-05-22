@@ -27,6 +27,9 @@ class SubjectPointTags extends \DB_Query {
      * @param itemIds array() 帖子标记信息
      */
     public function saveBatchSubjectTags($setData){
+        if (!is_array($setData) || empty($setData)) {
+            return false;
+        }
         return  $this->multiInsert($setData);
     }
     
