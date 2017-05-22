@@ -33,7 +33,7 @@ class GroupUserCategory extends DB_Query {
             $where[] = ['user_id', $conditions['user_id']];
         }
         $users = $this->getRows($where);
-        if (!empty($users)) {
+        if (!empty($users) && is_array($users)) {
             foreach ($users as $user) {
                 $result[$user['type']][$user['user_id']] = $user;
                 if(in_array($user['type'], array('company', 'doozer', 'official_cert'))){
