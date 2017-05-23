@@ -1973,17 +1973,17 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if(empty($koubei_count)) {
                 // 首评返回文案
                 if(!empty($coupon_money)) {
-                    $couponGuide['bean_issue'] = '商品首个评价奖励20蜜豆，更可获得';
-                    $couponGuide['coupon_issue'] = $coupon_money.'元优惠券';
+                    $couponGuide[$item_id]['bean_issue'] = '商品首个评价奖励20蜜豆，更可获得';
+                    $couponGuide[$item_id]['coupon_issue'] = $coupon_money.'元优惠券';
                 }else {
-                    $couponGuide['bean_issue'] = '商品首个评价奖双倍蜜豆，20蜜豆轻松获得';
+                    $couponGuide[$item_id]['bean_issue'] = '商品首个评价奖双倍蜜豆，20蜜豆轻松获得';
                 }
             }else {
                 if(!empty($coupon_money)) {
-                    $couponGuide['bean_issue'] = '评价即得10蜜豆，更可获得';
-                    $couponGuide['coupon_issue'] = $coupon_money.'元优惠券';
+                    $couponGuide[$item_id]['bean_issue'] = '评价即得10蜜豆，更可获得';
+                    $couponGuide[$item_id]['coupon_issue'] = $coupon_money.'元优惠券';
                 }else {
-                    $couponGuide['bean_issue'] = '评价即得10蜜豆';
+                    $couponGuide[$item_id]['bean_issue'] = '评价即得10蜜豆';
                 }
             }
         }
