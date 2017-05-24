@@ -82,6 +82,12 @@ class RecommendNote
             $res = $redis->get(\F_Ice::$ins->workApp->config->get('busconf.rediskey.recommendSubjectKey'));
             $idArr = explode(' ', $res);
             $noteIds = array_slice($idArr, ($page - 1) * $count, $count);
+            if(empty($noteIds)) {
+                    \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                        'type' => 'REDISERROR',
+                        'redis_error' => $this->session_info,
+                    ));
+            }
         }
         $return = [];
         foreach ($noteIds as $v) {
