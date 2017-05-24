@@ -1951,4 +1951,50 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($return);
     }
+
+    /*
+     * V5.5 领券引导
+     * */
+    public function koubeiCouponGuide($itemIds, $page=1, $count=1)
+    {
+        $couponGuide = array();
+        if(empty($itemIds)) {
+            return $this->succ([]);
+        }
+        $condition['where']['end_time'] = date("Y-m-d H:i:s", time());
+        $couponInfo = $this->getCouponRule($itemIds, $page, $count, $condition)['data'];
+        if(!empty($couponInfo)) {
+            $couponGuide['issue_banner'] = '评价领券';
+        }
+
+        // 封装奖励信息
+        $coupon_money = 0;
+        foreach ($itemIds as $item_id) {
+            if(!empty($couponInfo[$item_id]['ext_info'])) {
+                $ext_info = json_decode($couponInfo[$item_id]['ext_info'], true);
+            }
+            if(!empty($ext_info)) {
+                $coupon_money = $ext_info['coupon_money'];
+            }
+            // 判断首评标志
+            $koubei_count = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
+            if(empty($koubei_count)) {
+                // 首评返回文案
+                if(!empty($coupon_money)) {
+                    $couponGuide[$item_id]['bean_issue'] = '商品首个评价奖励20蜜豆，更可获得';
+                    $couponGuide[$item_id]['coupon_issue'] = $coupon_money.'元优惠券';
+                }else {
+                    $couponGuide[$item_id]['bean_issue'] = '商品首个评价奖双倍蜜豆，20蜜豆轻松获得';
+                }
+            }else {
+                if(!empty($coupon_money)) {
+                    $couponGuide[$item_id]['bean_issue'] = '评价即得10蜜豆，更可获得';
+                    $couponGuide[$item_id]['coupon_issue'] = $coupon_money.'元优惠券';
+                }else {
+                    $couponGuide[$item_id]['bean_issue'] = '评价即得10蜜豆';
+                }
+            }
+        }
+        return $this->succ($couponGuide);
+    }
 }
