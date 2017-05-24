@@ -46,7 +46,8 @@ class GroupUserCategory extends DB_Query {
                     $result[$user['user_id']]['label'] = $extInfo['label'];
                 }
                 if(isset($extInfo['desc']) && !empty($extInfo['desc'])) {
-                    $result[$user['user_id']]['desc'] = $extInfo['desc'];
+                    $extInfo['desc'] = str_replace('#', ' ', $extInfo['desc']);
+                    $result[$user['user_id']]['desc'] = trim($extInfo['desc']);
                 }
             }
         }
