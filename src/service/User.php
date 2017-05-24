@@ -361,20 +361,21 @@ class User extends \mia\miagroup\Lib\Service {
         $user_id = $this->userModel->addUser($insert_info);
         return $this->succ($user_id);
     }
-
+    
     /**
-     * 查推荐用户列表
-     * @params array()
-     * @return array() 推荐用户列表
+     * 获取推荐用户列表
      */
-    public function getGroupDoozerList($count = 10)
-    {
-        $result = array();
-        $userArr = $this->userModel->getGroupUserIdList($count);
-        if(!empty($userArr)){
-            $result = $userArr;
+    public function userRecommend($type, $current_uid = 0, $page = 1, $count = 10) {
+        $user_ids = array();
+        switch ($type) {
+            case 'daren_rank_recommend': //达人频道推荐
+            case 'user_search_recommend': //搜索用户推荐
+            case 'album_user_recommend': //专栏用户推荐
+            default: //目前都统一推荐逻辑
+                $user_ids = $this->userModel->getGroupUserIdList($count, $page);
         }
-        return $this->succ($result);
+        $recommend_users = $this->getUserInfoByUids($user_ids, $current_uid)['data'];
+        return $this->succ(array_values($recommend_users));
     }
     
     // 批量获取分类用户（专家、达人）信息
