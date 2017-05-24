@@ -122,24 +122,24 @@ class User extends Service{
         if(!empty($userInfos)){
             foreach($userInfos as $key=>$userInfo){
                 //拼接用户分类类型
-                if(!empty($userCate)){
-                    switch ($userCate[$userInfo['id']]['type']) {
+                if(!empty($userCate[$key])){
+                    switch ($userCate[$key]['type']) {
                         case 'doozer':
                             $userInfo['category'] = "达人";
                             break;
-                        case 'doozer':
+                        case 'official_cert':
                             $userInfo['category'] = "官方认证";
                             break;
-                        case 'doozer':
+                        case 'company':
                             $userInfo['category'] = "商家/店铺";
                             break;
                     }
-                    $userInfo['en_category'] = $userCate[$userInfo['id']]['type'];
-                    $userInfo['rec_desc'] = $userCate[$userInfo['id']]['desc'] ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'],'#')) : '';
-                    $userInfo['rec_label'] = $userCate[$userInfo['id']]['label'] ? trim($userCate['doozer'][$userInfo['id']]['label'],'#') : '';
-                    if(!empty($userCate[$userInfo['id']]['category'])){
-                        $userInfo['category'] .= "/".$userCate[$userInfo['id']]['category'];
-                        $userInfo['sub_category'] = $userCate[$userInfo['id']]['category'];
+                    $userInfo['en_category'] = $userCate[$key]['type'];
+                    $userInfo['rec_desc'] = $userCate[$key]['desc'] ? explode('#', trim($userCate['doozer'][$key]['desc'],'#')) : '';
+                    $userInfo['rec_label'] = $userCate[$key]['label'] ? trim($userCate['doozer'][$key]['label'],'#') : '';
+                    if(!empty($userCate[$key]['category'])){
+                        $userInfo['category'] .= "/".$userCate[$key]['category'];
+                        $userInfo['sub_category'] = $userCate[$key]['category'];
                     }
                     if(!empty($userInfo['rec_label'])){
                         $label_ids = explode('#', $userInfo['rec_label']);
