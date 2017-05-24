@@ -34,8 +34,42 @@ class News extends \mia\miagroup\Lib\Service {
     /**
      * 获取用户消息列表
      */
-    public function getUserNewsList($userId)
+    public function getUserNewsList($userId, $page = 1, $count = 20)
     {
+        if(empty($userId)) {
+            return $this->succ([]);
+        }
+        $page = $page ? $page : 1;
+        $newsIdList = $this->newsModel->getUserNewsList($userId);
+        $offset = ($page - 1) * $count;
+        $newsIds = array_slice($newsIdList, $offset, $count);
+        //批量获取用户消息
+        $newsList = $this->getBatchNewsInfo($newsIds, $userId);//分表的用户ID必传
+        //格式化结果集
+        $newsList = $this->formatNewList($newsList);
+
+        return $newsList;
+
+    }
+
+    /**
+     * 批量获取用户消息
+     */
+    public function getBatchNewsInfo($newsIds, $userId)
+    {
+        if(!is_array($newsIds) || empty($newsIds) || empty($userId)){
+            return $this->succ([]);
+        }
+        //分表的用户ID必传
+        $newsList = $this->newsModel->getBatchNewsInfo($newsIds, $userId);
+        return $newsList;
+    }
+
+    /**
+     * 格式化用户消息类别
+     * @param $newsList
+     */
+    public function formatNewList($newsList){
 
     }
 
@@ -48,9 +82,9 @@ class News extends \mia\miagroup\Lib\Service {
     }
 
     /**
-     * 新增用户消息
+     * 新增单条用户消息
      *
-     * @param $type 消息类型
+     * @param $type string 消息类型
      * ======================消息类型======================
      *
      * ------社交------
@@ -71,12 +105,40 @@ class News extends \mia\miagroup\Lib\Service {
      * @param $sendFromUserId    int  发送人ID
      * @param $toUserId          int  接收用户ID
      * @param $resourceId        int  消息相关资源id
-     * @param $content           array 消息内容
+     * @param $content_info           array 消息内容
      *
      */
-    public function addUserNews($type, $sendFromUserId, $toUserId = 0, $resourceId = 0, $content = [])
+    public function addUserNews($type, $sendFromUserId, $toUserId = 0, $resourceId = 0, $content_info = [])
     {
+        $insert_data = [];
+        //判断type类型是否合法
+        if (!in_array($type, \F_Ice::$ins->workApp->config->get('busconf.news.all_type'))) {
+            return $this->error(500, '类型不合法！');
+        }
+        $insert_data['news_type'] = $type;//'img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'group_custom'
 
+        $insert_data['user_id'] = $toUserId;
+        $insert_data['send_user'] = $sendFromUserId;
+        $insert_data['source_id'] = $resourceId;
+        $ext_info = [];
+        //标题，图片，内容，url
+        if ($type == "group_custom") {
+            $ext_info['title'] = $content_info['title'] ? $content_info['title'] : "";
+            $ext_info['content'] = $content_info['content'] ? $content_info['content'] : "";
+            $ext_info['photo'] = $content_info['photo'] ? $content_info['photo'] : "";
+            $ext_info['url'] = $content_info['url'] ? $content_info['url'] : "";
+        }
+
+        $insert_data['create_time'] = date("Y-m-d H:i:s");
+        if (!empty($ext_info)) {
+            $insert_data['ext_info'] = json_encode($ext_info);
+        }
+        //添加消息
+        $insertRes = $this->newsModel->addUserNews($insert_data);
+        if (!$insertRes) {
+            return $this->error(500, '发送用户消息失败！');
+        }
+        return $this->succ($insertRes);
     }
 
     /**
@@ -110,7 +172,11 @@ class News extends \mia\miagroup\Lib\Service {
     public function addSystemNews($type, $content_info, $send_time, $abandon_time, $user_group = "")
     {
         $insert_data = [];
-        $insert_data['type'] = $type;//一般为 custom
+        //判断type类型是否合法
+        if (!in_array($type, \F_Ice::$ins->workApp->config->get('busconf.news.all_type'))) {
+            return $this->error(500, '类型不合法！');
+        }
+        $insert_data['news_type'] = $type;//一般为 custom
         $insert_data['send_user'] = 0; //蜜芽兔/蜜芽小天使，读的时候指定
 
         //标题，图片，内容，url
@@ -136,8 +202,19 @@ class News extends \mia\miagroup\Lib\Service {
     /**
      * 用户拉取系统消息
      */
-    public function pullUserSystemNews()
+    public function pullUserSystemNews($userId)
     {
+        if (empty(intval($userId))) {
+            return $this->error(500, '用户ID不为空！');
+        }
+        //获取某个用户消息里最大的系统消息ID
+        $maxSystemId = $this->newsModel->getMaxSystemId($userId);
 
+        //查询用户需要拉取的系统消息列表
+        $systemNewsList = $this->newsModel->getPullList($userId, $maxSystemId);
+
+        //把系统消息写入用户消息表
+        $insertRes = $this->newsModel->batchAddUserSystemNews($systemNewsList);
+        return $this->succ($insertRes);
     }
 }

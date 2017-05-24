@@ -16,7 +16,19 @@ $labelServicePrefix = $basePrefix . 'label_';
 //活动相关key前缀
 $activeServicePrefix = $basePrefix . 'active_';
 //消息相关key前缀
-$newsServicePrefix = $basePrefix . 'news_';
+$newsServicePrefix = $basePrefix . 'news:';
+
+
+/**
+ * 消息相关rediskey
+ */
+$newsKey = [
+    "user_news_list" => [
+        'key' => $newsServicePrefix . 'user:list:%d',
+        'expire_time' => 86400 * 30,
+    ]
+];
+
 
 /**
  * 直播相关的redisKey
