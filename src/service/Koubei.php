@@ -148,6 +148,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         $subjectInfo['image_infos'] = $imageInfos;
+        if (!empty($koubeiData['cover_image'])) {
+            $subjectInfo['cover_image'] = $koubeiData['cover_image'];
+        }
         $labelInfos = array();
         if(!empty($labels['label'])) {
             //$labels = $labels['label'];

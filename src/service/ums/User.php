@@ -5,6 +5,7 @@ use \F_Ice;
 use mia\miagroup\Lib\Service;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Service\User as UserService;
+use mia\miagroup\Service\Label;
 
 class User extends Service{
     
@@ -30,6 +31,7 @@ class User extends Service{
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
         $userService = new UserService();
+        $labelService = new Label();
         //初始化入参
         $orderBy = 'user_id DESC';
         $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 20;
@@ -114,11 +116,37 @@ class User extends Service{
         }
 
         $userInfos = $userService->getUserInfoByUids($userIds,0,array('count'))['data'];
+        $userCate = $userService->getBatchCategoryUserInfo($userIds)['data'];
         $userArr = array();
         //拼接用户的屏蔽状态
         if(!empty($userInfos)){
             foreach($userInfos as $key=>$userInfo){
                 $temp = $userInfo;
+                //拼接用户分类类型
+                if(!empty($userCate)){
+                    switch ($userCate[$userInfo['id']]['type']) {
+                        case 'doozer':
+                            $userInfo['category'] = "达人";
+                            break;
+                        case 'doozer':
+                            $userInfo['category'] = "官方认证";
+                            break;
+                        case 'doozer':
+                            $userInfo['category'] = "商家/店铺";
+                            break;
+                    }
+                    $userInfo['en_category'] = $userCate[$userInfo['id']]['type'];
+                    $userInfo['rec_desc'] = $userCate[$userInfo['id']]['desc'] ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'],'#')) : '';
+                    $userInfo['rec_label'] = $userCate[$userInfo['id']]['label'] ? trim($userCate['doozer'][$userInfo['id']]['label'],'#') : '';
+                    if(!empty($userCate[$userInfo['id']]['category'])){
+                        $userInfo['category'] .= "/".$userCate[$userInfo['id']]['category'];
+                        $userInfo['sub_category'] = $userCate[$userInfo['id']]['category'];
+                    }
+                    if(!empty($userInfo['rec_label'])){
+                        $label_ids = explode('#', $userInfo['rec_label']);
+                        $userInfo['labels'] = array_values($labelService->getBatchLabelInfos($label_ids)['data']);
+                    }
+                }
                 if(isset($shieldArr[$key])){
                     $temp['is_shield'] = 1;
                 }else{

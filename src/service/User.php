@@ -69,29 +69,15 @@ class User extends \mia\miagroup\Lib\Service {
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
-            $userInfo['is_experts'] = $userCate['doozer'][$userInfo['id']]['is_expert'] ? 1 : 0; // 用户是否是专家
+            $userInfo['is_experts'] = $userCate[$userInfo['id']] ? 1 : 0; // 用户是否是专家
             $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; // 用户是否是供应商
             $userInfo['is_have_permission'] = !empty($userPermissions['video'][$userInfo['id']]) ? 1 : 0; // 用户是否有发视频权限
             $userInfo['is_have_publish_permission'] = !empty($userPermissions['album'][$userInfo['id']]) ? 1 : 0; // 用户是否有web发布权限
-            if ($userCate['doozer'][$userInfo['id']]) {
-				$expertInfos[$userInfo['id']]['type'] = $userCate['doozer'][$userInfo['id']]['type'];
-                $expertInfos[$userInfo['id']]['category'] = $userCate['doozer'][$userInfo['id']]['category'];
-                if($userCate['doozer'][$userInfo['id']]['category'] != ''){
-                    $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate['doozer'][$userInfo['id']]['desc'])) ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'], "#")) : array();
-                }else{
-                    $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate['doozer'][$userInfo['id']]['desc'])) ? array($userCate['doozer'][$userInfo['id']]['desc']) : array();
-                }
-                
-                if ($expertInfos[$userInfo['id']] && !empty(trim($userCate['doozer'][$userInfo['id']]['label'], "#"))) {
-                    $expert_label_ids = explode('#', trim($userCate['doozer'][$userInfo['id']]['label'], "#"));
-                    $expertInfos[$userInfo['id']]['label'] = array_values($labelService->getBatchLabelInfos($expert_label_ids)['data']);
-                } else {
-                    $expertInfos[$userInfo['id']]['label'] = [];
-                }
-                $userInfo['doozer_intro'] = $userCate['doozer'][$userInfo['id']]['desc'];
-                $userInfo['experts_info'] = $expertInfos[$userInfo['id']];
+            $userInfo['user_type'] = 'normal';
+            if ($userCate[$userInfo['id']]) { //用户类型
+                $userInfo['user_type'] = $userCate[$userInfo['id']]['type'];
+                $userInfo['doozer_intro'] = $userCate[$userInfo['id']]['desc'];
             }
-            
             if (intval($currentUid) > 0) {
                 if (!empty($relationWithMe) && $relationWithMe[$userInfo['id']] > 0) {
                     $userInfo['relation_with_me'] = $relationWithMe[$userInfo['id']]['relation_with_me'];
@@ -113,41 +99,6 @@ class User extends \mia\miagroup\Lib\Service {
             }
             if (!in_array('cell_phone', $fields)) {
                 unset($userInfo['cell_phone']);
-            }
-            //拼接用户分类类型（用于后台）
-            if(!empty($userCate)){
-                if($userCate['doozer'][$userInfo['id']]){
-                    $userInfo['en_category'] = $userCate['doozer'][$userInfo['id']]['type'];
-                    $userInfo['category'] = "达人";
-                    $userInfo['rec_desc'] = $userCate['doozer'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'],'#')) : '';
-                    $userInfo['rec_label'] = $userCate['doozer'][$userInfo['id']]['label'] ? trim($userCate['doozer'][$userInfo['id']]['label'],'#') : '';
-                    if(!empty($userCate['doozer'][$userInfo['id']]['category'])){
-                        $userInfo['category'] .= "/".$userCate['doozer'][$userInfo['id']]['category'];
-                        $userInfo['sub_category'] = $userCate['doozer'][$userInfo['id']]['category'];
-                    }
-                }elseif($userCate['majia'][$userInfo['id']]){
-                    $userInfo['en_category'] = $userCate['majia'][$userInfo['id']]['type'];
-                    $userInfo['category'] = "马甲";
-                    $userInfo['rec_desc'] = $userCate['majia'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['majia'][$userInfo['id']]['desc'],'#')) : '';
-                    $userInfo['rec_label'] = $userCate['majia'][$userInfo['id']]['label'] ? trim($userCate['majia'][$userInfo['id']]['label'],'#') : '';
-                    if(!empty($userCate['majia'][$userInfo['id']]['category'])){
-                        $userInfo['category'] .= "/".$userCate['majia'][$userInfo['id']]['category'];
-                        $userInfo['sub_category'] = $userCate['majia'][$userInfo['id']]['category'];
-                    }
-                }elseif($userCate['company'][$userInfo['id']]){
-                    $userInfo['en_category'] = $userCate['company'][$userInfo['id']]['type'];
-                    $userInfo['category'] = "商家";
-                    $userInfo['rec_desc'] = $userCate['company'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['company'][$userInfo['id']]['desc'],'#')) : '';
-                    $userInfo['rec_label'] = $userCate['company'][$userInfo['id']]['label'] ? trim($userCate['company'][$userInfo['id']]['label'],'#') : '';
-                    if(!empty($userCate['company'][$userInfo['id']]['category'])){
-                        $userInfo['category'] .= "/".$userCate['company'][$userInfo['id']]['category'];
-                        $userInfo['sub_category'] = $userCate['company'][$userInfo['id']]['category'];
-                    }
-                }
-                if(!empty($userInfo['rec_label'])){
-                    $label_ids = explode('#', $userInfo['rec_label']);
-                    $userInfo['labels'] = array_values($labelService->getBatchLabelInfos($label_ids)['data']);
-                }
             }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
         }
@@ -428,15 +379,11 @@ class User extends \mia\miagroup\Lib\Service {
     }
     
     // 批量获取分类用户（专家、达人）信息
-    public function getBatchCategoryUserInfo($userIds,$status=array(1)) {
+    public function getBatchCategoryUserInfo($userIds, $status=array(1)) {
         if (empty($userIds)) {
-            return $this->error(500);
+            return $this->succ(array());
         }
-    
-        $conditions = array();
-        $conditions['user_id'] = $userIds;
-        $conditions['status'] = $status;
-        $data = $this->userModel->getBatchUserCategory($conditions);
+        $data = $this->userModel->getBatchUserCategory($userIds, $status);
         return $this->succ($data);
     }
 
@@ -446,8 +393,8 @@ class User extends \mia\miagroup\Lib\Service {
         if (empty($userId)) {
             return $this->succ(false);
         }
-        $res = $this->getBatchCategoryUserInfo([$userId]);
-        if(isset($res["data"]["doozer"][$userId])) {
+        $res = $this->getBatchCategoryUserInfo([$userId])['data'];
+        if(isset($res[$userId]) && $res[$userId]["type"] == 'doozer') {
             return $this->succ(true);
         }
         return $this->succ(false);
