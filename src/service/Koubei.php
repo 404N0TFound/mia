@@ -9,6 +9,7 @@ use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
 use mia\miagroup\Remote\Coupon as CouponRemote;
+use mia\miagroup\Lib\RemoteCurl;
 
 class Koubei extends \mia\miagroup\Lib\Service {
 
@@ -350,7 +351,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $conditions);
+
+        // 获取口碑id策略
+        $remote_curl = new RemoteCurl('koubei_sample');
+        $dvc_id = $this->ext_params['dvc_id'];
+        $item_str = implode(',', $item_ids);
+        $remote_data = array('dvcid' => $dvc_id, 'params' => json_encode(array('skuIds'=>$item_str,'page'=>$page,'pagesize'=>$count)));
+        $koubei_ids = $remote_curl->curl_remote('', $remote_data)['data']['data'];
+
+        if(empty($koubei_ids)) {
+            $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $conditions);
+        }
+
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
 

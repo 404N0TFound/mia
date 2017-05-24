@@ -62,3 +62,12 @@ $shumei_text = array(
     'result_format' => false,
     'log_response' => true
 );
+
+//口碑策略
+$koubei_sample = array(
+    'url' => 'http://sample.miyabaobei.com/sample/koubeisort',
+    //'url' => 'http://sample.miyabaobei.com/sample/sample?action=koubeisort',
+    'method' => 'post',
+    'result_format' => false,
+    'log_response' => true
+);
