@@ -25,39 +25,30 @@ class GroupUserCategory extends DB_Query {
     /**
      * 批量获取分类用户信息
      */ 
-    public function getBatchUserInfoByUids($conditions) {
+    public function getBatchUserInfoByUids($userIds, $status=array(1)) {
+        if (empty($userIds)) {
+            return array();
+        }
         $result = array();
         $where = array();
-        $where[] = ['status', $conditions['status']];
-        if (!empty($conditions) && isset($conditions['user_id'])) {
-            $where[] = ['user_id', $conditions['user_id']];
+        $where[] = ['user_id', $userIds];
+        if (!empty($status)) {
+            $where[] = ['status', $status];
         }
         $users = $this->getRows($where);
         if (!empty($users)) {
             foreach ($users as $user) {
-                $result[$user['type']][$user['user_id']] = $user;
-                if(in_array($user['type'], array('company', 'doozer', 'official_cert'))){
-                    $result[$user['type']][$user['user_id']]['is_expert'] = 1;
-                }
+                $result[$user['user_id']] = $user;
                 if(!empty($user['ext_info'])){
                     $extInfo = json_decode($user['ext_info'],true);
-                    if(isset($extInfo['desc']) && !empty($extInfo['desc'])){
-                        $result[$user['type']][$user['user_id']]['desc'] = $extInfo['desc'];
-                    }
-                    if(isset($extInfo['label']) && !empty($extInfo['label'])){
-                        $result[$user['type']][$user['user_id']]['label'] = $extInfo['label'];
-                    }
-                    if(isset($extInfo['last_modify']) && !empty($extInfo['last_modify'])){
-                        $result[$user['type']][$user['user_id']]['last_modify'] = $extInfo['last_modify'];
-                    }
-                    if(isset($extInfo['modify_author']) && !empty($extInfo['modify_author'])){
-                        $result[$user['type']][$user['user_id']]['modify_author'] = $extInfo['modify_author'];
-                    }
-                    if(isset($extInfo['answer_nums']) && !empty($extInfo['answer_nums'])){
-                        $result[$user['type']][$user['user_id']]['answer_nums'] = $extInfo['answer_nums'];
-                    }
                 }
-                unset($result[$user['type']][$user['user_id']]['ext_info']);
+                if(isset($extInfo['label']) && !empty($extInfo['label'])){
+                    $result[$user['user_id']]['label'] = $extInfo['label'];
+                }
+                if(isset($extInfo['desc']) && !empty($extInfo['desc'])) {
+                    $extInfo['desc'] = str_replace('#', ' ', $extInfo['desc']);
+                    $result[$user['user_id']]['desc'] = trim($extInfo['desc']);
+                }
             }
         }
         return $result;
