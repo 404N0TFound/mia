@@ -38,7 +38,6 @@ class GroupUserCategory extends DB_Query {
         $users = $this->getRows($where);
         if (!empty($users)) {
             foreach ($users as $user) {
-                $result[$user['user_id']] = $user;
                 if(!empty($user['ext_info'])){
                     $extInfo = json_decode($user['ext_info'],true);
                 }

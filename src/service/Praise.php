@@ -97,6 +97,7 @@ class Praise extends \mia\miagroup\Lib\Service {
             $setInfo = array(
                 ["subject_id", $iSubjectId],
                 ["user_id", $userId],
+                ["subject_uid", $subjectInfo['user_id']],
                 ["status", '1'],
                 ["created", date("Y-m-d H:i:s", time())],
             );
@@ -106,6 +107,7 @@ class Praise extends \mia\miagroup\Lib\Service {
             $setData = array(
                 "subject_id" => $iSubjectId,
                 "user_id"    => $userId,
+                "subject_uid"=> $subjectInfo['user_id'],
                 "status"     => '1',
                 "created"    => date("Y-m-d H:i:s", time()),
             );

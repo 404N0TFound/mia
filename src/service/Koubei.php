@@ -857,6 +857,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $commentInfo['subject_id'] = $subjectId;
         $commentInfo['comment'] = $comment;
         $commentInfo['user_id'] = $userId;
+        $commentInfo['subject_uid'] = $subjectInfo['user_id'];
         $commentInfo['fid'] = $fid;
         $commentInfo['is_expert'] = 1;
         $commentInfo['id'] = $commentService->addComment($commentInfo)['id'];
@@ -1091,6 +1092,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $return_Info['selection_labels'][] = $e_labels;
 
                 break;
+        }
+        // 容错
+        if(empty($return_Info)) {
+            $return_Info = array();
         }
         return $this->succ($return_Info);
     }

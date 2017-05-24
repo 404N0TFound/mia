@@ -75,8 +75,8 @@ class User extends Service{
                 $userArr = $this->userModel->getShieldUserIdList(array(),$offset,$limit);
             }
         }
-        //用户分类查询（全部、达人、马甲、商家）
-        if(!empty($params['category']) && in_array($params['category'],array("doozer","majia","company"))  && !isset($userId)){
+        //用户分类查询（全部、达人、官方认证、商家/店铺）
+        if(!empty($params['category']) && in_array($params['category'],array("doozer","official_cert","company"))  && !isset($userId)){
             //如果选择了权限筛选项，则查询这些类别的权限
             if(!empty($params['permission']) && in_array($params['permission'],array("video","album","live"))){
                 if($params['permission'] == "live"){

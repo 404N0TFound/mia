@@ -12,7 +12,7 @@ class RemoteCurl {
     private $_msg_key = 'msg'; //json结果集，错误信息key
     private $_success_code = 0; //json结果集，成功正确码
     private $_result_format = true; //返回结果是否格式化解析
-    private $_time_out = 1; //连接超时时间，默认1秒
+    private $_time_out = 3; //连接超时时间，默认1秒
     private $_log_response = false; //是否记录返回结果
 
     public function __construct($remote_name) {
@@ -137,6 +137,15 @@ class RemoteCurl {
         curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->_time_out);
         $return_data = curl_exec($ch);
+
+        if(curl_errno($ch) || empty($return_data)) {
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server' => $this->_remote_name,
+                'type' => 'CURLERROR',
+                'curl_error' => curl_getinfo($ch),
+            ));
+        }
+
         if (!$return_data) {
             $curl_info = curl_getinfo($ch);
             if ($curl_info['http_code'] == 0 || $curl_info['http_code'] >= 400) {
