@@ -12,7 +12,7 @@ class RemoteCurl {
     private $_msg_key = 'msg'; //json结果集，错误信息key
     private $_success_code = 0; //json结果集，成功正确码
     private $_result_format = true; //返回结果是否格式化解析
-    private $_time_out = 1; //连接超时时间，默认1秒
+    private $_time_out = 3; //连接超时时间，默认1秒
     private $_log_response = false; //是否记录返回结果
 
     public function __construct($remote_name) {
