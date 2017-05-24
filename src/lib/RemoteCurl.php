@@ -137,6 +137,15 @@ class RemoteCurl {
         curl_setopt($ch, CURLOPT_BINARYTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, $this->_time_out);
         $return_data = curl_exec($ch);
+
+        if(curl_errno($ch) || empty($return_data)) {
+            \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                'third_server' => $this->_remote_name,
+                'type' => 'CURLERROR',
+                'curl_error' => curl_getinfo($ch),
+            ));
+        }
+
         if (!$return_data) {
             $curl_info = curl_getinfo($ch);
             if ($curl_info['http_code'] == 0 || $curl_info['http_code'] >= 400) {
