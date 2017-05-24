@@ -121,7 +121,6 @@ class User extends Service{
         //拼接用户的屏蔽状态
         if(!empty($userInfos)){
             foreach($userInfos as $key=>$userInfo){
-                $temp = $userInfo;
                 //拼接用户分类类型
                 if(!empty($userCate)){
                     switch ($userCate[$userInfo['id']]['type']) {
@@ -147,6 +146,7 @@ class User extends Service{
                         $userInfo['labels'] = array_values($labelService->getBatchLabelInfos($label_ids)['data']);
                     }
                 }
+                $temp = $userInfo;
                 if(isset($shieldArr[$key])){
                     $temp['is_shield'] = 1;
                 }else{
