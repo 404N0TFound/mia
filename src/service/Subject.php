@@ -1223,7 +1223,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjects_info = $this->subjectModel->getSubjectByIds($subjectId);
         //查询关联商品信息
         $pointTag = new \mia\miagroup\Service\PointTags();
-        $subjectItemIds = $pointTag->getBatchSubjectItmeIds($subjectIds)['data'];
+        $subjectItemIds = $pointTag->getBatchSubjectItmeIds($subjectId)['data'];
 
         $affect = $this->subjectModel->setSubjectRecommendStatus($subjectId);
         if(!$affect){
