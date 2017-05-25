@@ -200,19 +200,20 @@ class User
      * @params array()
      * @return array() 推荐用户列表
      */
-    public function getGroupUserIdList($count)
+    public function getGroupUserIdList($count, $page = 1)
     {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getGroupUserIdList($count);
+        $offset = ($page - 1) * $count;
+        $data = $userCategory->getGroupUserIdList($count, $offset);
         return $data;
     }
     
     /**
      * 批量获取分类用户信息
      */
-    public function getBatchUserCategory($conditions) {
+    public function getBatchUserCategory($userIds, $status=array(1)) {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getBatchUserInfoByUids($conditions);
+        $data = $userCategory->getBatchUserInfoByUids($userIds, $status);
         return $data;
     }
     

@@ -23,7 +23,7 @@ class UserSupplierMapping extends \DB_Query {
         $where = array();
         $where[] = ['user_id', $user_ids];
         $data = $this->getRows($where);
-        if (!empty($data)) {
+        if (!empty($data) && is_array($data)) {
             foreach ($data as $v) {
                 $result[$v['user_id']] = $v;
             }

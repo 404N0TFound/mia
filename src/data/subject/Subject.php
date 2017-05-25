@@ -334,4 +334,32 @@ class Subject extends \DB_Query {
         }
         return $subjectIds;
     }
+    
+    /**
+     * 获取用户在某个时间段内的发帖排行
+     */
+    public function getPushlishRankByTime($user_ids, $start_time, $end_time, $conditon = [], $offset = 0, $limit = false) {
+        if (!is_array($user_ids) && empty($user_ids)) {
+            return array();
+        }
+        $where = [];
+        $where[] = ['user_id', $user_ids];
+        if (!empty($start_time)) {
+            $where[] = [':ge', 'created', $start_time];
+        }
+        if (!empty($end_time)) {
+            $where[] = [':lt', 'created', $end_time];
+        }
+        foreach ($conditon as $k => $v) {
+            switch ($k) {
+                default:
+                    $where[] = [$k, $v];
+            }
+        }
+        $field = 'user_id, count(id) as pub_count';
+        $order_by = array('pub_count DESC');
+        $group_by = 'user_id';
+        $data = $this->getRows($where, $field, $limit, $offset, $order_by, false, $group_by);
+        return $data;
+    }
 }
