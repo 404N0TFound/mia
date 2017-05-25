@@ -71,14 +71,13 @@ class GroupUserCategory extends DB_Query {
      *批量获取达人用户id
      * @return array() 达人用户id列表
      */
-    public function getGroupUserIdList($count = 10)
+    public function getGroupUserIdList($count = 10, $offset = 0)
     {
         $where = array();
         $where[] = ['status', 1];
         $where[] = ['type', 'doozer'];
-//         $where[] = ['category', ''];
         $orderBy = ['create_time DESC'];
-        $userIdRes = $this->getRows($where, array('user_id'), $count, 0, $orderBy);
+        $userIdRes = $this->getRows($where, array('user_id'), $count, $offset, $orderBy);
         $userIdArr = array();
         if ($userIdRes) {
             foreach ($userIdRes as $value) {

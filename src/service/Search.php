@@ -403,7 +403,7 @@ class Search extends Service
         $return = array_values($userList);
         return $this->succ(['user_list' => $return]);
     }
-
+    
     /**
      * 商品搜索，推荐热词列表
      */
