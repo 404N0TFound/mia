@@ -800,11 +800,6 @@ class Subject extends \mia\miagroup\Lib\Service
                 return $this->error(1104);
             }
         }
-        //判断是否重复提交
-        $isReSubmit = $this->subjectModel->checkReSubmit($subjectInfo);
-        if ($isReSubmit === true) {
-            return $this->error(1128);
-        }
         //口碑不经过数美验证
         if ($isValidate == 1) {
             //启用数美验证
@@ -838,6 +833,12 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }
+        }
+        
+        //判断是否重复提交
+        $isReSubmit = $this->subjectModel->checkReSubmit($subjectInfo);
+        if ($isReSubmit === true) {
+            return $this->error(1128);
         }
 
         $subjectSetInfo = array();
@@ -960,6 +961,8 @@ class Subject extends \mia\miagroup\Lib\Service
             // 发布失败
             return $this->error(1101);
         }
+        //发布成功记录，用于校验重复提交
+        $this->subjectModel->subjectPublishRecord($subjectInfo);
         // insert_id
         $subjectId = $insertSubjectRes;
         if ($videoId > 0) {

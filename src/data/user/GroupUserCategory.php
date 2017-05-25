@@ -36,7 +36,7 @@ class GroupUserCategory extends DB_Query {
             $where[] = ['status', $status];
         }
         $users = $this->getRows($where);
-        if (!empty($users)) {
+        if (!empty($users) && is_array($users)) {
             foreach ($users as $user) {
                 $result[$user['user_id']] = $user;
                 if(!empty($user['ext_info'])){
