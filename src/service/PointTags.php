@@ -33,7 +33,7 @@ class PointTags extends \mia\miagroup\Lib\Service {
         }
         // 封测报告未上线商品处理
         if(!empty($action) && $action == 'is_pick') {
-            $itemInfos = $this->itemService->getItemList($itemIds,[2])['data'];
+            $itemInfos = $this->itemService->getItemList($itemIds,array())['data'];
         }else{
             $itemInfos = $this->itemService->getItemList($itemIds)['data'];
         }
