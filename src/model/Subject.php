@@ -533,9 +533,23 @@ class Subject {
         if ($result == 1) {
             return true;
         } else {
-            $redis->set($key, 1);
-            $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.expire_time'));
             return false;
         }
+    }
+    
+    /**
+     * 帖子发布成功记录
+     */
+    public function subjectPublishRecord($subject_info) {
+        if (is_array($subject_info)) {
+            $md5_text = md5(json_encode($subject_info));
+        } else {
+            $md5_text = md5($subject_info);
+        }
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.key'), $md5_text);
+        $redis = new \mia\miagroup\Lib\Redis();
+        $redis->set($key, 1);
+        $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.expire_time'));
     }
 }
