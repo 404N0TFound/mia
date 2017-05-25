@@ -29,7 +29,7 @@ class MiBean extends Thrift{
             case 'receive_praise': //赞奖励
             case 'follow_me': //关注奖励
             case 'receive_comment': //评论奖励
-                $param['mibean'] = 100;
+                $param['mibean'] = 1;
                 break;
             case 'publish_pic': //发布奖励
                 $mibean_publish_pic_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['user_id']);
