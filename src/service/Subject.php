@@ -911,6 +911,12 @@ class Subject extends \mia\miagroup\Lib\Service
 
         // 封测报告推荐
         $subjectSetInfo['ext_info']['selection'] = $selection;
+
+        // 封测报告标识
+        $action = '';
+        if(!empty($selection) || !empty($selectionLabelInfo)) {
+            $action = 'is_pick';
+        }
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         
@@ -1018,7 +1024,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $koubeiSubject['create_time'] = $subjectSetInfo['created'];
         $koubeiService = new KoubeiService();
         $koubeiService->addKoubeiSubject($koubeiSubject);
-        
+
         //插入帖子标记信息
         if(!empty($pointInfo)){
             $pointItemIds = array();
@@ -1029,7 +1035,8 @@ class Subject extends \mia\miagroup\Lib\Service
                     $pointItemIds[] = $itemPoint['item_id'];
                 }
             }
-            $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds);
+            // 区别封测报告（封测报告为未上线商品）
+            $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds, $action);
         }
         
         //组装活动帖子关联表信息

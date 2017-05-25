@@ -66,8 +66,11 @@ class Item extends \mia\miagroup\Lib\Service {
      * 根据商品id批量获取商品
      * @param int $itemIds
      */
-    public function getItemList($itemIds, $status = array(0, 1))
+    public function getItemList($itemIds, $status = array())
     {
+        if(empty($status)) {
+            $status = array(0, 1);
+        }
         $itemList = $this->itemModel->getBatchItemByIds($itemIds,$status);
         if (empty($itemList)) {
             return $this->succ(array());
