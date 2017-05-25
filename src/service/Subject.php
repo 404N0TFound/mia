@@ -1221,6 +1221,9 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectId = is_array($subjectId) ? $subjectId : [$subjectId];
         //查询图片信息
         $subjects_info = $this->subjectModel->getSubjectByIds($subjectId);
+        //查询关联商品信息
+        $pointTag = new \mia\miagroup\Service\PointTags();
+        $subjectItemIds = $pointTag->getBatchSubjectItmeIds($subjectIds)['data'];
 
         $affect = $this->subjectModel->setSubjectRecommendStatus($subjectId);
         if(!$affect){
@@ -1233,18 +1236,18 @@ class Subject extends \mia\miagroup\Lib\Service
         $news = new \mia\miagroup\Service\News();
 
         foreach($subjects_info as $subject_info){
-            $param = array(
-                'user_id'           => $subject_info['user_id'],//操作人
-                'mibean'            => 5,
-                'relation_type'     => 'fine_pic',
-                'relation_id'       => $subject_info['id'],
-                'to_user_id'        => $subject_info['user_id']
-            );
-            //验证是否送过
-            $data = $mibean->check($param);
-            if(empty($data['data'])){
+            //有关联商品才加蜜豆
+            if (!empty($subjectItemIds[$subject_info['id']])) {
+                $param = array(
+                    'user_id'           => $subject_info['user_id'],//操作人
+                    'mibean'            => 5,
+                    'relation_type'     => 'fine_pic',
+                    'relation_id'       => $subject_info['id'],
+                    'to_user_id'        => $subject_info['user_id']
+                );
                 $data = $mibean->add($param);
             }
+            
             //发送消息推送，每天发三次
             $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
             $push_num = $redis->get($push_num_key);
