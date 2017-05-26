@@ -23,8 +23,14 @@ $newsServicePrefix = $basePrefix . 'news:';
  * 消息相关rediskey
  */
 $newsKey = [
-    "user_news_list" => [
-        'key' => $newsServicePrefix . 'user:list:%d',
+    //特卖消息列表
+    "user_news_list_outlets" => [
+        'key' => $newsServicePrefix . 'user:outletslist:%d',
+        'expire_time' => 86400 * 30,
+    ],
+    //社交消息列表
+    "user_news_list_group" => [
+        'key' => $newsServicePrefix . 'user:grouplist:%d',
         'expire_time' => 86400 * 30,
     ]
 ];

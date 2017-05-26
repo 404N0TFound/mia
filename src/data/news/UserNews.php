@@ -70,7 +70,7 @@ class UserNews extends DB_Query
         //查询字段
         $fields = 'news_id';
         $data = $this->getRows($where, $fields, 1, 0, "news_id DESC");
-        if(empty($data)) {
+        if (empty($data)) {
             //新用户
             return 0;
         }
@@ -99,6 +99,10 @@ class UserNews extends DB_Query
         } else {
             $order_by = "create_time DESC";
         }
+        if (isset($conditions['news_type'])) {
+            $where[] = ['news_type', $conditions['news_type']];
+        }
+
         $fields = "id";
         $data = $this->getRows($where, $fields, $limit, 0, $order_by);
 
@@ -112,7 +116,6 @@ class UserNews extends DB_Query
             return [];
         }
     }
-
 
 
     /**
@@ -130,9 +133,27 @@ class UserNews extends DB_Query
         }
         $where[] = ['status', 1];
 
-        $fields = "id,news_type,user_id,send_user,is_read,source_id,ext_info";
+        $fields = "id,news_type,user_id,send_user,news_id,is_read,source_id,ext_info,create_time";
         $data = $this->getRows($where, $fields);
         return $data;
+    }
+
+
+    /**
+     * 批量设置已读状态
+     * @param $userId
+     * @return bool
+     */
+    public function changeReadStatus($userId)
+    {
+        $isShardExists = $this->doShard(["user_id" => $userId]);
+        if (!$isShardExists) {
+            return false;
+        }
+        $setData[] = ['is_read', 1];
+        $where[] = ['user_id', $userId];
+        $res = $this->update($setData, $where);
+        return $res;
     }
 
 }

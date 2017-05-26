@@ -34,12 +34,19 @@ class SystemNews extends DB_Query
             return [];
         }
 
+        if (isset($conditions['id'])) {
+            $where[] = ['id', $conditions['id']];
+        }
         if (isset($conditions['status'])) {
             $where[] = ['status', $conditions['status']];
         }
         if (isset($conditions["gt"]['id'])) {
             //大于最大系统消息ID
             $where[] = [':gt', 'id', $conditions["gt"]['id']];
+        }
+        if (isset($conditions["gt"]['create_time'])) {
+            //大于消息创建时间
+            $where[] = [':gt', 'create_time', $conditions["gt"]['create_time']];
         }
         if (isset($conditions["lt"]['send_time'])) {
             //发送时间小于当前时间
