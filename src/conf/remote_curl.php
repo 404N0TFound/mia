@@ -68,6 +68,5 @@ $koubei_sample = array(
     'url' => 'http://sample.miyabaobei.com/sample/koubeisort',
     //'url' => 'http://sample.miyabaobei.com/sample/sample?action=koubeisort',
     'method' => 'post',
-    'result_format' => false,
-    'log_response' => true
+    'result_format' => false
 );
