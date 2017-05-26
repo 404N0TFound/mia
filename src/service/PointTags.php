@@ -31,7 +31,8 @@ class PointTags extends \mia\miagroup\Lib\Service {
         if(empty($itemIds)){
             return $this->error(201,'请不要重复添加！');
         }
-        $itemInfos = $this->itemService->getItemList($itemIds)['data'];
+        $itemInfos = $this->itemService->getItemList($itemIds,array())['data'];
+
         foreach($itemInfos as $itemId => $itemInfo){
             $tagSetInfo = array(
                 "point_id" => 0,
