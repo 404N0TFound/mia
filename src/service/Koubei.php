@@ -437,8 +437,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $condition['score'] = array(0, 4, 5);
         $condition['machine_score'] = 3;
 
-        // 获取口碑id策略
-        $remote_curl = new RemoteCurl('koubei_sample');
+        // 获取口碑id策略(商品详情缓存，暂时不开放)
+        /*$remote_curl = new RemoteCurl('koubei_sample');
         $dvc_id = $this->ext_params['dvc_id'];
         $item_str = implode(',', $item_ids);
         $remote_data = array('dvcid' => $dvc_id, 'params' => json_encode(array('skuIds'=>$item_str,'page'=>0,'pagesize'=>$count)));
@@ -446,7 +446,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         if(empty($koubei_ids)) {
             $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
-        }
+        }*/
+
+        $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
 
         if (count($koubei_ids) < $count) {
             $count = $count - count($koubei_ids);
