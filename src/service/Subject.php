@@ -1021,7 +1021,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $koubeiSubject['create_time'] = $subjectSetInfo['created'];
         $koubeiService = new KoubeiService();
         $koubeiService->addKoubeiSubject($koubeiSubject);
-        
+
         //插入帖子标记信息
         if(!empty($pointInfo)){
             $pointItemIds = array();
@@ -1032,6 +1032,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     $pointItemIds[] = $itemPoint['item_id'];
                 }
             }
+            // 区别封测报告（封测报告为未上线商品）
             $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds);
         }
         
