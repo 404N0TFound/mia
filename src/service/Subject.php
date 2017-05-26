@@ -911,12 +911,6 @@ class Subject extends \mia\miagroup\Lib\Service
 
         // 封测报告推荐
         $subjectSetInfo['ext_info']['selection'] = $selection;
-
-        // 封测报告标识
-        $action = '';
-        if(!empty($selection) || !empty($selectionLabelInfo)) {
-            $action = 'is_pick';
-        }
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         
