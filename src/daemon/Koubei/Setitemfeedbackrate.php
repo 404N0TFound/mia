@@ -71,6 +71,9 @@ class Setitemfeedbackrate extends \FD_Daemon {
             $where['status'] = 2;
             $where['subject_id'] = 0;
             $totalNums = $this->koubeiData->getItemInvolveNums($filed, $where);
+            if(empty($totalNums)) {
+                continue;
+            }
             //4、获取商品4分以上的评分口碑数量
             $where['score'] = 4;
             $highScoreNums = $this->koubeiData->getItemInvolveNums($filed, $where);
@@ -108,6 +111,9 @@ class Setitemfeedbackrate extends \FD_Daemon {
             $where['score'] = 1;
             
             $totalNums = $this->koubeiData->getItemInvolveNums($filed, $where);
+            if(empty($totalNums)) {
+                continue;
+            }
             //4、获取商品4分以上的评分口碑数量
             $where['score'] = 4;
             $highScoreNums = $this->koubeiData->getItemInvolveNums($filed, $where);
