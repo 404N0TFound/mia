@@ -1036,7 +1036,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
             // 区别封测报告（封测报告为未上线商品）
-            $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds, $action);
+            $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds);
         }
         
         //组装活动帖子关联表信息
