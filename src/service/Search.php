@@ -398,7 +398,7 @@ class Search extends Service
         //推荐池数据
         $userService = new UserService();
         $currentUid = $this->ext_params['current_uid'];
-        $return = $userService->userRecommend('user_search_recommend', $currentUid);
+        $return = $userService->userRecommend('user_search_recommend', $currentUid)['data'];
         return $this->succ(['user_list' => $return]);
     }
 
