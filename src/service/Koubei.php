@@ -9,6 +9,7 @@ use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
 use mia\miagroup\Remote\Coupon as CouponRemote;
+use mia\miagroup\Lib\RemoteCurl;
 
 class Koubei extends \mia\miagroup\Lib\Service {
 
@@ -173,7 +174,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
 
         $pointInfo[0] = array( 'item_id' => $koubeiSetData['item_id']);
-        
+
         $subjectIssue = $this->subjectService->issue($subjectInfo,$pointInfo,$labelInfos,$koubeiInsertId,0,$selectionLabelInfo,$selection)['data'];
         //#############end
         //将帖子id回写到口碑表中
@@ -227,7 +228,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         return $this->succ($koubeiInsertId);
     }
-    
+
     /**
      * 默认好评
      */
@@ -246,7 +247,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($items)) {
             return $this->error(6102);
         }
-        
+
         foreach ($items as $item) {
             $itemId = $item['item_id'];
             $itemSize = $item['item_size'];
@@ -275,7 +276,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if(!$koubeiInsertId) {
                 return $this->error(6101);
             }
-            
+
             //发口碑同时发布蜜芽圈帖子
             $subjectInfo = array();
             $subjectInfo['user_info']['user_id'] = $koubeiSetData['user_id'];
@@ -285,7 +286,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $subjectInfo['created'] = $koubeiSetData['created_time'];
             $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
             $subjectIssue = $this->subjectService->issue($subjectInfo, array('item_id'=>$koubeiSetData['item_id']), array(), $koubeiInsertId)['data'];
-            
+
             //将帖子id回写到口碑表中
             if(!empty($subjectIssue) && $subjectIssue['id'] > 0){
                 $this->koubeiModel->addSubjectIdToKoubei($koubeiInsertId, $subjectIssue['id']);
@@ -353,7 +354,25 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $conditions);
+
+        // 获取口碑id策略
+        $sample_id = 0;
+        $ori_sample_id = \F_Ice::$ins->workApp->config->get('busconf.koubei.koubei_sample_id');
+        $remote_curl = new RemoteCurl('koubei_sample');
+        $dvc_id = $this->ext_params['dvc_id'];
+
+        if(!empty($dvc_id)) {
+            $item_str = implode(',', $item_ids);
+            $remote_data = array('dvcid' => $dvc_id, 'params' => json_encode(array('skuIds'=>$item_str,'page'=>$page-1,'pagesize'=>$count)));
+            $curl_info = $remote_curl->curl_remote('', $remote_data);
+            $koubei_ids = $curl_info['data']['data'];
+            $sample_id = $curl_info['data']['sample_id'];
+        }
+
+        if(($sample_id == $ori_sample_id) || empty($dvc_id)) {
+            $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $conditions);
+        }
+
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
 
@@ -388,7 +407,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //$koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
         return $this->succ($koubei_res);
     }
-    
+
     /**
      * 获取优质口碑
      */

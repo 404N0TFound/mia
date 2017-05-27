@@ -1409,3 +1409,8 @@ $koubei_issue = array(
         'issue_skip_url' => 'https://m.mia.com/special/module/index/17757/app/'
     ),
 );
+
+/*
+ * 口碑列表策略状态码
+ * */
+$koubei_sample_id = 20001;
