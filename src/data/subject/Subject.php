@@ -344,6 +344,7 @@ class Subject extends \DB_Query {
         }
         $where = [];
         $where[] = ['user_id', $user_ids];
+        $where[] = ['status', 1];
         if (!empty($start_time)) {
             $where[] = [':ge', 'created', $start_time];
         }
@@ -360,6 +361,12 @@ class Subject extends \DB_Query {
         $order_by = array('pub_count DESC');
         $group_by = 'user_id';
         $data = $this->getRows($where, $field, $limit, $offset, $order_by, false, $group_by);
-        return $data;
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[$v['user_id']] = $v['pub_count'];
+            }
+        }
+        return $result;
     }
 }

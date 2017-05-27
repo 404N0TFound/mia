@@ -21,6 +21,24 @@ class Redis {
         
     }
     
+    public function mget($keys){
+        if (empty($keys) || !is_array($keys)) {
+            return array();
+        }
+        $data = $this->redis->mget($keys);
+        $result = array();
+        foreach ($keys as $key) {
+            $shift_data = array_shift($data);
+            $array_data = json_decode($shift_data, true);
+            if (empty($array_data)) {
+                $result[$key] = $shift_data;
+            } else {
+                $result[$key] = $array_data;
+            }
+        }
+        return $result;
+    }
+    
     public function set($key,$val){
         if(is_array($val)){
             $val = json_encode($val);

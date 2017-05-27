@@ -15,6 +15,8 @@ $subjectServicePrefix = $basePrefix . 'subject_';
 $labelServicePrefix = $basePrefix . 'label_';
 //活动相关key前缀
 $activeServicePrefix = $basePrefix . 'active_';
+//用户相关key前缀
+$userServicePrefix = $basePrefix . 'user_';
 
 /**
  * 直播相关的redisKey
@@ -158,6 +160,18 @@ $subjectKey = [
     'subject_check_resubmit' => [//帖子重复提交标记，使用List数据结构
         'key' => $subjectServicePrefix . 'check_resubmit_%s',
         'expire_time' => 3600,
+    ],
+];
+
+//用户相关rediskey
+$userKey = [
+    'user_doozer_rank' => [//达人排行榜，使用SortedSet数据结构
+        'key' => $userServicePrefix . 'user_doozer_rank_%s',
+        'expire_time' => 86400 * 30,
+    ],
+    'user_hot_subjects' => [//用户热帖，使用String数据结构
+        'key' => $userServicePrefix . 'user_hot_subjects_%s',
+        'expire_time' => 86400 * 30,
     ],
 ];
 

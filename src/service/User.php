@@ -543,5 +543,54 @@ class User extends \mia\miagroup\Lib\Service {
         return $this->succ($result);
     }
     
-    
+    /**
+     * 获取达人排行榜
+     */
+    public function getDoozerRank($type, $current_uid = 0, $page = 1, $count = 10) {
+        //获取排行榜数据
+        $rank_list = $this->userModel->getDoozerRank($type, $page, $count);
+        if (empty($rank_list)) {
+            return $this->succ([]);
+        }
+        $subject_ids = [];
+        //获取用户热门文章
+        $user_ids = array_keys($rank_list);
+        $hot_subjects = $this->userModel->getUserHotSubjects($user_ids);
+        foreach ($hot_subjects as $subjects) {
+            $subject_ids = array_merge($subject_ids, array_keys($subjects));
+        }
+        //获取帖子、用户信息
+        $subject_service = new \mia\miagroup\Service\Subject();
+        $subject_infos = $subject_service->getBatchSubjectInfos($subject_ids, 0, [])['data'];
+        $user_infos = $this->getUserInfoByUids($user_ids, $current_uid, ['count'])['data'];
+        $index = ($page - 1) * $count;
+        $result = [];
+        foreach ($rank_list as $user_id => $pub_count) {
+            $index ++;
+            $rank_detail = null;
+            $rank_detail['index'] = $index;
+            switch ($type) {
+                case 'pub_day':
+                    $rank_detail['day_pub_count'] = $pub_count;
+                    break;
+                case 'pub_month':
+                    $rank_detail['month_pub_count'] = $pub_count;
+                    break;
+            }
+            $rank_detail['user_info'] = $user_infos[$user_id];
+            $rank_detail['subject_list'] = [];
+            if (!empty($hot_subjects[$user_id])) {
+                foreach ($hot_subjects[$user_id] as $subject_id => $praise_count) {
+                    if (!empty($subject_infos[$subject_id]) && !empty($subject_infos[$subject_id]['image_infos'])) {
+                        if (count($rank_detail['subject_list']) >= 6) {
+                            break;
+                        }
+                        $rank_detail['subject_list'][] = $subject_infos[$subject_id];
+                    }
+                }
+            }
+            $result[] = $rank_detail;
+        }
+        return $this->succ($result);
+    }
 }
