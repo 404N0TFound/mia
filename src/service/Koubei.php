@@ -369,7 +369,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $sample_id = $curl_info['data']['sample_id'];
         }
 
-        if((empty($koubei_ids) && $sample_id == $ori_sample_id) || empty($dvc_id)) {
+        if(($sample_id == $ori_sample_id) || empty($dvc_id)) {
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $conditions);
         }
 
