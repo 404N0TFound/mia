@@ -30,6 +30,7 @@ class UserNews extends DB_Query
         return $res;
     }
 
+
     /**
      * 分表操作
      */
@@ -42,6 +43,7 @@ class UserNews extends DB_Query
         }
         return false;
     }
+
 
     /**
      * 获取用户已经收到的最大系统消息ID
@@ -76,6 +78,7 @@ class UserNews extends DB_Query
         }
         return intval($data[0]["news_id"]);
     }
+
 
     /**
      * 获取用户消息列表ID
@@ -156,4 +159,27 @@ class UserNews extends DB_Query
         return $res;
     }
 
+
+    /**
+     * 获取未读消息计数
+     */
+    public function getUserNewsNum($conditions)
+    {
+        $isShardExists = $this->doShard($conditions);
+        if (!$isShardExists) {
+            return 0;
+        }
+        $where = [];
+        if (isset($conditions['user_id'])) {
+            $where[] = ['user_id', $conditions['user_id']];
+        }
+        if (isset($conditions['news_type'])) {
+            $where[] = ['news_type', $conditions['news_type']];
+        }
+        $where[] = ['status', 1];
+        $where[] = ['is_read', 0];
+        $fields = "count(id) as num";
+        $data = $this->getRow($where, $fields);
+        return intval($data["num"]);
+    }
 }

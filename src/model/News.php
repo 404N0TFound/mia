@@ -14,6 +14,7 @@ class News
     public $newsInfo;
     private $redis;
     public $userNewsRelation;
+    private $config;
 
     public function __construct()
     {
@@ -22,7 +23,9 @@ class News
         $this->userNewsRelation = new AppUserNews();
         $this->systemNews = new SystemNews();
         $this->userNews = new UserNews();
+        $this->config = \F_Ice::$ins->workApp->config->get('busconf.news');
     }
+
 
     /**
      *发布一条消息 | 旧版本
@@ -46,11 +49,12 @@ class News
         return $data;
     }
 
+
     /*================新消息系统================*/
 
     /**
      * 获取不同分类的用户的redis消息列表，redis实例
-     * @return string
+     * @return array
      */
     public function getRedisKey($type, $userId)
     {
@@ -61,6 +65,15 @@ class News
             case "group":
                 $redisKey = "user_news_list_group";
                 break;
+            case "group_index_count":
+                $redisKey = "group_index_count";
+                break;
+            case "group_count":
+                $redisKey = "group_count";
+                break;
+            case "outlets_count":
+                $redisKey = "outlets_count";
+                break;
         }
         if ($this->redis) {
             $redis = $this->redis;
@@ -69,19 +82,21 @@ class News
             $this->redis = $redis;
         }
         $user_list_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.newsKey.' . $redisKey . '.key'), intval($userId));
-        return [$redis, $user_list_key];
+        $expire_time = \F_Ice::$ins->workApp->config->get('busconf.rediskey.newsKey.' . $redisKey . '.expire_time');
+        return [$redis, $user_list_key, $expire_time];
     }
+
 
     /**
      * 获取用户消息列表
      */
     public function getUserNewsList($userId, $type)
     {
-        if(!in_array($type,["outlets","group"])) {
+        if (!in_array($type, ["outlets", "group"])) {
             return [];
         }
         //从redis取链表
-        list($redis, $user_list_key) = $this->getRedisKey($type, $userId);
+        list($redis, $user_list_key, $expire_time) = $this->getRedisKey($type, $userId);
         //$redis->del($user_list_key);
         $user_news_id_list = $redis->lRange($user_list_key, 0, -1);
 
@@ -95,10 +110,10 @@ class News
         $conditions["order_by"] = "create_time DESC";
         switch ($type) {
             case "outlets"://特卖
-                $conditions["news_type"] = \F_Ice::$ins->workApp->config->get('busconf.news.outlets');
+                $conditions["news_type"] = $this->config["outlets"];
                 break;
             case "group"://社交
-                $conditions["news_type"] = \F_Ice::$ins->workApp->config->get('busconf.news.group');
+                $conditions["news_type"] = $this->config["group"];
                 break;
         }
         $user_news_id_list = $this->userNews->getUserNewIdList($conditions);
@@ -111,66 +126,155 @@ class News
         return $user_news_id_list;
     }
 
+
     /**
      * 获取用户蜜芽圈首页互动消息计数
+     * @param int $userId
+     * @return int
      */
-    public function getUserGroupNewsNum()
+    public function getUserGroupNewsNum($userId)
     {
-
+        list($redis, $user_group_index_count, $expire_time) = $this->getRedisKey("group_index_count", $userId);
+        //$redis->del($user_group_index_count);
+        $groupIndexNum = $redis->get($user_group_index_count);
+        if ($groupIndexNum !== false) {
+            return $groupIndexNum;
+        }
+        $conditions = [];
+        $conditions["news_type"] = $this->config["group_index"];
+        $conditions["user_id"] = $userId;
+        $groupIndexNum = $this->userNews->getUserNewsNum($conditions);
+        $redis->setex($user_group_index_count, $groupIndexNum, $expire_time);
+        return $groupIndexNum;
     }
+
 
     /**
      * 获取用户总未读消息计数
+     * @param int $userId
+     * @return array
      */
-    public function getUserAllNewsNum()
+    public function getUserAllNewsNum($userId)
     {
+        //社交消息计数
+        list($redis, $user_group_count, $expire_time) = $this->getRedisKey("group_count", $userId);
+        //$redis->del($user_group_count);
+        $groupNum = $redis->get($user_group_count);
+        if ($groupNum === false) {
+            $conditions = [];
+            $conditions["news_type"] = $this->config["group"];
+            $conditions["user_id"] = $userId;
+            $groupNum = $this->userNews->getUserNewsNum($conditions);
+            $redis->setex($user_group_count, $groupNum, $expire_time);
+        }
 
+        //特卖消息计数
+        list($redis, $user_outlets_count, $expire_time) = $this->getRedisKey("outlets_count", $userId);
+        //$redis->del($user_outlets_count);
+        $outletsNum = $redis->get($user_outlets_count);
+        if ($outletsNum === false) {
+            $conditions = [];
+            $conditions["news_type"] = $this->config["outlets"];
+            $conditions["user_id"] = $userId;
+            $outletsNum = $this->userNews->getUserNewsNum($conditions);
+            $redis->setex($user_outlets_count, $outletsNum, $expire_time);
+        }
+        return [$outletsNum, $groupNum];
     }
+
 
     /**
      * 修改用户消息状态：未读->已读
+     * @param int $userId
+     * @return mixed
      */
     public function changeReadStatus($userId)
     {
-        if(empty($userId)) {
+        if (empty($userId)) {
             return false;
         }
         $res = $this->userNews->changeReadStatus($userId);
         return $res;
     }
 
+
     /**
      * 清空用户未读消息数
      */
-    public function clearNewsNum()
+    public function clearNewsNum($userId)
     {
         //蜜芽圈首页互动消息计数
+        list($redis, $resisKey, $expire_time) = $this->getRedisKey("group_count", $userId);
+        $redis->setex($resisKey, 0, $expire_time);
+        list($redis, $resisKey, $expire_time) = $this->getRedisKey("outlets_count", $userId);
+        $redis->setex($resisKey, 0, $expire_time);
         //用户总未读消息计数
+        list($redis, $resisKey, $expire_time) = $this->getRedisKey("group_index_count", $userId);
+        $redis->setex($resisKey, 0, $expire_time);
     }
+
+
+    /**
+     * 获取消息所属的大类
+     * @param $type string 消息小分类
+     * @return array
+     */
+    public function getCurType($type)
+    {
+        if (!in_array($type, $this->config["all_type"])) {
+            return [];
+        }
+        if (in_array($type, $this->config["group"])) {
+            $curType[] = "group";
+        }
+        if (in_array($type, $this->config["outlets"])) {
+            $curType[] = "outlets";
+        }
+        if (in_array($type, $this->config["group_index"])) {
+            $curType[] = "group_index";
+        }
+        return $curType;
+    }
+
 
     /**
      * 新增用户消息
      */
     public function addUserNews($insertData, $type)
     {
-        $typeConfig = \F_Ice::$ins->workApp->config->get('busconf.news');
-        if (!in_array($type, $typeConfig["all_type"]) || empty($insertData['user_id'])) {
+        if (empty($insertData['user_id'])) {
             return 0;
         }
-        if (in_array($type, $typeConfig["group"])) {
-            $curType = "group";
-        }
-        if (in_array($type, $typeConfig["outlets"])) {
-            $curType = "outlets";
-        }
+        $curType = $this->getCurType($type);
+
         $res = $this->userNews->addUserNews($insertData);
-        //redis list 添加数据
-        list($redis, $user_list_key) = $this->getRedisKey($curType, $insertData['user_id']);
-        $redis->lpush($user_list_key, $res);
-        $redis->ltrim($user_list_key, 0, 999);
-        //TODO 消息计数增加
+        //redis list 添加数据（在列表不为空的情况下）
+        list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
+        $user_news_id_list = $redis->lRange($user_list_key, 0, -1);
+        if (!empty($user_news_id_list)) {
+            $redis->lpush($user_list_key, $res);
+            $redis->ltrim($user_list_key, 0, 999);
+        }
+        //消息计数增加
+
+        if (in_array("group", $curType)) {
+            list($redis, $resisKey, $expire_time) = $this->getRedisKey("group_count", $insertData['user_id']);
+            $redis->incr($resisKey);
+            $redis->expire($resisKey, $expire_time);
+        }
+        if (in_array("outlets", $curType)) {
+            list($redis, $resisKey, $expire_time) = $this->getRedisKey("outlets_count", $insertData['user_id']);
+            $redis->incr($resisKey);
+            $redis->expire($resisKey, $expire_time);
+        }
+        if (in_array("group_index", $curType)) {
+            list($redis, $resisKey, $expire_time) = $this->getRedisKey("index_group_count", $insertData['user_id']);
+            $redis->incr($resisKey);
+            $redis->expire($resisKey, $expire_time);
+        }
         return $res;
     }
+
 
     /**
      * 新增系统消息
@@ -181,13 +285,13 @@ class News
         return $res;
     }
 
+
     /**
      * 获取用户未拉取的系统消息列表
+     * @todo 用户分组 $userId 处理
      */
     public function getPullList($userId, $maxSystemId, $create_date)
     {
-        //TODO:: 用户分组 $userId 处理
-
         //查询条件
         if (empty($maxSystemId) && !empty($create_date)) {
             $conditions["gt"]["create_time"] = $create_date;
@@ -208,7 +312,6 @@ class News
         return $res;
     }
 
-
     /**
      * 获取某个用户消息里最大的系统消息ID
      */
@@ -225,40 +328,78 @@ class News
         return $res;
     }
 
-
     /**
      * 批量给用户添加系统消息
      */
-    public function batchAddUserSystemNews($systemNewsList)
+    public function batchAddUserSystemNews($systemNewsList, $userId)
     {
         if (empty($systemNewsList)) {
             return 0;
         }
         $insertData = [];
         $count = 0;
-        $typeConfig = \F_Ice::$ins->workApp->config->get('busconf.news');
+
+        //判断消息列表缓存是否存在
+        list($redis, $user_list_key_group, $expire_time) = $this->getRedisKey("group", $userId);
+        list($redis, $user_list_key_outlets, $expire_time) = $this->getRedisKey("outlets", $userId);
+
+        $user_news_id_list_group = $redis->lRange($user_list_key_group, 0, -1);
+        $user_news_id_list_outlets = $redis->lRange($user_list_key_outlets, 0, -1);
+        $check_group = 0;
+        if (!empty($user_news_id_list_group)) {
+            $check_group = 1;
+        }
+        $check_outlets = 0;
+        if (!empty($user_news_id_list_outlets)) {
+            $check_outlets = 1;
+        }
 
         foreach ($systemNewsList as $value) {
             $insertData["news_type"] = $value["news_type"];
             $insertData["user_id"] = $value["user_id"];
             $insertData["news_id"] = $value["id"];
+            $insertData["send_user"] = $value["send_user"];
             //$insertData["ext_info"] = $value["ext_info"];  //系统消息的额外信息自己去取，避免个人消息表插入过多数据
+            $source_id = json_decode($value["ext_info"], true)["source_id"];
+            if (!empty($source_id)) {
+                $insertData["source_id"] = $source_id;
+            }
+
             $insertData["create_time"] = date("Y-m-d H:i:s");//创建时间即为拉取时间
             $res = $this->userNews->addUserNews($insertData);
-            //redis 链表添加数据
-            if (!in_array($value["news_type"], $typeConfig["all_type"]) || empty($insertData['user_id'])) {
+            //redis 消息list添加数据
+            if (!in_array($value["news_type"], $this->config["all_type"]) || empty($insertData['user_id'])) {
                 continue;
             }
-            if (in_array($value["news_type"], $typeConfig["group"])) {
+            if (in_array($value["news_type"], $this->config["group"]) && $check_group == 1) {
                 $curType = "group";
+                list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
+                $redis->lpush($user_list_key, $res);
+                $redis->ltrim($user_list_key, 0, 999);
             }
-            if (in_array($value["news_type"], $typeConfig["outlets"])) {
+            if (in_array($value["news_type"], $this->config["outlets"]) && $check_outlets == 1) {
                 $curType = "outlets";
+                list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
+                $redis->lpush($user_list_key, $res);
+                $redis->ltrim($user_list_key, 0, 999);
             }
-            list($redis, $user_list_key) = $this->getRedisKey($curType, $insertData['user_id']);
-            $redis->lpush($user_list_key, $res);
-            $redis->ltrim($user_list_key, 0, 999);
-            //TODO 消息计数增加
+            //消息计数增加
+            $curType = $this->getCurType($value["news_type"]);
+            if (in_array("group", $curType)) {
+                list($redis, $resisKey, $expire_time) = $this->getRedisKey("group_count", $insertData['user_id']);
+                $redis->incr($resisKey);
+                $redis->expire($resisKey, $expire_time);
+            }
+            if (in_array("outlets", $curType)) {
+                list($redis, $resisKey, $expire_time) = $this->getRedisKey("outlets_count", $insertData['user_id']);
+                $redis->incr($resisKey);
+                $redis->expire($resisKey, $expire_time);
+            }
+            if (in_array("group_index", $curType)) {
+                list($redis, $resisKey, $expire_time) = $this->getRedisKey("index_group_count", $insertData['user_id']);
+                $redis->incr($resisKey);
+                $redis->expire($resisKey, $expire_time);
+            }
             $count++;
             $insertData = [];
         }
@@ -306,5 +447,4 @@ class News
         }
         return $return;
     }
-
 }

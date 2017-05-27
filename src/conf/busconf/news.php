@@ -23,5 +23,8 @@ $outlets = ['order', 'coupon', 'custom'];
 //社交
 $group = ['img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'group_custom'];
 
+//蜜芽圈首页社交
+$group_index = ['img_comment', 'img_like', 'follow'];
+
 //所有类型
 $all_type = ['order', 'coupon', 'custom', 'img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'group_custom'];

@@ -32,7 +32,22 @@ $newsKey = [
     "user_news_list_group" => [
         'key' => $newsServicePrefix . 'user:grouplist:%d',
         'expire_time' => 86400 * 30,
-    ]
+    ],
+    //社交消息计数
+    "group_count" => [
+        'key' => $newsServicePrefix . 'user:groupnum:%d',
+        'expire_time' => 86400,
+    ],
+    //特卖消息计数
+    "outlets_count" => [
+        'key' => $newsServicePrefix . 'user:outletsnum:%d',
+        'expire_time' => 86400,
+    ],
+    //蜜芽圈互动消息计数
+    "group_index_count" => [
+        'key' => $newsServicePrefix . 'user:groupindexnum:%d',
+        'expire_time' => 86400,
+    ],
 ];
 
 

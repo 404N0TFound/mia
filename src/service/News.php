@@ -20,6 +20,7 @@ class News extends \mia\miagroup\Lib\Service
         $this->newsModel = new NewsModel();
     }
 
+
     /**
      * 发布一条消息  |  旧版本
      *
@@ -37,6 +38,7 @@ class News extends \mia\miagroup\Lib\Service
         $data = $this->newsModel->addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId, $resourceId, $content);
         return $this->succ($data);
     }
+
 
     /*================新消息系统================*/
 
@@ -61,10 +63,13 @@ class News extends \mia\miagroup\Lib\Service
         $newsList = $this->getBatchNewsInfo($newsIds, $userId)["data"];//分表的用户ID必传
         //格式化结果集
         $newsList = $this->formatNewList($newsList, $userId);
-        //TODO 消息置已读，计数清零
+        //消息置已读 is_read=1，计数清零
         $this->newsModel->changeReadStatus($userId);
+        $this->newsModel->clearNewsNum($userId);
+
         return $newsList;
     }
+
 
     /**
      * 批量获取用户消息详情
@@ -81,6 +86,7 @@ class News extends \mia\miagroup\Lib\Service
         $newsList = $this->newsModel->getBatchNewsInfo($newsIds, $userId);
         return $this->succ($newsList);
     }
+
 
     /**
      * 格式化用户消息类别，消息格式完全符合旧版本 before 5.5  2017/05/26
@@ -172,7 +178,7 @@ class News extends \mia\miagroup\Lib\Service
                 case "custom":
                     $systemNews = $systemNewsList[$news["news_id"]];
                     if (empty($systemNews)) {
-                        continue;
+                        continue 2;
                     }
                     $ext_info = json_decode($systemNews["ext_info"], true);
                     $tmp["content"] = $ext_info["content"];
@@ -190,7 +196,7 @@ class News extends \mia\miagroup\Lib\Service
                 case "img_comment":
                     $commentInfo = $commentList[$news['source_id']];
                     if (empty($commentInfo)) {
-                        continue;
+                        continue 2;
                     }
 
                     $tmp['img'] = strval($commentInfo['subject']['image_url'][0]);
@@ -228,7 +234,7 @@ class News extends \mia\miagroup\Lib\Service
                         $tmp['img'] = strval($subjectInfos[$curSubjectId]['image_url'][0]);
                         $tmp['resource_id'] = $curSubjectId;
                     } else {
-                        continue;
+                        continue 2;
                     }
                     $tmp['resource_sub_type'] = "image";
                     $tmp['content'] = "赞了你的帖子";
@@ -249,7 +255,7 @@ class News extends \mia\miagroup\Lib\Service
                     if (!empty($curSubjectId)) {
                         $tmp['img'] = strval($subjectInfos[$curSubjectId]['image_url'][0]);
                     } else {
-                        continue;
+                        continue 2;
                     }
                     $tmp['resource_sub_type'] = "image";
                     $tmp['resource_id'] = $news['source_id'];
@@ -261,7 +267,7 @@ class News extends \mia\miagroup\Lib\Service
                 case "coupon":
                     $curContent = json_decode($news["ext_info"], true)["content"];
                     if (empty($curContent)) {
-                        continue;
+                        continue 2;
                     }
                     $tmp['content'] = $curContent;
                     $tmp['resource_sub_type'] = "coupon";
@@ -271,28 +277,43 @@ class News extends \mia\miagroup\Lib\Service
                 case "order":
                     $curContent = json_decode($news["ext_info"], true)["content"];
                     if (empty($curContent)) {
-                        continue;
+                        continue 2;
                     }
                     $tmp['content'] = $curContent;
                     $tmp['resource_sub_type'] = "order";
                     //订单消息发送人是蜜芽小天使
                     $tmp["user_info"] = $miaAngelInfo;
                 default:
-                    continue;
+                    continue 2;
             }
             $listFormat[] = $tmp;
         }
         return $this->succ($listFormat);
     }
 
+
     /**
      * 获取用户未读消息计数
+     * @param int $userId
      */
-    public function getUserNewsNum()
+    public function getUserNewsNum($userId)
     {
-
+        $userId = intval($userId);
+        if (empty($userId)) {
+            return $this->succ([
+                "group_count" => 0,
+                "outlets_count" => 0,
+                "index_group_count" => 0
+            ]);
+        }
+        $index_group_count = $this->newsModel->getUserGroupNewsNum($userId);
+        list($outlets_count, $group_count) = $this->newsModel->getUserAllNewsNum($userId);
+        return $this->succ([
+            "group_count" => $group_count,
+            "outlets_count" => $outlets_count,
+            "index_group_count" => $index_group_count
+        ]);
     }
-
 
 
     /**
@@ -404,6 +425,7 @@ class News extends \mia\miagroup\Lib\Service
         }
     }
 
+
     /**
      * 新增系统消息，系统消息只给批量用户发，不会给单人发
      *
@@ -428,11 +450,11 @@ class News extends \mia\miagroup\Lib\Service
      * @param $content_info array 消息内容（标题，图片，内容，url）
      * @param $send_time string 发送时间
      * @param $abandon_time string 失效时间
-     * @param $source_id int 相关资源ID
      * @param $user_group string 用户组
+     * @param $source_id int 相关资源ID
      *
      */
-    public function addSystemNews($type, $content_info, $send_time, $abandon_time, $user_group = "")
+    public function addSystemNews($type, $content_info, $send_time, $abandon_time, $user_group = "", $send_user = 0, $source_id = 0)
     {
         $insert_data = [];
         //判断type类型是否合法
@@ -443,17 +465,28 @@ class News extends \mia\miagroup\Lib\Service
         $insert_data['send_user'] = 0; //蜜芽兔/蜜芽小天使，读的时候指定
 
         //标题，图片，内容，url
-        $title = $content_info['title'] ? $content_info['title'] : "";
-        $content = $content_info['content'] ? $content_info['content'] : "";
-        $photo = $content_info['photo'] ? $content_info['photo'] : "";
-        $url = $content_info['url'] ? $content_info['url'] : "";
-        $insert_data['ext_info'] = json_encode(["content" => $content, "title" => $title, "photo" => $photo, "url" => $url]);
+        if (isset($content_info['title'])) {
+            $ext_arr["title"] = $content_info['title'] ? $content_info['title'] : "";
+        }
+        if (isset($content_info['content'])) {
+            $ext_arr["content"] = $content_info['content'] ? $content_info['content'] : "";
+        }
+        if (isset($content_info['photo'])) {
+            $ext_arr["photo"] = $content_info['photo'] ? $content_info['photo'] : "";
+        }
+        if (isset($content_info['url'])) {
+            $ext_arr["url"] = $content_info['url'] ? $content_info['url'] : "";
+        }
+        if (!empty($source_id)) {
+            $ext_arr["source_id"] = $source_id;
+        }
+        $insert_data['ext_info'] = json_encode($ext_arr);
 
         if (strtotime($send_time) < (time() + 600)) {
             return $this->error(500, '发送时间应在未来的十分钟之外！');
         }
         $insert_data['send_time'] = $send_time;
-
+        $insert_data['send_user'] = $send_user;
         $insert_data['abandon_time'] = $abandon_time;//废弃时间，过了此时间用户不拉取该消息
         $insert_data['user_group'] = $user_group;
         $insert_data['create_time'] = date("Y-m-d H:i:s");
@@ -461,6 +494,7 @@ class News extends \mia\miagroup\Lib\Service
         $insertNewsRes = $this->newsModel->addSystemNews($insert_data);
         return $this->succ($insertNewsRes);
     }
+
 
     /**
      * 用户拉取系统消息
@@ -482,7 +516,7 @@ class News extends \mia\miagroup\Lib\Service
         $systemNewsList = $this->newsModel->getPullList($userId, $maxSystemId, $create_date);
 
         //把系统消息写入用户消息表
-        $insertRes = $this->newsModel->batchAddUserSystemNews($systemNewsList);
+        $insertRes = $this->newsModel->batchAddUserSystemNews($systemNewsList, $userId);
         return $this->succ($insertRes);
     }
 }
