@@ -15,7 +15,8 @@ class Subject extends \FD_Daemon {
     }
 
     public function execute() {
-
+        $function_name = $this->request->argv[0];
+        $this->$function_name();
     }
     
     /**
@@ -94,6 +95,44 @@ class Subject extends \FD_Daemon {
                 }
             }
             fclose($handle);
+        }
+    }
+    
+    public function fix_praise_subject_uid() {
+        $praise_data = new \mia\miagroup\Data\Praise\SubjectPraise();
+        $sql = 'select distinct(subject_id) from group_subject_praises where subject_uid = 0 limit 1000';
+        $data = $praise_data->query($sql);
+        if (empty($data)) {
+            return;
+        }
+        $subject_ids = array_column($data, 'subject_id');
+        $sql = 'select id, user_id from group_subjects where id in (' . implode(',', $subject_ids) .')';
+        $data = $praise_data->query($sql);
+        if (empty($data)) {
+            return ;
+        }
+        foreach ($data as $v) {
+            $update_sql = "update group_subject_praises set subject_uid = {$v['user_id']} where subject_id = {$v['id']}";
+            $praise_data->query($update_sql);
+        }
+    }
+    
+    public function fix_comment_subject_uid() {
+    $praise_data = new \mia\miagroup\Data\Praise\SubjectPraise();
+        $sql = 'select distinct(subject_id) from group_subject_comment where subject_uid = 0 limit 1000';
+        $data = $praise_data->query($sql);
+        if (empty($data)) {
+            return;
+        }
+        $subject_ids = array_column($data, 'subject_id');
+        $sql = 'select id, user_id from group_subjects where id in (' . implode(',', $subject_ids) .')';
+        $data = $praise_data->query($sql);
+        if (empty($data)) {
+            return ;
+        }
+        foreach ($data as $v) {
+            $update_sql = "update group_subject_comment set subject_uid = {$v['user_id']} where subject_id = {$v['id']}";
+            $praise_data->query($update_sql);
         }
     }
 }
