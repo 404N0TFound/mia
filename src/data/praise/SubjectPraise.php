@@ -139,4 +139,39 @@ class SubjectPraise extends \DB_Query {
         }
         return $praiseRes;
     }
+    
+    /**
+     * 获取用户被赞最多的帖子
+     */
+    public function getUserMostPraisedSubjects($user_id, $start_time, $end_time, $conditon = [], $offset = 0, $limit = 10) {
+        if (empty($user_id) || empty($start_time) || empty($end_time)) {
+            return array();
+        }
+        $join_table = 'group_subjects';
+        $join = 'left join ' . $join_table . ' on ' .$this->tableName . '.subject_id='. $join_table . '.id';
+        $where = [];
+        $where[] = [':eq', $this->tableName.'.subject_uid', $user_id];
+        $where[] = [':ge', $join_table. '.created', $start_time];
+        $where[] = [':lt', $join_table. '.created', $end_time];
+        $where[] = [':eq', $join_table. '.status', 1];
+        $where[] = [':ne', $join_table. '.image_url', 1];
+        $where[] = [':eq', $this->tableName. '.status', 1];
+        foreach ($conditon as $k => $v) {
+            switch ($k) {
+                default:
+                    $where[] = [$join_table . '.' . $k, $v];
+            }
+        }
+        $field = "{$this->tableName}.subject_id as subject_id, count({$this->tableName}.subject_id) as praised_count";
+        $order_by = "praised_count DESC, subject_id DESC" ;
+        $group_by = "{$this->tableName}.subject_id";
+        $data = $this->getRows($where, $field, $limit, $offset, $order_by, $join, $group_by);
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[$v['subject_id']] = $v['praised_count'];
+            }
+        }
+        return $result;
+    }
 }
