@@ -436,8 +436,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $is_pick = $item_info['data'][$item_id]['is_pick'];
         }
 
+        // 甄选商品状态(正常商品及待上线的甄选商品为1)
+        $pick_status =  $item_info['data'][$item_id]['pick_status'];
+
+        if(!in_array($pick_status, [2, 3])) {
+            $condition['machine_score'] = 3;
+        }
+
         $condition = array();
-        if(!empty($is_pick) && $is_pick == 1) {
+        if(!empty($is_pick) && $is_pick == 1 ) {
             // 封测报告列表不展示默认好评(甄选商品)
             $condition['is_pick'] = $is_pick;
             $condition['auto_evaluate'] = 1;
@@ -465,7 +472,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //通过商品id获取口碑id
         $condition['with_pic'] = true;
         $condition['score'] = array(0, 4, 5);
-        $condition['machine_score'] = 3;
         $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
         if (count($koubei_ids) < $count) {
             $count = $count - count($koubei_ids);
