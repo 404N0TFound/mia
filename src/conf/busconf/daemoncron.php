@@ -260,20 +260,3 @@ $cron_list['user_doozer_day_rank_update'] = array(
     'start_time' => '2017-06-09 01:05:00',
     'interval' => 600
 );
-
-//赞表subject_uid修复
-$cron_list['temp_fix_praise_subject_uid'] = array(
-    'enable' => true,
-    'engine' => 'php',
-    'cli_args' => "--class=temp --action=subject fix_praise_subject_uid",
-    'start_time' => '2016-06-09 01:05:00',
-    'interval' => 3
-);
-//评论表subject_uid修复
-$cron_list['temp_fix_comment_subject_uid'] = array(
-    'enable' => true,
-    'engine' => 'php',
-    'cli_args' => "--class=temp --action=subject fix_comment_subject_uid",
-    'start_time' => '2016-06-09 01:05:00',
-    'interval' => 3
-);
