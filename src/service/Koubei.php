@@ -393,6 +393,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         unset($koubei_infos[$k]);
                     }
                 }
+                if($koubei['item_koubei']['type'] == 0) {
+                    unset($koubei_infos[$k]);
+                }
             }
         }
 
