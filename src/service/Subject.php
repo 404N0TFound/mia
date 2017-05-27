@@ -54,6 +54,17 @@ class Subject extends \mia\miagroup\Lib\Service
     {
         //起始固定位，“发现”，“关注”
         $beginning_tabs = $this->config['group_fixed_tab_first'];
+        //5.5以下去除达人频道
+        $version = explode('_', $this->ext_params['version'], 3);
+        array_shift($version);
+        $version = intval(implode($version));
+        if ($version < 55) {
+            foreach ($beginning_tabs as $k => $v) {
+                if ($v['extend_id'] == 4) {
+                    unset($beginning_tabs[$k]);
+                }
+            }
+        }
         //配置位3个
         //$operation_tabs = $this->config['group_index_operation_tab'];
         $operation_tabs = [];//暂时不需要了

@@ -150,6 +150,12 @@ $group_fixed_tab_first = [
         'url' => '',
         'type' => 'miagroup',
         'extend_id' => 2,
+    ],
+    [
+        'name' => '达人',
+        'url' => '',
+        'type' => 'miagroup_daren',
+        'extend_id' => 4,
     ]
 ];
 //蜜芽圈首页，最后一个固定的tab，育儿
