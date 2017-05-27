@@ -1099,7 +1099,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 # 口碑
                 $item_service = new ItemService();
                 $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
-                $return_Info['item_info'] = $item_info[$item_id];
                 $check_res = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
                 if(empty($check_res)) {
                     // 首评
@@ -1137,6 +1136,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $return_Info['selection_labels'][] = $q_labels;
                 $return_Info['selection_labels'][] = $p_labels;
                 $return_Info['selection_labels'][] = $e_labels;
+
+                // 展示商品信息
+                $return_Info['item_info'] = $item_info[$item_id];
 
                 break;
         }
