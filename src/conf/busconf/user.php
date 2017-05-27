@@ -25,3 +25,40 @@ $largePublishCountUser = array(13704137);
  * 粉丝计数屏蔽
  */
 $largeFansCountUser = array(3782852); 
+
+/**
+ * 用户分类
+ * 
+ */
+$userCategory = array(
+    0 =>array(
+        'id' => 1,
+        'name' => 'doozer',
+        'cn_name' => '达人',
+        'sub_cate' => array(
+            0 =>array('id' => 1, 'name' => '专家'),
+        ),
+    ),
+//     1 => array(
+//         'id' => 1,
+//         'name' => 'majia',
+//         'cn_name' => '马甲',
+//         'sub_cate' => array(
+//             0 => array('id' => 1, 'name' => '育儿头条'),
+//         ),
+//     ),
+    1 =>array(
+        'id' => 1,
+        'name' => 'company',
+        'cn_name' => '商家/店铺',
+        'sub_cate' => array(
+        ),
+    ),
+    2 =>array(
+        'id' => 1,
+        'name' => 'official_cert',
+        'cn_name' => '官方认证',
+        'sub_cate' => array(
+        ),
+    ),
+);

@@ -1,9 +1,11 @@
 <?php
 namespace mia\miagroup\Service\Ums;
 
+use \F_Ice;
 use mia\miagroup\Lib\Service;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Service\User as UserService;
+use mia\miagroup\Service\Label;
 
 class User extends Service{
     
@@ -29,6 +31,7 @@ class User extends Service{
         $result = array('list' => array(), 'count' => 0);
         $condition = array();
         $userService = new UserService();
+        $labelService = new Label();
         //初始化入参
         $orderBy = 'user_id DESC';
         $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 20;
@@ -72,8 +75,8 @@ class User extends Service{
                 $userArr = $this->userModel->getShieldUserIdList(array(),$offset,$limit);
             }
         }
-        //用户分类查询（全部、达人）
-        if(!empty($params['category']) && in_array($params['category'],array("doozer"))  && !isset($userId)){
+        //用户分类查询（全部、达人、官方认证、商家/店铺）
+        if(!empty($params['category']) && in_array($params['category'],array("doozer","official_cert","company"))  && !isset($userId)){
             //如果选择了权限筛选项，则查询这些类别的权限
             if(!empty($params['permission']) && in_array($params['permission'],array("video","album","live"))){
                 if($params['permission'] == "live"){
@@ -113,10 +116,36 @@ class User extends Service{
         }
 
         $userInfos = $userService->getUserInfoByUids($userIds,0,array('count'))['data'];
+        $userCate = $userService->getBatchCategoryUserInfo($userIds)['data'];
         $userArr = array();
         //拼接用户的屏蔽状态
         if(!empty($userInfos)){
             foreach($userInfos as $key=>$userInfo){
+                //拼接用户分类类型
+                if(!empty($userCate[$key])){
+                    switch ($userCate[$key]['type']) {
+                        case 'doozer':
+                            $userInfo['category'] = "达人";
+                            break;
+                        case 'official_cert':
+                            $userInfo['category'] = "官方认证";
+                            break;
+                        case 'company':
+                            $userInfo['category'] = "商家/店铺";
+                            break;
+                    }
+                    $userInfo['en_category'] = $userCate[$key]['type'];
+                    $userInfo['rec_desc'] = $userCate[$key]['desc'] ? explode('#', trim($userCate['doozer'][$key]['desc'],'#')) : '';
+                    $userInfo['rec_label'] = $userCate[$key]['label'] ? trim($userCate['doozer'][$key]['label'],'#') : '';
+                    if(!empty($userCate[$key]['category'])){
+                        $userInfo['category'] .= "/".$userCate[$key]['category'];
+                        $userInfo['sub_category'] = $userCate[$key]['category'];
+                    }
+                    if(!empty($userInfo['rec_label'])){
+                        $label_ids = explode('#', $userInfo['rec_label']);
+                        $userInfo['labels'] = array_values($labelService->getBatchLabelInfos($label_ids)['data']);
+                    }
+                }
                 $temp = $userInfo;
                 if(isset($shieldArr[$key])){
                     $temp['is_shield'] = 1;
@@ -131,5 +160,11 @@ class User extends Service{
         return $this->succ($result);
     }
 
-    
+    /**
+     * 获取用户的一级类目和二级类目
+     */
+    public function getUserCategory() {
+        $userCategory = F_Ice::$ins->workApp->config->get('busconf.user.userCategory');
+        return $this->succ($userCategory);
+    }
 }

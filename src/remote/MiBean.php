@@ -10,76 +10,48 @@ class MiBean extends Thrift{
     
     /**
      * 增加蜜豆
-     * 收到赞+1蜜豆,以天为周期，每天收到N个赞，最多可得3次蜜豆奖励
-     * 蜜芽圈发帖+3蜜豆（以天为周期，每天晒N单，最多可得3次蜜豆奖励）
-     * 收到别人的评论+1   （以天为周期，每天收到N个别人的评论，最多可得3次蜜豆奖励
-     * 精品贴+5   被推荐到首页（以周为周期，被推荐到首页N次，最多可得2次蜜豆奖励）
-     * @param unknown $param
+     * 蜜芽圈发帖：蜜豆+10（每天最多可得10次蜜豆奖励）
+     * 收获赞：蜜豆+1；收到别人的评论：蜜豆+1 ，被真实粉丝关注：蜜豆+1
+     * 精品贴+50   
+     * 每日设置奖励上限为：总蜜豆奖励不超过300
      */
     public function add($param){
-        $data = [];
+        if (empty($param['relation_type']) || empty($param['to_user_id'])) {
+            return false;
+        }
         $redis = new Redis();
-        //赞
-        if($param['relation_type'] == 'receive_praise'){
-            //赞 +1蜜豆, （以天为周期，每天收到N个赞，最多可得3次蜜豆奖励）
-            $mibean_receive_praise_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['to_user_id']);
-            $parise_give_mibean_num = $redis->get($mibean_receive_praise_key);
-            if($parise_give_mibean_num < 3){
-                //加1蜜豆
+        $mibean_total_reward_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),'total_reward',$param['to_user_id']);
+        $mibean_total_reward = $redis->get($mibean_total_reward_key);
+        if (intval($mibean_total_reward) >= 300) {
+            return false;
+        }
+        switch ($param['relation_type']) {
+            case 'receive_praise': //赞奖励
+            case 'follow_me': //关注奖励
+            case 'receive_comment': //评论奖励
                 $param['mibean'] = 1;
-                $data = $this->agent('add', $param);
-                if($data['code'] == 200){
-                    $redis->incrBy($mibean_receive_praise_key,1);
-                    $redis->expireAt($mibean_receive_praise_key,strtotime(date('Y-m-d 23:59:59')));
+                break;
+            case 'publish_pic': //发布奖励
+                $mibean_publish_pic_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['user_id']);
+                $mibean_publish_pic_num = $redis->get($mibean_publish_pic_key);
+                if($mibean_publish_pic_num < 10){
+                    $param['mibean'] = 10;
                 }
-            }
-        }elseif($param['relation_type'] == 'publish_pic'){
-            //  蜜芽圈发帖+3（以天为周期，每天晒N单，最多可得3次蜜豆奖励）
-            $mibean_publish_pic_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['user_id']);
-            $mibean_publish_pic_num = $redis->get($mibean_publish_pic_key);
-            if($mibean_publish_pic_num < 3){
-                //加1蜜豆
-                $param['mibean'] = 3;
-                $data = $this->agent('add', $param);
-                if($data['code'] == 200){
-                    $redis->incrBy($mibean_publish_pic_key,1);
-                    $redis->expireAt($mibean_publish_pic_key,strtotime(date('Y-m-d 23:59:59')));
+                break;
+            case 'fine_pic': //加精奖励
+                //验证是否送过
+                $data = $this->check($param);
+                if(empty($data['data'])){
+                    $param['mibean'] = 50;
                 }
-            }
-        }elseif($param['relation_type'] == 'follow_me'){
-            //被关注+1    被真实用户关注
-            $param['mibean'] = 1;
+                break;
+        }
+        if (intval($param['mibean']) > 0) {
             $data = $this->agent('add', $param);
-        }elseif($param['relation_type'] == 'receive_comment'){
-            //收到别人的评论+1   以天为周期，每天收到N个别人的评论，最多可得3次蜜豆奖励，首次关注有效）
-            $mibean_receive_comment_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['to_user_id']);
-            $mibean_receive_comment_num = $redis->get($mibean_receive_comment_key);
-            if($mibean_receive_comment_num < 3){
-                //加1蜜豆
-                $param['mibean'] = 1;
-                $data = $this->agent('add', $param);
-                if($data['code'] == 200){
-                    $redis->incrBy($mibean_receive_comment_key,1);
-                    $redis->expireAt($mibean_receive_comment_key,strtotime(date('Y-m-d 23:59:59')));
-                }
+            if($data['code'] == 200){
+                $redis->incrBy($mibean_total_reward_key, $param['mibean']);
+                $redis->expireAt($mibean_total_reward_key,strtotime(date('Y-m-d 23:59:59')));
             }
-        }elseif($param['relation_type'] == 'fine_pic'){
-            //  精品贴+5   被推荐到首页（以周为周期，被推荐到首页N次，最多可得2次蜜豆奖励）
-            $mibean_fine_pic_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['to_user_id']);
-            $mibean_fine_pic_num = $redis->get($mibean_fine_pic_key);
-            if($mibean_fine_pic_num < 2){
-                //加1蜜豆
-                $param['mibean'] = 5;
-                $data = $this->agent('add', $param);
-                if($data['code'] == 200){
-                    $redis->incrBy($mibean_fine_pic_key,1);
-                    $w = date('w') == 0 ? 7 : date('w');
-                    $fine_pic_time = (7-$w)*86400 + strtotime(date('Y-m-d 23:59:59'));
-                    $redis->expireAt($mibean_fine_pic_key,$fine_pic_time);
-                }
-            }
-        }else{
-            $data = $this->agent('add', $param);
         }
         return $data;
     }

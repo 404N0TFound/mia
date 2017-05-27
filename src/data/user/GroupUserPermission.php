@@ -25,12 +25,11 @@ class GroupUserPermission extends DB_Query {
     /**
      * 批量获取用户权限
      */ 
-    public function getUserPermissionByUids($conditions, $type) {
+    public function getUserPermissionByUids($conditions) {
         $result = array();
         $where = array();
         
-        $where[] = ['status', 1];
-        $where[] = ['type', $type];
+        $where[] = ['status', $conditions['status']];
         
         if (!empty($conditions) && isset($conditions['user_id'])) {
             $where[] = ['user_id', $conditions['user_id']];
@@ -40,14 +39,14 @@ class GroupUserPermission extends DB_Query {
 
         if (!empty($data)) {
             foreach ($data as $v) {
-                $result[$v['user_id']] = $v;
+                $result[$v['type']][$v['user_id']] = $v;
                 if(!empty($v['ext_info'])){
                     $extInfo = json_decode($v['ext_info'],true);
                     if(!empty($extInfo['reason'])){
-                        $result[$v['user_id']]['reason'] = $extInfo['reason'];
+                        $result[$v['type']][$v['user_id']]['reason'] = $extInfo['reason'];
                     }
                 }
-                unset($result[$v['user_id']]['ext_info']);
+                unset($result[$v['type']][$v['user_id']]['ext_info']);
             }
         }
         return $result;
@@ -56,30 +55,18 @@ class GroupUserPermission extends DB_Query {
     /**
      * 修改用户分类信息
      */
-    public function updatePermissionByUid($userId, $type, $userInfo) {
+    public function updatePermissionByUid($userId, $userInfo, $type=null) {
         if (empty($userId)) {
             return false;
-        }
-        $setData = array();
-        $extInfo = array();
-    
-        if (isset($userInfo['status'])) {
-            $setData[] = array('status', $userInfo['status']);
-        }
-    
-        if (isset($userInfo['reason'])) {
-            $extInfo['reason'] = $userInfo['reason'];
-        }
-        
-        if(!empty($extInfo)){
-            $extInfo = json_encode($extInfo);
-            $setData[] = array('ext_info', $extInfo);
         }
     
         $where = array();
         $where[] = ['user_id', $userId];
-        $where[] = ['type', $type];
-        $data = $this->update($setData, $where);
+        if($type){
+            $where[] = ['type', $type];
+        }
+        
+        $data = $this->update($userInfo, $where);
         return $data;
     }
 

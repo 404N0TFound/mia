@@ -9,6 +9,13 @@ class RecommendNote
     public function __construct($session_info)
     {
         $this->session_info = $session_info;
+        if (empty($this->session_info['dvc_id'])) { //兼容H5调用
+            if ($this->session_info['current_uid']) {
+                $this->session_info['dvc_id'] = $this->session_info['current_uid'];
+            } else {
+                $this->session_info['dvc_id'] = date("YmdH");
+            }
+        }
         if (empty($this->session_info['bi_session_id'])) {
             $this->session_info['bi_session_id'] = $this->session_info['dvc_id'].date("YmdH");
         }
@@ -75,6 +82,12 @@ class RecommendNote
             $res = $redis->get(\F_Ice::$ins->workApp->config->get('busconf.rediskey.recommendSubjectKey'));
             $idArr = explode(' ', $res);
             $noteIds = array_slice($idArr, ($page - 1) * $count, $count);
+            if(empty($noteIds)) {
+                    \F_Ice::$ins->mainApp->logger_remote->warn(array(
+                        'type' => 'REDISERROR',
+                        'redis_error' => $this->session_info,
+                    ));
+            }
         }
         $return = [];
         foreach ($noteIds as $v) {
@@ -167,7 +180,7 @@ class RecommendNote
         return $return;
     }
 
-    public function getRelatedNote($subjectId, $page = 1, $limit = 1)
+    public function getRelatedNote($subjectId, $page = 1, $limit = 10)
     {
         $remote_curl = new RemoteCurl('index_cate_recommend');
 

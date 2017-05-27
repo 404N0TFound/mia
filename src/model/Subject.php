@@ -419,8 +419,44 @@ class Subject {
      * 获取活动的帖子（全部/精华）
      */
     public function getSubjectIdsByActiveId($activeId, $type, $page = 1, $limit = 20){
-        $subjectIds = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page, $limit);
-        return $subjectIds;
+        if (empty($activeId)) {
+            return array();
+        }
+        //如果没有session信息，直接返回翻页结果
+        if (empty(\F_Ice::$ins->runner->request->ext_params['dvc_id'])) {
+            $data = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page, $limit);
+            return $data;
+        }
+        $redis_key =  sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_read_session.key'), $activeId, $type, \F_Ice::$ins->runner->request->ext_params['dvc_id']);
+        $redis = new Redis();
+        //如果是第一页，刷新已读缓存
+        if ($page == 1) {
+            $redis->del($redis_key);
+        }
+        $data = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page, $limit);
+        if (empty($data)) {
+            return array();
+        }
+        //获取已读数据
+        $read_data = [];
+        $read_count = 0;
+        if ($redis->exists($redis_key)) {
+            $read_count = $redis->llen($redis_key);
+            $read_data = $redis->lrange($redis_key, 0, $read_count);
+        }
+        //去重
+        $diff_data = array_diff($data, $read_data);
+        if (empty($diff_data)) {
+            return array();
+        }
+        //记录本次已读数据
+        if ($read_count < 1000) {
+            foreach ($diff_data as $v) {
+                $r = $redis->lpush($redis_key, $v);
+            }
+            $redis->expire($redis_key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_read_session.expire_time'));
+        }
+        return $diff_data;
     }
     
     /**
@@ -479,5 +515,41 @@ class Subject {
         $redis = new \mia\miagroup\Lib\Redis();
         $redis->lpush($key, $subject_id);
         return true;
+    }
+    
+    /**
+     * 判断帖子是否有重复提交
+     */
+    public function checkReSubmit($subject_info) {
+        if (is_array($subject_info)) {
+            $md5_text = md5(json_encode($subject_info));
+        } else {
+            $md5_text = md5($subject_info);
+        }
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.key'), $md5_text);
+        $redis = new \mia\miagroup\Lib\Redis();
+        $result = $redis->get($key);
+        if ($result == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * 帖子发布成功记录
+     */
+    public function subjectPublishRecord($subject_info) {
+        if (is_array($subject_info)) {
+            $md5_text = md5(json_encode($subject_info));
+        } else {
+            $md5_text = md5($subject_info);
+        }
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.key'), $md5_text);
+        $redis = new \mia\miagroup\Lib\Redis();
+        $redis->set($key, 1);
+        $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.expire_time'));
     }
 }

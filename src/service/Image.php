@@ -102,6 +102,7 @@ class Image extends \mia\miagroup\Lib\Service
     * */
     public function beautyImage($url)
     {
+        @ini_set('memory_limit', '512M');
         if(empty($url)) {
             return $this->succ();
         }
@@ -111,6 +112,9 @@ class Image extends \mia\miagroup\Lib\Service
         }
         //临时图片保存路径
         $temp_url = $img_info['saveDir'].'/'.$img_info['fileName'];
+        if(empty(getimagesize($temp_url))) {
+            return $this->succ();
+        }
         $new_Dir = $this->imageTempUrl.'/beauty';
         if (!file_exists($new_Dir)) {
             mkdir($new_Dir, 0777, true);
@@ -120,6 +124,15 @@ class Image extends \mia\miagroup\Lib\Service
         // 上传图片
         $post = $this->handleImgData()['data'];
         $path = $this->image->uploadImage($post, $newUrl);
+
+        // 删除图片路径
+        if(is_file($temp_url)) {
+            unlink($temp_url);
+        }
+        if(is_file($newUrl)) {
+            unlink($newUrl);
+        }
+
         return $this->succ($path);
     }
 }

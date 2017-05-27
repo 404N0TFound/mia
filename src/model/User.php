@@ -200,19 +200,20 @@ class User
      * @params array()
      * @return array() 推荐用户列表
      */
-    public function getGroupUserIdList($type, $count)
+    public function getGroupUserIdList($count, $page = 1)
     {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getGroupUserIdList($type, $count);
+        $offset = ($page - 1) * $count;
+        $data = $userCategory->getGroupUserIdList($count, $offset);
         return $data;
     }
     
     /**
      * 批量获取分类用户信息
      */
-    public function getBatchUserCategory($conditions, $type, $category) {
+    public function getBatchUserCategory($userIds, $status=array(1)) {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getBatchUserInfoByUids($conditions, $type, $category);
+        $data = $userCategory->getBatchUserInfoByUids($userIds, $status);
         return $data;
     }
     
@@ -228,22 +229,22 @@ class User
     /**
      * 更新用户分类信息
      */
-    public function updateUserCategory($userId, $type, $updata) {
+    public function updateUserCategory($userId, $updata) {
         if (empty($userId)) {
             return false;
         }
         
         $userCategory = new UserCategoryData();
-        $result = $userCategory->updateUserInfoByUid($userId, $type, $setData);
+        $result = $userCategory->updateUserInfoByUid($userId, $updata);
         return $result;
     }
     
     /**
      * 批量获取用户权限信息
      */
-    public function getBatchUserPermission($conditions, $type) {
+    public function getBatchUserPermission($conditions) {
         $userPermission = new UserPermissionData();
-        $data = $userPermission->getUserPermissionByUids($conditions, $type);
+        $data = $userPermission->getUserPermissionByUids($conditions);
         return $data;
     }
     
@@ -259,13 +260,13 @@ class User
     /**
      * 更新用户权限信息
      */
-    public function updateUserPermission($userId, $type, $updata) {
+    public function updateUserPermission($userId, $updata, $type) {
         if (empty($userId)) {
             return false;
         }
     
         $userPermission = new UserPermissionData();
-        $data = $userPermission->updatePermissionByUid($userId, $type, $userInfo);
+        $data = $userPermission->updatePermissionByUid($userId, $updata, $type);
         return $data;
     }
 }

@@ -1398,3 +1398,19 @@ $norecommend_flag = array(
     '质量很差',
 );
 
+/*
+ * 发口碑引导图信息
+ * */
+$koubei_issue = array(
+    'issue' => array(
+        'issue_img' => 'http://image1.miyabaobei.com/image/2017/04/13/32aec4563186419a739d4576b167f70da.jpg',
+        'issue_img_width' => 750,
+        'issue_img_height' => 100,
+        'issue_skip_url' => 'https://m.mia.com/special/module/index/17757/app/'
+    ),
+);
+
+/*
+ * 口碑列表策略状态码
+ * */
+$koubei_sample_id = 20001;

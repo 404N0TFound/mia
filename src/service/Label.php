@@ -66,20 +66,6 @@ class Label extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 批量获取标签下的帖子
-     */
-    public function getBatchSubjectIdsByLabelIds($labelIds,$currentUid=0,$page=1,$limit=10,$is_recommend=0,$fields=array('user_info', 'count', 'comment', 'content_format', 'praise_info','share_info'))
-    {
-        if(!is_array($labelIds)){
-            return $this->succ(array());
-        }
-        $subjectIds = $this->labelModel->getSubjectListByLableIds($labelIds,$page,$limit,$is_recommend);
-        $subjectService = new SubjectService();
-        $data = $subjectService->getBatchSubjectInfos($subjectIds,$currentUid,$fields)['data'];
-        return $this->succ($data);
-    }
-    
-    /**
      * 关注标签
      */
     public function focusLabel($userId, $labelIds) {
@@ -272,25 +258,15 @@ class Label extends \mia\miagroup\Lib\Service {
     /**
      * 标签图片（包括全部和精品图片）
      */
-    public function getLableSubjects($labelId,$userId,$page=1,$count=10,$isRecommend=0)
+    public function getLableSubjects($labelId,$currentUid=0,$page=1,$count=10,$isRecommend=0)
     {
         if(empty($labelId)){
             return $this->succ(array());
         }
+        $subjectIds = $this->labelModel->getSubjectListByLableIds($labelId,$page,$count,$isRecommend);
+        $subjectService = new SubjectService();
+        $activeSujectInfo = $subjectService->getBatchSubjectInfos($subjectIds,$currentUid)['data'];
 
-        $activeSujectInfo = $this->getBatchSubjectIdsByLabelIds([$labelId],$userId,$page,$count,$isRecommend)['data'];
-        $subjectIds = array_keys($activeSujectInfo);
-        $auditService = new \mia\miagroup\Service\Audit();
-
-        //如果是精华帖需要检测帖子的置顶状态
-        $topStatus = $this->labelModel->getLableSubjectsTopStatus($labelId, $subjectIds);
-        foreach($activeSujectInfo as $key => $subjectInfo){
-            if($isRecommend == 1){
-                $activeSujectInfo[$key]['is_top'] = $topStatus[$subjectInfo['id']];
-            }else{
-                unset($activeSujectInfo[$key]['is_top']);
-            }
-        }
         return $this->succ(array_values($activeSujectInfo));
     }
     

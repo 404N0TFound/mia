@@ -94,7 +94,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         $lableIdInfo = $this->labelService->getAllAttentLabel($userId,1,11)['data'];
         $lableIds = array_column($lableIdInfo,'id');
         //获取我关注标签的帖子列表
-        $subjectInfos = $this->labelService->getBatchSubjectIdsByLabelIds($lableIds,$currentUid,$page,$count)['data'];
+        $subjectInfos = $this->labelService->getLableSubjects($lableIds,$currentUid,$page,$count)['data'];
 
         $data = [];
         $data['subject_lists'] = array_values($subjectInfos);

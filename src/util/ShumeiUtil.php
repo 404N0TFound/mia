@@ -22,11 +22,12 @@ class ShumeiUtil
      */
     public function checkText($text)
     {
+        $token_id = !empty($this->session_info['dvc_id']) ? $this->session_info['dvc_id'] : \F_Ice::$ins->runner->request->id;
         $remote_curl = new RemoteCurl('shumei_text');
         $params['accessKey'] = $this->_config['accessKey'];
         $params['type'] = $this->_config['type'];
         $params['data']['text'] = $text;
-        $params['data']['tokenId'] = strval($this->session_info['dvc_id']);
+        $params['data']['tokenId'] = strval($token_id);
         $post_data = json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
         $result = $remote_curl->curl_remote('', $post_data);
@@ -36,6 +37,9 @@ class ShumeiUtil
         if ($result['code'] != 1100 || $result['riskLevel'] != "PASS") {
             $reason = json_decode($result['detail'], true);
             $return = $reason['description'] ? $reason['description'] : "内容不合法";
+            if(isset($reason['matchedItem']) && !empty($reason['matchedItem'])) {
+                $return = "'".$reason['matchedItem']."'命中敏感词";
+            }
         }
         return $return;
     }

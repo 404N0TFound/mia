@@ -16,9 +16,6 @@ class EditorSubject extends \DB_Query
         }
         $emojiUtil = new \mia\miagroup\Util\EmojiUtil();
         foreach ($insert_data as $k => $v) {
-            if (in_array($k, ['title', 'content'])) {
-                $insert_data[$k] = $emojiUtil->emoji_unified_to_html($v);
-            }
             if (in_array($k, ['image', 'relate_item', 'relate_tag', 'ext_info'])) {
                 $insert_data[$k] = json_encode($v);
             }
@@ -37,9 +34,6 @@ class EditorSubject extends \DB_Query
         $set_data = array();
         $emojiUtil = new \mia\miagroup\Util\EmojiUtil();
         foreach ($update_data as $k => $v) {
-            if (in_array($k, ['title', 'content'])) {
-                $v = $emojiUtil->emoji_unified_to_html($v);
-            }
             if (in_array($k, ['image', 'relate_item', 'relate_tag', 'ext_info'])) {
                 $v = json_encode($v);
             }

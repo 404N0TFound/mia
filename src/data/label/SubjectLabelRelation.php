@@ -52,10 +52,9 @@ class SubjectLabelRelation extends \DB_Query {
      */
     public function getSubjectListByLableIds($lableIds,$offset,$limit,$is_recommend=0)
     {
-        if(!is_array($lableIds)){
+        if(empty($lableIds)){
             return [];
         }
-
         $where[] = ['label_id',$lableIds];
         $where[] = ['status',1];
         $orderBy = 'subject_id DESC';
