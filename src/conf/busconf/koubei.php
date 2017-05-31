@@ -1414,3 +1414,29 @@ $koubei_issue = array(
  * 口碑列表策略状态码
  * */
 $koubei_sample_id = 20001;
+
+
+/*
+ * 领券引导
+ */
+$coupon_guide = array(
+    'default' => array(
+        'bean_issue' => '评价即得10蜜豆',
+    ),
+    'first' => array(
+        'default_bean_issue' => '商品首个评价奖双倍蜜豆，20蜜豆轻松获得',
+        'bean_issue' => '商品首个评价奖励20蜜豆',
+        'relation'   => ',更可获得',
+        'coupon_issue' => '元优惠券',
+    ),
+    'nomal' => array(
+        'bean_issue' => '评价即得10蜜豆',
+        'relation'   => ',更可获得',
+        'coupon_issue' => '元优惠券',
+    ),
+);
+
+/*
+ * 发布奖励蜜豆
+ */
+$mibean_reward = 10;
