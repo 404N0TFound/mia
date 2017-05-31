@@ -1940,9 +1940,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
     }
 
     /*
-     * 5.4 口碑发布成功奖励弹层信息
+     * 5.4 发布成功奖励弹层信息
      * */
-    public function release_issue($koubeiData)
+    public function release_issue($koubeiData, $type)
     {
         if(empty($koubeiData)) {
             return $this->succ([]);
@@ -1952,21 +1952,38 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $text = trim($koubeiData['text']);
         $content = strip_tags($text, '<span><p>');
         $char_count = mb_strlen($content, 'utf8');
+        $image_count = 0;
         if(!empty($koubeiData['image_infos'])) {
             $image_count = count($koubeiData['image_infos']);
         }
         $return = [];
-        $data = $this->getCouponRule([$item_id]);
-        if(!empty($data)) {
-            $coupon_info = $data['data'][$item_id];
-            $date = date("Y-m-d H:i:s", time());
-            if(!empty($coupon_info['ext_info']) && $coupon_info['start_time'] <= $date && $date <= $coupon_info['end_time']) {
-                $ext_info = json_decode($coupon_info['ext_info'], true);
-                if($char_count >= $ext_info['chat_count'] && $image_count >= $ext_info['image_count']) {
-                    $return['title'] = $ext_info['prompt'];
-                    $return['content'] = $ext_info['intro'];
+        $mibean_reward = \F_Ice::$ins->workApp->config->get('busconf.koubei.mibean_reward');
+
+        switch ($type) {
+            case 'subject':
+                // 蜜豆操作
+                $return['mibean_reward'] = $mibean_reward;
+                break;
+
+            default:
+                // 代金券操作
+                $data = $this->getCouponRule([$item_id])['data'];
+
+                if(!empty($data)) {
+                    $coupon_info = $data[$item_id];
+                    $date = date("Y-m-d H:i:s", time());
+                    if(!empty($coupon_info['ext_info']) && $coupon_info['start_time'] <= $date && $date <= $coupon_info['end_time']) {
+                        $ext_info = json_decode($coupon_info['ext_info'], true);
+                        if($char_count >= $ext_info['chat_count'] && $image_count >= $ext_info['image_count']) {
+                            $return['title'] = $ext_info['prompt'];
+                            $return['content'] = $ext_info['intro'];
+                        }
+                    }
                 }
-            }
+                if(empty($return)) {
+                    $return['mibean_reward'] = $mibean_reward;
+                }
+                break;
         }
         return $this->succ($return);
     }
@@ -1988,6 +2005,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         // 封装奖励信息
         $coupon_money = 0;
+
+        // 奖励代金券配置
+        $coupon_config = \F_Ice::$ins->workApp->config->get('busconf.koubei.coupon_guide');
+        $f_conf = $coupon_config['first'];
+        $n_conf = $coupon_config['nomal'];
+
         foreach ($itemIds as $item_id) {
             if(!empty($couponInfo[$item_id]['ext_info'])) {
                 $ext_info = json_decode($couponInfo[$item_id]['ext_info'], true);
@@ -1997,20 +2020,21 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             // 判断首评标志
             $koubei_count = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
+
             if(empty($koubei_count)) {
                 // 首评返回文案
                 if(!empty($coupon_money)) {
-                    $couponGuide[$item_id]['bean_issue'] = '商品首个评价奖励20蜜豆，更可获得';
-                    $couponGuide[$item_id]['coupon_issue'] = $coupon_money.'元优惠券';
+                    $couponGuide[$item_id]['bean_issue'] = $f_conf['bean_issue'];
+                    $couponGuide[$item_id]['coupon_issue'] = $f_conf['relation'].$coupon_money.$f_conf['coupon_issue'];
                 }else {
-                    $couponGuide[$item_id]['bean_issue'] = '商品首个评价奖双倍蜜豆，20蜜豆轻松获得';
+                    $couponGuide[$item_id]['bean_issue'] = $f_conf['default_bean_issue'];
                 }
             }else {
                 if(!empty($coupon_money)) {
-                    $couponGuide[$item_id]['bean_issue'] = '评价即得10蜜豆，更可获得';
-                    $couponGuide[$item_id]['coupon_issue'] = $coupon_money.'元优惠券';
+                    $couponGuide[$item_id]['bean_issue'] = $n_conf['bean_issue'];
+                    $couponGuide[$item_id]['coupon_issue'] = $n_conf['relation'].$coupon_money.$n_conf['coupon_issue'];
                 }else {
-                    $couponGuide[$item_id]['bean_issue'] = '评价即得10蜜豆';
+                    $couponGuide[$item_id]['bean_issue'] = $n_conf['bean_issue'];
                 }
             }
         }
