@@ -19,8 +19,7 @@ class Service extends \FS_Service {
     
     function __destruct() {
         self::$count --;
-        if ($this->count == 0 && self::$logFlag === null && !empty($this->params)) {
-            self::$logFlag = 1;
+        if (self::$count == 0 && !empty($this->params)) {
             $this->endTime = gettimeofday(true);
             $respTime = number_format(($this->endTime - $this->startTime), 4, '.', '');
             \F_Ice::$ins->mainApp->logger_access->info(array(
