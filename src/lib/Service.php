@@ -5,9 +5,11 @@ class Service extends \FS_Service {
 
     private $startTime;
     private $endTime;
+    private $count = 0;
     static private $logFlag;
     
     function __construct() {
+        $this->count ++;
         parent::__construct();
         $this->startTime = gettimeofday(true);
         if (empty($this->ext_params['dvc_id']) && !empty($this->ext_params['unique_key'])) {
@@ -16,8 +18,8 @@ class Service extends \FS_Service {
     }
     
     function __destruct() {
-        if (self::$logFlag === null && !empty($this->params)) {
-            self::$logFlag = 1; //设置日志标记，防止一次请求记录重复日志
+        $this->count --;
+        if ($this->count == 0 && !empty($this->params)) {
             $this->endTime = gettimeofday(true);
             $respTime = number_format(($this->endTime - $this->startTime), 4, '.', '');
             \F_Ice::$ins->mainApp->logger_access->info(array(
