@@ -992,6 +992,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectSetInfo['small_image_url'][] = NormalUtil::buildImgUrl($image['url'], 'small')['url'];
             }
         }
+        $subjectSetInfo['cover_image'] = NormalUtil::buildImgUrl($subjectInfo['cover_image']['url'], 'watermark', $subjectInfo['cover_image']['width'], $subjectInfo['cover_image']['height']);
         if ($koubeiId <= 0) { //口碑不再发蜜豆
             // 赠送用户蜜豆
             $mibean = new \mia\miagroup\Remote\MiBean();
