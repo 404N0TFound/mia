@@ -386,12 +386,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(($sample_id == $ori_sample_id) || empty($dvc_id) || $is_pick == 1) {
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $condition);
         }
-
-        // 甄选封测报告推荐展示逻辑
-        if($page == 1 && $count == 3 && $is_pick == 1) {
-
-        }
-
+        
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
 
