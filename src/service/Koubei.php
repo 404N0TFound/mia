@@ -338,7 +338,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             // 封测报告列表不展示默认好评(甄选商品)
             if($page == 1 and $count == 3) {
                 // 首页封测列表推荐
-                $condition['auto_evaluate'] = 1;
+                $condition['auto_evaluate'] = 0;
                 $condition['type'] =  1;
             }else {
                 // 正常列表逻辑
