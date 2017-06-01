@@ -336,7 +336,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $condition = array();
         if(!empty($is_pick) && $is_pick == 1) {
             // 封测报告列表不展示默认好评(甄选商品)
-            if($page == 1 and $count == 3) {
+            if($page == 1 && $count == 3) {
                 // 首页封测列表推荐
                 $condition['auto_evaluate'] = 0;
                 $condition['type'] =  1;
@@ -386,7 +386,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(($sample_id == $ori_sample_id) || empty($dvc_id) || $is_pick == 1) {
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $condition);
         }
-        
+
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
 
