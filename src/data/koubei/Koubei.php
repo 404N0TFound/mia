@@ -46,6 +46,13 @@ class Koubei extends \DB_Query {
                     [':or', [':ne', 'type', $condition['type']]]
                 ]
             ];
+        }else {
+            if (isset($condition["type"])) {
+                $where[] = ['type', $condition["type"]];
+            }
+            if (isset($condition["type"])) {
+                $where[] = ['auto_evaluate', $condition["auto_evaluate"]];
+            }
         }
 
         $fields = 'id,subject_id,rank_score,created_time,title,content,score,rank,item_size';

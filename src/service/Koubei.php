@@ -336,9 +336,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $condition = array();
         if(!empty($is_pick) && $is_pick == 1) {
             // 封测报告列表不展示默认好评(甄选商品)
-            $condition['is_pick'] = $is_pick;
-            $condition['auto_evaluate'] = 1;
-            $condition['type'] =  1;
+            if($page == 1 && $count == 3) {
+                // 首页封测列表推荐
+                $condition['auto_evaluate'] = 0;
+                $condition['type'] =  1;
+            }else {
+                // 正常列表逻辑
+                $condition['is_pick'] = $is_pick;
+                $condition['auto_evaluate'] = 1;
+                $condition['type'] =  1;
+            }
         }
 
         $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);
@@ -362,13 +369,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
 
-        // 获取口碑id策略
+        // 获取口碑id策略(封测报告排除)
         $sample_id = 0;
         $ori_sample_id = \F_Ice::$ins->workApp->config->get('busconf.koubei.koubei_sample_id');
         $remote_curl = new RemoteCurl('koubei_sample');
         $dvc_id = $this->ext_params['dvc_id'];
 
-        if(!empty($dvc_id)) {
+        if(!empty($dvc_id) && empty($is_pick)) {
             $item_str = implode(',', $item_ids);
             $remote_data = array('dvcid' => $dvc_id, 'params' => json_encode(array('skuIds'=>$item_str,'page'=>$page-1,'pagesize'=>$count)));
             $curl_info = $remote_curl->curl_remote('', $remote_data);
@@ -376,7 +383,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $sample_id = $curl_info['data']['sample_id'];
         }
 
-        if(($sample_id == $ori_sample_id) || empty($dvc_id)) {
+        if(($sample_id == $ori_sample_id) || empty($dvc_id) || $is_pick == 1) {
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $condition);
         }
 
@@ -384,7 +391,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
 
         // 封测报告推荐展示三条(排序靠前的3条不符合，不展示)
-        if($page == 1 && $count == 3) {
+        /*if($page == 1 && $count == 3) {
             foreach($koubei_infos as $k => $koubei) {
                 $extr_info = $koubei['item_koubei']['extr_info'];
                 if(!empty($extr_info)) {
@@ -397,7 +404,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     unset($koubei_infos[$k]);
                 }
             }
-        }
+        }*/
 
         $koubei_res['koubei_info'] = !empty($koubei_infos) ? array_values($koubei_infos) : array();
 
