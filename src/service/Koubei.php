@@ -1961,7 +1961,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         switch ($type) {
             case 'subject':
                 // 蜜豆操作
-                $return['mibean_reward'] = $mibean_reward;
+                $return['issue_info']['mibean_reward'] = $mibean_reward;
                 break;
 
             default:
@@ -1974,13 +1974,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     if(!empty($coupon_info['ext_info']) && $coupon_info['start_time'] <= $date && $date <= $coupon_info['end_time']) {
                         $ext_info = json_decode($coupon_info['ext_info'], true);
                         if($char_count >= $ext_info['chat_count'] && $image_count >= $ext_info['image_count']) {
-                            $return['title'] = $ext_info['prompt'];
-                            $return['content'] = $ext_info['intro'];
+                            $return['issue_info']['issue_title'] = $ext_info['prompt'];
+                            $return['issue_info']['issue_content'] = $ext_info['intro'];
                         }
                     }
                 }
                 if(empty($return)) {
-                    $return['mibean_reward'] = $mibean_reward;
+                    $return['issue_info']['mibean_reward'] = $mibean_reward;
                 }
                 break;
         }
