@@ -1128,12 +1128,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         $batch_info['image_count'] = $ext_info['image_count'];
                     }
                 }
-                if(empty($batch_info)) {
-                    // 默认口碑引导信息
-                    $batch_info = \F_Ice::$ins->workApp->config->get('busconf.koubei')['koubei_issue']['issue'];
-                }
-                if(!empty($batch_info)) {
-                    $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info, $issue_type);
+
+                // 甄选商品不返回
+                if($item_info[$item_id]['is_pick'] != 1) {
+                    if(empty($batch_info)) {
+                        // 默认口碑引导信息
+                        $batch_info = \F_Ice::$ins->workApp->config->get('busconf.koubei')['koubei_issue']['issue'];
+                    }
+                    if(!empty($batch_info)) {
+                        $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($batch_info, $issue_type);
+                    }
                 }
 
                 // 甄选商品
