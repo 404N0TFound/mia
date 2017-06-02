@@ -85,8 +85,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $labels['selection'] = "1";
 
         if(!empty($koubeiData['labels'])) {
-            foreach($koubeiData['labels'] as $label) {
-                $labels['label'][] = $label['title'];
+            if (isset($koubeiData['labels']['title'])) { //兼容PC/M站传参有误的情况
+                $labels['label'][] = $koubeiData['labels']['title'];
+            } else {
+                foreach($koubeiData['labels'] as $label) {
+                    $labels['label'][] = $label['title'];
+                }
             }
         }
         if(!empty($koubeiData['image_infos'])) {
