@@ -118,7 +118,7 @@ class Subject extends \FD_Daemon {
     }
     
     public function fix_comment_subject_uid() {
-    $praise_data = new \mia\miagroup\Data\Praise\SubjectPraise();
+        $praise_data = new \mia\miagroup\Data\Praise\SubjectPraise();
         $sql = 'select distinct(subject_id) from group_subject_comment where subject_uid = 0 limit 1000';
         $data = $praise_data->query($sql);
         if (empty($data)) {
@@ -133,6 +133,22 @@ class Subject extends \FD_Daemon {
         foreach ($data as $v) {
             $update_sql = "update group_subject_comment set subject_uid = {$v['user_id']} where subject_id = {$v['id']}";
             $praise_data->query($update_sql);
+        }
+    }
+    
+    public function change_subject_user() {
+        $change_list = file('/home/hanxiang/zhenxuan_subject_user_ids');
+        foreach ($change_list as $v) {
+            $v = trim($v);
+            list($subject_id, $user_id) = explode("\t", $v);
+            //更新帖子表
+            $sql = "update group_subjects set user_id = $user_id where id = $subject_id limit 1";
+            echo $sql . "\n";
+            //$this->subjectData->query($sql);
+            //更新口碑表
+            $sql = "update koubei set user_id = $user_id where subject_id = $subject_id limit 1";
+            echo $sql . "\n";
+            //$this->subjectData->query($sql);
         }
     }
 }

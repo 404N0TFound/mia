@@ -537,8 +537,9 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }
-            if (!empty($subjectInfos['ext_info']['cover_image'])) {
-                $subjectRes[$subjectInfo['id']]['cover_image'] = $subjectInfos['ext_info']['cover_image'];
+            if (!empty($subjectInfos[$subjectId]['ext_info']['cover_image'])) {
+                $cover_image_info = $subjectInfos[$subjectId]['ext_info']['cover_image'];
+                $subjectRes[$subjectInfo['id']]['cover_image'] = NormalUtil::buildImgUrl($cover_image_info['url'],'watermark',$cover_image_info['width'],$cover_image_info['height']);;
             } else if (!empty($imageUrl[0])) {
                 $subjectRes[$subjectInfo['id']]['cover_image'] = $imageUrl[0];
             }
