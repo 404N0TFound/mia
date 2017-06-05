@@ -16,8 +16,8 @@ class Service extends \FS_Service {
     }
     
     function __destruct() {
-        if (self::$logFlag === null && !empty($this->params)) {
-            self::$logFlag = 1; //设置日志标记，防止一次请求记录重复日志
+        if (self::$logFlag == null && isset($this->code) && !empty($this->params)) {
+            self::$logFlag = 1;
             $this->endTime = gettimeofday(true);
             $respTime = number_format(($this->endTime - $this->startTime), 4, '.', '');
             \F_Ice::$ins->mainApp->logger_access->info(array(

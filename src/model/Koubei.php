@@ -630,6 +630,7 @@ class Koubei {
 
         $where[] = ['koubei_tags_layer.root', $tag_id];
         $where[] = ['koubei.status', 2];
+        $where[] = ['koubei.type', 0];
         $where[] = [':gt', 'koubei.subject_id', 0];
 
         $conditions['join'] = 'koubei';
