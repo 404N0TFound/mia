@@ -1956,15 +1956,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
             // 获取关联商品ID
             $item_service = new ItemService();
             $item_rel_ids = $item_service->getRelateItemById($item_id);
-            if (empty($item_rel_ids)) {
-                return $this->succ([]);
-            }
             //获取封测报告数（包括删除的封测报告）
             //$koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_rel_ids, 0, array('status'=>[0,2], 'type' => 1));
             //通过商品id获取口碑id(包括删除的封测报告)
+            $item_rel_ids[] = $item_id;
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_rel_ids, 0, 0, array('status'=>[0,2], 'type' => 1));
             if(empty($koubei_ids)) {
-                return $this->succ([]);
+                continue;
             }
             //获取封测报告列表(包括删除封测报告,帖子)
             $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, 0, array(), array(0,2))['data'];
