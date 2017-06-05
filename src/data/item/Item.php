@@ -124,10 +124,9 @@ class Item extends \DB_Query {
             return false;
         }
         $where[] = ['id', $item_id];
-        $where[] = ['status', 1];
         $fields = 'category_id_ng';
-        $data = $this->getRows($where, $fields);
-        $category_id_ng = $data[0]['category_id_ng'];
+        $data = $this->getRow($where, $fields);
+        $category_id_ng = $data['category_id_ng'];
         return $category_id_ng;
     }
 }
