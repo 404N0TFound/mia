@@ -122,7 +122,7 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp = null;
                 $tmp['item_id'] = $item['id'];
                 $tmp['item_name'] = $item['name'];
-                $tmp['item_img'] = isset($item['img'][4]) ? $item['img'][4] : '';
+                $tmp['item_img'] = isset($item['img'][3]) ? $item['img'][3] : '';
                 $tmp['brand_id'] = $item['brand_id'];
                 $tmp['category_id'] = $item['category_id'];
                 $tmp['category_id_ng'] = $item['category_id_ng'];
