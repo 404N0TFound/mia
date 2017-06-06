@@ -363,6 +363,24 @@ class User extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 更新用户信息
+     */
+    public function updateUserInfo($user_id, $user_info) {
+        if (intval($user_id) <= 0 || empty($user_info) || !is_array($user_info)) {
+            return $this->error(500);
+        }
+        $set_info = [];
+        $allow_field = ['nickname', 'user_status', 'icon', 'level', 'mibean_level', 'child_nickname', 'child_sex', 'child_birth_day', 'relation'];
+        foreach ($user_info as $k => $v) {
+            if (in_array($k, $allow_field)) {
+                $set_info[] = [$k, $v];
+                $this->userModel->updateUserById($user_id, $set_info);
+            }
+        }
+        return $this->succ(true);
+    }
+    
+    /**
      * 获取推荐用户列表
      */
     public function userRecommend($type, $current_uid = 0, $page = 1, $count = 10) {
