@@ -33,11 +33,8 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
-        $this->koubeiItemTransfer();exit;
-        $this->piaopiaoSendCoupons();
-        $this->firstKoubeiSendCoupons();
-        $this->koubeiItemTransfer();
-        $this->koubeiSync();
+        $function_name = $this->request->argv[0];
+        $this->$function_name();
     }
 
     /**
