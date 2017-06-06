@@ -26,7 +26,7 @@ class User extends \FD_Daemon
         }
         $baby_nick1 = $baby_nick;
         
-        $data = file('majia_uids');
+        $data = file('/home/hanxiang/majia_uids');
         foreach ($data as $v) {
             $user_id = intval(trim($v));
             if (empty($user_id)) {
@@ -46,11 +46,24 @@ class User extends \FD_Daemon
             $user_info['child_sex'] = $baby['gender'];
             $user_info['child_nickname'] = $baby['nick'];
             $user_info['level'] = rand(1, 4);
-            $sql = "update users set user_status = {$user_info['user_status']}, child_birth_day = {$user_info['child_birth_day']}, child_sex = {$user_info['child_sex']}, child_nickname = {$user_info['child_nickname']}, level = {$user_info['level']} where id = $user_id";
-            //$this->userData->query($sql);
-            echo $sql . "\n";
+            $sql = "update users set user_status = {$user_info['user_status']}, child_birth_day = '{$user_info['child_birth_day']}', child_sex = {$user_info['child_sex']}, child_nickname = '{$user_info['child_nickname']}', level = {$user_info['level']} where id = $user_id limit 1";
+            $ret = $this->userData->query($sql);
+            echo $sql . "\n";var_dump($ret);
         }
         
         
+    }
+    
+    public function updateBabyBirthday() {
+        $data = file('/home/hanxiang/04-08-baby');
+        foreach ($data as $v) {
+            $user_id = intval(trim($v));
+            $min_time = strtotime('2016-10-01');
+            $max_time = strtotime('2017-02-01');
+            $user_info['child_birth_day'] = date('Y-m-d', rand($min_time, $max_time));
+            $sql = "update users set child_birth_day = '{$user_info['child_birth_day']}' where id = $user_id";
+            //$this->userData->query($sql);
+            echo $sql . "\n";
+        }
     }
 }

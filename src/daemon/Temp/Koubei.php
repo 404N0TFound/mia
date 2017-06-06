@@ -33,7 +33,7 @@ class Koubei extends \FD_Daemon {
     }
 
     public function execute() {
-        $this->SendCoupons();exit;
+        $this->koubeiItemTransfer();exit;
         $this->piaopiaoSendCoupons();
         $this->firstKoubeiSendCoupons();
         $this->koubeiItemTransfer();
@@ -212,6 +212,7 @@ class Koubei extends \FD_Daemon {
         $koubeiData = new KoubeiData();
         $koubeiTagData = new \mia\miagroup\Data\Koubei\KoubeiTagsRelation();
         $pointTagData = new \mia\miagroup\Data\PointTags\SubjectPointTags();
+        $itemData = new \mia\miagroup\Data\Item\Item();
         foreach ($data as $v) {
             $v = trim($v);
             list($origin_item_id, $new_item_id) = explode("\t", $v);
@@ -221,6 +222,7 @@ class Koubei extends \FD_Daemon {
             $koubeiTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id]]);
             //更新group_subject_point_tags表
             $pointTagData->update([['item_id', $new_item_id]], [['item_id', $origin_item_id], ['type', 'sku']]);
+            $itemData->update([[':literal', 'feedback_rate = null']], [['id', $origin_item_id]]);
             sleep(1);
         }
     }
