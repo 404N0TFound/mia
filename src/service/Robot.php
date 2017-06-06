@@ -451,4 +451,16 @@ class Robot extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($result);
     }
+    
+    /**
+     * 编辑马甲用户信息
+     */
+    public function editMajiaUserInfo($user_id, $majia_info) {
+        if (intval($user_id) <= 0 || empty($majia_info) || !is_array($majia_info)) {
+            return $this->error(500);
+        }
+        $user_service = new \mia\miagroup\Service\User();
+        $user_service->updateUserInfo($user_id, $majia_info);
+        return $this->succ(true);
+    }
 }
