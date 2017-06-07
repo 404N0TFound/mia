@@ -393,6 +393,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $condition);
         }
 
+        // BI统计
+        if(empty($sample_id)) {
+            $sample_id = $ori_sample_id;
+        }
+
         //获取口碑信息
         $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids, $userId)['data'];
 
@@ -414,6 +419,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $selection_info = $this->getSelectionKoubeiInfo([$itemId])['data'];
             $koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
         }
+        // BI统计抽样平台分流
+        $koubei_res['sample_id'] = $sample_id;
         return $this->succ($koubei_res);
     }
 
