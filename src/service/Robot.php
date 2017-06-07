@@ -69,6 +69,7 @@ class Robot extends \mia\miagroup\Lib\Service {
         $user_info['nickname'] = $text_info['text'];
         $user_info['password'] = 'a255220a91378ba2f4aad17300ed8ab7';
         $user_info['icon'] = $material_info['avatar'];
+        $user_info['level'] = rand(1, 4);
         $userService = new \mia\miagroup\Service\User();
         $result = $userService->addMiaUser($user_info);
         if ($result['code'] > 0) {
