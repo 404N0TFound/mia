@@ -24,6 +24,7 @@ class News
         $this->systemNews = new SystemNews();
         $this->userNews = new UserNews();
         $this->config = \F_Ice::$ins->workApp->config->get('busconf.news');
+        $this->newsSetLimit = 1000;
     }
 
 
@@ -95,15 +96,16 @@ class News
         if (!in_array($type, ["outlets", "group"])) {
             return [];
         }
-        //从redis取链表
+        //从redis取,有序集合
         list($redis, $user_list_key, $expire_time) = $this->getRedisKey($type, $userId);
-        //$redis->del($user_list_key);
-        $user_news_id_list = $redis->lRange($user_list_key, 0, -1);
+        $redis->del($user_list_key);
+
+        $user_news_id_list = $redis->zRevRange($user_list_key, 0, -1);
 
         if (!empty($user_news_id_list)) {
             return $user_news_id_list;
         }
-        //链表为空从db取数据
+        //有序集合为空从db取数据
         $conditions = [];
         $conditions["user_id"] = $userId;
         $conditions["limit"] = 1000;
@@ -118,11 +120,15 @@ class News
         }
         $user_news_id_list = $this->userNews->getUserNewIdList($conditions);
 
-        //设置redis
-        foreach ($user_news_id_list as $val) {
-            $redis->rpush($user_list_key, $val);
+        //设置redis,key是id，val是时间
+        foreach ($user_news_id_list as $key=>$val) {
+            $redis->zAdd($user_list_key, $val, $key);
         }
-        $redis->ltrim($user_list_key, 0, 999);
+        $num = $redis->zCard($user_list_key);
+        if($num > $this->newsSetLimit) {
+            $redis->zRemRangeByRank($user_list_key, 0, $num - $this->newsSetLimit - 1);
+        }
+        $user_news_id_list = $redis->zRevRange($user_list_key, 0, -1);
         return $user_news_id_list;
     }
 
@@ -250,10 +256,13 @@ class News
         $res = $this->userNews->addUserNews($insertData);
         //redis list 添加数据（在列表不为空的情况下）
         list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
-        $user_news_id_list = $redis->lRange($user_list_key, 0, -1);
+        $user_news_id_list = $redis->zRevRange($user_list_key, 0, -1);
         if (!empty($user_news_id_list)) {
-            $redis->lpush($user_list_key, $res);
-            $redis->ltrim($user_list_key, 0, 999);
+            $redis->zAdd($user_list_key, $res, strtotime($insertData['create_time']));
+            $num = $redis->zCard($user_list_key);
+            if($num > $this->newsSetLimit) {
+                $redis->zRemRangeByRank($user_list_key, 0, $num - $this->newsSetLimit - 1);
+            }
         }
         //消息计数增加
 
@@ -374,14 +383,20 @@ class News
             if (in_array($value["news_type"], $this->config["group"]) && $check_group == 1) {
                 $curType = "group";
                 list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
-                $redis->lpush($user_list_key, $res);
-                $redis->ltrim($user_list_key, 0, 999);
+                $redis->zAdd($user_list_key, $res, strtotime($insertData["create_time"]));
+                $num = $redis->zCard($user_list_key);
+                if($num > $this->newsSetLimit) {
+                    $redis->zRemRangeByRank($user_list_key, 0, $num - $this->newsSetLimit - 1);
+                }
             }
             if (in_array($value["news_type"], $this->config["outlets"]) && $check_outlets == 1) {
                 $curType = "outlets";
                 list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
-                $redis->lpush($user_list_key, $res);
-                $redis->ltrim($user_list_key, 0, 999);
+                $redis->zAdd($user_list_key, $res, strtotime($insertData["create_time"]));
+                $num = $redis->zCard($user_list_key);
+                if($num > $this->newsSetLimit) {
+                    $redis->zRemRangeByRank($user_list_key, 0, $num - $this->newsSetLimit - 1);
+                }
             }
             //消息计数增加
             $curType = $this->getCurType($value["news_type"]);

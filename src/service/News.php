@@ -177,10 +177,12 @@ class News extends \mia\miagroup\Lib\Service
                 case "group_custom":
                 case "custom":
                     $systemNews = $systemNewsList[$news["news_id"]];
-                    if (empty($systemNews)) {
-                        continue 2;
+                    if (!empty($systemNews)) {
+                        $ext_info = json_decode($systemNews["ext_info"], true);
+                    } else {
+                        $ext_info = json_decode($news["ext_info"], true);
                     }
-                    $ext_info = json_decode($systemNews["ext_info"], true);
+
                     $tmp["content"] = $ext_info["content"];
                     $tmp["custom_title"] = $ext_info["title"];
                     $tmp["custom_photo"] = $ext_info["photo"];
@@ -189,8 +191,12 @@ class News extends \mia\miagroup\Lib\Service
                     $tmp["resource_sub_type"] = "custom";
                     $tmp["resource_id"] = "0";
 
-                    //自定义消息发送人都是蜜芽小天使
-                    $tmp["user_info"] = $miaAngelInfo;
+                    //蜜芽小天使
+                    if(empty($news["send_user"])) {
+                        $tmp["user_info"] = $miaAngelInfo;
+                    } else {
+                        $sendUserInfos[$news["send_user"]];
+                    }
                     break;
                 //评论
                 case "img_comment":
@@ -363,11 +369,18 @@ class News extends \mia\miagroup\Lib\Service
             //目前特卖outlets的，表里发送人没有指定ID，输出时统一指定的蜜芽小天使（1026069）；社交自定义消息指定的了发送人，也为蜜芽小天使（1026069）；都可以替换的；2017-5-25；
             case "custom":
             case "group_custom":
-                $ext_info['title'] = $content_info['title'] ? $content_info['title'] : "";
-                $ext_info['content'] = $content_info['content'] ? $content_info['content'] : "";
-                $ext_info['photo'] = $content_info['photo'] ? $content_info['photo'] : "";
-                $ext_info['url'] = $content_info['url'] ? $content_info['url'] : "";
-
+                if (!empty($content_info['title'])) {
+                    $ext_info['title'] = $content_info['title'];
+                }
+                if (!empty($content_info['content'])) {
+                    $ext_info['content'] = $content_info['content'];
+                }
+                if (!empty($content_info['photo'])) {
+                    $ext_info['photo'] = $content_info['photo'];
+                }
+                if (!empty($content_info['url'])) {
+                    $ext_info['url'] = $content_info['url'];
+                }
                 //$miaAngelUid = \F_Ice::$ins->workApp->config->get('busconf.user.miaAngelUid');
                 //$ext_info["user_info"] = $userService->getUserInfoByUids([$miaAngelUid])["data"][$miaAngelUid];//蜜芽小天使
                 break;
@@ -412,7 +425,24 @@ class News extends \mia\miagroup\Lib\Service
                 $ext_info['content'] = $content_info['content'];
                 break;
         }
-        $insert_data['create_time'] = date("Y-m-d H:i:s");
+        if(isset($content_info['create_time'])){
+            $insert_data['create_time'] = $content_info['create_time'];
+        } else {
+            $insert_data['create_time'] = date("Y-m-d H:i:s");
+        }
+        if(isset($content_info['id'])){
+            $insert_data['id'] = $content_info['id'];
+        }
+        if(isset($content_info['news_id'])){
+            $insert_data['news_id'] = $content_info['news_id'];
+        }
+        if(isset($content_info['is_read'])){
+            $insert_data['is_read'] = $content_info['is_read'];
+        }
+        if(isset($content_info['status'])){
+            $insert_data['status'] = $content_info['status'];
+        }
+
         if (!empty($ext_info)) {
             $insert_data['ext_info'] = json_encode($ext_info);
         }

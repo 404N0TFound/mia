@@ -106,13 +106,13 @@ class UserNews extends DB_Query
             $where[] = ['news_type', $conditions['news_type']];
         }
 
-        $fields = "id";
+        $fields = "id,create_time";
         $data = $this->getRows($where, $fields, $limit, 0, $order_by);
 
         if (!empty($data)) {
             $id_arr = [];
             foreach ($data as $val) {
-                $id_arr[] = $val["id"];
+                $id_arr[$val["id"]] = strtotime($val["create_time"]);
             }
             return $id_arr;
         } else {
