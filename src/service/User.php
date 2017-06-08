@@ -353,6 +353,9 @@ class User extends \mia\miagroup\Lib\Service {
         if (!empty($user_info['password'])) {
             $insert_info['password'] = $user_info['password'];
         }
+        if (!empty($user_info['level'])) {
+            $insert_info['level'] = $user_info['level'];
+        }
         if (!empty($user_info['create_date'])) {
             $insert_info['create_date'] = $user_info['create_date'];
         } else {

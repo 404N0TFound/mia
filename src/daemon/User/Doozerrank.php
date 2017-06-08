@@ -41,7 +41,7 @@ class Doozerrank extends \FD_Daemon {
         //获取所有达人
         $daren_list = $this->userCategoryData->getGroupUserIdList(false, false);
         //获取排行榜
-        $rank_list = $this->subjectData->getPushlishRankByTime($daren_list, $start_time, $end_time, array(), 0, 50);
+        $rank_list = $this->subjectData->getPushlishRankByTime($daren_list, $start_time, $end_time, array('source' => 1), 0, 50);
         //更新排行榜
         $this->userModel->updateDoozerRank($mode, $rank_list);
         //更新用户热门帖子
