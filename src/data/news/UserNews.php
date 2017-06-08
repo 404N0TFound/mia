@@ -9,7 +9,7 @@ class UserNews extends DB_Query
     public $dbResource = 'mianews';
     public $mapping = [];
     public $user_id = 0;
-    public $table_num = 3;
+    public $table_num = 1024;
     public $tableName = "";
     private $shard_field = 'user_id';//分表字段
 
