@@ -243,3 +243,20 @@ $cron_list['beauty_data_incremental_sync'] = array(
     'start_time' => '2017-05-14 13:55:00',
     'interval' => 5
 );
+
+//达人月排行榜更新
+$cron_list['user_doozer_month_rank_update'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=user --action=doozerrank pub_month",
+    'start_time' => '2017-06-09 01:00:00',
+    'interval' => 86400
+);
+//达人日排行榜更新
+$cron_list['user_doozer_day_rank_update'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=user --action=doozerrank pub_day",
+    'start_time' => '2017-06-09 01:05:00',
+    'interval' => 600
+);

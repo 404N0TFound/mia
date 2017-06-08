@@ -200,19 +200,20 @@ class User
      * @params array()
      * @return array() 推荐用户列表
      */
-    public function getGroupUserIdList($count)
+    public function getGroupUserIdList($count, $page = 1)
     {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getGroupUserIdList($count);
+        $offset = ($page - 1) * $count;
+        $data = $userCategory->getGroupUserIdList($count, $offset);
         return $data;
     }
     
     /**
      * 批量获取分类用户信息
      */
-    public function getBatchUserCategory($conditions) {
+    public function getBatchUserCategory($userIds, $status=array(1)) {
         $userCategory = new UserCategoryData();
-        $data = $userCategory->getBatchUserInfoByUids($conditions);
+        $data = $userCategory->getBatchUserInfoByUids($userIds, $status);
         return $data;
     }
     
@@ -267,5 +268,87 @@ class User
         $userPermission = new UserPermissionData();
         $data = $userPermission->updatePermissionByUid($userId, $updata, $type);
         return $data;
+    }
+    
+    /**
+     * 更新达人发布排行榜
+     */
+    public function updateDoozerRank($type, $rank_list) {
+        if (!in_array($type, array('pub_day', 'pub_month')) || empty($rank_list)) {
+            return false;
+        }
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_doozer_rank.key'), $type);
+        $redis = new \mia\miagroup\Lib\Redis();
+        //先获取所有数据
+        $count = $redis->zcount($key, '-inf', '+inf');
+        $data = $redis->zrange($key, 0, $count, true);
+        if (!empty($data)) {
+            foreach ($data as $user_id => $pub_count) {
+                //剔除已掉出榜外的用户
+                if (!isset($rank_list[$user_id]) || $rank_list[$user_id] < 5) {
+                    echo $user_id, "\n";
+                    $redis->zrem($key, $user_id);
+                }
+            }
+        }
+        foreach ($rank_list as $user_id => $pub_count) {
+            if (empty($user_id) || intval($pub_count) < 5) {
+                continue;
+            }
+            $redis->zadd($key, $pub_count, $user_id);
+        }
+        $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_doozer_rank.expire_time'));
+        return true;
+    }
+    
+    /**
+     * 读取达人发布排行榜
+     */
+    public function getDoozerRank($type, $page = 1, $count = 10) {
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_doozer_rank.key'), $type);
+        $redis = new \mia\miagroup\Lib\Redis();
+        $offset = ($page - 1) * $count;
+        $data = $redis->zrevrange($key, $offset, $count - 1, true);
+        return $data;
+    }
+    
+    /**
+     * 更新用户热帖
+     */
+    public function updateUserHotSubject($user_id, $subject_ids) {
+        if (intval($user_id) <= 0 || empty($subject_ids) || !is_array($subject_ids)) {
+            return false;
+        }
+        // 获取rediskey
+        $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_hot_subjects.key'), $user_id);
+        $redis = new \mia\miagroup\Lib\Redis();
+        $redis->set($key, $subject_ids);
+        $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_hot_subjects.expire_time'));
+        return true;
+    }
+    
+    /**
+     * 读取用户热帖
+     */
+    public function getUserHotSubjects($user_ids) {
+        if (empty($user_ids) || !is_array($user_ids)) {
+            return array();
+        }
+        $keys = [];
+        foreach ($user_ids as $user_id) {
+            $keys[] = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_hot_subjects.key'), $user_id);
+        }
+        $redis = new \mia\miagroup\Lib\Redis();
+        $data = $redis->mget($keys);
+        $result = array();
+        foreach ($user_ids as $user_id) {
+            $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_hot_subjects.key'), $user_id);
+            if (!empty($data[$key])) {
+                $result[$user_id] = $data[$key];
+            }
+        }
+        return $result;
     }
 }

@@ -192,16 +192,11 @@ class Comment extends \mia\miagroup\Lib\Service {
                 }
             }
         }
-        //判断用户是否是专家
-        $expert = $this->userService->getBatchCategoryUserInfo(array($user_id));
-        $is_expert = 0;
-        if(isset($expert['data']['doozer'][$user_id]['is_expert']) && $expert['data']['doozer'][$user_id]['is_expert'] == 1)
-            $is_expert = 1;
 
         // 评论信息入库
         $commentInfo['subject_id'] = $subjectId;
+        $commentInfo['subject_uid'] = $subjectInfo['user_id'];
         $commentInfo['comment'] = $commentInfo['comment'];
-        $commentInfo['is_expert'] = $is_expert;
         $commentInfo['create_time'] = date("Y-m-d H:i:s", time());
         // 记录评论信息
         $commentInfo['id'] = $this->commentModel->addComment($commentInfo);
@@ -398,6 +393,7 @@ class Comment extends \mia\miagroup\Lib\Service {
         }
         $commentInfo['subject_id'] = $params['subject_id'];
         $commentInfo['user_id'] = $params['user_id'];
+        $commentInfo['subject_uid'] = $params['subject_uid'];
         $commentInfo['comment'] = $params['comment'];
         $commentInfo['fid'] = intval($params['fid']);
         $commentInfo['is_expert'] = $params['is_expert'];

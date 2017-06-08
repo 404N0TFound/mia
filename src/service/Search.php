@@ -397,10 +397,8 @@ class Search extends Service
     {
         //推荐池数据
         $userService = new UserService();
-        $userIdRes = $userService->getGroupDoozerList($count);
         $currentUid = $this->ext_params['current_uid'];
-        $userList = $userService->getUserInfoByUids($userIdRes['data'], $currentUid)['data'];
-        $return = array_values($userList);
+        $return = $userService->userRecommend('user_search_recommend', $currentUid)['data'];
         return $this->succ(['user_list' => $return]);
     }
 

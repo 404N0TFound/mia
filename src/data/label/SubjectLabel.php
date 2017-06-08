@@ -106,8 +106,10 @@ class SubjectLabel extends \DB_Query {
         $where[] = ['status',1];
         $data = $this->getRows($where,'*',$limit,$offset,$orderBy);
         $result = [];
-        foreach ($data as $key => $value) {
-            $result[] = $value['id'];
+        if (!empty($data)) {
+            foreach ($data as $key => $value) {
+                $result[] = $value['id'];
+            }
         }
         return $result;
     }

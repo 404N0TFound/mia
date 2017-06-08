@@ -78,18 +78,7 @@ class Album extends \mia\miagroup\Lib\Service {
             }
         }
         $User = new \mia\miagroup\Service\User();
-        $userIdRes = $User->getGroupDoozerList();
-
-        $userInfo = $User->getUserInfoByUids($userIdRes,$user_id);
-        $users = array();
-        if( isset($userInfo['data']) && $userInfo['data']){
-            foreach($userIdRes as $userId){
-                if (!empty($userInfo['data'][$userId])) {
-                    $users[] = $userInfo['data'][$userId];
-                }
-            }
-            $response['users'] = array_values($users);
-        }
+        $response['users'] = $User->userRecommend(album_user_recommend, $user_id);
         
         return $this->succ($response);
     }

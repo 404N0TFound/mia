@@ -69,29 +69,15 @@ class User extends \mia\miagroup\Lib\Service {
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
-            $userInfo['is_experts'] = $userCate['doozer'][$userInfo['id']]['is_expert'] ? 1 : 0; // 用户是否是专家
+            $userInfo['is_experts'] = $userCate[$userInfo['id']] ? 1 : 0; // 用户是否是专家
             $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; // 用户是否是供应商
             $userInfo['is_have_permission'] = !empty($userPermissions['video'][$userInfo['id']]) ? 1 : 0; // 用户是否有发视频权限
             $userInfo['is_have_publish_permission'] = !empty($userPermissions['album'][$userInfo['id']]) ? 1 : 0; // 用户是否有web发布权限
-            if ($userCate['doozer'][$userInfo['id']]) {
-				$expertInfos[$userInfo['id']]['type'] = $userCate['doozer'][$userInfo['id']]['type'];
-                $expertInfos[$userInfo['id']]['category'] = $userCate['doozer'][$userInfo['id']]['category'];
-                if($userCate['doozer'][$userInfo['id']]['category'] != ''){
-                    $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate['doozer'][$userInfo['id']]['desc'])) ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'], "#")) : array();
-                }else{
-                    $expertInfos[$userInfo['id']]['desc'] = !empty(trim($userCate['doozer'][$userInfo['id']]['desc'])) ? array($userCate['doozer'][$userInfo['id']]['desc']) : array();
-                }
-                
-                if ($expertInfos[$userInfo['id']] && !empty(trim($userCate['doozer'][$userInfo['id']]['label'], "#"))) {
-                    $expert_label_ids = explode('#', trim($userCate['doozer'][$userInfo['id']]['label'], "#"));
-                    $expertInfos[$userInfo['id']]['label'] = array_values($labelService->getBatchLabelInfos($expert_label_ids)['data']);
-                } else {
-                    $expertInfos[$userInfo['id']]['label'] = [];
-                }
-                $userInfo['doozer_intro'] = $userCate['doozer'][$userInfo['id']]['desc'];
-                $userInfo['experts_info'] = $expertInfos[$userInfo['id']];
+            $userInfo['user_type'] = 'normal';
+            if ($userCate[$userInfo['id']]) { //用户类型
+                $userInfo['user_type'] = $userCate[$userInfo['id']]['type'];
+                $userInfo['doozer_intro'] = $userCate[$userInfo['id']]['desc'];
             }
-            
             if (intval($currentUid) > 0) {
                 if (!empty($relationWithMe) && $relationWithMe[$userInfo['id']] > 0) {
                     $userInfo['relation_with_me'] = $relationWithMe[$userInfo['id']]['relation_with_me'];
@@ -113,41 +99,6 @@ class User extends \mia\miagroup\Lib\Service {
             }
             if (!in_array('cell_phone', $fields)) {
                 unset($userInfo['cell_phone']);
-            }
-            //拼接用户分类类型（用于后台）
-            if(!empty($userCate)){
-                if($userCate['doozer'][$userInfo['id']]){
-                    $userInfo['en_category'] = $userCate['doozer'][$userInfo['id']]['type'];
-                    $userInfo['category'] = "达人";
-                    $userInfo['rec_desc'] = $userCate['doozer'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['doozer'][$userInfo['id']]['desc'],'#')) : '';
-                    $userInfo['rec_label'] = $userCate['doozer'][$userInfo['id']]['label'] ? trim($userCate['doozer'][$userInfo['id']]['label'],'#') : '';
-                    if(!empty($userCate['doozer'][$userInfo['id']]['category'])){
-                        $userInfo['category'] .= "/".$userCate['doozer'][$userInfo['id']]['category'];
-                        $userInfo['sub_category'] = $userCate['doozer'][$userInfo['id']]['category'];
-                    }
-                }elseif($userCate['majia'][$userInfo['id']]){
-                    $userInfo['en_category'] = $userCate['majia'][$userInfo['id']]['type'];
-                    $userInfo['category'] = "马甲";
-                    $userInfo['rec_desc'] = $userCate['majia'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['majia'][$userInfo['id']]['desc'],'#')) : '';
-                    $userInfo['rec_label'] = $userCate['majia'][$userInfo['id']]['label'] ? trim($userCate['majia'][$userInfo['id']]['label'],'#') : '';
-                    if(!empty($userCate['majia'][$userInfo['id']]['category'])){
-                        $userInfo['category'] .= "/".$userCate['majia'][$userInfo['id']]['category'];
-                        $userInfo['sub_category'] = $userCate['majia'][$userInfo['id']]['category'];
-                    }
-                }elseif($userCate['company'][$userInfo['id']]){
-                    $userInfo['en_category'] = $userCate['company'][$userInfo['id']]['type'];
-                    $userInfo['category'] = "商家";
-                    $userInfo['rec_desc'] = $userCate['company'][$userInfo['id']]['desc'] ? explode('#', trim($userCate['company'][$userInfo['id']]['desc'],'#')) : '';
-                    $userInfo['rec_label'] = $userCate['company'][$userInfo['id']]['label'] ? trim($userCate['company'][$userInfo['id']]['label'],'#') : '';
-                    if(!empty($userCate['company'][$userInfo['id']]['category'])){
-                        $userInfo['category'] .= "/".$userCate['company'][$userInfo['id']]['category'];
-                        $userInfo['sub_category'] = $userCate['company'][$userInfo['id']]['category'];
-                    }
-                }
-                if(!empty($userInfo['rec_label'])){
-                    $label_ids = explode('#', $userInfo['rec_label']);
-                    $userInfo['labels'] = array_values($labelService->getBatchLabelInfos($label_ids)['data']);
-                }
             }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
         }
@@ -360,15 +311,14 @@ class User extends \mia\miagroup\Lib\Service {
             $this->userModel->updateUserById($user_id, $set_data);
         }
         
-        //升级为专家用户
+        //升级为企业用户
         $expertInfo = array();
         
-        $expertInfo['user_id'] = $userId;
-        $expertInfo['type'] = 'doozer';
-        $expertInfo['category'] = 'expert';
+        $expertInfo['user_id'] = $user_info['id'];
+        $expertInfo['type'] = 'company';
+        $expertInfo['category'] = '';
         $expertInfo['status'] = 1;
-        $expertInfo['create_time'] = $userInfo['create_date'];
-        $expertInfo['last_modify'] = $userInfo['create_date'];
+        $expertInfo['create_time'] = date('Y-m-d H:i:s');
         
         $this->addCategory($expertInfo);
         
@@ -403,6 +353,9 @@ class User extends \mia\miagroup\Lib\Service {
         if (!empty($user_info['password'])) {
             $insert_info['password'] = $user_info['password'];
         }
+        if (!empty($user_info['level'])) {
+            $insert_info['level'] = $user_info['level'];
+        }
         if (!empty($user_info['create_date'])) {
             $insert_info['create_date'] = $user_info['create_date'];
         } else {
@@ -411,32 +364,47 @@ class User extends \mia\miagroup\Lib\Service {
         $user_id = $this->userModel->addUser($insert_info);
         return $this->succ($user_id);
     }
-
+    
     /**
-     * 查推荐用户列表
-     * @params array()
-     * @return array() 推荐用户列表
+     * 更新用户信息
      */
-    public function getGroupDoozerList($count = 10)
-    {
-        $result = array();
-        $userArr = $this->userModel->getGroupUserIdList($count);
-        if(!empty($userArr)){
-            $result = $userArr;
+    public function updateUserInfo($user_id, $user_info) {
+        if (intval($user_id) <= 0 || empty($user_info) || !is_array($user_info)) {
+            return $this->error(500);
         }
-        return $this->succ($result);
+        $set_info = [];
+        $allow_field = ['nickname', 'user_status', 'icon', 'level', 'mibean_level', 'child_nickname', 'child_sex', 'child_birth_day', 'relation'];
+        foreach ($user_info as $k => $v) {
+            if (in_array($k, $allow_field)) {
+                $set_info[] = [$k, $v];
+                $this->userModel->updateUserById($user_id, $set_info);
+            }
+        }
+        return $this->succ(true);
+    }
+    
+    /**
+     * 获取推荐用户列表
+     */
+    public function userRecommend($type, $current_uid = 0, $page = 1, $count = 10) {
+        $user_ids = array();
+        switch ($type) {
+            case 'daren_rank_recommend': //达人频道推荐
+            case 'user_search_recommend': //搜索用户推荐
+            case 'album_user_recommend': //专栏用户推荐
+            default: //目前都统一推荐逻辑
+                $user_ids = $this->userModel->getGroupUserIdList($count, $page);
+        }
+        $recommend_users = $this->getUserInfoByUids($user_ids, $current_uid)['data'];
+        return $this->succ(array_values($recommend_users));
     }
     
     // 批量获取分类用户（专家、达人）信息
-    public function getBatchCategoryUserInfo($userIds,$status=array(1)) {
+    public function getBatchCategoryUserInfo($userIds, $status=array(1)) {
         if (empty($userIds)) {
-            return $this->error(500);
+            return $this->succ(array());
         }
-    
-        $conditions = array();
-        $conditions['user_id'] = $userIds;
-        $conditions['status'] = $status;
-        $data = $this->userModel->getBatchUserCategory($conditions);
+        $data = $this->userModel->getBatchUserCategory($userIds, $status);
         return $this->succ($data);
     }
 
@@ -446,8 +414,8 @@ class User extends \mia\miagroup\Lib\Service {
         if (empty($userId)) {
             return $this->succ(false);
         }
-        $res = $this->getBatchCategoryUserInfo([$userId]);
-        if(isset($res["data"]["doozer"][$userId])) {
+        $res = $this->getBatchCategoryUserInfo([$userId])['data'];
+        if(isset($res[$userId]) && $res[$userId]["type"] == 'doozer') {
             return $this->succ(true);
         }
         return $this->succ(false);
@@ -596,5 +564,54 @@ class User extends \mia\miagroup\Lib\Service {
         return $this->succ($result);
     }
     
-    
+    /**
+     * 获取达人排行榜
+     */
+    public function getDoozerRank($type, $current_uid = 0, $page = 1, $count = 10) {
+        //获取排行榜数据
+        $rank_list = $this->userModel->getDoozerRank($type, $page, $count);
+        if (empty($rank_list)) {
+            return $this->succ([]);
+        }
+        $subject_ids = [];
+        //获取用户热门文章
+        $user_ids = array_keys($rank_list);
+        $hot_subjects = $this->userModel->getUserHotSubjects($user_ids);
+        foreach ($hot_subjects as $subjects) {
+            $subject_ids = array_merge($subject_ids, array_keys($subjects));
+        }
+        //获取帖子、用户信息
+        $subject_service = new \mia\miagroup\Service\Subject();
+        $subject_infos = $subject_service->getBatchSubjectInfos($subject_ids, 0, [])['data'];
+        $user_infos = $this->getUserInfoByUids($user_ids, $current_uid, ['count'])['data'];
+        $index = ($page - 1) * $count;
+        $result = [];
+        foreach ($rank_list as $user_id => $pub_count) {
+            $index ++;
+            $rank_detail = null;
+            $rank_detail['index'] = $index;
+            switch ($type) {
+                case 'pub_day':
+                    $rank_detail['day_pub_count'] = $pub_count;
+                    break;
+                case 'pub_month':
+                    $rank_detail['month_pub_count'] = $pub_count;
+                    break;
+            }
+            $rank_detail['user_info'] = $user_infos[$user_id];
+            $rank_detail['subject_list'] = [];
+            if (!empty($hot_subjects[$user_id])) {
+                foreach ($hot_subjects[$user_id] as $subject_id => $praise_count) {
+                    if (!empty($subject_infos[$subject_id]) && !empty($subject_infos[$subject_id]['image_infos'])) {
+                        if (count($rank_detail['subject_list']) >= 6) {
+                            break;
+                        }
+                        $rank_detail['subject_list'][] = $subject_infos[$subject_id];
+                    }
+                }
+            }
+            $result[] = $rank_detail;
+        }
+        return $this->succ($result);
+    }
 }

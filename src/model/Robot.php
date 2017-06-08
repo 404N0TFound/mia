@@ -56,6 +56,14 @@ class Robot {
     }
     
     /**
+     * 根据user_id获取素材ID
+     */
+    public function getAvatarMaterialByUserId($user_id) {
+        $result = $this->avatarMaterialData->getAvatarMaterialByUserId($user_id);
+        return $result;
+    }
+    
+    /**
      * 新增头像素材
      */
     public function addAvatarMaterial($avatar_material_info) {

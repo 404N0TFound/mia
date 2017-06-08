@@ -54,6 +54,17 @@ class Subject extends \mia\miagroup\Lib\Service
     {
         //起始固定位，“发现”，“关注”
         $beginning_tabs = $this->config['group_fixed_tab_first'];
+        //5.5以下去除达人频道
+        $version = explode('_', $this->ext_params['version'], 3);
+        array_shift($version);
+        $version = intval(implode($version));
+        if ($version < 55) {
+            foreach ($beginning_tabs as $k => $v) {
+                if ($v['extend_id'] == 4) {
+                    unset($beginning_tabs[$k]);
+                }
+            }
+        }
         //配置位3个
         //$operation_tabs = $this->config['group_index_operation_tab'];
         $operation_tabs = [];//暂时不需要了
@@ -537,8 +548,9 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }
-            if (!empty($subjectInfos['ext_info']['cover_image'])) {
-                $subjectRes[$subjectInfo['id']]['cover_image'] = $subjectInfos['ext_info']['cover_image'];
+            if (!empty($subjectInfos[$subjectId]['ext_info']['cover_image'])) {
+                $cover_image_info = $subjectInfos[$subjectId]['ext_info']['cover_image'];
+                $subjectRes[$subjectInfo['id']]['cover_image'] = NormalUtil::buildImgUrl($cover_image_info['url'],'watermark',$cover_image_info['width'],$cover_image_info['height']);;
             } else if (!empty($imageUrl[0])) {
                 $subjectRes[$subjectInfo['id']]['cover_image'] = $imageUrl[0];
             }
@@ -800,11 +812,6 @@ class Subject extends \mia\miagroup\Lib\Service
                 return $this->error(1104);
             }
         }
-        //判断是否重复提交
-        $isReSubmit = $this->subjectModel->checkReSubmit($subjectInfo);
-        if ($isReSubmit === true) {
-            return $this->error(1128);
-        }
         //口碑不经过数美验证
         if ($isValidate == 1) {
             //启用数美验证
@@ -838,6 +845,12 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }
+        }
+        
+        //判断是否重复提交
+        $isReSubmit = $this->subjectModel->checkReSubmit($subjectInfo);
+        if ($isReSubmit === true) {
+            return $this->error(1128);
         }
 
         $subjectSetInfo = array();
@@ -960,6 +973,8 @@ class Subject extends \mia\miagroup\Lib\Service
             // 发布失败
             return $this->error(1101);
         }
+        //发布成功记录，用于校验重复提交
+        $this->subjectModel->subjectPublishRecord($subjectInfo);
         // insert_id
         $subjectId = $insertSubjectRes;
         if ($videoId > 0) {
@@ -978,6 +993,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectSetInfo['small_image_url'][] = NormalUtil::buildImgUrl($image['url'], 'small')['url'];
             }
         }
+        $subjectSetInfo['cover_image'] = NormalUtil::buildImgUrl($subjectInfo['cover_image']['url'], 'watermark', $subjectInfo['cover_image']['width'], $subjectInfo['cover_image']['height']);
         if ($koubeiId <= 0) { //口碑不再发蜜豆
             // 赠送用户蜜豆
             $mibean = new \mia\miagroup\Remote\MiBean();
@@ -1018,7 +1034,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $koubeiSubject['create_time'] = $subjectSetInfo['created'];
         $koubeiService = new KoubeiService();
         $koubeiService->addKoubeiSubject($koubeiSubject);
-        
+
         //插入帖子标记信息
         if(!empty($pointInfo)){
             $pointItemIds = array();
@@ -1029,6 +1045,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     $pointItemIds[] = $itemPoint['item_id'];
                 }
             }
+            // 区别封测报告（封测报告为未上线商品）
             $this->tagsService->saveBatchSubjectTags($subjectId, $pointItemIds);
         }
         
@@ -1218,6 +1235,9 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectId = is_array($subjectId) ? $subjectId : [$subjectId];
         //查询图片信息
         $subjects_info = $this->subjectModel->getSubjectByIds($subjectId);
+        //查询关联商品信息
+        $pointTag = new \mia\miagroup\Service\PointTags();
+        $subjectItemIds = $pointTag->getBatchSubjectItmeIds($subjectId)['data'];
 
         $affect = $this->subjectModel->setSubjectRecommendStatus($subjectId);
         if(!$affect){
@@ -1230,18 +1250,18 @@ class Subject extends \mia\miagroup\Lib\Service
         $news = new \mia\miagroup\Service\News();
 
         foreach($subjects_info as $subject_info){
-            $param = array(
-                'user_id'           => $subject_info['user_id'],//操作人
-                'mibean'            => 5,
-                'relation_type'     => 'fine_pic',
-                'relation_id'       => $subject_info['id'],
-                'to_user_id'        => $subject_info['user_id']
-            );
-            //验证是否送过
-            $data = $mibean->check($param);
-            if(empty($data['data'])){
+            //有关联商品才加蜜豆
+            if (!empty($subjectItemIds[$subject_info['id']])) {
+                $param = array(
+                    'user_id'           => $subject_info['user_id'],//操作人
+                    'mibean'            => 5,
+                    'relation_type'     => 'fine_pic',
+                    'relation_id'       => $subject_info['id'],
+                    'to_user_id'        => $subject_info['user_id']
+                );
                 $data = $mibean->add($param);
             }
+            
             //发送消息推送，每天发三次
             $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
             $push_num = $redis->get($push_num_key);

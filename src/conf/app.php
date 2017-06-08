@@ -36,6 +36,3 @@ $url = [
     'img_url'=>'https://img.miyabaobei.com/',
     'qiniu_url'=>'https://video1.miyabaobei.com/',
 ];
-
-$user_news_table_num = 1;
-

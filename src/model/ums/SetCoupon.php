@@ -80,6 +80,11 @@ class SetCoupon extends \DB_Query {
         if(!empty($data['remarks'])) {
             $ext_param['remarks'] = $data['remarks'];
         }
+
+        if(!empty($data['coupon_money'])) {
+            $ext_param['coupon_money'] = $data['coupon_money'];
+        }
+
         if(!empty($data['image'])) {
             $ext_param['image']['url'] = $data['image'];
             // 获取宽高

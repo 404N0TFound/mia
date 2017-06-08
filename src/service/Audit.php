@@ -247,7 +247,7 @@ class Audit extends \mia\miagroup\Lib\Service {
 //                }
             }
             if (!empty($matchList)) {
-                return $this->error(1127,$matchList);
+                return $this->error(1127, $checkResult);
             }
         }
         //获取敏感词
