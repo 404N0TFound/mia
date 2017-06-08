@@ -6,9 +6,13 @@ use mia\miagroup\Data\User\User as UserData;
 
 class User extends \FD_Daemon
 {
+    private $userData;
+    private $avatarMaterialData;
+    
     public function __construct()
     {
         $this->userData = new UserData();
+        $this->avatarMaterialData = new \mia\miagroup\Data\Robot\AvatarMaterial();
     }
 
     public function execute() {
@@ -64,6 +68,28 @@ class User extends \FD_Daemon
             $sql = "update users set child_birth_day = '{$user_info['child_birth_day']}' where id = $user_id";
             //$this->userData->query($sql);
             echo $sql . "\n";
+        }
+    }
+    
+    public function updateAvatarMaterial() {
+        $data = file('/home/hanxiang/majia_uids');
+        $user_ids = [];
+        foreach ($data as $v) {
+            $user_ids[] = trim($v);
+        }
+        $where[] = ['id', $user_ids];
+        $field = 'id, user_status, child_birth_day, child_sex';
+        $data = $this->userData->getRows($where, $field);
+        foreach ($data as $v) {
+            if (!empty($v['child_birth_day'])) {
+                $set_data = [];
+                $set_data[] = ['user_status', $v['user_status']];
+                $set_data[] = ['child_birthday', $v['child_birth_day']];
+                $set_data[] = ['child_sex', $v['child_sex']];
+                $where = [];
+                $where[] = ['user_id', $v['id']];
+                $this->avatarMaterialData->update($set_data, $where);
+            }
         }
     }
 }

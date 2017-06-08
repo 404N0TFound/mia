@@ -457,9 +457,21 @@ class Robot extends \mia\miagroup\Lib\Service {
      * 编辑马甲用户信息
      */
     public function editMajiaUserInfo($user_id, $majia_info) {
+        $avatar_material_id = $this->robotModel->getAvatarMaterialByUserId($user_id)['user_id'];
         if (intval($user_id) <= 0 || empty($majia_info) || !is_array($majia_info)) {
             return $this->error(500);
         }
+        $avatar_update_info = [];
+        if (!empty($majia_info['child_sex'])) {
+            $avatar_update_info['child_sex'] = $majia_info['child_sex'];
+        }
+        if (!empty($majia_info['user_status'])) {
+            $avatar_update_info['user_status'] = $majia_info['user_status'];
+        }
+        if (!empty($majia_info['child_birth_day'])) {
+            $avatar_update_info['child_birth_day'] = $majia_info['child_birth_day'];
+        }
+        $this->robotModel->updateAvatarMaterialById($avatar_material_id, $avatar_update_info);
         $user_service = new \mia\miagroup\Service\User();
         $user_service->updateUserInfo($user_id, $majia_info);
         return $this->succ(true);
