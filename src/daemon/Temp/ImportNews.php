@@ -47,11 +47,11 @@ class ImportNews extends \FD_Daemon
                 $maxId = fread($fp, 1024);
                 //操作数据库
                 if ($maxId) {
-                    $condition = " AND id < $maxId ";
+                    $condition = " AND id > $maxId ";
                 } else {
                     $condition = " ";
                 }
-                $sql = "SELECT * FROM app_user_news WHERE 1=1" . $condition . "ORDER BY id DESC LIMIT " . $this->limit;
+                $sql = "SELECT * FROM app_user_news WHERE 1=1" . $condition . "ORDER BY id ASC LIMIT " . $this->limit;
                 $userNewsInfo = $newsData->query($sql);
                 if (empty($userNewsInfo)) {
                     break;
@@ -61,7 +61,7 @@ class ImportNews extends \FD_Daemon
                 array_map(function ($v) use (&$userNewsIds) {
                     $userNewsIds[] = $v["id"];
                 }, $userNewsInfo);
-                $newMaxId = min($userNewsIds);
+                $newMaxId = max($userNewsIds);
 
                 //清空文件内容
                 fseek($fp, 0, SEEK_SET);
