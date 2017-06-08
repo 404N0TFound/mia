@@ -154,6 +154,7 @@ class SubjectPraise extends \DB_Query {
         $where[] = [':ge', $join_table. '.created', $start_time];
         $where[] = [':lt', $join_table. '.created', $end_time];
         $where[] = [':eq', $join_table. '.status', 1];
+        $where[] = [':eq', $join_table. '.source', 1];
         $where[] = [':ne', $join_table. '.image_url', 1];
         $where[] = [':eq', $this->tableName. '.status', 1];
         foreach ($conditon as $k => $v) {
