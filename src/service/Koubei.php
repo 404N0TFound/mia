@@ -1187,11 +1187,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 if($koubei['source'] == 1 && $koubei['item_koubei']['machine_score'] ==3 &&
                     $koubei['item_koubei']['auto_evaluate'] == 0 ) {
                     $transfer_koubei[$item_id] = $koubei;
+                    break;
                 }
                 if($koubei['source'] != 1  && $koubei['item_koubei']['score'] >=4
                     && $koubei['item_koubei']['machine_score'] ==3 &&
                     $koubei['item_koubei']['auto_evaluate'] == 0 ) {
                     $transfer_koubei[$item_id] = $koubei;
+                    break;
                 }
             }
 
