@@ -10,21 +10,21 @@ class Solr
     public   $solrserver    = '';
     public   $export_count  = 2000;
 
-    public function __construct($core){
+    public function __construct($core, $host = 'solr'){
         $this->setCore($core);
-        $this->switchServer();
+        $this->switchServer($host);
     }
 
     /*
      * 主从配置，主服务器不可用时，切换从服务器，从服务器自动拉取主服务器数据
      * 主服务器全量更新的同时，从服务器也全量更新
      * */
-    public function switchServer(){
+    public function switchServer($host){
 
-        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online');
+        $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.'.$host.'.online');
         $this->handleSolrUrlParams();
         if($this->ping() == false){
-            $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.solr.online_slave');
+            $this->config = \F_Ice::$ins->workApp->config->get('thrift.address.'.$host.'.online_slave');
             $this->handleSolrUrlParams();
         }
 
@@ -137,7 +137,26 @@ class Solr
                 $params['group.main'] = $data['group.main'];
             }
             if(empty($data['group.field']) == false){
-                $params['group.field'] = $data['group.field'];
+
+                // 扩展多字段分组业务
+                $fields = $data['group.field'];
+                if(is_array($fields)) {
+                    $fieldStr = '';
+                    foreach($fields as $field) {
+                        if($fieldStr == ''){
+                            $fieldStr = $field;
+                        } else {
+                            $fieldStr .= '&group.field='.$field;
+                        }
+                    }
+                    $params['group.field'] = $fieldStr;
+                }else{
+                    $params['group.field'] = $data['group.field'];
+                }
+            }
+            if(isset($data['group.limit'])){
+                // 每组返回的文档数(默认为1)
+                $params['group.limit'] = $data['group.limit'];
             }
             $method = 'select';
             $solrData = $this->httpGet($method, $params);
@@ -931,4 +950,98 @@ class Solr
         return $solrInfo;
     }
 
+
+    /*
+     * 图片高级搜索
+     * */
+    public function getSeniorSolrSearch($cond, $page = 0, $limit = 50, $field = 'id', $order = array())
+    {
+        // 排序字段
+        $orderBy = 'id desc,';
+        if(!empty($order)) {
+            // 组装排序字段
+            foreach($order as $k => $v) {
+                foreach ($v as $q) {
+                    $orderBy.= $q.' '.$k.',';
+                }
+            }
+        }
+        $orderBy = rtrim($orderBy, ',');
+
+        // 基础参数
+        $where = [
+            'q'         => '*:*',
+            'fq'        => [],
+            'page'      => $page,
+            'pageSize'  => $limit,
+            'fl'        => $field,
+            'sort'      => $orderBy,
+        ];
+
+        // 分组统计
+        if(!empty($cond['facet'])) {
+            $where['facet']       = 'true';
+            //$where['facet.pivot'] = '';
+            $where['facet.field'] = $cond['facet'];
+            unset($cond['facet']);
+        }
+
+        // 分组查询（多字段分组实现）
+        if(!empty($cond['group'])) {
+            $where['group']       = 'true';
+            // 不显示文档信息
+            $where['group.limit'] = 0;
+            $where['group.field'] = $cond['group'];
+            unset($cond['group']);
+        }
+
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'after_id':
+                        $where['fq'][]   = 'id:['.$v.' TO *]';
+                        break;
+                    case 'start_time':
+                        $where['fq'][]   = 'created:['.$v.' TO *]';
+                        break;
+                    case 'end_time':
+                        $where['fq'][]   = 'created:[* TO '.$v.']';
+                        break;
+                    case 'before_image':
+                        $where['fq'][]   = 'image_count:[* TO '.$v.']';
+                        break;
+                    case 'after_image':
+                        $where['fq'][]   = 'image_count:['.$v.' TO *]';
+                        break;
+                    case 'before_text':
+                        $where['fq'][]   = 'text_count:[* TO '.$v.']';
+                        break;
+                    case 'after_text':
+                        $where['fq'][]   = 'text_count:['.$v.' TO *]';
+                        break;
+                    case 'title_like' :
+                        $where['fq'][]   = 'title:*'.$v.'*';
+                        break;
+                    case 'text_like' :
+                        $where['fq'][]   = 'text:*'.$v.'*';
+                        break;
+                    case 'after_score':
+                        $where['fq'][]   = 'score:['.$v.' TO *]';
+                        break;
+                    case 'before_score':
+                        $where['fq'][]   = 'score:[* TO '.$v.']';
+                        break;
+                    default:
+                        if(is_array($v)) {
+                            $where['fq'][]   = $k.":(". implode(' OR ', $v) . ")";
+                        }else {
+                            $where['fq'][]   = $k.':'.$v;
+                        }
+                }
+            }
+        }
+        $return = $this->select($where);
+        return $return;
+    }
 }
