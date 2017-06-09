@@ -15,8 +15,41 @@ $subjectServicePrefix = $basePrefix . 'subject_';
 $labelServicePrefix = $basePrefix . 'label_';
 //活动相关key前缀
 $activeServicePrefix = $basePrefix . 'active_';
+//消息相关key前缀
+$newsServicePrefix = $basePrefix . 'news:';
 //用户相关key前缀
 $userServicePrefix = $basePrefix . 'user_';
+
+/**
+ * 消息相关rediskey
+ */
+$newsKey = [
+    //特卖消息列表
+    "user_news_list_outlets" => [
+        'key' => $newsServicePrefix . 'user:outletslist:%d',
+        'expire_time' => 86400 * 30,
+    ],
+    //社交消息列表
+    "user_news_list_group" => [
+        'key' => $newsServicePrefix . 'user:grouplist:%d',
+        'expire_time' => 86400 * 30,
+    ],
+    //社交消息计数
+    "group_count" => [
+        'key' => $newsServicePrefix . 'user:groupnum:%d',
+        'expire_time' => 86400,
+    ],
+    //特卖消息计数
+    "outlets_count" => [
+        'key' => $newsServicePrefix . 'user:outletsnum:%d',
+        'expire_time' => 86400,
+    ],
+    //蜜芽圈互动消息计数
+    "group_index_count" => [
+        'key' => $newsServicePrefix . 'user:groupindexnum:%d',
+        'expire_time' => 86400,
+    ],
+];
 
 /**
  * 直播相关的redisKey
