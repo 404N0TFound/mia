@@ -2074,7 +2074,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $condition['where']['end_time'] = date("Y-m-d H:i:s", time());
         $couponInfo = $this->getCouponRule($itemIds, $page, $count, $condition)['data'];
-        if(!empty($couponInfo)) {
+        $couponFlag = implode('',$couponInfo);
+        if(!empty($couponFlag)) {
             $couponGuide['issue_banner'] = '评价领券';
         }
 
