@@ -102,6 +102,9 @@ class Solr
             if(empty($data['facet.limit']) == false){
                 $params['facet.limit'] = $data['facet.limit'];
             }
+            if(empty($data['json.facet']) == false){
+                $params['json.facet'] = $data['json.facet'];
+            }
             if(empty($data['fq']) == false) {
                 $fieldStr = '';
                 foreach ($data['fq'] as $key => $field){
@@ -952,11 +955,15 @@ class Solr
 
 
     /*
-     * 图片高级搜索
+     * 蜜芽圈综合搜索
+     * $cond :筛选字段
+     * $field : 检索字段
+     * $order : 排序
+     * $stats : 分组统计
      * */
-    public function getSeniorSolrSearch($cond, $page = 0, $limit = 50, $field = 'id', $order = array())
+    public function getSeniorSolrSearch($cond, $field = 'id', $page = 1, $limit = 50,  $order = [], $stats = [])
     {
-        // 排序字段
+        // 排序处理
         $orderBy = 'id desc,';
         if(!empty($order)) {
             // 组装排序字段
@@ -977,6 +984,20 @@ class Solr
             'fl'        => $field,
             'sort'      => $orderBy,
         ];
+
+        // 统计数
+        if(!empty($stats)) {
+            if(array_key_exists('count', $stats)) {
+                $params = ['count' => 'unique('.$stats['count'].')'];
+                $where['json.facet'] = json_encode($params);
+                $where['pageSize'] = 0;
+            }
+            if(array_key_exists('sum', $stats)) {
+                $params = ['sum' => 'sum('.$stats['sum'].')'];
+                $where['json.facet'] = json_encode($params);
+                $where['pageSize'] = 0;
+            }
+        }
 
         // 分组统计
         if(!empty($cond['facet'])) {
