@@ -151,4 +151,33 @@ class Subject extends \FD_Daemon {
             //$this->subjectData->query($sql);
         }
     }
+    
+    public function upload_img() {
+        $file_path = $this->request->argv[1];
+        $img_util = new \mia\miagroup\Util\ImageUtil();
+        $img_service = new \mia\miagroup\Service\Image();
+        $data = $img_service->handleImgData()['data'];
+        $remote_url = 'http://uploads.miyabaobei.com/app_upload.php';
+        
+        // 上传图片
+        if (class_exists('\CURLFile')) {
+            $data['Filedata'] = new \CURLFile(realpath($file_path), 'image.jpg');
+        } else {
+            $data['Filedata'] = '@' . realpath($file_path);
+        }
+        
+        $curl= curl_init ();
+        curl_setopt ( $curl, CURLOPT_URL, $remote_url);
+        curl_setopt ( $curl, CURLOPT_SSL_VERIFYPEER, FALSE );
+        curl_setopt ( $curl, CURLOPT_SSL_VERIFYHOST, FALSE );
+        
+        //发送post数据
+        curl_setopt ( $curl, CURLOPT_POST, 1 );
+        curl_setopt ( $curl, CURLOPT_POSTFIELDS, $data);
+        curl_setopt ( $curl, CURLOPT_RETURNTRANSFER, 1 );
+        $output= curl_exec ( $curl);
+        curl_close ( $curl);
+        $res = json_decode($output, true);
+        var_dump($res);
+    }
 }
