@@ -186,4 +186,38 @@ class Comment extends \mia\miagroup\Lib\Service {
         $result['count'] = $data['count'];
         return $this->succ($result);
     }
+    
+    /**
+     * 获取用户被评论数
+     */
+    public function getCommentCount($params) {
+        $result = array();
+        $condition = array();
+        //初始化入参
+        if (empty($params['user_id'])) {
+            return $result;
+        }
+        $condition['subject_uid'] = $params['user_id'];
+    
+        if (isset($params['status'])) {
+            //评论状态
+            $condition['status'] = $params['status'];
+        }
+        if (strtotime($params['start_time']) > 0) {
+            //起始时间
+            $condition['start_time'] = $params['start_time'];
+        }
+        if (strtotime($params['end_time']) > 0) {
+            //结束时间
+            $condition['end_time'] = $params['end_time'];
+        }
+        $userComments = $this->commentModel->getCommentCount($condition);
+        if(!empty($userComments)){
+            foreach($userComments as $userComment){
+                $result[$userComment['subject_uid']] = $userComment['nums'];
+            }
+        }
+    
+        return $this->succ($result);
+    }
 }

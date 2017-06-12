@@ -98,4 +98,31 @@ class Comment extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 查询评论数量
+     */
+    public function getCommentCount($cond) {
+        $this->tableName = $this->tableComment;
+        $where = array();
+    
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'start_time':
+                        $where[] = [':ge','create_time', $v];
+                        break;
+                    case 'end_time':
+                        $where[] = [':le','create_time', $v];
+                        break;
+                    default:
+                        $where[] = [$k, $v];
+                }
+            }
+        }
+        $result = $this->getRows($where, 'subject_uid,count(1) as nums', false, 0, false,false,'subject_uid');
+    
+        return $result;
+    }
 }
