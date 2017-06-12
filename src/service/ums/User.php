@@ -324,6 +324,15 @@ class User extends Service{
         
         $result['user_id'] = $userIds;
         return $result;
-
+    }
+    
+    /*
+     * 蜜芽圈帖子综合搜索
+     * 用户运营分组
+     * */
+    public function group_user_role()
+    {
+        $group_user_role = $this->userModel->getGroupUserRole();
+        return $this->succ($group_user_role);
     }
 }

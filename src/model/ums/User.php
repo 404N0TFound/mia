@@ -257,7 +257,7 @@ class User extends \DB_Query {
     public function getGroupUserRole()
     {
         $this->dbResource = 'miagroupums';
-        $this->tableName = $this->tableGroupUserRole;
+        $this->tableName = $this->tableUserRole;
         $where[] = ['status',1];
         $field = "role_id, role_name";
         $groupBy = ['role_id'];
