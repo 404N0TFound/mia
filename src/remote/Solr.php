@@ -985,35 +985,33 @@ class Solr
             'sort'      => $orderBy,
         ];
 
-        // 统计数
+        // 统计操作
         if(!empty($stats)) {
             if(array_key_exists('count', $stats)) {
+                // 去重统计
                 $params = ['count' => 'unique('.$stats['count'].')'];
                 $where['json.facet'] = json_encode($params);
                 $where['pageSize'] = 0;
             }
             if(array_key_exists('sum', $stats)) {
+                // 求和统计
                 $params = ['sum' => 'sum('.$stats['sum'].')'];
                 $where['json.facet'] = json_encode($params);
                 $where['pageSize'] = 0;
             }
-        }
-
-        // 分组统计
-        if(!empty($cond['facet'])) {
-            $where['facet']       = 'true';
-            //$where['facet.pivot'] = '';
-            $where['facet.field'] = $cond['facet'];
-            unset($cond['facet']);
-        }
-
-        // 分组查询（多字段分组实现）
-        if(!empty($cond['group'])) {
-            $where['group']       = 'true';
-            // 不显示文档信息
-            $where['group.limit'] = 0;
-            $where['group.field'] = $cond['group'];
-            unset($cond['group']);
+            if(array_key_exists('group', $stats)) {
+                // 分组统计
+                $where['group']       = 'true';
+                // 不显示文档信息
+                //$where['group.limit'] = 0;
+                $where['group.field'] = $stats['group']['field'];
+            }
+            if(array_key_exists('facet', $stats)) {
+                // 分片统计
+                $where['facet']       = 'true';
+                //$where['facet.pivot'] = '';
+                $where['facet.field'] = $stats['facet']['field'];
+            }
         }
 
         if (!empty($cond)) {
