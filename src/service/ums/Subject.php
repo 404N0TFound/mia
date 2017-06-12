@@ -261,16 +261,6 @@ class Subject extends \mia\miagroup\Lib\Service {
 
     /*
      * 蜜芽圈帖子综合搜索
-     * 用户分类
-     * */
-    public function group_user_category()
-    {
-        $group_user_category = $this->subjectModel->getGroupUserCategoryData();
-        return $this->succ($group_user_category);
-    }
-
-    /*
-     * 蜜芽圈帖子综合搜索
      * 用户活动
      * */
     public function group_user_active($month)
