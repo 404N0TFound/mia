@@ -2,6 +2,8 @@
 namespace mia\miagroup\Model\Ums;
 use mia\miagroup\Data\Subject\TabNoteOperation;
 use mia\miagroup\Data\Subject\Tab as TabData;
+use mia\miagroup\Data\Subject\GroupUserRole;
+use mia\miagroup\Data\Subject\GroupActive;
 use Ice;
 
 class Subject extends \DB_Query {
@@ -108,5 +110,25 @@ class Subject extends \DB_Query {
         }
         $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
         return $result;
+    }
+
+    /*
+     * 获取用户分组信息
+     * */
+    public function getGroupUserRoleData()
+    {
+        $groupUserRole = new GroupUserRole();
+        $res = $groupUserRole->getGroupUserRole();
+        return $res;
+    }
+
+    /*
+     * 获取用户活动信息
+     * */
+    public function getGroupActiveData($month)
+    {
+        $groupActive = new GroupActive();
+        $res = $groupActive->getGroupActive($month);
+        return $res;
     }
 }
