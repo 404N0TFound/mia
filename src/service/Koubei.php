@@ -2057,9 +2057,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         }
                     }
                 }
-                if(empty($return)) {
-                    $return['issue_info']['mibean_reward'] = $mibean_reward;
-                }
                 break;
         }
         return $this->succ($return);
