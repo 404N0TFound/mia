@@ -1022,9 +1022,11 @@ class Solr
                         $where['fq'][]   = 'id:['.$v.' TO *]';
                         break;
                     case 'start_time':
+                        $v = date('YmdHis',strtotime($v));
                         $where['fq'][]   = 'created:['.$v.' TO *]';
                         break;
                     case 'end_time':
+                        $v = date('YmdHis',strtotime($v));
                         $where['fq'][]   = 'created:[* TO '.$v.']';
                         break;
                     case 'before_image':
