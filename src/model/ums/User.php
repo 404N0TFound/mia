@@ -11,7 +11,8 @@ class User extends \DB_Query {
     protected $tableUserPermission = 'group_user_permission';
     protected $tableLivePermission = 'group_live_room';
     protected $tableUserShield = 'user_shield';
-    
+    protected $tableGroupUserRole = 'group_user_role';
+
     /**
      * 获取所有自主口碑商家
      */
@@ -249,6 +250,20 @@ class User extends \DB_Query {
         } else {
             return false;
         }
+    }
+
+    /*
+     * 获取用户分组信息
+     * */
+    public function getGroupUserRole()
+    {
+        $this->dbResource = 'miagroupums';
+        $this->tableName = $this->tableGroupUserRole;
+        $where[] = ['status',1];
+        $field = "role_id, role_name";
+        $groupBy = ['role_id'];
+        $res = $this->getRows($where, $field, FALSE, 0, FALSE, FALSE, $groupBy);
+        return $res;
     }
     
 }
