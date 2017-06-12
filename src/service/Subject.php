@@ -484,6 +484,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['is_top'] = $subjectInfo['is_top'];
             $subjectRes[$subjectInfo['id']]['user_id'] = $subjectInfo['user_id'];
             $subjectRes[$subjectInfo['id']]['is_fine'] = $subjectInfo['is_fine'];
+            $subjectRes[$subjectInfo['id']]['recommend_icon'] = $subjectInfo['is_fine'];
             $subjectRes[$subjectInfo['id']]['show_age'] = $subjectInfo['show_age'];
             $subjectRes[$subjectInfo['id']]['share_count'] = $subjectInfo['share_count'];
             // 处理帖子图片地址

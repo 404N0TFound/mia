@@ -309,8 +309,9 @@ class User
         // 获取rediskey
         $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_doozer_rank.key'), $type);
         $redis = new \mia\miagroup\Lib\Redis();
-        $offset = ($page - 1) * $count;
-        $data = $redis->zrevrange($key, $offset, $count - 1, true);
+        $start = ($page - 1) * $count;
+        $stop = $start + $count - 1;
+        $data = $redis->zrevrange($key, $start, $stop, true);
         return $data;
     }
     
