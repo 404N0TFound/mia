@@ -484,6 +484,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['is_top'] = $subjectInfo['is_top'];
             $subjectRes[$subjectInfo['id']]['user_id'] = $subjectInfo['user_id'];
             $subjectRes[$subjectInfo['id']]['is_fine'] = $subjectInfo['is_fine'];
+            $subjectRes[$subjectInfo['id']]['recommend_icon'] = $subjectInfo['is_fine'];
             $subjectRes[$subjectInfo['id']]['show_age'] = $subjectInfo['show_age'];
             $subjectRes[$subjectInfo['id']]['share_count'] = $subjectInfo['share_count'];
             // 处理帖子图片地址
@@ -550,9 +551,9 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (!empty($subjectInfos[$subjectId]['ext_info']['cover_image'])) {
                 $cover_image_info = $subjectInfos[$subjectId]['ext_info']['cover_image'];
-                $subjectRes[$subjectInfo['id']]['cover_image'] = NormalUtil::buildImgUrl($cover_image_info['url'],'watermark',$cover_image_info['width'],$cover_image_info['height']);;
-            } else if (!empty($imageUrl[0])) {
-                $subjectRes[$subjectInfo['id']]['cover_image'] = $imageUrl[0];
+                $subjectRes[$subjectInfo['id']]['cover_image'] = NormalUtil::buildImgUrl($cover_image_info['url'],'koubeismall',$cover_image_info['width'],$cover_image_info['height']);;
+            } else if (!empty($smallImageInfos[0])) {
+                $subjectRes[$subjectInfo['id']]['cover_image'] = $smallImageInfos[0];
             }
             $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
             $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
