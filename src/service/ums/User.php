@@ -169,7 +169,7 @@ class User extends Service{
         $userCategory = F_Ice::$ins->workApp->config->get('busconf.user.userCategory');
         return $this->succ($userCategory);
     }
-    
+ 
     /**
      * ums获取用户分组列表
      */
@@ -324,5 +324,6 @@ class User extends Service{
         
         $result['user_id'] = $userIds;
         return $result;
+
     }
 }

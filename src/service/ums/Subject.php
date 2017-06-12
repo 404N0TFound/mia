@@ -248,25 +248,4 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         return $return;
     }
-
-    /*
-     * 蜜芽圈帖子综合搜索
-     * 用户运营分组
-     * */
-    public function group_user_role()
-    {
-        $group_user_role = $this->subjectModel->getGroupUserRoleData();
-        return $this->succ($group_user_role);
-    }
-
-    /*
-     * 蜜芽圈帖子综合搜索
-     * 用户活动
-     * */
-    public function group_user_active($month)
-    {
-        if(empty($month)) $month = 1;
-        $group_active = $this->subjectModel->getGroupActiveData($month);
-        return $this->succ($group_active);
-    }
 }
