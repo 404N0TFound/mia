@@ -218,7 +218,7 @@ class User extends Service{
         $solrCond = array();
         $cond = array();
         //初始化入参
-        $orderBy = 'id desc'; //默认排序
+        $orderBy = array(); //默认排序
         $GroupBy = 'user_id'; //默认分组
         
         $limit = intval($params['limit']) ;
