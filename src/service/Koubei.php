@@ -1955,6 +1955,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $selection_info = array();
         foreach($item_ids as $item_id) {
+
+            if($item_id == 1782246) {
+                // 特殊处理
+                $selection_info[$item_id]['recommend_count'] =  100;
+                $selection_info[$item_id]['rate'] = 1;
+                continue;
+            }
+
             $recommend_count = 0;
 
             // 获取关联商品ID
@@ -2074,7 +2082,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $condition['where']['end_time'] = date("Y-m-d H:i:s", time());
         $couponInfo = $this->getCouponRule($itemIds, $page, $count, $condition)['data'];
-        if(!empty($couponInfo)) {
+        $couponFlag = implode('',$couponInfo);
+        if(!empty($couponFlag)) {
             $couponGuide['issue_banner'] = '评价领券';
         }
 
