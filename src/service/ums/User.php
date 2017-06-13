@@ -283,7 +283,7 @@ class User extends Service{
         $result = array();
         $countType = array("all","fine","shield");
         //$solrCond['group'] = 'user_id';
-        $solr = new \mia\miagroup\Remote\Solr('solr_sample', 'group_search_solr');
+        $solr = new \mia\miagroup\Remote\Solr('pic_search', 'group_search_solr');
         
         foreach($countType as $type){
             $solrWhere = $solrCond;
@@ -308,11 +308,9 @@ class User extends Service{
         }
         $count = $solr->getSeniorSolrSearch($solrCond, $fileds, $offset, $limit, $orderBy, array('count'=>'user_id'));
         $result['count'] = $count['data']['facets']['count'];
-        
         //获取用户附加信息
         $userService = new UserService();
         $userInfos = $userService->getUserInfoByUids($userIds,0,array('count'))['data'];
-
         foreach($solrData as $key=>$solr){
             foreach($solr['data']['grouped']['user_id']['groups'] as $groups){
                 $result[$key][$groups['groupValue']]['user_id'] = $groups['groupValue'];
