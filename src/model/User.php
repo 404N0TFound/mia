@@ -10,15 +10,10 @@ use mia\miagroup\Data\User\GroupDoozer as GroupDoozerData;
 
 use mia\miagroup\Data\User\GroupUserCategory as UserCategoryData;
 use mia\miagroup\Data\User\GroupUserPermission as UserPermissionData;
-
+use mia\miagroup\Data\User\GroupUserRole as UserGroupData;
 
 class User
 {
-
-    public function __construct()
-    {
-        $this->groupDoozerData = new GroupDoozerData();
-    }
     /**
      * 批量获取用户信息
      *
@@ -192,7 +187,8 @@ class User
      */
     public function getGroupDoozerList($count = 10)
     {
-        return $this->groupDoozerData->getGroupDoozerList($count);
+        $doozerData = new GroupDoozerData();
+        return $doozerData->getGroupDoozerList($count);
     }
     
     /**
@@ -309,9 +305,29 @@ class User
         // 获取rediskey
         $key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_doozer_rank.key'), $type);
         $redis = new \mia\miagroup\Lib\Redis();
+
         $start = ($page - 1) * $count;
         $stop = $start + $count - 1;
         $data = $redis->zrevrange($key, $start, $stop, true);
+        return $data;
+
+    }
+    
+    /**
+     * 新增用户角色分组
+     */
+    public function addUserGroup($groupInfo) {
+        $userGroup = new UserGroupData();
+        $data = $userGroup->addUserGroup($groupInfo);
+        return $data;
+    }
+    
+    /**
+     * 删除用户角色分组
+     */
+    public function deleteUserGroup($roleId,$userId) {
+        $userGroup = new UserGroupData();
+        $data = $userGroup->deleteUserGroup($roleId,$userId);
         return $data;
     }
     
@@ -351,5 +367,27 @@ class User
             }
         }
         return $result;
+    }
+
+     /**
+      * * 更新用户角色分组信息
+     */
+    public function updateUserGroup($roleId, $updata) {
+        if (empty($roleId)) {
+            return false;
+        }
+    
+        $userGroup = new UserGroupData();
+        $data = $userGroup->updateUserGroupByRoleId($roleId, $updata);
+        return $data;
+    }
+    
+    /**
+     * 批量获取用户角色分组信息
+     */
+    public function getBatchUserGroup($conditions) {
+        $userGroup = new UserGroupData();
+        $data = $userGroup->getUserGroup($condition);
+        return $data;
     }
 }

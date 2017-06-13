@@ -248,5 +248,4 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         return $return;
     }
-        
 }
