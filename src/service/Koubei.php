@@ -340,6 +340,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
 
         $condition = array();
+        $pick_nums = 0;
         if(!empty($is_pick) && $is_pick == 1) {
             // 封测报告列表不展示默认好评(甄选商品)
             if($page == 1 && $count == 3) {
@@ -352,6 +353,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $condition['auto_evaluate'] = 1;
                 $condition['type'] =  1;
             }
+            // 甄选首页展示的封测报告推荐数
+            $pick_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, array('type' =>  1));
         }
 
         $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);
@@ -360,6 +363,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ($koubei_res);
         }
         $koubei_res['total_count'] = $koubei_nums;//口碑数量
+        if(isset($pick_nums) && !empty($pick_nums)) {
+            $koubei_res['pick_count'] = $pick_nums; // 首页展示封测报告数量（不包含口碑）
+        }
 
         //好评率
         $feedbackRate = intval($item_info['data'][$itemId]['feedback_rate']);
