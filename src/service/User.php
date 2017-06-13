@@ -33,7 +33,6 @@ class User extends \mia\miagroup\Lib\Service {
             return array();
         }
         $userInfos = $this->userModel->getUserInfoByIds($userIds);
-
         if (empty($userInfos)) {
             return array();
         }

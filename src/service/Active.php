@@ -155,6 +155,10 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['image']= $activeInfo['image_info'];
             unset($activeInfo['image_info']);
         }
+        if(!empty($activeInfo['cover_img_info'])){
+            $extInfo['cover_img']= $activeInfo['cover_img_info'];
+            unset($activeInfo['cover_img_info']);
+        }
         $activeInfo['ext_info'] = json_encode($extInfo);
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
         
@@ -196,6 +200,15 @@ class Active extends \mia\miagroup\Lib\Service {
         if(!empty($activeInfo['image_info'])){
             $extInfo['image']= $activeInfo['image_info'];
             unset($activeInfo['image_info']);
+        }
+        if(!empty($activeInfo['cover_img_info'])){
+            $extInfo['image']= $activeInfo['image_info'];
+            unset($activeInfo['image_info']);
+        }
+        
+        if(!empty($activeInfo['cover_img_info'])){
+            $extInfo['cover_img']= $activeInfo['cover_img_info'];
+            unset($activeInfo['cover_img_info']);
         }
         
         $activeInfo['ext_info'] = json_encode($extInfo);
