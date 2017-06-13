@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Service\Ums;
 
+use mia\miagroup\Remote\Coupon as CouponRemote;
 use mia\miagroup\Model\Ums\SetCoupon as SetCouponModel;
 
 class SetCoupon extends \mia\miagroup\Lib\Service {
@@ -64,6 +65,24 @@ class SetCoupon extends \mia\miagroup\Lib\Service {
         if (!empty($data['end_time'])) {
             $params['end_time'] = trim($data['end_time']);
         }
+
+        if (!empty($data['coupon_code'])) {
+            $coupon_code = trim($data['coupon_code']);
+        }
+
+        $coupon_price = 0;
+
+        // 获取代金券的批次信息
+        if(!empty($coupon_code)) {
+            $couponRemote = new CouponRemote();
+            $coupon_info = $couponRemote->getBatchCodeList([$coupon_code]);
+            if(!empty($coupon_info)) {
+                $coupon_price = $coupon_info[$coupon_code]['value'];
+            }
+        }
+
+        $params['coupon_money'] = $coupon_price;
+
         $res = $this->setCouponModel->addCoupon($params);
         if(empty($res)) {
             return $this->succ(0);

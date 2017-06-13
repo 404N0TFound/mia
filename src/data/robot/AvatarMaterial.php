@@ -31,6 +31,18 @@ class AvatarMaterial extends \DB_Query
     }
     
     /**
+     * 根据user_id获取头像素材
+     */
+    public function getAvatarMaterialByUserId($user_id) {
+        if (empty($user_id)) {
+            return false;
+        }
+        $where[] = array('user_id', $user_id);
+        $data = $this->getRow($where);
+        return $data;
+    }
+    
+    /**
      * 更新马甲头像素材
      */
     public function updateAvatarMaterialById($id, $update_data) {
