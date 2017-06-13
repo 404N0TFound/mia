@@ -169,6 +169,28 @@ class User extends Service{
         $userCategory = F_Ice::$ins->workApp->config->get('busconf.user.userCategory');
         return $this->succ($userCategory);
     }
+
+    /**
+     * 格式化用户分段下拉列表
+     */
+    public function formatUserPeriodList() {
+        $result = ['user_status' => [], 'pregnancy' => [], 'child' => []];
+        $config_key = ['pregnancy', 'child'];
+        $result['user_status'] = F_Ice::$ins->workApp->config->get('busconf.user.user_status');
+        foreach ($config_key as $period) {
+            $config_path = 'busconf.user.' . $period . '_period';
+            $user_period = F_Ice::$ins->workApp->config->get($config_path);
+            foreach ($user_period as $key1 => $period_list) {
+                $result[$period]['first'][] = $key1;
+                foreach ($period_list as $key2 => $value) {
+                    $start = date('Y-m-d', strtotime($value['start']));
+                    $end = date('Y-m-d', strtotime($value['end']));
+                    $result[$period]['second'][$key1][$key2] = "{$start}~{$end}";
+                }
+            }
+        }
+        return $result;
+    }
  
     /**
      * ums获取用户分组列表
