@@ -354,7 +354,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $condition['type'] =  1;
             }
             // 甄选首页展示的封测报告推荐数
-            $pick_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, array('type' =>  1));
+            $pick_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, array('type' =>  1, 'pick_num' => 1));
         }
 
         $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);

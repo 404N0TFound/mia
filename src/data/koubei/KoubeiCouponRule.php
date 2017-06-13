@@ -21,11 +21,11 @@ class KoubeiCouponRule extends \DB_Query {
         $sql = "(SELECT {$field} FROM group_coupon_rule WHERE `status`=1 AND item_id= {$param['item_id']})";
 
         if (!empty($param['brand_id'])) {
-            $sql .= " UNION (SELECT * FROM group_coupon_rule WHERE `status`=1 AND brand_id={$param['brand_id']} AND item_id = {$param['item_id']})";
+            $sql .= " UNION (SELECT * FROM group_coupon_rule WHERE `status`=1 AND brand_id={$param['brand_id']})";
         }
 
         if(!empty($param['category_id'])) {
-            $sql .= " UNION (SELECT * FROM group_coupon_rule WHERE `status`=1 AND category_id={$param['category_id']} AND item_id = {$param['item_id']})";
+            $sql .= " UNION (SELECT * FROM group_coupon_rule WHERE `status`=1 AND category_id={$param['category_id']}";
         }
 
         $sql .= " order by {$order_by} limit {$limit}";
