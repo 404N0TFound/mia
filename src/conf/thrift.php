@@ -43,5 +43,21 @@ $address = array(
     ],
     
     'subject_sync' => 'root@10.1.15.14:/opt/article_in_mia/',
+    
+    'group_search_solr' => array(
+        'online' => array(
+            'host' => '10.1.117.10',
+            'port' => 8989,
+            'path' => 'solr',
+            'core' => 'pic_search'
+        ),
+        'online_slave' => array(
+            'host' => '172.16.96.33',
+            'port' => 8983,
+            'path' => 'solr',
+            'core' => 'solr_sample'
+        ),
+    ),
+    
 );
     

@@ -2,6 +2,8 @@
 namespace mia\miagroup\Model\Ums;
 use mia\miagroup\Data\Subject\TabNoteOperation;
 use mia\miagroup\Data\Subject\Tab as TabData;
+use mia\miagroup\Data\Subject\GroupUserRole;
+use mia\miagroup\Data\Subject\GroupActive;
 use Ice;
 
 class Subject extends \DB_Query {

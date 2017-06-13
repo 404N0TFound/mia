@@ -161,6 +161,12 @@ class Koubei extends \DB_Query {
         if(isset($con['score'])){
             $where[] = [':ge','score',$con['score']];
         }
+        if(isset($con['auto_evaluate'])){
+            $where[] = ['auto_evaluate',$con['auto_evaluate']];
+        }
+        if(isset($con['type'])){
+            $where[] = ['type',$con['type']];
+        }
 
         // 封测报告
         if(isset($con['is_pick'])) {

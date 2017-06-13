@@ -6,6 +6,8 @@ use mia\miagroup\Lib\Service;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Label;
+use mia\miagroup\Ums\Service\Praise;
+use mia\miagroup\Ums\Service\Comment;
 
 class User extends Service{
     
@@ -188,5 +190,169 @@ class User extends Service{
             }
         }
         return $result;
+    }
+ 
+    /**
+     * ums获取用户分组列表
+     */
+    public function getUserGroupList($params=null) {
+        $conditon = array();
+        if($params['role_id']){
+            $conditon['role_id'] = $params['role_id'];
+        }
+        if($params['status']){
+            $conditon['status'] = $params['status'];
+        }
+        
+        $groupArr = $this->userModel->getUserGroup($conditon);
+        return $this->succ($groupArr);
+    }
+    
+    
+    /**
+     * ums用户分组数据统计
+     */
+    public function getUserGroupStatistics($params) {
+        //print_r($params);exit;
+        $result = array('list' => array(), 'count' => 0);
+        $solrCond = array();
+        $cond = array();
+        //初始化入参
+        $orderBy = 'id desc'; //默认排序
+        $GroupBy = 'user_id'; //默认分组
+        
+        $limit = intval($params['limit']) ;
+        $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
+        //用户分组
+        if (!empty($params['role_id'])) {
+            $solrCond['role_id'] = $params['role_id'];
+        }
+        
+        //用户类型
+        if (!empty($params['category'])) {
+            $solrCond['c_type'] = $params['category'];
+        }
+        
+        //活动
+        if (!empty($params['active_id'])) {
+            $solrCond['active_id'] = $params['active_id'];
+        }
+        
+        //标签
+        if (!empty($params['label'])) {
+            $solrCond['label'] = $params['label'];
+        }
+        
+        if (strtotime($params['start_time']) > 0) {
+            //起始时间
+            $solrCond['start_time'] = $params['start_time'];
+        }
+        if (strtotime($params['end_time']) > 0) {
+            //结束时间
+            $solrCond['end_time'] = $params['end_time'];
+            $cond['end_time'] = $params['end_time'];
+        }
+        
+        if(strtotime($params['start_date']) > 0){
+            $cond['start_time'] = $params['start_date'];
+        }
+        
+        if(empty($solrCond)){
+            return $this->succ($result);
+        }
+        
+        $solrData = $this->_getSolrGroupCount($solrCond, '*',$limit,$offset,$orderBy,$GroupBy);
+        //根据用户id获取用户赞数和评论数，通过数据库统计
+        //（这两个字段只能通过时间筛选，默认是前一天之前用户所有的赞数和评论数）
+        //评论和赞的日期
+        $cond['user_id'] = $solrData['user_id'];
+        $cond['status'] = array(1);
+        //##########start
+        //批量获取用户赞数
+        $praiseService = new \mia\miagroup\Service\Ums\Praise();
+        $praiseInfos = $praiseService->getPraiseCount($cond)['data'];
+        
+        //批量获取用户评论数
+        $commentService = new \mia\miagroup\Service\Ums\Comment();
+        $commentInfos = $commentService->getCommentCount($cond)['data'];
+        //##########end
+        
+        if(!empty($solrData['user_id'])){
+            foreach ($solrData['user_id'] as $userId) {
+                $tmp['user_id'] = $solrData['all'][$userId]['user_id'];
+                $tmp['username'] = $solrData['all'][$userId]['username'];
+                $tmp['nickname'] = $solrData['all'][$userId]['nickname'];
+                $tmp['issue_num'] = $solrData['all'][$userId]['count'] ? $solrData['all'][$userId]['count'] : 0;//用户发帖数量
+                $tmp['shield_num'] = $solrData['shield'][$userId]['count'] ? $solrData['shield'][$userId]['count'] : 0;
+                $tmp['fine_num'] = $solrData['fine'][$userId]['count'] ? $solrData['fine'][$userId]['count'] : 0;
+                $tmp['praise_num'] = $praiseInfos[$userId] ? $praiseInfos[$userId]['count'] : 0;
+                $tmp['comment_num'] = $commentInfos[$userId] ? $commentInfos[$userId] : 0;
+                
+                $result['list'][$userId] = $tmp;
+            }
+        }
+        if(empty($result['list'])){
+            return $this->succ($result);
+        }
+        
+        $result['count'] = $solrData['count'];
+        return $this->succ($result);
+        
+    }
+    
+    //获取solr统计的分组数据(发帖，精华帖，屏蔽贴)
+    private function _getSolrGroupCount($solrCond,$fileds,$limit,$offset,$orderBy,$GroupBy){
+        $result = array();
+        $countType = array("all","fine","shield");
+        //$solrCond['group'] = 'user_id';
+        $solr = new \mia\miagroup\Remote\Solr('pic_search', 'group_search_solr');
+        
+        foreach($countType as $type){
+            $solrWhere = $solrCond;
+            $groupBy = array();
+            $groupBy['group']['field'] = 'user_id';
+            
+            if($type == 'all'){
+                $solrData[$type] = $solr->getSeniorSolrSearch($solrWhere, $fileds, $offset, $limit, $orderBy,$groupBy);
+                $userIds = array_column($solrData['all']['data']['grouped']['user_id']['groups'], 'groupValue');
+            }else{
+                $solrWhere['user_id'] = $userIds;
+                if($type == 'shield'){
+                    $solrWhere['status'] = "[* TO -1]";
+                }
+                if($type == 'fine'){
+                    $solrWhere['is_fine'] = 1;
+                }
+                $solrData[$type] = $solr->getSeniorSolrSearch($solrWhere,$fileds, $offset, $limit, $orderBy,$groupBy);
+            }
+            unset($solrWhere);
+            
+        }
+        $count = $solr->getSeniorSolrSearch($solrCond, $fileds, $offset, $limit, $orderBy, array('count'=>'user_id'));
+        $result['count'] = $count['data']['facets']['count'];
+        //获取用户附加信息
+        $userService = new UserService();
+        $userInfos = $userService->getUserInfoByUids($userIds,0,array('count'))['data'];
+        foreach($solrData as $key=>$solr){
+            foreach($solr['data']['grouped']['user_id']['groups'] as $groups){
+                $result[$key][$groups['groupValue']]['user_id'] = $groups['groupValue'];
+                $result[$key][$groups['groupValue']]['username'] = $userInfos[$groups['groupValue']]['username'];
+                $result[$key][$groups['groupValue']]['nickname'] = $userInfos[$groups['groupValue']]['nickname'];
+                $result[$key][$groups['groupValue']]['count'] = $groups['doclist']['numFound'];
+            }
+        }
+        
+        $result['user_id'] = $userIds;
+        return $result;
+    }
+    
+    /*
+     * 蜜芽圈帖子综合搜索
+     * 用户运营分组
+     * */
+    public function group_user_role()
+    {
+        $group_user_role = $this->userModel->getGroupUserRole();
+        return $this->succ($group_user_role);
     }
 }

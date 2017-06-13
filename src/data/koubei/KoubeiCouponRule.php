@@ -16,35 +16,20 @@ class KoubeiCouponRule extends \DB_Query {
      * */
     function koubeiCouponRule($param, $order_by, $offset, $limit, $condition)
     {
-        $where = [];
         $field = '*';
-        $where[] = ['status', 1];
-        if(!empty($param)) {
-            $where [] = [
-                ':and', [
-                    ['brand_id', $param['brand_id']],
-                    [':or', ['item_id', $param['item_id']]],
-                    [':or', ['category_id', $param['category_id']]]
-                ]
-            ];
+
+        $sql = "(SELECT {$field} FROM group_coupon_rule WHERE `status`=1 AND item_id= {$param['item_id']})";
+
+        if (!empty($param['brand_id'])) {
+            $sql .= " UNION (SELECT * FROM group_coupon_rule WHERE `status`=1 AND brand_id={$param['brand_id']} AND item_id = {$param['item_id']})";
         }
-        if(!empty($condition)) {
-            if(!empty($condition['where'])) {
-                if(!empty($condition['where']['brand_id'])) {
-                    $where[] = ['brand_id', $condition['where']['brand_id']];
-                }
-                if(!empty($condition['where']['category_id'])) {
-                    $where[] = ['category_id', $condition['where']['category_id']];
-                }
-                if(!empty($condition['where']['item_id'])) {
-                    $where[] = ['item_id', $condition['where']['item_id']];
-                }
-            }
-            if(!empty($condition['field'])){
-                $field = $condition['field'];
-            }
+
+        if(!empty($param['category_id'])) {
+            $sql .= " UNION (SELECT * FROM group_coupon_rule WHERE `status`=1 AND category_id={$param['category_id']} AND item_id = {$param['item_id']})";
         }
-        $data = $this->getRows($where, $field, $limit, $offset, $order_by);
-        return $data;
+
+        $sql .= " order by {$order_by} limit {$limit}";
+        $res = $this->query($sql);
+        return $res;
     }
 }
