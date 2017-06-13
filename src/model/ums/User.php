@@ -11,8 +11,7 @@ class User extends \DB_Query {
     protected $tableUserPermission = 'group_user_permission';
     protected $tableLivePermission = 'group_live_room';
     protected $tableUserShield = 'user_shield';
-    protected $tableGroupUserRole = 'group_user_role';
-
+    protected $tableUserRole = 'group_user_role';
     /**
      * 获取所有自主口碑商家
      */
@@ -258,12 +257,65 @@ class User extends \DB_Query {
     public function getGroupUserRole()
     {
         $this->dbResource = 'miagroupums';
-        $this->tableName = $this->tableGroupUserRole;
+        $this->tableName = $this->tableUserRole;
         $where[] = ['status',1];
         $field = "role_id, role_name";
         $groupBy = ['role_id'];
         $res = $this->getRows($where, $field, FALSE, 0, FALSE, FALSE, $groupBy);
         return $res;
     }
+    
+    /**
+     * 获取用户分组列表
+     */
+    public function getUserGroup($condition=null) {
+        $this->dbResource = 'miagroupums';
+        $this->tableName = $this->tableUserRole;
+        $groupBy = 'role_id';
+        $where = array();
+        $result = array();
+        if($condition['role_id']){
+            $where[] = ['role_id',$condition['role_id']];
+        }
+        if($condition['status']){
+            $where[] = ['status',$condition['status']];
+        }
+        
+        $field = 'id,role_id,role_name,group_concat(user_id) as user_ids,count(user_id) as user_nums,standard,status,create_time,operator,oper_time';
+        
+        $countRes = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
+        
+        if (!empty($countRes)) {
+            foreach ($countRes as $count) {
+                $result[$count['role_id']] = $count;
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * 获取每个分组下的用户列表
+     */
+    public function getGroupUserList($roleId,$page=0,$limit=false) {
+        $this->dbResource = 'miagroupums';
+        $this->tableName = $this->tableUserRole;
+        $result = array();
+        $where = array();
+    
+        $where[] = ['role_id',$roleId];
+        $orderBy = ['create_time DESC'];
+        $userRes = $this->getRows($where, '*', $limit, $page, $orderBy);
+        $userArr = array();
+        if ($userRes) {
+            foreach ($userRes as $value) {
+                $userArr[$value['user_id']] = $value;
+            }
+        }
+        $result['list'] = $userArr;
+        $count = $this->getRow($where, 'count(*) as nums');
+        $result['count'] = $count;
+        return $result;
+    }
+    
     
 }

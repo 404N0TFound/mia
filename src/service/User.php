@@ -33,7 +33,6 @@ class User extends \mia\miagroup\Lib\Service {
             return array();
         }
         $userInfos = $this->userModel->getUserInfoByIds($userIds);
-
         if (empty($userInfos)) {
             return array();
         }
@@ -614,4 +613,85 @@ class User extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($result);
     }
+    
+    /**
+     * 创建用户分组
+     */
+    public function createGroup($groupInfo) {
+        if(empty($groupInfo['role_id']) || empty($groupInfo['user_ids'])){
+            return $this->error(500);
+        }
+        $userIds = explode(',', $groupInfo['user_ids']);
+        unset($groupInfo['user_ids']);
+        foreach($userIds as $userId){
+            $groupInfo['user_id'] = $userId;
+            $data = $this->userModel->addUserGroup($groupInfo);
+        }
+    
+        return $this->succ($data);
+    }
+    
+    /**
+     * 删除用户分组
+     */
+    public function deleteGroup($roleId,$userId = null) {
+        if(empty($roleId)){
+            return $this->error(500);
+        }
+        
+        $data = $this->userModel->deleteUserGroup($roleId,$userId);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 更新用户分组
+     */
+    public function updateUserGroup($roleId,$groupInfo) {
+        if(empty($roleId)){
+            return $this->error(500);
+        }
+        $condition = array();
+        $condition['role_id'] = $roleId;
+        $condition['status'] = array(1);
+        
+        //获取用户分组的现有用户id
+        $oldUserGroup = $this->userModel->getBatchUserGroup($condition)[$roleId];
+        if(!empty($oldUserGroup['user_ids'])){
+            $oldUserIds = explode(',', $oldUserGroup['user_ids']);
+            unset($oldUserGroup['user_ids']);
+        }
+        
+        //获取用户分组的更新用户id
+        if(!empty($groupInfo['user_ids'])){
+            $newUserIds = explode(',', $groupInfo['user_ids']);
+            unset($groupInfo['user_ids']);
+        }
+        
+        //更新用户分组用户id####start
+        //删掉的用户id
+        $delUserIds = array_diff($oldUserIds, $newUserIds);
+        if(!empty($delUserIds)){
+            foreach($delUserIds as $delUserId){
+                $data = $this->userModel->deleteUserGroup($roleId,$delUserId);
+            }
+        }
+        //新增的用户id
+        $addUserIds = array_diff($newUserIds,$oldUserIds);
+        if(!empty($addUserIds)){
+            foreach($addUserIds as $addUserId){
+                $groupInfo['role_id'] = $roleId;
+                $groupInfo['user_id'] = $addUserId;
+                $data = $this->userModel->addUserGroup($groupInfo);
+            }
+        }
+        //####end
+        
+        //只修改角色名
+        if(!empty($groupInfo['role_name']) && !$newUserIds){
+            $data = $this->userModel->updateUserGroup($roleId, $groupInfo);
+        }
+    
+        return $this->succ($data);
+    }
+    
 }
