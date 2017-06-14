@@ -1424,8 +1424,8 @@ $coupon_guide = array(
         'bean_issue' => '评价即得10蜜豆',
     ),
     'first' => array(
-        'default_bean_issue' => '商品首个评价奖双倍蜜豆，20蜜豆轻松获得',
-        'bean_issue' => '商品首个评价奖励20蜜豆',
+        'default_bean_issue' => '商品首个评价轻松获得奖励100蜜豆',
+        'bean_issue' => '商品首个评价奖励100蜜豆',
         'relation'   => ',更可获得',
         'coupon_issue' => '元优惠券',
     ),

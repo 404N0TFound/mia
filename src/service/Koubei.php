@@ -209,6 +209,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $param['relation_type'] = "send_koubei";
         $param['relation_id'] = $koubeiInsertId;
 
+        // 首评代金券(奖励100蜜豆)
+        if(!empty($koubeiData['issue_reward']) && $koubeiSetData['type'] != 1) {
+            $param['mibean'] = 100;
+            $mibean->add($param);
+        }
+
         //保存口碑相关图片信息
         if(!empty($koubeiData['image_infos'])){
             foreach ($koubeiData['image_infos'] as $path) {
