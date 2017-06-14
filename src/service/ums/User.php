@@ -282,11 +282,11 @@ class User extends Service{
                 $tmp['user_id'] = $solrData['all'][$userId]['user_id'];
                 $tmp['username'] = $solrData['all'][$userId]['username'];
                 $tmp['nickname'] = $solrData['all'][$userId]['nickname'];
-                $tmp['issue_num'] = $solrData['all'][$userId]['count'] ? $solrData['all'][$userId]['count'] : 0;//用户发帖数量
-                $tmp['shield_num'] = $solrData['shield'][$userId]['count'] ? $solrData['shield'][$userId]['count'] : 0;
-                $tmp['fine_num'] = $solrData['fine'][$userId]['count'] ? $solrData['fine'][$userId]['count'] : 0;
-                $tmp['praise_num'] = $praiseInfos[$userId] ? $praiseInfos[$userId]['count'] : 0;
-                $tmp['comment_num'] = $commentInfos[$userId] ? $commentInfos[$userId] : 0;
+                $tmp['issue_num'] = isset($solrData['all'][$userId]['count']) ? $solrData['all'][$userId]['count'] : 0;//用户发帖数量
+                $tmp['shield_num'] = isset($solrData['shield'][$userId]['count']) ? $solrData['shield'][$userId]['count'] : 0;
+                $tmp['fine_num'] = isset($solrData['fine'][$userId]['count']) ? $solrData['fine'][$userId]['count'] : 0;
+                $tmp['praise_num'] = isset($praiseInfos[$userId]) ? $praiseInfos[$userId]['count'] : 0;
+                $tmp['comment_num'] = isset($commentInfos[$userId]) ? $commentInfos[$userId] : 0;
                 
                 $result['list'][$userId] = $tmp;
             }
