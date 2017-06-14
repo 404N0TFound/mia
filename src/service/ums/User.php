@@ -189,7 +189,7 @@ class User extends Service{
                 }
             }
         }
-        return $result;
+        return $this->succ($result);
     }
  
     /**
