@@ -285,7 +285,7 @@ class User extends Service{
                 $tmp['issue_num'] = isset($solrData['all'][$userId]['count']) ? $solrData['all'][$userId]['count'] : 0;//用户发帖数量
                 $tmp['shield_num'] = isset($solrData['shield'][$userId]['count']) ? $solrData['shield'][$userId]['count'] : 0;
                 $tmp['fine_num'] = isset($solrData['fine'][$userId]['count']) ? $solrData['fine'][$userId]['count'] : 0;
-                $tmp['praise_num'] = isset($praiseInfos[$userId]) ? $praiseInfos[$userId]['count'] : 0;
+                $tmp['praise_num'] = isset($praiseInfos[$userId]) ? $praiseInfos[$userId] : 0;
                 $tmp['comment_num'] = isset($commentInfos[$userId]) ? $commentInfos[$userId] : 0;
                 
                 $result['list'][$userId] = $tmp;
