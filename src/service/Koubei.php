@@ -2120,15 +2120,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if(empty($koubei_count)) {
                 // 首评返回文案
                 if(!empty($coupon_money)) {
-                    $couponGuide[$item_id]['bean_issue'] = $f_conf['bean_issue'];
-                    $couponGuide[$item_id]['coupon_issue'] = $f_conf['relation'].$coupon_money.$f_conf['coupon_issue'];
+                    $couponGuide[$item_id]['bean_issue'] = $f_conf['bean_issue'].$f_conf['relation'];
+                    $couponGuide[$item_id]['coupon_issue'] = $coupon_money.$f_conf['coupon_issue'];
                 }else {
                     $couponGuide[$item_id]['bean_issue'] = $f_conf['default_bean_issue'];
                 }
             }else {
                 if(!empty($coupon_money)) {
-                    $couponGuide[$item_id]['bean_issue'] = $n_conf['bean_issue'];
-                    $couponGuide[$item_id]['coupon_issue'] = $n_conf['relation'].$coupon_money.$n_conf['coupon_issue'];
+                    $couponGuide[$item_id]['bean_issue'] = $n_conf['bean_issue'].$n_conf['relation'];
+                    $couponGuide[$item_id]['coupon_issue'] = $coupon_money.$n_conf['coupon_issue'];
                 }else {
                     $couponGuide[$item_id]['bean_issue'] = $n_conf['bean_issue'];
                 }

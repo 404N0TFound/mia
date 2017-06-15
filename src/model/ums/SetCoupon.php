@@ -109,6 +109,7 @@ class SetCoupon extends \DB_Query {
             $insert[$key]['category_id'] = $category_id;
             $insert[$key]['brand_id'] = $brand_id;
         }
+        var_dump($insert);exit;
         $res = $this->multiInsert($insert);
         return $res;
     }
