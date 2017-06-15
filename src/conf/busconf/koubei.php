@@ -1427,12 +1427,12 @@ $coupon_guide = array(
         'default_bean_issue' => '商品首个评价轻松获得奖励100蜜豆',
         'bean_issue' => '商品首个评价奖励100蜜豆',
         'relation'   => ',更可获得',
-        'coupon_issue' => '元优惠券',
+        'coupon_issue' => '元券',
     ),
     'nomal' => array(
         'bean_issue' => '评价即得10蜜豆',
         'relation'   => ',更可获得',
-        'coupon_issue' => '元优惠券',
+        'coupon_issue' => '元券',
     ),
 );
 

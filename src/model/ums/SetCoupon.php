@@ -85,6 +85,10 @@ class SetCoupon extends \DB_Query {
             $ext_param['coupon_money'] = $data['coupon_money'];
         }
 
+        if(!empty($data['coupon_code'])) {
+            $ext_param['coupon_code'] = $data['coupon_code'];
+        }
+
         if(!empty($data['image'])) {
             $ext_param['image']['url'] = $data['image'];
             // 获取宽高
@@ -105,6 +109,7 @@ class SetCoupon extends \DB_Query {
             $insert[$key]['category_id'] = $category_id;
             $insert[$key]['brand_id'] = $brand_id;
         }
+        var_dump($insert);exit;
         $res = $this->multiInsert($insert);
         return $res;
     }
