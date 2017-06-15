@@ -70,3 +70,11 @@ $koubei_sample = array(
     'method' => 'post',
     'result_format' => false
 );
+
+// 口碑排序优化策略
+$koubei_high_optimize = array(
+    //'url' => 'http://kbrank.rec.mia.com/koubei/get_koubei',
+    'url' => 'http://10.1.15.14:5500/koubei/get_koubei',
+    'method' => 'get',
+    'result_format' => false
+);
