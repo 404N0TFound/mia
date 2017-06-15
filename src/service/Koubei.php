@@ -395,7 +395,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         if(!empty($dvc_id) && empty($is_pick)) {
             $item_str = implode(',', $item_ids);
-            $remote_data = array('dvcid' => $dvc_id, 'params' => json_encode(array('skuIds'=>$item_str,'page'=>$page-1,'pagesize'=>$count)));
+            $remote_data = array('dvcid' => $dvc_id, 'params' => json_encode(array('skuIds'=>$item_str,'page'=>$page-1,'pagesize'=>$count,'source'=>'more')));
             $curl_info = $remote_curl->curl_remote('', $remote_data);
             $koubei_ids = $curl_info['data']['data'];
             $sample_id = $curl_info['data']['sample_id'];
