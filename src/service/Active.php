@@ -72,6 +72,9 @@ class Active extends \mia\miagroup\Lib\Service {
                 $activeRes['top_img'] = $extInfo['image'];
                 $activeRes['top_img_url'] = $activeInfos[$activeId]['top_img'];
             }
+            if(!empty($extInfo['cover_img'])){
+                $activeRes['cover_img'] = $extInfo['cover_img'];
+            }
         }
         
         if (in_array('share_info', $fields)) {
@@ -202,10 +205,6 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['image']= $activeInfo['image_info'];
             unset($activeInfo['image_info']);
         }
-        if(!empty($activeInfo['cover_img_info'])){
-            $extInfo['image']= $activeInfo['image_info'];
-            unset($activeInfo['image_info']);
-        }
         
         if(!empty($activeInfo['cover_img_info'])){
             $extInfo['cover_img']= $activeInfo['cover_img_info'];
@@ -213,7 +212,6 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         
         $activeInfo['ext_info'] = json_encode($extInfo);
-        
         $this->activeModel->updateActive($activeInfo, $activeId);
         return $this->succ(true);
     }
