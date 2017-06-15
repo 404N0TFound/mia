@@ -1053,6 +1053,12 @@ class Solr
                     case 'before_score':
                         $where['fq'][]   = 'score:[* TO '.$v.']';
                         break;
+                    case 'after_text_count':
+                        $where['fq'][]   = 'text_count:['.$v.' TO *]';
+                        break;
+                    case 'after_pic_count':
+                        $where['fq'][]   = 'image_count:['.$v.' TO *]';
+                        break;
                     default:
                         if(is_array($v)) {
                             $where['fq'][]   = $k.":(". implode(' OR ', $v) . ")";
