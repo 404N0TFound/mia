@@ -222,7 +222,7 @@ class User extends Service{
         $GroupBy = 'user_id'; //默认分组
         
         $limit = intval($params['limit']) ;
-        $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
+        $offset = intval($params['page']);
         //用户分组
         if (!empty($params['role_id'])) {
             $solrCond['role_id'] = $params['role_id'];
