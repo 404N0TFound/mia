@@ -1440,3 +1440,9 @@ $coupon_guide = array(
  * 发布奖励蜜豆
  */
 $mibean_reward = 10;
+
+
+/*
+ * 优质口碑分流
+ */
+$tactics = [8,2];
