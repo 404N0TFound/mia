@@ -180,13 +180,25 @@ class Robot extends \mia\miagroup\Lib\Service {
         if ($editor_subject_info['is_recommend'] == 1) {
             $ext_info['is_recommend'] = 1;
         }
-        //是否推荐
+        //是否同步口碑
         if ($editor_subject_info['koubei_sync'] == 1) {
             $ext_info['koubei_sync'] = 1;
         }
         //同步活动
         if (!empty($editor_subject_info['active_id'])) {
             $ext_info['active_id'] = $editor_subject_info['active_id'];
+        }
+        //用户状态
+        if (!empty($editor_subject_info['majia_user_status'])) {
+            $ext_info['user_status'] = $editor_subject_info['majia_user_status'];
+        }
+        //宝宝生日区间/预产期区间
+        if (!empty($editor_subject_info['majia_period'])) {
+            $ext_info['user_period'] = $editor_subject_info['majia_period'];
+        }
+        //宝宝性别
+        if (!empty($editor_subject_info['majia_baby_sex'])) {
+            $ext_info['child_sex'] = $editor_subject_info['majia_baby_sex'];
         }
         //发布用户
         $insert_data['pub_user'] = $editor_subject_info['pub_user'];
@@ -265,8 +277,19 @@ class Robot extends \mia\miagroup\Lib\Service {
         if (!empty($outer_items)) {
             $subject_info['ext_info']['outer_items'] = $outer_items;
         }
-        if(isset($editor_subject_info['ext_info']['active_id']) && !empty($editor_subject_info['ext_info']['active_id'])) {
+        if (isset($editor_subject_info['ext_info']['active_id']) && !empty($editor_subject_info['ext_info']['active_id'])) {
             $subject_info['active_id'] = $editor_subject_info['ext_info']['active_id'];
+        }
+        if (isset($editor_subject_info['ext_info']['user_status'])) {
+            $subject_info['ext_info']['user_period']['user_status'] = $editor_subject_info['ext_info']['user_status'];
+        }
+        if (isset($editor_subject_info['ext_info']['user_period'])) {
+            list($start_time, $end_time) = explode('~', $editor_subject_info['ext_info']['user_period']);
+            $subject_info['ext_info']['user_period']['period_start'] = $start_time;
+            $subject_info['ext_info']['user_period']['period_end'] = $end_time;
+        }
+        if (isset($editor_subject_info['ext_info']['child_sex'])) {
+            $subject_info['ext_info']['user_period']['child_sex'] = $editor_subject_info['ext_info']['child_sex'];
         }
         $result = $subject_service->issue($subject_info, $point_info, $label_infos);
         if ($result['code'] > 0) {

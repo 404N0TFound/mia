@@ -103,6 +103,10 @@ $album = array(
  $extinfo_field = array(
      'koubei',
      'image',
+     'cover_image',
+     'selection_label',
+     'selection',
+     'user_period'
  );
  
  /**
