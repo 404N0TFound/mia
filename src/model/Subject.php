@@ -522,6 +522,9 @@ class Subject {
      */
     public function checkReSubmit($subject_info) {
         if (is_array($subject_info)) {
+            if (isset($subject_info['user_info'])) {
+                unset($subject_info['user_info']);
+            }
             $md5_text = md5(json_encode($subject_info));
         } else {
             $md5_text = md5($subject_info);
@@ -542,6 +545,9 @@ class Subject {
      */
     public function subjectPublishRecord($subject_info) {
         if (is_array($subject_info)) {
+            if (isset($subject_info['user_info'])) {
+                unset($subject_info['user_info']);
+            }
             $md5_text = md5(json_encode($subject_info));
         } else {
             $md5_text = md5($subject_info);
