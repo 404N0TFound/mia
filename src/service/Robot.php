@@ -193,12 +193,12 @@ class Robot extends \mia\miagroup\Lib\Service {
             $ext_info['user_status'] = $editor_subject_info['majia_user_status'];
         }
         //宝宝生日区间/预产期区间
-        if (!empty($editor_subject_info['majia_period'])) {
-            $ext_info['user_period'] = $editor_subject_info['majia_period'];
+        if (!empty($editor_subject_info['majia_user_period'])) {
+            $ext_info['user_period'] = $editor_subject_info['majia_user_period'];
         }
         //宝宝性别
-        if (!empty($editor_subject_info['majia_baby_sex'])) {
-            $ext_info['child_sex'] = $editor_subject_info['majia_baby_sex'];
+        if (!empty($editor_subject_info['majia_child_sex'])) {
+            $ext_info['child_sex'] = $editor_subject_info['majia_child_sex'];
         }
         //发布用户
         $insert_data['pub_user'] = $editor_subject_info['pub_user'];
