@@ -330,8 +330,11 @@ class Audit extends \mia\miagroup\Lib\Service {
      */
     public function imageCheck($imgArray)
     {
-        if (!is_array($imgArray) || empty($imgArray)) {
+        if (empty($imgArray)) {
             return $this->succ([]);
+        }
+        if(!is_array($imgArray)) {
+            $imgArray = [$imgArray];
         }
         if (!empty($this->ext_params)) {
             $checkResult = true;

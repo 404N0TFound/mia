@@ -34,7 +34,7 @@ class ShumeiUtil
 
         $return = true;
 
-        if ($result['code'] != 1100 || $result['riskLevel'] != "PASS") {
+        if ($result['code'] == 1100 && $result['riskLevel'] != "PASS") {
             $reason = json_decode($result['detail'], true);
             $return = $reason['description'] ? $reason['description'] : "内容不合法";
             if(isset($reason['matchedItem']) && !empty($reason['matchedItem'])) {
@@ -58,7 +58,7 @@ class ShumeiUtil
         $result = $remote_curl->curl_remote('', $post_data);
 
         $return = true;
-        if ($result['code'] != 1100 || $result['riskLevel'] != "PASS") {
+        if ($result['code'] == 1100 && $result['riskLevel'] != "PASS") {
             $reason = $result['detail'];
             $return = $reason['description'] ? $reason['description'] : "图片不合法";
         }
