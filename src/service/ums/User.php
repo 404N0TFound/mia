@@ -72,9 +72,9 @@ class User extends Service{
             $count = 1;
         }
         //用户类型查询（全部、屏蔽）
-        if($params['status'] > 0 && in_array($params['status'],array(1))  && !isset($userId)){
-            if($params['status'] == 1){
-                $userArr = $this->userModel->getShieldUserIdList(array(),$offset,$limit);
+        if($params['status'] > 0 && in_array($params['status'],array(1, 2))  && !isset($userId)){
+            if(in_array($params['status'],array(1, 2))){
+                $userArr = $this->userModel->getShieldUserIdList(array(), array(['status'] => $params['status']),$offset,$limit);
             }
         }
         //用户分类查询（全部、达人、官方认证、商家/店铺）
