@@ -43,4 +43,25 @@ class ShumeiUtil
         }
         return $return;
     }
+
+    public function checkImg($url)
+    {
+        $token_id = !empty($this->session_info['dvc_id']) ? $this->session_info['dvc_id'] : \F_Ice::$ins->runner->request->id;
+        $remote_curl = new RemoteCurl('shumei_img');
+        $params['accessKey'] = $this->_config['accessKey'];
+        $params['type'] = $this->_config['imgType'];
+
+        $params['data']['img'] = $url;
+        $params['data']['tokenId'] = strval($token_id);
+        $post_data = json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        $result = $remote_curl->curl_remote('', $post_data);
+
+        $return = true;
+        if ($result['code'] != 1100 || $result['riskLevel'] != "PASS") {
+            $reason = $result['detail'];
+            $return = $reason['description'] ? $reason['description'] : "图片不合法";
+        }
+        return $return;
+    }
 }
