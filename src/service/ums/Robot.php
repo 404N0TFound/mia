@@ -144,7 +144,7 @@ class Robot extends \mia\miagroup\Lib\Service {
             $condition['user_status'] = $params['user_status'];
         }
         if (!empty($params['majia_child_sex'])) {
-            $condition['majia_child_sex'] = $params['majia_child_sex'];
+            $condition['child_sex'] = $params['majia_child_sex'];
         }
         if (!empty($params['period_start'])) {
             $condition['period_start'] = $params['period_start'];
