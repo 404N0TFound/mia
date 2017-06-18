@@ -258,7 +258,6 @@ class Subject extends \mia\miagroup\Lib\Service {
             $v['subject'] = $v;
             $result['list'][] = $v;
         }
-        $result['list'] = array_values($subjectInfos);
         $result['count'] = !empty($total_count) ? $total_count : 0;
         $result['total_users'] = !empty($total_users) ? $total_users: 0;
         $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
