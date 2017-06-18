@@ -212,6 +212,14 @@ class Subject extends \mia\miagroup\Lib\Service {
             //不带图
             $solrParams['before_image'] = 0;
         }
+        if($data['is_title'] == 1) {
+            //有标题
+            $solrParams['have_title'] = $data['is_title'];
+        }
+        if($data['is_title'] == 0) {
+            //没有标题
+            $solrParams['no_title'] = $data['is_title'];
+        }
         if (!empty($data['picnum'])) {
             //查询图片数
             $solrParams['after_pic_count'] = $data['picnum'];
@@ -220,9 +228,6 @@ class Subject extends \mia\miagroup\Lib\Service {
             //查询文字内容数
             $solrParams['after_text_count'] = $data['contentnum'];
         }
-
-        var_dump($solrParams);
-
         $solr = new Solr('pic_search', 'group_search_solr');
 
         // 总用户数查询
@@ -232,6 +237,10 @@ class Subject extends \mia\miagroup\Lib\Service {
         // 总评论数
         $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'comment_num'])['data'];
         $total_comment_num = $solrData['facets']['sum'];
+
+        // 总点赞数
+        $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'praise_num'])['data'];
+        $total_praise_num = $solrData['facets']['sum'];
 
         // 总数据查询
         $solrData = $solr->getSeniorSolrSearch($solrParams, 'id', $page, $limit)['data'];
@@ -252,6 +261,8 @@ class Subject extends \mia\miagroup\Lib\Service {
         $result['list'] = array_values($subjectInfos);
         $result['count'] = !empty($total_count) ? $total_count : 0;
         $result['total_users'] = !empty($total_users) ? $total_users: 0;
+        $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
+        $result['total_praise_num'] = !empty($total_praise_num) ? $total_praise_num: 0;
         return $this->succ($result);
     }
     
