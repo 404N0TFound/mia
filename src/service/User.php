@@ -555,6 +555,9 @@ class User extends \mia\miagroup\Lib\Service {
         $extInfo['modify_author'] = $updata['modify_author'] ? $updata['modify_author'] :'';
         $extInfo['answer_nums'] = $updata['answer_nums'] ? $updata['answer_nums'] : '';
         $extInfo['last_modify'] = $updata['last_modify'];
+        
+        $setData[] = array('create_time', $updata['last_modify']);
+        
         if(!empty($extInfo)){
             $extInfo = json_encode($extInfo);
             $setData[] = array('ext_info', $extInfo);
@@ -618,9 +621,18 @@ class User extends \mia\miagroup\Lib\Service {
      * 创建用户分组
      */
     public function createGroup($groupInfo) {
-        if(empty($groupInfo['role_id']) || empty($groupInfo['user_ids'])){
+        if(empty($groupInfo['user_ids'])){
             return $this->error(500);
         }
+        //获取用户分组中最大分组id
+        $condition = array();
+        $condition['status'] = array(1);
+        $userGroups = $this->userModel->getBatchUserGroup($condition);
+        $roleIds = array_keys($userGroups);
+        $maxRoleId = max($roleIds);
+        //新增分组id在已存在最大的分组id基础上加1
+        $groupInfo['role_id'] = $maxRoleId+1;
+        
         $userIds = explode(',', $groupInfo['user_ids']);
         unset($groupInfo['user_ids']);
         foreach($userIds as $userId){
