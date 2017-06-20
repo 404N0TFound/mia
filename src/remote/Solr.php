@@ -544,6 +544,18 @@ class Solr
         if (!empty($conditon['comment_supplier_id']) ) {
             $solr_info['fq'][]   = 'comment_supplier_id:'. $conditon['comment_supplier_id'];
         }
+        
+        //是否是甄选
+        if (isset($conditon['selections']) && in_array($conditon['selections'],array(0,1))) {
+            //是甄选
+            if($conditon['selections'] == 1){
+                $solr_info['fq'][]   = 'brand_id:6769';
+            }else{
+                //不是甄选
+                $solr_info['fq'][]   = '-brand_id:6769';
+            }
+        
+        }
         // solr select
         $res = $this->select($solr_info);
         if($res['success'] == 1){
