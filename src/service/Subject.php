@@ -645,6 +645,8 @@ class Subject extends \mia\miagroup\Lib\Service
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
                     if(!empty($subjectInfo['ext_info']["cover_image"])) {
                         $shareImage = NormalUtil::buildImgUrl($subjectInfo["ext_info"]["cover_image"]["url"],"small")["url"];
+                    } elseif (!empty($subjectInfo['ext_info']["image"][0]["url"])) {
+                        $shareImage = NormalUtil::buildImgUrl($subjectInfo['ext_info']["image"][0]["url"],"small")["url"];
                     } else {
                         $shareImage = $shareDefault['img_url'];
                     }
