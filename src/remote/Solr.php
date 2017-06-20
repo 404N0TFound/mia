@@ -964,7 +964,7 @@ class Solr
     public function getSeniorSolrSearch($cond, $field = 'id', $page = 1, $limit = 50,  $order = [], $stats = [])
     {
         // 排序处理
-        $orderBy = 'id desc,';
+        $orderBy = 'created desc,';
         if(!empty($order)) {
             // 组装排序字段
             foreach($order as $k => $v) {
