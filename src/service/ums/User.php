@@ -246,6 +246,7 @@ class User extends Service{
         if (strtotime($params['start_time']) > 0) {
             //起始时间
             $solrCond['start_time'] = $params['start_time'];
+            $cond['start_time'] = $params['start_time'];
         }
         if (strtotime($params['end_time']) > 0) {
             //结束时间
@@ -253,9 +254,9 @@ class User extends Service{
             $cond['end_time'] = $params['end_time'];
         }
         
-        if(strtotime($params['start_date']) > 0){
-            $cond['start_time'] = $params['start_date'];
-        }
+//         if(strtotime($params['start_date']) > 0){
+//             $cond['start_time'] = $params['start_date'];
+//         }
         
         if(empty($solrCond)){
             return $this->succ($result);
@@ -289,6 +290,14 @@ class User extends Service{
                 $tmp['delete_num'] = isset($solrData['delete'][$userId]['count']) ? $solrData['delete'][$userId]['count'] : 0;
                 $tmp['praise_num'] = isset($praiseInfos[$userId]) ? $praiseInfos[$userId] : 0;
                 $tmp['comment_num'] = isset($commentInfos[$userId]) ? $commentInfos[$userId] : 0;
+
+                if(isset($solrCond['active_id']) || $solrCond['label']){
+                    $tmp['praise_num'] = '—';
+                    $tmp['comment_num'] = '—';
+                }else{
+                    $tmp['praise_num'] = isset($praiseInfos[$userId]) ? $praiseInfos[$userId] : 0;
+                    $tmp['comment_num'] = isset($commentInfos[$userId]) ? $commentInfos[$userId] : 0;
+                }
                 
                 $result['list'][$userId] = $tmp;
             }
