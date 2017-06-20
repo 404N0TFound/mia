@@ -255,7 +255,6 @@ class Subject extends \mia\miagroup\Lib\Service {
             return $this->succ($subjectInfos);
         }
         $subject_ids = array_column($success_data, 'id');
-        $subject_ids = [268364,268363];
         $subjectService = new SubjectService();
         $subjectInfos = $subjectService->getBatchSubjectInfos($subject_ids, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
         foreach ($subjectInfos as $v) {
