@@ -103,7 +103,7 @@ class User extends \DB_Query {
     /**
      * 获取屏蔽用户
      */
-    public function getShieldUserIdList($userIds=array(),$page=0,$limit=false) {
+    public function getShieldUserIdList($userIds=array(),$conditon = array(), $page=0,$limit=false) {
         $this->dbResource = 'miagroupums';
         $this->tableName = $this->tableUserShield;
         $result = array();
@@ -112,7 +112,11 @@ class User extends \DB_Query {
         if(!empty($userIds)){
             $where[] = ['user_id',$userIds];
         }
-        $where[] = ['status', 1];
+        if(!empty($conditon['status'])) {
+            $where[] = ['status', $conditon['status']];
+        } else {
+            $where[] = ['status', 1];
+        }
         $orderBy = ['create_time DESC'];
         $userIdRes = $this->getRows($where, array('user_id'), $limit, $page, $orderBy);
         //print_r($userIdRes);exit;

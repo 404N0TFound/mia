@@ -58,6 +58,12 @@ class Robot extends \DB_Query {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
+                    case 'period_start':
+                        $where[] = [':ge', 'child_birthday', $v];
+                        break;
+                    case 'period_end':
+                        $where[] = [':le', 'child_birthday', $v];
+                        break;
                     default:
                         $where[] = [$k, $v];
                 }

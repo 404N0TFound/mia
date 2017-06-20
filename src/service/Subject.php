@@ -917,18 +917,23 @@ class Subject extends \mia\miagroup\Lib\Service
                 $imageInfo[] = $image;
             }
         }
-        $subjectSetInfo['ext_info']['image'] = $imageInfo;
+        if (!empty($imageInfo)) {
+            $subjectSetInfo['ext_info']['image'] = $imageInfo;
+        }
         //封面图
-        if (isset($subjectInfo['cover_image'])) {
+        if (!empty($subjectInfo['cover_image'])) {
             $subjectSetInfo['ext_info']['cover_image'] = $subjectInfo['cover_image'];
         }
         $subjectSetInfo['image_url'] = implode("#", $imgUrl);
 
         // 封测报告标签
-        $subjectSetInfo['ext_info']['selection_label'] = $selectionLabelInfo;
-
+        if (!empty($selectionLabelInfo)) {
+            $subjectSetInfo['ext_info']['selection_label'] = $selectionLabelInfo;
+        }
         // 封测报告推荐
-        $subjectSetInfo['ext_info']['selection'] = $selection;
+        if (!empty($selection)) {
+            $subjectSetInfo['ext_info']['selection'] = $selection;
+        }
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         
