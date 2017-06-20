@@ -283,8 +283,10 @@ class User extends Service{
                 $tmp['username'] = $solrData['all'][$userId]['username'];
                 $tmp['nickname'] = $solrData['all'][$userId]['nickname'];
                 $tmp['issue_num'] = isset($solrData['all'][$userId]['count']) ? $solrData['all'][$userId]['count'] : 0;//用户发帖数量
+                $tmp['normal_num'] = isset($solrData['normal'][$userId]['count']) ? $solrData['normal'][$userId]['count'] : 0;
                 $tmp['shield_num'] = isset($solrData['shield'][$userId]['count']) ? $solrData['shield'][$userId]['count'] : 0;
                 $tmp['fine_num'] = isset($solrData['fine'][$userId]['count']) ? $solrData['fine'][$userId]['count'] : 0;
+                $tmp['delete_num'] = isset($solrData['delete'][$userId]['count']) ? $solrData['delete'][$userId]['count'] : 0;
                 $tmp['praise_num'] = isset($praiseInfos[$userId]) ? $praiseInfos[$userId] : 0;
                 $tmp['comment_num'] = isset($commentInfos[$userId]) ? $commentInfos[$userId] : 0;
                 
@@ -303,7 +305,7 @@ class User extends Service{
     //获取solr统计的分组数据(发帖，精华帖，屏蔽贴)
     private function _getSolrGroupCount($solrCond,$fileds,$limit,$offset,$orderBy,$GroupBy){
         $result = array();
-        $countType = array("all","fine","shield");
+        $countType = array("all","fine","shield","normal","delete");
         //$solrCond['group'] = 'user_id';
         $solr = new \mia\miagroup\Remote\Solr('pic_search', 'group_search_solr');
         
@@ -318,10 +320,16 @@ class User extends Service{
             }else{
                 $solrWhere['user_id'] = $userIds;
                 if($type == 'shield'){
-                    $solrWhere['status'] = "[* TO -1]";
+                    $solrWhere['status'] = -1;
                 }
                 if($type == 'fine'){
                     $solrWhere['is_fine'] = 1;
+                }
+                if($type == 'normal'){
+                    $solrWhere['status'] = 1;
+                }
+                if($type == 'delete'){
+                    $solrWhere['status'] = 0;
                 }
                 $solrData[$type] = $solr->getSeniorSolrSearch($solrWhere,$fileds, $offset, $limit, $orderBy,$groupBy);
             }
