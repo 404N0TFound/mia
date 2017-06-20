@@ -329,7 +329,7 @@ class User extends Service{
             }else{
                 $solrWhere['user_id'] = $userIds;
                 if($type == 'shield'){
-                    $solrWhere['status'] = -1;
+                    $solrWhere['status'] = '"-1"';
                 }
                 if($type == 'fine'){
                     $solrWhere['is_fine'] = 1;
@@ -340,7 +340,7 @@ class User extends Service{
                 if($type == 'delete'){
                     $solrWhere['status'] = 0;
                 }
-                $solrData[$type] = $solr->getSeniorSolrSearch($solrWhere,$fileds, $offset, $limit, $orderBy,$groupBy);
+                $solrData[$type] = $solr->getSeniorSolrSearch($solrWhere,$fileds, 0, $limit, $orderBy,$groupBy);
             }
             unset($solrWhere);
             
