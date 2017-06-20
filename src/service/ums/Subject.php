@@ -180,6 +180,10 @@ class Subject extends \mia\miagroup\Lib\Service {
             //用户ID
             $solrParams['user_id'] = $data['user_id'];
         }
+        if (!empty($data['uid_list']) && is_array($data['uid_list']) && intval($data['user_id']) <= 0 && intval($data['id']) <= 0) {
+            // 用户列表
+            $solrParams['user_id'] = $data['uid_list'];
+        }
         if (!empty($data['user_type'])) {
             //用户分类
             $solrParams['c_type'] = $data['user_type'];
@@ -192,7 +196,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //活动
             $solrParams['active_id'] = $data['active_id'];
         }
-        if (in_array($data['semantic_analys'], [0,1,2])){
+        if (in_array($data['semantic_analys'], [1,2,3])){
             //内容分析
             $solrParams['semantic_analys'] = $data['semantic_analys'];
         }
