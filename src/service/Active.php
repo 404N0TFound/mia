@@ -39,9 +39,11 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo = json_decode($activeInfo['ext_info'],true);
             $tmp['top_img'] = $extInfo['image'];
             $tmp['cover_img'] = isset($extInfo['cover_img']) ? $extInfo['cover_img'] : $extInfo['image'];
+            $tmp['img_nums'] = 0;
+            $tmp['user_nums'] = 0;
             if (in_array('count', $fields)) {
-                $tmp['img_nums'] = $activeCount[$activeInfo['id']]['img_nums'] ;
-                $tmp['user_nums'] = $activeCount[$activeInfo['id']]['user_nums'] ;
+                $tmp['img_nums'] = isset($activeCount[$activeInfo['id']]['img_nums']) ? $activeCount[$activeInfo['id']]['img_nums'] : 0 ;
+                $tmp['user_nums'] = isset($activeCount[$activeInfo['id']]['user_nums']) ? $activeCount[$activeInfo['id']]['user_nums'] : 0 ;
             }
             $activeRes[] = $tmp;
         }
