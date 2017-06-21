@@ -70,9 +70,20 @@ class Koubei extends \DB_Query {
                         if (in_array($v,array(0,1))) {
                             //非自主包括（自营和未开通回复权限的商家）、自主为开通回复权限的商家
                             if($v == 0){
-                                $where[] = [':isnull','sm.supplier_id'];
+                                $where [] = [
+                                    ':and',[
+                                        [$this->tableName.'.supplier_id', 0],
+                                        [
+                                            ':or',[
+                                                [':gt', $this->tableName.'.supplier_id',0],
+                                                ':and',[':isnull','sm.supplier_id']
+                                            ]
+                                        ]
+                                    ]
+                                ];
                                 $join = 'left join '.$this->tableSupplierMapping. ' as sm on ' .$this->tableName . '.supplier_id=sm.supplier_id';
                             }else{
+                                $where[] = [':gt', $this->tableName.'.supplier_id',0];
                                 $join = 'inner join '.$this->tableSupplierMapping. ' as sm on ' .$this->tableName . '.supplier_id=sm.supplier_id';
                             }
                         }
