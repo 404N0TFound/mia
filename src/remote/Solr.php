@@ -434,10 +434,10 @@ class Solr
             //自营非自营
             if($conditon['self_sale'] == 0) {
                 // 非自主
-                $solr_info['fq'][]   = '(supplier_id:0 OR (*:* NOT supplier_status:1))';
+                $solr_info['fq'][]   = '(supplier_id:0 OR (NOT supplier_status:1))';
             }else {
                 // 自主
-                $solr_info['fq'][]   = '(supplier_id:[1 TO *] AND supplier_status:1)';
+                $solr_info['fq'][]   = 'supplier_status:1';
             }
         }
         if (!empty($conditon['warehouse_type'])) {
