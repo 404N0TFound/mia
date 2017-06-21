@@ -1077,6 +1077,10 @@ class Solr
                     case 'after_pic_count':
                         $where['fq'][]   = 'image_count:['.$v.' TO *]';
                         break;
+                    case 'status':
+                        // 存在负值，单独处理
+                        $where['fq'][]   = 'status:"'.$v.'"';
+                        break;
                     default:
                         if(is_array($v)) {
                             $where['fq'][]   = $k.":(". implode(' OR ', $v) . ")";
