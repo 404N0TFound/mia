@@ -322,4 +322,55 @@ class Audit extends \mia\miagroup\Lib\Service {
         //单条返回一维数组，多条返回二维数组
         return $this->succ(array('sensitive_words' => $matchList));
     }
+
+    /**
+     * 检查图片合法性
+     * @param $imgArray 图片url数组
+     *
+     */
+    public function imageCheck($imgArray)
+    {
+        if (empty($imgArray)) {
+            return $this->succ([]);
+        }
+        if(!is_array($imgArray)) {
+            $imgArray = [$imgArray];
+        }
+        if (!empty($this->ext_params)) {
+            $checkResult = true;
+
+            $shumeiService = new Util\ShumeiUtil($this->ext_params);
+            foreach ($imgArray as $v) {
+                $res = $shumeiService->checkImg($v);
+                if ($res !== true) {
+                    $checkResult = false;
+                }
+            }
+            if ($checkResult === false && !empty($this->ext_params['current_uid'])) {
+                //记录敏感用户
+                $shieldStatus = $this->auditModel->checkIsShieldUserByUid($this->ext_params['current_uid']);
+                if (!empty($shieldStatus)) {
+                    if ($shieldStatus['status'] == 1 || $shieldStatus['status'] == 2) {
+                        //(1)如果屏蔽过，且当前为屏蔽状态，直接返回true
+                    } elseif ($shieldStatus['status'] == 0) {
+                        //(2)如果屏蔽过，且当前为解除屏蔽状态，则更新为屏蔽状态
+                        $setData = array();
+                        $setData[] = ['status', 2];
+                        $setData[] = ['intro', "头像可疑"];
+                        $this->auditModel->updateShieldUserInfo($setData, $this->ext_params['current_uid']);
+                    }
+                } else {
+                    //(3)如果没有屏蔽过，则插入屏蔽信息
+                    $userInfo['user_id'] = $this->ext_params['current_uid'];
+                    $userInfo['intro'] = "头像可疑";
+                    $userInfo['status'] = 2;
+                    $userInfo['operator'] = 0;
+                    $userInfo['create_time'] = date("Y-m-d H:i:s");
+                    $this->auditModel->setUserShield($userInfo);
+                }
+            }
+            return $this->succ([]);
+        }
+        return $this->succ([]);
+    }
 }

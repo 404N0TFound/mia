@@ -151,6 +151,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $solrCond['op'] = $params['op'];
         }
         
+        //是否是甄选
+        if (isset($params['selections']) && in_array($params['selections'],array(0,1)) && $isRealtime == false) {
+            $solrCond['selections'] = intval($params['selections']);
+        }
+        
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');
             $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);

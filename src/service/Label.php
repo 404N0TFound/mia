@@ -141,10 +141,22 @@ class Label extends \mia\miagroup\Lib\Service {
     /**
      * 获取全部推荐标签
      */
-    public function getRecommendLabels($page=1,$count=10) {
+    public function getRecommendLabels($page=1,$count=10,$type) {
         $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
         $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
-        return $this->succ(array_values($labelInfos));
+        if(!empty($type) && $type == 'koubei') {
+            // 口碑去除垃圾标签
+            foreach($labelInfos as $label) {
+                if($label['title'] == '开箱晒物') {
+                    $res[] = $label;
+                    break;
+                }
+            }
+        }
+        if(empty($res)) {
+            $res = $labelInfos;
+        }
+        return $this->succ(array_values($res));
     }
 
     /**

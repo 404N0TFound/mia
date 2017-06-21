@@ -643,7 +643,13 @@ class Subject extends \mia\miagroup\Lib\Service
                     $shareDefault = $shareConfig['defaultShareInfo']['subject'];
                     $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
-                    $shareImage = $shareDefault['img_url'];
+                    if(!empty($subjectInfo['ext_info']["cover_image"])) {
+                        $shareImage = NormalUtil::buildImgUrl($subjectInfo["ext_info"]["cover_image"]["url"],"small")["url"];
+                    } elseif (!empty($subjectInfo['ext_info']["image"][0]["url"])) {
+                        $shareImage = NormalUtil::buildImgUrl($subjectInfo['ext_info']["image"][0]["url"],"small")["url"];
+                    } else {
+                        $shareImage = $shareDefault['img_url'];
+                    }
                     $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
                 }
                 // 替换搜索关联数组

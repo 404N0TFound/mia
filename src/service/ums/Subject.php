@@ -6,6 +6,7 @@ use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Model\Ums\Subject as SubjectModel;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\User as UserService;
+use \mia\miagroup\Remote\Solr;
 
 class Subject extends \mia\miagroup\Lib\Service {
     
@@ -117,6 +118,153 @@ class Subject extends \mia\miagroup\Lib\Service {
             $result['list'][] = $tmp;
         }
         $result['count'] = $data['count'];
+        return $this->succ($result);
+    }
+
+    /*
+     * 帖子综合搜索
+     * */
+    public function getComSubjectList($data)
+    {
+        $subject_ids = array();
+        $solrParams = array();
+        $subjectInfos = array();
+
+        if(empty($data)) {
+            return $this->succ($subjectInfos);
+        }
+
+        $page = intval($data['page']) > 1 ?  intval($data['page']): 1;
+        $limit = intval($data['limit']) > 0 ?  intval($data['limit']): 0;
+
+        if (intval($data['id']) > 0) {
+            //帖子ID
+            $solrParams['id'] = intval(trim($data['id']));
+        }
+        if (!empty($data['title'])) {
+            //标题搜索
+            $solrParams['title_like'] = trim($data['title']);
+        }
+        if (!empty($data['content'])) {
+            //内容搜索
+            $solrParams['text_like'] = trim($data['content']);
+        }
+        if (is_array($data['status']) || (!is_array($data['status']) && $data['status'] !== null && $data['status'] !== '' && in_array($data['status'], array(0, 1, -1))) && intval($data['id']) <= 0) {
+            //帖子状态
+            $solrParams['status'] = $data['status'];
+        }
+        if ($data['source'] !== null && $data['source'] !== '' && in_array($data['source'], array(0, 1, 2, 4)) && intval($data['id']) <= 0) {
+            //帖子来源
+            if($data['source'] == 0){
+                $data['source'] = array(1, 2, 4);
+            }
+            $solrParams['source'] = $data['source'];
+        }
+        if ($data['is_fine'] !== null && $data['is_fine'] !== '' && in_array($data['is_fine'], array(0, 1)) && intval($data['id']) <= 0) {
+            //是否是推荐
+            $solrParams['is_fine'] = $data['is_fine'];
+        }
+        if (intval($data['item_id']) > 0 && intval($data['id']) <= 0) {
+            //商品ID
+            $solrParams['item_id'] = $data['item_id'];
+        }
+        if (strtotime($data['start_time']) > 0 && intval($data['id']) <= 0) {
+            //起始时间
+            $solrParams['start_time']  = $data['start_time'];
+        }
+        if (strtotime($data['end_time']) > 0 && intval($data['id']) <= 0) {
+            //结束时间
+            $solrParams['end_time'] = $data['end_time'];
+        }
+        if (!empty($data['user_id'])) {
+            //用户ID
+            $solrParams['user_id'] = $data['user_id'];
+        }
+        if (!empty($data['uid_list']) && is_array($data['uid_list']) && intval($data['user_id']) <= 0 && intval($data['id']) <= 0) {
+            // 用户列表
+            $solrParams['user_id'] = $data['uid_list'];
+        }
+        if (!empty($data['user_type'])) {
+            //用户分类
+            $solrParams['c_type'] = $data['user_type'];
+        }
+        if (!empty($data['role_id'])) {
+            //用户分组
+            $solrParams['role_id'] = $data['role_id'];
+        }
+        if (!empty($data['active_id'])) {
+            //活动
+            $solrParams['active_id'] = $data['active_id'];
+        }
+        if (in_array($data['semantic_analys'], [1,2,3])){
+            //内容分析
+            $solrParams['semantic_analys'] = $data['semantic_analys'];
+        }
+        if (!empty($data['supplier_id'])) {
+            //商家ID
+            $solrParams['supplier_id'] = $data['supplier_id'];
+        }
+        if (!empty($data['label_id'])) {
+            //标签ID
+            $solrParams['label'] = $data['label_id'];
+        }
+        if ($data['is_pic'] == 1) {
+            //带图
+            $solrParams['after_image'] = 1;
+        }
+        if ($data['is_pic'] == 0) {
+            //不带图
+            $solrParams['before_image'] = 0;
+        }
+        if($data['is_title'] == 1) {
+            //有标题
+            $solrParams['have_title'] = $data['is_title'];
+        }
+        if($data['is_title'] == 0) {
+            //没有标题
+            $solrParams['no_title'] = $data['is_title'];
+        }
+        if (!empty($data['picnum'])) {
+            //查询图片数
+            $solrParams['after_pic_count'] = $data['picnum'];
+        }
+        if (!empty($data['contentnum'])) {
+            //查询文字内容数
+            $solrParams['after_text_count'] = $data['contentnum'];
+        }
+        $solr = new Solr('pic_search', 'group_search_solr');
+
+        // 总用户数查询
+        $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['count' =>'user_id'])['data'];
+        $total_users = $solrData['facets']['count'];
+
+        // 总评论数
+        $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'comment_num'])['data'];
+        $total_comment_num = $solrData['facets']['sum'];
+
+        // 总点赞数
+        $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'praise_num'])['data'];
+        $total_praise_num = $solrData['facets']['sum'];
+
+        // 总数据查询
+        $solrData = $solr->getSeniorSolrSearch($solrParams, 'id', $page, $limit)['data'];
+        $success = $solrData['responseHeader']['status'];
+        $success_data = $solrData['response']['docs'];
+        $total_count = $solrData['response']['numFound'];
+        if($success != 0 || empty($total_count)) {
+            return $this->succ($subjectInfos);
+        }
+        $subject_ids = array_column($success_data, 'id');
+        $subjectService = new SubjectService();
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subject_ids, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
+        foreach ($subjectInfos as $v) {
+            $v['subject'] = $v;
+            $result['list'][] = $v;
+        }
+        $result['count'] = !empty($total_count) ? $total_count : 0;
+        $result['total_users'] = !empty($total_users) ? $total_users: 0;
+        $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
+        $result['total_praise_num'] = !empty($total_praise_num) ? $total_praise_num: 0;
         return $this->succ($result);
     }
     

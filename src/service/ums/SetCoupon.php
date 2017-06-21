@@ -82,6 +82,7 @@ class SetCoupon extends \mia\miagroup\Lib\Service {
         }
 
         $params['coupon_money'] = $coupon_price;
+        $params['coupon_code'] = $coupon_code;
 
         $res = $this->setCouponModel->addCoupon($params);
         if(empty($res)) {

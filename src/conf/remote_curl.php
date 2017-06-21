@@ -57,7 +57,12 @@ $subject_search = array(
 //数美
 $shumei_text = array(
     'url' => 'http://api.fengkongcloud.com/v2/saas/anti_fraud/text',
-    //'url' => 'http://notes.search.miaidc.com/notes/api.php',
+    'method' => 'post',
+    'result_format' => false,
+    'log_response' => true
+);
+$shumei_img = array(
+    'url' => "http://api.fengkongcloud.com/v2/saas/anti_fraud/img",
     'method' => 'post',
     'result_format' => false,
     'log_response' => true
@@ -68,5 +73,13 @@ $koubei_sample = array(
     'url' => 'http://sample.miyabaobei.com/sample/koubeisort',
     //'url' => 'http://sample.miyabaobei.com/sample/sample?action=koubeisort',
     'method' => 'post',
+    'result_format' => false
+);
+
+// 口碑排序优化策略
+$koubei_high_optimize = array(
+    'url' => 'http://kbrank.rec.mia.com/koubei/get_koubei',
+    //'url' => 'http://10.1.15.14:5500/koubei/get_koubei',
+    'method' => 'get',
     'result_format' => false
 );

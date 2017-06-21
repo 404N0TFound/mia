@@ -544,6 +544,18 @@ class Solr
         if (!empty($conditon['comment_supplier_id']) ) {
             $solr_info['fq'][]   = 'comment_supplier_id:'. $conditon['comment_supplier_id'];
         }
+        
+        //是否是甄选
+        if (isset($conditon['selections']) && in_array($conditon['selections'],array(0,1))) {
+            //是甄选
+            if($conditon['selections'] == 1){
+                $solr_info['fq'][]   = 'brand_id:6769';
+            }else{
+                //不是甄选
+                $solr_info['fq'][]   = '-brand_id:6769';
+            }
+        
+        }
         // solr select
         $res = $this->select($solr_info);
         if($res['success'] == 1){
@@ -964,7 +976,7 @@ class Solr
     public function getSeniorSolrSearch($cond, $field = 'id', $page = 1, $limit = 50,  $order = [], $stats = [])
     {
         // 排序处理
-        $orderBy = 'id desc,';
+        $orderBy = 'created desc,';
         if(!empty($order)) {
             // 组装排序字段
             foreach($order as $k => $v) {
@@ -1035,6 +1047,12 @@ class Solr
                     case 'after_image':
                         $where['fq'][]   = 'image_count:['.$v.' TO *]';
                         break;
+                    case 'have_title':
+                        $where['fq'][]   = 'title:["" TO *]';
+                        break;
+                    case 'no_title':
+                        $where['fq'][]   = 'title:[* TO ""]';
+                        break;
                     case 'before_text':
                         $where['fq'][]   = 'text_count:[* TO '.$v.']';
                         break;
@@ -1052,6 +1070,12 @@ class Solr
                         break;
                     case 'before_score':
                         $where['fq'][]   = 'score:[* TO '.$v.']';
+                        break;
+                    case 'after_text_count':
+                        $where['fq'][]   = 'text_count:['.$v.' TO *]';
+                        break;
+                    case 'after_pic_count':
+                        $where['fq'][]   = 'image_count:['.$v.' TO *]';
                         break;
                     default:
                         if(is_array($v)) {
