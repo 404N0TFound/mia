@@ -976,7 +976,7 @@ class Solr
     public function getSeniorSolrSearch($cond, $field = 'id', $page = 1, $limit = 50,  $order = [], $stats = [])
     {
         // 排序处理
-        $orderBy = 'id desc,';
+        $orderBy = 'created desc,';
         if(!empty($order)) {
             // 组装排序字段
             foreach($order as $k => $v) {
@@ -1046,6 +1046,12 @@ class Solr
                         break;
                     case 'after_image':
                         $where['fq'][]   = 'image_count:['.$v.' TO *]';
+                        break;
+                    case 'have_title':
+                        $where['fq'][]   = 'title:["" TO *]';
+                        break;
+                    case 'no_title':
+                        $where['fq'][]   = 'title:[* TO ""]';
                         break;
                     case 'before_text':
                         $where['fq'][]   = 'text_count:[* TO '.$v.']';

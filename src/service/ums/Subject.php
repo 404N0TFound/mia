@@ -149,7 +149,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //内容搜索
             $solrParams['text_like'] = trim($data['content']);
         }
-        if (is_array($data['status']) || (!is_array($data['status']) && !empty($data['status']) && in_array($data['status'], array(0, 1, -1))) && intval($data['id']) <= 0) {
+        if (is_array($data['status']) || (!is_array($data['status']) && $data['status'] !== null && $data['status'] !== '' && in_array($data['status'], array(0, 1, -1))) && intval($data['id']) <= 0) {
             //帖子状态
             $solrParams['status'] = $data['status'];
         }
@@ -180,6 +180,10 @@ class Subject extends \mia\miagroup\Lib\Service {
             //用户ID
             $solrParams['user_id'] = $data['user_id'];
         }
+        if (!empty($data['uid_list']) && is_array($data['uid_list']) && intval($data['user_id']) <= 0 && intval($data['id']) <= 0) {
+            // 用户列表
+            $solrParams['user_id'] = $data['uid_list'];
+        }
         if (!empty($data['user_type'])) {
             //用户分类
             $solrParams['c_type'] = $data['user_type'];
@@ -192,7 +196,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //活动
             $solrParams['active_id'] = $data['active_id'];
         }
-        if (in_array($data['semantic_analys'], [0,1,2])){
+        if (in_array($data['semantic_analys'], [1,2,3])){
             //内容分析
             $solrParams['semantic_analys'] = $data['semantic_analys'];
         }
@@ -212,6 +216,14 @@ class Subject extends \mia\miagroup\Lib\Service {
             //不带图
             $solrParams['before_image'] = 0;
         }
+        if($data['is_title'] == 1) {
+            //有标题
+            $solrParams['have_title'] = $data['is_title'];
+        }
+        if($data['is_title'] == 0) {
+            //没有标题
+            $solrParams['no_title'] = $data['is_title'];
+        }
         if (!empty($data['picnum'])) {
             //查询图片数
             $solrParams['after_pic_count'] = $data['picnum'];
@@ -220,9 +232,6 @@ class Subject extends \mia\miagroup\Lib\Service {
             //查询文字内容数
             $solrParams['after_text_count'] = $data['contentnum'];
         }
-
-        var_dump($solrParams);
-
         $solr = new Solr('pic_search', 'group_search_solr');
 
         // 总用户数查询
@@ -233,6 +242,10 @@ class Subject extends \mia\miagroup\Lib\Service {
         $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'comment_num'])['data'];
         $total_comment_num = $solrData['facets']['sum'];
 
+        // 总点赞数
+        $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'praise_num'])['data'];
+        $total_praise_num = $solrData['facets']['sum'];
+
         // 总数据查询
         $solrData = $solr->getSeniorSolrSearch($solrParams, 'id', $page, $limit)['data'];
         $success = $solrData['responseHeader']['status'];
@@ -242,16 +255,16 @@ class Subject extends \mia\miagroup\Lib\Service {
             return $this->succ($subjectInfos);
         }
         $subject_ids = array_column($success_data, 'id');
-        $subject_ids = [268364,268363];
         $subjectService = new SubjectService();
         $subjectInfos = $subjectService->getBatchSubjectInfos($subject_ids, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
         foreach ($subjectInfos as $v) {
             $v['subject'] = $v;
             $result['list'][] = $v;
         }
-        $result['list'] = array_values($subjectInfos);
         $result['count'] = !empty($total_count) ? $total_count : 0;
         $result['total_users'] = !empty($total_users) ? $total_users: 0;
+        $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
+        $result['total_praise_num'] = !empty($total_praise_num) ? $total_praise_num: 0;
         return $this->succ($result);
     }
     

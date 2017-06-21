@@ -643,7 +643,13 @@ class Subject extends \mia\miagroup\Lib\Service
                     $shareDefault = $shareConfig['defaultShareInfo']['subject'];
                     $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
-                    $shareImage = $shareDefault['img_url'];
+                    if(!empty($subjectInfo['ext_info']["cover_image"])) {
+                        $shareImage = NormalUtil::buildImgUrl($subjectInfo["ext_info"]["cover_image"]["url"],"small")["url"];
+                    } elseif (!empty($subjectInfo['ext_info']["image"][0]["url"])) {
+                        $shareImage = NormalUtil::buildImgUrl($subjectInfo['ext_info']["image"][0]["url"],"small")["url"];
+                    } else {
+                        $shareImage = $shareDefault['img_url'];
+                    }
                     $h5Url = sprintf($shareDefault['wap_url'], $subjectInfo['id']);
                 }
                 // 替换搜索关联数组
@@ -1260,7 +1266,6 @@ class Subject extends \mia\miagroup\Lib\Service
             if (!empty($subjectItemIds[$subject_info['id']])) {
                 $param = array(
                     'user_id'           => $subject_info['user_id'],//操作人
-                    'mibean'            => 5,
                     'relation_type'     => 'fine_pic',
                     'relation_id'       => $subject_info['id'],
                     'to_user_id'        => $subject_info['user_id']
@@ -1272,7 +1277,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
             $push_num = $redis->get($push_num_key);
             if ($push_num < 3) {
-                $push->pushMsg($subject_info['user_id'], "您分享的帖子被加精华啦，帖子会有更多展示机会，再奉上5蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
+                $push->pushMsg($subject_info['user_id'], "您分享的帖子被加精华啦，帖子会有更多展示机会，再奉上50蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
                 $redis->incrBy($push_num_key, 1);
                 $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
             }
