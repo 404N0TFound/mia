@@ -149,7 +149,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //内容搜索
             $solrParams['text_like'] = trim($data['content']);
         }
-        if (is_array($data['status']) || (!is_array($data['status']) && !empty($data['status']) && in_array($data['status'], array(0, 1, -1))) && intval($data['id']) <= 0) {
+        if (is_array($data['status']) || (!is_array($data['status']) && $data['status'] !== null && $data['status'] !== '' && in_array($data['status'], array(0, 1, -1))) && intval($data['id']) <= 0) {
             //帖子状态
             $solrParams['status'] = $data['status'];
         }
