@@ -208,7 +208,7 @@ class Solr
             $data .= "&". $key."=".$value;
         }
         $url .= $data;
-        echo $url."\n";
+        //echo $url."\n";
 
         //初始化
         $ch = curl_init();
