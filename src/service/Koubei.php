@@ -598,7 +598,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         // 封测报告，包含帖子删除，也获取数据
         $subject_status = [1, 3];
-        if(in_array(0, $status)) {
+        if(in_array(0, $status) || empty($status)) {
             // 口碑包含删除的逻辑，帖子也要包含
             $subject_status[] = 0;
         }
