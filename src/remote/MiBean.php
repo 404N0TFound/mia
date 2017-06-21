@@ -37,13 +37,17 @@ class MiBean extends Thrift{
                 if($mibean_publish_pic_num < 10){
                     $param['mibean'] = 10;
                 }
+                $redis->incrBy($mibean_publish_pic_key, 1);
+                $redis->expireAt($mibean_publish_pic_key, strtotime(date('Y-m-d 23:59:59')));
                 break;
             case 'fine_pic': //加精奖励
-                //验证是否送过
-                $data = $this->check($param);
-                if(empty($data['data'])){
+                $mibean_fine_pic_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.miBeanKey.mibean_give_way.key'),$param['relation_type'],$param['relation_id']);
+                $mibean_fine_pic_num = $redis->get($mibean_fine_pic_key);
+                if($mibean_fine_pic_num < 1){
                     $param['mibean'] = 50;
                 }
+                $redis->incrBy($mibean_fine_pic_key, 1);
+                $redis->expireAt($mibean_fine_pic_key, strtotime(date('Y-m-d 23:59:59')));
                 break;
         }
         if (intval($param['mibean']) > 0) {
