@@ -1019,6 +1019,7 @@ class Subject extends \mia\miagroup\Lib\Service
         // 添加蜜芽圈标签
         if (!empty($labelInfos)) {
             $labelArr = array();
+            $labelInfos = array_unique($labelInfos,SORT_REGULAR);
             foreach ($labelInfos as $key => $labelInfo) {
                 $labelRelationSetInfo = array("subject_id" => $subjectId, "label_id" => 0, "create_time" => $subjectSetInfo['created'], "user_id" => $subjectInfo['user_info']['user_id']);
                 if (isset($labelInfo['id']) && $labelInfo['id'] > 0) {
