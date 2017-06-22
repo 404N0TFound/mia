@@ -127,7 +127,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
         //供应商ID获取
         $itemService = new ItemService();
-        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
+        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']),array())['data'][$koubeiSetData['item_id']];
         $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
         //####end
         $koubeiInsertId = $this->koubeiModel->saveKoubei($koubeiSetData);
