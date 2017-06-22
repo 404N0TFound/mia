@@ -188,7 +188,9 @@ $child_period = array(
     '4-5岁' => array(
         '4-5岁' => array('start' => '-4 year', 'end' => '-3 year'),
     ),
+    /*
     '5-6岁' => array(
         '5-6岁' => array('start' => '-5 year', 'end' => '-4 year'),
     ),
+    */
 );

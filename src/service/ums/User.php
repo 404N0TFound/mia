@@ -181,12 +181,16 @@ class User extends Service{
             $config_path = 'busconf.user.' . $period . '_period';
             $user_period = F_Ice::$ins->workApp->config->get($config_path);
             foreach ($user_period as $key1 => $period_list) {
-                $result[$period]['first'][] = $key1;
+                $last = null;
                 foreach ($period_list as $key2 => $value) {
                     $start = date('Y-m-d', strtotime($value['start']));
                     $end = date('Y-m-d', strtotime($value['end']));
                     $result[$period]['second'][$key1][$key2] = "{$start}~{$end}";
+                    if ($last === null) {
+                        $last = $end;
+                    } 
                 }
+                $result[$period]['first'][$key1] = "{$start}~{$last}";
             }
         }
         return $this->succ($result);
