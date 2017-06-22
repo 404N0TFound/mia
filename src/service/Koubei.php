@@ -600,7 +600,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $subject_status = [1, 3];
         if(in_array(0, $status) || empty($status)) {
             // 口碑包含删除的逻辑，帖子也要包含
-            $subject_status[] = 0;
+            $subject_status = [];
         }
         //3、根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field, $subject_status);

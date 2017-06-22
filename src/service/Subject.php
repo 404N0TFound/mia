@@ -938,7 +938,15 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
-        
+        /**临时活动代码**/
+        if ($subjectInfo['active_id'] == 537) {
+            $text_lenth = mb_strlen($subjectSetInfo['text'], 'utf8');
+            $image_count = count($imageInfo);
+            if ($image_count < 2 || $text_lenth < 20) {
+                return $this->error(1129);
+            }
+        }
+        /**临时活动代码**/
         //只有当帖子带图的时候才能参加活动
         if(!empty($imgUrl)){
             $activeService = new ActiveService();
