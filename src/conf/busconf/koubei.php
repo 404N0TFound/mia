@@ -1445,4 +1445,4 @@ $mibean_reward = 10;
 /*
  * 优质口碑分流
  */
-$tactics = [8,2];
+$tactics = [0,10];
