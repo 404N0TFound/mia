@@ -50,24 +50,21 @@ class ActiveSubjectRelation extends \DB_Query {
         $offsetLimit = $page > 1 ? ($page - 1) * $limit : 0;
         $where[] = [$this->tableName.'.active_id',$activeIds];
         $where[] = [$this->tableName.'.status',1];
-        
-        if($type == 'all'){
-            $orderBy = $this->tableName.'.subject_id desc';
-            $fileds = "*";
-        }else{
-            $fileds = $this->tableName. '.active_id as active_id, group_subjects.id as subject_id, '.$this->tableName. '.regulate as regulate,'.$this->tableName. '.id as id';
-            $join = 'LEFT JOIN group_subjects ON  '.$this->tableName. '.subject_id = group_subjects.id';
-            
-            $where[] = ['group_subjects.is_fine',1];
-            if($type == 'active_over'){
-                $orderBy = $this->tableName. '.hot_value desc, group_subjects.update_time desc';
-            }elseif($type == 'recommend'){
-                $orderBy = 'group_subjects.top_time desc, group_subjects.update_time desc';
+
+        $fileds = "active_id,subject_id";
+        if ($type == 'all') {
+            $orderBy = $this->tableName . '.subject_id desc';
+        } else {
+            $where[] = [$this->tableName . '.is_recommend', 1];
+            if ($type == 'active_over') {
+                //过期按hot值排
+                $orderBy = $this->tableName . '.hot_value desc,' . $this->tableName . '.create_time desc';
+            } elseif ($type == 'recommend') {
+                //未过期按发布时间排
+                $orderBy = $this->tableName . '.create_time desc';
             }
         }
-        
-        $subjectArrs = $this->getRows($where,$fileds, $limit, $offsetLimit, $orderBy, $join);
-        
+        $subjectArrs = $this->getRows($where,$fileds, $limit, $offsetLimit, $orderBy);
         if (!empty($subjectArrs)) {
             foreach ($subjectArrs as $subject) {
                 $result[$subject['active_id']][] = $subject;
