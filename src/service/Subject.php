@@ -1754,15 +1754,13 @@ class Subject extends \mia\miagroup\Lib\Service
     }
 
 
-    //获取某活动下的所有/精华帖子(该方法迁到活动服务里了)
-    public function getActiveSubjects($activeId, $type='all', $currentId = 0, $page=1, $limit=20){
-        $data = array('subject_lists'=>array());
-        $subjectIds = $this->subjectModel->getSubjectIdsByActiveId($activeId, $type, $page, $limit);
-
-        if(!empty($subjectIds)) {
-            $subjects = $this->getBatchSubjectInfos($subjectIds,$currentId)['data'];
-            $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
-        }
+    /*
+     * 获取某活动下的所有/精华帖子(该方法迁到活动服务里了),入口还在这里
+     */
+    public function getActiveSubjects($activeId, $type = 'all', $currentId = 0, $page = 1, $limit = 20)
+    {
+        $activeService = new ActiveService();
+        $data = $activeService->getActiveSubjects($activeId, $type, $currentId, $page, $limit)["data"];
         return $this->succ($data);
     }
     
