@@ -172,7 +172,31 @@ class SubjectLabelRelation extends \DB_Query {
         $affect = $this->update($setData,$where);
         return $affect;
     }
-    
+
+    /**
+     * 更新
+     */
+    public function updateData($setData, $conditions)
+    {
+        if (empty($setData) || empty($conditions)) {
+            return 0;
+        }
+        $updateData = [];
+        $where = [];
+        if (isset($setData["status"])) {
+            $updateData[] = ["status", $setData["status"]];
+        }
+        if (isset($setData["is_recommend"])) {
+            $updateData[] = ["is_recommend", $setData["is_recommend"]];
+        }
+        if (isset($conditions["subject_id"])) {
+            $where[] = ["subject_id", $conditions["subject_id"]];
+        }
+        $affect = $this->update($updateData, $where);
+        return $affect;
+    }
+
+
     /**
      * @todo 删除图片和标签的对应关系
      * @param label_id, subject_id
