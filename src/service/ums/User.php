@@ -284,9 +284,9 @@ class User extends Service{
         
         if(!empty($solrData['user_id'])){
             foreach ($solrData['user_id'] as $userId) {
-                $tmp['user_id'] = $solrData['all'][$userId]['user_id'];
-                $tmp['username'] = $solrData['all'][$userId]['username'];
-                $tmp['nickname'] = $solrData['all'][$userId]['nickname'];
+                $tmp['user_id'] = trim($solrData['all'][$userId]['user_id']);
+                $tmp['username'] = trim($solrData['all'][$userId]['username']);
+                $tmp['nickname'] = str_replace(array('"','、'),array('',''),trim($solrData['all'][$userId]['nickname']));
                 $tmp['issue_num'] = isset($solrData['all'][$userId]['count']) ? $solrData['all'][$userId]['count'] : 0;//用户发帖数量
                 $tmp['normal_num'] = isset($solrData['normal'][$userId]['count']) ? $solrData['normal'][$userId]['count'] : 0;
                 $tmp['shield_num'] = isset($solrData['shield'][$userId]['count']) ? $solrData['shield'][$userId]['count'] : 0;
