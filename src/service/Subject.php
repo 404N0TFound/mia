@@ -1562,13 +1562,7 @@ class Subject extends \mia\miagroup\Lib\Service
             //修改帖子标签关系表status
             $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
             if (!empty($labelInfo)) {
-                //-1 和 1 都写入0
-                if (in_array($status, [-1, 0])) {
-                    $changeStatus = 0;
-                } else {
-                    $changeStatus = $status;
-                }
-                $labelService->setLabelSubjectStatus([$subjectId], ["status" => $changeStatus]);
+                $labelService->setLabelSubjectStatus([$subjectId], ["status" => $status]);
             }
         }
         return $this->succ($result);
@@ -1738,7 +1732,7 @@ class Subject extends \mia\miagroup\Lib\Service
 
 
     /**
-     * 修改活动，标签表status状态
+     * 修改活动，标签表status/is_recommend状态
      * @param $subjectIds
      * @param $setData
      */

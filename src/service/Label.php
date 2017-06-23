@@ -14,9 +14,10 @@ class Label extends \mia\miagroup\Lib\Service {
     }
 
     /**
-     * 根据帖子状态，设置标签帖子关联表
+     * 设置标签帖子关联表
      * @param $subjectIds array 帖子ID
-     * @param $status array ["status"=>0] 或 ["is_recommend"=>1]
+     * @param $setData array ["status"=>0] 或 ["is_recommend"=>1]
+     * @return  mixed
      */
     public function setLabelSubjectStatus($subjectIds, $setData)
     {

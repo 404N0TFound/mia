@@ -385,9 +385,9 @@ class Label {
     }
 
     /**
-     * 给标签帖子信息关联表，更改status状态
+     * 设置标签帖子关联表
      * @param $subjectIds array 帖子ID
-     * @param $status array ["status"=>0]
+     * @param $updateData array ["status"=>0] 或 ["is_recommend"=>1]
      * @return int
      */
     public function setLabelSubjectStatus($subjectIds, $updateData)

@@ -174,7 +174,7 @@ class SubjectLabelRelation extends \DB_Query {
     }
 
     /**
-     * 更新
+     * 根据条件更新，标签帖子关联表
      */
     public function updateData($setData, $conditions)
     {
