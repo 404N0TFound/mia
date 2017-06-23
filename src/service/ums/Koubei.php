@@ -155,6 +155,16 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (isset($params['selections']) && in_array($params['selections'],array(0,1)) && $isRealtime == false) {
             $solrCond['selections'] = intval($params['selections']);
         }
+
+        // 思源商家处理
+        if (!empty(intval($params['siyuan_group']))) {
+            //思源组
+            $solrCond['siyuan_group'] = $params['siyuan_group'];
+        }
+        if (!empty(intval($params['siyuan_son_supplier_id']))) {
+            //思源二级商家id
+            $solrCond['siyuan_son_supplier_id'] = $params['siyuan_son_supplier_id'];
+        }
         
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');

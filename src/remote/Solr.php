@@ -556,6 +556,14 @@ class Solr
             }
         
         }
+        // 思源商家
+        if (!empty($conditon['siyuan_group'])) {
+            $solr_info['fq'][] = 'siyuan_group:'. $conditon['siyuan_group'];
+        }
+        if (!empty($conditon['siyuan_son_supplier_id'])) {
+            $solr_info['fq'][] = 'siyuan_son_supplier_id:'. $conditon['siyuan_son_supplier_id'];
+        }
+
         // solr select
         $res = $this->select($solr_info);
         if($res['success'] == 1){
