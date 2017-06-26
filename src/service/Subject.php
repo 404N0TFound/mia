@@ -1252,7 +1252,8 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 批量给帖子加精
      */
-    public function subjectAddFine($subjectId){
+    public function subjectAddFine($subjectId)
+    {
         $subjectId = is_array($subjectId) ? $subjectId : [$subjectId];
         //查询图片信息
         $subjects_info = $this->subjectModel->getSubjectByIds($subjectId);
@@ -1297,6 +1298,8 @@ class Subject extends \mia\miagroup\Lib\Service
         foreach ($subjectId as $v) {
             $this->subjectModel->addSubjectUpdateQueue($v);
         }
+        //修改标签，活动表 status
+        $this->updateActiveAndLabel($subjectId, ['is_recommend' => 1]);
         return $this->succ($data);
     }
     
@@ -1384,17 +1387,22 @@ class Subject extends \mia\miagroup\Lib\Service
             $koubei = new \mia\miagroup\Service\Koubei();
             $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $userId);
         }
-        //检验帖子是否参加了活动
+        //检验帖子是否参加了活动，如果参加了活动，删除活动帖子关联表记录
         $activeService = new ActiveService();
         $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId));
-        //如果参加了活动，删除活动帖子关联表记录
-        if(!empty($activeSubject['data'][$subjectId])){
-            $activeService->upActiveSubject(array('status'=>0), $activeSubject['data'][$subjectId]['id']);
+        if (!empty($activeSubject['data'][$subjectId])) {
+            $activeService->upActiveSubject(array('status' => 0), $activeSubject['data'][$subjectId]['id']);
         }
-        
-        if($result){
+        //删除帖子标签关系
+        $labelService = new Label();
+        $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
+        if (!empty($labelInfo)) {
+            $labelService->setLabelSubjectStatus([$subjectId], ["status" => 0]);
+        }
+
+        if ($result) {
             return $this->succ(true);
-        }else{
+        } else {
             return $this->error(6104);
         }
     }
@@ -1518,33 +1526,45 @@ class Subject extends \mia\miagroup\Lib\Service
     }
     
     /**
-     * 删除或屏蔽帖子
+     * 删除，屏蔽帖子
+     * 取消帖子屏蔽，删除
      */
-    public function delSubjects($subjectIds,$status,$shieldText=''){
-        if(empty($subjectIds)){
+    public function delSubjects($subjectIds, $status, $shieldText = '')
+    {
+        if (empty($subjectIds)) {
             return $this->error(500);
         }
         //如果是一个字符串的帖子id，则转换成数组
-        if(!is_array($subjectIds)){
+        if (!is_array($subjectIds)) {
             $subjectIds = array($subjectIds);
         }
-        
-        foreach($subjectIds as $subjectId){
+        $labelService = new Label();
+        $activeService = new ActiveService();
+        foreach ($subjectIds as $subjectId) {
             //查出帖子信息
-            $subjectInfo = $this->subjectModel->getSubjectByIds(array($subjectId),array())[$subjectId];
+            $subjectInfo = $this->subjectModel->getSubjectByIds(array($subjectId), array())[$subjectId];
             //判断该帖子是否被删除或屏蔽过，如果是，则无需处理
-            if($subjectInfo['status'] == $status){
+            if ($subjectInfo['status'] == $status) {
                 continue;
             }
             //屏蔽或者删除帖子
-            $result = $this->subjectModel->deleteSubjects(array($subjectId),$status,$shieldText);
-            if(!empty($subjectInfo['ext_info']['koubei']['id']) && in_array($status,array(0,-1))){
+            $result = $this->subjectModel->deleteSubjects(array($subjectId), $status, $shieldText);
+            if (!empty($subjectInfo['ext_info']['koubei']['id']) && in_array($status, array(0, -1))) {
                 //删除口碑
                 $koubei = new \mia\miagroup\Service\Koubei();
                 $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $subjectInfo['user_id']);
             }
+            //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
+            $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), [0, 1, -1]);
+            if (!empty($activeSubject['data'][$subjectId])) {
+                $activeService->upActiveSubject(array('status' => $status), $activeSubject['data'][$subjectId]['id']);
+            }
+            //修改帖子标签关系表status
+            $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
+            if (!empty($labelInfo)) {
+                $labelService->setLabelSubjectStatus([$subjectId], ["status" => $status]);
+            }
         }
-        
         return $this->succ($result);
     }
     
@@ -1675,39 +1695,72 @@ class Subject extends \mia\miagroup\Lib\Service
         $affect = $this->subjectModel->setSubjectTopStatus($subjectIds,$status);
         return $this->succ($affect);
     }
-    
+
     /**
      * UMS
-     * 加入推荐池
+     * @param $subjectIds int 单值不是数组
+     * 加入推荐池(废弃)
      */
-    public function addRecommentPool($subjectIds,$dateTime){
+    public function addRecommentPool($subjectIds, $dateTime)
+    {
         $inser_id = $this->subjectModel->addRecommentPool($subjectIds, $dateTime);
+        //$this->updateActiveAndLabel($subjectIds, ['is_recommend' => 1]);
         return $this->succ($inser_id);
     }
-    
+
     /**
      * UMS
      * 取消推荐
      */
-    public function cacelSubjectIsFine($subjectId){
+    public function cacelSubjectIsFine($subjectId)
+    {
         //取消推荐专栏合集
         $albumService = new \mia\miagroup\Service\Album();
         $albumService->cacelRecommentBySubjectId($subjectId)['code'];
+        //修改group_subjects表状态
         $affect = $this->subjectModel->cacelSubjectIsFine($subjectId);
         //推荐更新入队列
         $this->subjectModel->addSubjectUpdateQueue($subjectId);
+        if(is_array($subjectId)) {
+            $subjectIds = $subjectId;
+        } else {
+            $subjectIds = [$subjectId];
+        }
+        $this->updateActiveAndLabel($subjectIds, ['is_recommend' => 0]);
         return $this->succ($affect);
     }
-    
-    //获取某活动下的所有/精华帖子(该方法迁到活动服务里了)
-    public function getActiveSubjects($activeId, $type='all', $currentId = 0, $page=1, $limit=20){
-        $data = array('subject_lists'=>array());
-        $subjectIds = $this->subjectModel->getSubjectIdsByActiveId($activeId, $type, $page, $limit);
 
-        if(!empty($subjectIds)) {
-            $subjects = $this->getBatchSubjectInfos($subjectIds,$currentId)['data'];
-            $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
+
+    /**
+     * 修改活动，标签表status/is_recommend状态
+     * @param $subjectIds
+     * @param $setData
+     */
+    public function updateActiveAndLabel($subjectIds,$setData) {
+        $labelService = new Label();
+        $activeService = new ActiveService();
+        foreach ($subjectIds as $subjectId) {
+            //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
+            $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), [0, 1, -1]);
+            if (!empty($activeSubject['data'][$subjectId])) {
+                $activeService->upActiveSubject($setData, $activeSubject['data'][$subjectId]['id']);
+            }
+            //修改帖子标签关系表status
+            $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
+            if (!empty($labelInfo)) {
+                $labelService->setLabelSubjectStatus([$subjectId], $setData);
+            }
         }
+    }
+
+
+    /*
+     * 获取某活动下的所有/精华帖子(该方法迁到活动服务里了),入口还在这里
+     */
+    public function getActiveSubjects($activeId, $type = 'all', $currentId = 0, $page = 1, $limit = 20)
+    {
+        $activeService = new ActiveService();
+        $data = $activeService->getActiveSubjects($activeId, $type, $currentId, $page, $limit)["data"];
         return $this->succ($data);
     }
     
