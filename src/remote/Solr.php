@@ -162,8 +162,7 @@ class Solr
                 // 每组返回的文档数(默认为1)
                 $params['group.limit'] = $data['group.limit'];
             }
-            //$method = 'select';
-            //$solrData = $this->httpGet($method, $params);
+
             // solr 操作目前只处理get形式
             $remote_curl = new RemoteCurl('solr_koubei');
             $solrData = $remote_curl->curl_remote('', $params);
@@ -195,35 +194,6 @@ class Solr
         );
         $solrData = curl_exec($ch);
         return $solrData;
-    }
-
-
-    private function httpGet($method, $parame) {
-
-        $url = $this->solrserver . $this->core."/".$method;
-        $data = "";
-        $wt = 'json';
-        if(empty($parame['wt']) == false) {
-            $wt = $parame['wt'];
-            unset($parame['wt']);
-        }
-        $url .= "?wt=".$wt;
-        foreach($parame as $key=>$value) {
-            $data .= "&". $key."=".$value;
-        }
-        $url .= $data;
-        echo $url."\n";exit;
-
-        //初始化
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        $result = curl_exec($ch);
-        //释放curl句柄
-        curl_close($ch);
-        return $result;
     }
 
     /**
