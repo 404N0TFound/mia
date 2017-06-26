@@ -76,6 +76,9 @@ class RemoteCurl {
                 }
                 $return_data = isset($return_data[$this->_data_key]) ? $return_data[$this->_data_key] : array();
             }
+            if(!empty($this->_type) && $this->_type == "solr") {
+                $this->_url = $request_url;
+            }
             \F_Ice::$ins->mainApp->logger_remote->info(array(
                 'third_server'  =>  $this->_remote_name,
                 'type'          =>  'INFO',
