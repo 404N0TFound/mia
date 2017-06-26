@@ -284,9 +284,7 @@ class Robot extends \mia\miagroup\Lib\Service {
             $subject_info['ext_info']['user_period']['user_status'] = $editor_subject_info['ext_info']['user_status'];
         }
         if (isset($editor_subject_info['ext_info']['user_period'])) {
-            list($start_time, $end_time) = explode('~', $editor_subject_info['ext_info']['user_period']);
-            $subject_info['ext_info']['user_period']['period_start'] = $start_time;
-            $subject_info['ext_info']['user_period']['period_end'] = $end_time;
+            $subject_info['ext_info']['user_period']['period_key'] = $editor_subject_info['ext_info']['user_period'];
         }
         if (isset($editor_subject_info['ext_info']['child_sex'])) {
             $subject_info['ext_info']['user_period']['child_sex'] = $editor_subject_info['ext_info']['child_sex'];
