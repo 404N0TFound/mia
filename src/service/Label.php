@@ -14,6 +14,21 @@ class Label extends \mia\miagroup\Lib\Service {
     }
 
     /**
+     * 设置标签帖子关联表
+     * @param $subjectIds array 帖子ID
+     * @param $setData array ["status"=>0] 或 ["is_recommend"=>1]
+     * @return  mixed
+     */
+    public function setLabelSubjectStatus($subjectIds, $setData)
+    {
+        if (empty($subjectIds) || empty($setData)) {
+            return $this->succ([]);
+        }
+        $res = $this->labelModel->setLabelSubjectStatus($subjectIds, $setData);
+        return $this->succ($res);
+    }
+
+    /**
      * 根据帖子ID批量分组获取标签信息
      */
     public function getBatchSubjectLabels($subjectIds) {
