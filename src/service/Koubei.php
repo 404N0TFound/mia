@@ -469,7 +469,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $condition['auto_evaluate'] = 1;
             $condition['type'] =  1;
         }else{
-            // 优质口碑过滤默认好评
             $condition['auto_evaluate'] = 0;
         }
 
