@@ -468,6 +468,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $condition['is_pick'] = $is_pick;
             $condition['auto_evaluate'] = 1;
             $condition['type'] =  1;
+        }else{
+            $condition['auto_evaluate'] = 0;
         }
 
         //获取口碑数量
