@@ -182,6 +182,11 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         if (!empty($data['uid_list']) && is_array($data['uid_list']) && intval($data['user_id']) <= 0 && intval($data['id']) <= 0) {
             // 用户列表
+            foreach($data['uid_list'] as $k => $user_id) {
+                if(empty(trim($user_id))) {
+                    unset($data['uid_list'][$k]);
+                }
+            }
             $solrParams['user_id'] = $data['uid_list'];
         }
         if (!empty($data['user_type'])) {
