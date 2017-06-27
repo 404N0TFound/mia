@@ -127,7 +127,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
         //供应商ID获取
         $itemService = new ItemService();
-        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']))['data'][$koubeiSetData['item_id']];
+        $itemInfo = $itemService->getItemList(array($koubeiSetData['item_id']),array())['data'][$koubeiSetData['item_id']];
         $koubeiSetData['supplier_id'] = intval($itemInfo['supplier_id']);
         //####end
         $koubeiInsertId = $this->koubeiModel->saveKoubei($koubeiSetData);
@@ -468,6 +468,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $condition['is_pick'] = $is_pick;
             $condition['auto_evaluate'] = 1;
             $condition['type'] =  1;
+        }else{
+            $condition['auto_evaluate'] = 0;
         }
 
         //获取口碑数量
@@ -1215,17 +1217,72 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ(array());
         }
         $transfer_koubei = array();
+        $remote_curl = new RemoteCurl('koubei_high_optimize');
+        $tactics = \F_Ice::$ins->workApp->config->get('busconf.koubei.tactics');
+
+        $item_service = new ItemService();
+
         //通过商品id获取口碑id
         foreach ($itemIds as $item_id) {
             if(empty($item_id)){
                 continue;
             }
-            $res = $this->getItemKoubeiList($item_id)['data'];
-            if(empty($res) || empty($res['koubei_info'])) {
+
+            // 关联商品
+            $item_ids = $item_service->getRelateItemById($item_id);
+            if (empty($item_ids)) {
                 continue;
             }
+
+            // 好评率
+            $feedback_rate = '';
+            $item_info = $item_service->getItemList([$item_id]);
+            $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
+            if(!empty($feedbackRate)){
+                $feedback_rate = $feedbackRate."%";
+            }
+
+            // 口碑总数
+            $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0);
+
+            //获取蜜粉推荐
+            $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
+
+            // 商品首页推荐口碑分流策略，维度：sku
+            $hashNum = sprintf("%u", crc32($item_id));
+            $location = $hashNum % 10;
+            //分配
+            $check = 0;
+            foreach($tactics as $k => $v) {
+                if (0 <= $location && $location < $v && $check == 0) {
+                    $radio[] = 1;
+                    $check = 1;
+                } else {
+                    $radio[] = 0;
+                    $location -= $v;
+                }
+            }
+            $koubei_ids = [];
+            $radio_slice = array_search(1, $radio);
+            if(!empty($radio_slice)) {
+                $remote_data['skuIds'] = implode(',', $item_ids);
+                $remote_data['pagesize'] = 10;
+                $remote_data['source'] = 'home';
+                $res = $remote_curl->curl_remote('', $remote_data);
+                if($res['code'] == 0) {
+                    $koubei_ids = $res['data'];
+                }
+            }
+
+            //获取口碑信息
+            $koubei_infos = $this->getBatchKoubeiByIds($koubei_ids)['data'];
+            $koubei_list = !empty($koubei_infos) ? array_values($koubei_infos) : array();
+            if(empty($koubei_list)) {
+                continue;
+            }
+
             // 排序过滤（获取第一屏符合条件的最优口碑）
-            foreach($res['koubei_info'] as $koubei) {
+            foreach($koubei_list as $koubei) {
                 if($koubei['source'] == 1 && $koubei['item_koubei']['machine_score'] ==3 &&
                     $koubei['item_koubei']['auto_evaluate'] == 0 ) {
                     $transfer_koubei[$item_id] = $koubei;
@@ -1241,9 +1298,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
             // 口碑相关统计
             if(!empty($transfer_koubei[$item_id])) {
-                $transfer_koubei[$item_id]['feedback_rate'] = $res['feedback_rate'];
-                $transfer_koubei[$item_id]['total_count'] = $res['total_count'];
-                $transfer_koubei[$item_id]['recom_count'] = $res['recom_count'];
+                $transfer_koubei[$item_id]['feedback_rate'] = $feedback_rate;
+                $transfer_koubei[$item_id]['total_count'] = $koubei_nums;
+                $transfer_koubei[$item_id]['recom_count'] = $item_rec_nums;
             }
         }
         return $this->succ($transfer_koubei);

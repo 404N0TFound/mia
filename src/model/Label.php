@@ -383,7 +383,30 @@ class Label {
         $affect = $this->labelRelation->setLabelRelationTop($subject_id, $label_id, $top, $user_id);
         return $affect;
     }
-    
+
+    /**
+     * 设置标签帖子关联表
+     * @param $subjectIds array 帖子ID
+     * @param $updateData array ["status"=>0] 或 ["is_recommend"=>1]
+     * @return int
+     */
+    public function setLabelSubjectStatus($subjectIds, $updateData)
+    {
+        if (empty($subjectIds) || empty($updateData)) {
+            return 0;
+        }
+        if(isset($updateData["status"])) {
+            $setData["status"] = $updateData["status"];
+        }
+        if(isset($updateData["is_recommend"])) {
+            $setData["is_recommend"] = $updateData["is_recommend"];
+        }
+        $conditions["subject_id"] = $subjectIds;
+        $res = $this->labelRelation->updateData($setData,$conditions);
+        return $res;
+    }
+
+
     /**
      * @todo 删除图片和标签的对应关系
      * @param label_id, subject_id
