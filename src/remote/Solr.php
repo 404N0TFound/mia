@@ -164,7 +164,7 @@ class Solr
             }
 
             // solr 操作目前只处理get形式
-            $remote_curl = new RemoteCurl('solr_koubei');
+            $remote_curl = new RemoteCurl($this->core);
             $solrData = $remote_curl->curl_remote('', $params);
 
             if(empty($solrData) == false) {
