@@ -397,6 +397,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $commentCounts = $this->commentService->getBatchCommentNums($subjectIds)['data'];
             $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
             $viewCounts = $this->getBatchSubjectViewCount($subjectIds)['data'];
+            $collectCounts = $this->getBatchSubjectCollectCount($subjectIds)['data'];
         }
         // 获取赞用户
         if (in_array('praise_info', $field)) {
@@ -410,6 +411,15 @@ class Subject extends \mia\miagroup\Lib\Service
         if (intval($currentUid) > 0) {
             $isPraised = $this->praiseService->getBatchSubjectIsPraised($subjectIds, $currentUid)['data'];
         }
+        // 获取是否已收藏
+        if (intval($currentUid) > 0) {
+            $isCollected = $this->subjectModel->getCollectInfo($currentUid, $subjectIds,1, 1);
+            $collectInfo = [];
+            foreach ($isCollected as $collect) {
+                $collectInfo[$collect['source_id']] = $collect;
+            }
+        }
+
         //帖子关联商品信息
         if(in_array('item', $field) || in_array('koubei', $field)){
             $pointTag = new \mia\miagroup\Service\PointTags();
@@ -595,6 +605,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['fancied_count'] = intval($praiseCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['view_count'] = intval($viewCounts[$subjectInfo['id']]);
+                $subjectRes[$subjectInfo['id']]['collect_count'] = intval($collectCounts[$subjectInfo['id']]);
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
@@ -667,6 +678,7 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (intval($currentUid) > 0) {
                 $subjectRes[$subjectInfo['id']]['fancied_by_me'] = $isPraised[$subjectInfo['id']] ? true : false;
+                $subjectRes[$subjectInfo['id']]['collected_by_me'] = $collectInfo[$subjectInfo['id']] ? true : false;
             }
         }
         return $this->succ($subjectRes);
@@ -1369,7 +1381,19 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         return $this->succ($subjectCountArr);
     }
-    
+
+    /**
+     * 批量查询帖子收藏数
+     */
+    public function getBatchSubjectCollectCount($subjectIds)
+    {
+        if(empty($subjectIds)) {
+            return [];
+        }
+        $collectCount = $this->subjectModel->getCollectNum($subjectIds);
+        return $this->succ($collectCount);
+    }
+
     /**
      * 删除帖子
      */
@@ -1867,5 +1891,62 @@ class Subject extends \mia\miagroup\Lib\Service
         $res['content_lists'] = $this->formatNoteData($operationNoteIds,$operationNoteData);
         return $this->succ($res);
     }
-    
+
+    /**
+     * 收藏/取消收藏，帖子
+     * @param int $userId 用户ID
+     * @param int $status 修改的状态值
+     * @param int $sourceId 收藏资源ID
+     * @param int $type 1：帖子；
+     * @return mixed
+     */
+    public function subjectCollect($userId, $sourceId, $status = 1, $type = 1)
+    {
+        if (empty($userId) || empty($sourceId)) {
+            $this->error(500);
+        }
+        //查询是否收藏过
+        $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
+
+        if(empty($collectInfo)) {
+            //插入
+            $res = $this->subjectModel->addCollection($userId, $sourceId, $type);
+            return $this->succ($res);
+        }
+
+        if ($collectInfo["status"] == $status) {
+            //无需修改
+            return $this->succ(0);
+        }
+
+        $setData[] = ['status', $status];
+        $setData[] = ['update_time', date("Y-m-d H:i:s")];
+        $where[] = ['user_id', $userId];
+        $where[] = ['source_id', $sourceId];
+        $where[] = ['source_type', $type];
+        $res = $this->subjectModel->updateCollect($setData, $where);
+        return $this->succ($res);
+    }
+
+    /**
+     * 用户收藏帖子列表
+     * @param int $userId
+     * @param int $page
+     * @param int $type
+     * @return mixed
+     */
+    public function userCollectList($userId, $type = 1, $page = 1, $count = 20)
+    {
+        if(empty($userId)) {
+            return $this->succ([]);
+        }
+        $res = $this->subjectModel->userCollectList($userId, $page, $type, $count);
+        $subjectIds = [];
+        if(!empty($res) && is_array($res)) {
+            $subjectIds = array_column($res, 'source_id');
+        }
+        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
+        $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
+        return $this->succ($data);
+    }
 }
