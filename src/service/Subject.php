@@ -1903,28 +1903,32 @@ class Subject extends \mia\miagroup\Lib\Service
     public function subjectCollect($userId, $sourceId, $status = 1, $type = 1)
     {
         if (empty($userId) || empty($sourceId)) {
-            $this->error(500);
+            return $this->error(500);
         }
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
 
         if(empty($collectInfo)) {
             //插入
-            $res = $this->subjectModel->addCollection($userId, $sourceId, $type);
-            return $this->succ($res);
+            $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
+        } else {
+            if ($collectInfo["status"] == $status) {
+                //无需修改
+                $result = 0;
+            } else {
+                $setData[] = ['status', $status];
+                $setData[] = ['update_time', date("Y-m-d H:i:s")];
+                $where[] = ['user_id', $userId];
+                $where[] = ['source_id', $sourceId];
+                $where[] = ['source_type', $type];
+                $result = $this->subjectModel->updateCollect($setData, $where);
+            }
         }
-
-        if ($collectInfo["status"] == $status) {
-            //无需修改
-            return $this->succ(0);
-        }
-
-        $setData[] = ['status', $status];
-        $setData[] = ['update_time', date("Y-m-d H:i:s")];
-        $where[] = ['user_id', $userId];
-        $where[] = ['source_id', $sourceId];
-        $where[] = ['source_type', $type];
-        $res = $this->subjectModel->updateCollect($setData, $where);
+        //查询贴子收藏数
+        $collect_num = $this->getBatchSubjectCollectCount(intval($sourceId))["data"][intval($sourceId)];
+        $res = [];
+        $res["collected_count"] = intval($collect_num);
+        $res["collected_by_me"] = $result ? TRUE : FALSE;
         return $this->succ($res);
     }
 
