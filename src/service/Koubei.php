@@ -2054,8 +2054,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $selection_info = array();
         foreach($item_ids as $item_id) {
-
-            if($item_id == 1782246) {
+            if(in_array($item_id, array(1782246,1817617))) {
                 // 特殊处理
                 $selection_info[$item_id]['recommend_count'] =  100;
                 $selection_info[$item_id]['rate'] = 1;
