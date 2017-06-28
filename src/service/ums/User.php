@@ -43,7 +43,7 @@ class User extends Service{
         //没有任何查询的时候，默认查用户
         if(empty($params['user_id']) && empty($params['nick_name'])
             && empty($params['user_name']) && empty($params['phone']) && empty($params['category'])
-            && empty($params['permission'])) {
+            && empty($params['permission']) && empty($params['status'])) {
                 $users = $this->userModel->getUserIdList($offset,$limit);
                 if(!empty($users) && !empty($users['uids'])){
                     $userIds = $users['uids'];
@@ -103,10 +103,8 @@ class User extends Service{
                 $userArr = $this->userModel->getPermissionUserIdList($params['permission'],$offset,$limit);
             }
         }
-        if(isset($userArr) and !empty($userArr['uids'])){
-            $userIds = $userArr['uids'];
-            $count = $userArr['count']['nums'];
-        }
+        $userIds = $userArr['uids'];
+        $count = $userArr['count']['nums'];
         
         //查询用户是否是屏蔽用户
         $shieldUsers = $this->userModel->getShieldUserIdList($userIds);
