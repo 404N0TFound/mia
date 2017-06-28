@@ -2,6 +2,7 @@
 namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
+use mia\miagroup\Data\Subject\SubjectCollect;
 use mia\miagroup\Data\Subject\TabNoteOperation;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\Tab as TabData;
@@ -19,6 +20,7 @@ class Subject {
         $this->videoData = new VideoData();
         $this->tabData = new TabData();
         $this->tabOpeationData = new TabNoteOperation();
+        $this->subjectCollectData = new SubjectCollect();
     }
 
     /**
@@ -557,5 +559,94 @@ class Subject {
         $redis = new \mia\miagroup\Lib\Redis();
         $redis->set($key, 1);
         $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.expire_time'));
+    }
+
+    /**
+     * 根据用户收藏信息，查询收藏信息
+     */
+    public function getCollectInfo($userId, $sourceId, $type = 1, $status = [0, 1])
+    {
+        if(empty($userId) || empty($sourceId) || empty($type)) {
+            return [];
+        }
+        $conditions["user_id"] = $userId;
+        $conditions["source_id"] = $sourceId;
+        $conditions["source_type"] = $type;
+        $conditions["status"] = $status;
+
+        $res = $this->subjectCollectData->getCollectInfo($conditions);
+        return $res;
+    }
+
+    /**
+     * 添加收藏
+     */
+    public function addCollection($userId, $sourceId, $type)
+    {
+        if(empty($userId) || empty($sourceId) || empty($type)) {
+            return 0;
+        }
+        $insertData["user_id"] = $userId;
+        $insertData["source_id"] = $sourceId;
+        $insertData["source_type"] = $type;
+
+        $now = date("Y-m-d H:i:s");
+        $insertData["update_time"] = $now;
+        $insertData["create_time"] = $now;
+
+        $res = $this->subjectCollectData->addCollection($insertData);
+        return $res;
+    }
+
+    /**
+     * 根据用户收藏信息，查询收藏信息
+     * @param $setData
+     * @param $where
+     * @return array
+     */
+    public function updateCollect($setData, $where)
+    {
+        if(empty($setData) || empty($where)) {
+            return [];
+        }
+        $res = $this->subjectCollectData->updateCollect($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 用户收藏列表
+     * @param $userId
+     * @param $page
+     * @param $type
+     * @param $count
+     * @return array
+     */
+    public function userCollectList($userId, $page, $type, $count)
+    {
+        if (empty($userId)) {
+            return [];
+        }
+        $conditions["user_id"] = $userId;
+        $conditions["type"] = $type;
+        $conditions['status'] = 1;
+        $conditions["offset"] = ($page - 1) * $count;
+        $conditions["limit"] = $count;
+
+        $conditions["order"] = "update_time DESC";
+
+        $res = $this->subjectCollectData->getCollectInfo($conditions);
+        return $res;
+    }
+
+    /**
+     * 获取帖子收藏数
+     */
+    public function getCollectNum($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return [];
+        }
+        $res = $this->subjectCollectData->getCollectNum($subjectIds);
+        return $res;
     }
 }
