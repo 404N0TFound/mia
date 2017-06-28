@@ -79,7 +79,7 @@ class Audit extends \mia\miagroup\Lib\Service {
             if($shieldStatus['status'] == 1){
                 //(1)如果屏蔽过，且当前为屏蔽状态，直接返回true
                 return $this->succ(true);
-            }elseif($shieldStatus['status'] == 0){
+            } else {
                 //(2)如果屏蔽过，且当前为解除屏蔽状态，则更新为屏蔽状态
                 $setData = array();
                 $setData[] = ['status',1];
