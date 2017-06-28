@@ -104,10 +104,9 @@ class User extends Service{
             }
         }
         
-        $userIds = $userArr['uids'];
-        $count = $userArr['count']['nums'];
-        if (empty($userIds) || $count == 0) {
-            return $this->succ(['list' => [], 'count' => 0]);
+        if (isset($userArr)) {
+            $userIds = $userArr['uids'];
+            $count = $userArr['count']['nums'];
         }
         
         //查询用户是否是屏蔽用户
