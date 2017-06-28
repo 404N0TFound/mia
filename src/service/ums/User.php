@@ -103,8 +103,12 @@ class User extends Service{
                 $userArr = $this->userModel->getPermissionUserIdList($params['permission'],$offset,$limit);
             }
         }
+        
         $userIds = $userArr['uids'];
         $count = $userArr['count']['nums'];
+        if (empty($userIds) || $count == 0) {
+            return $this->succ(['list' => [], 'count' => 0]);
+        }
         
         //查询用户是否是屏蔽用户
         $shieldUsers = $this->userModel->getShieldUserIdList($userIds);
