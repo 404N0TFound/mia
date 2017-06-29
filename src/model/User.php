@@ -387,7 +387,25 @@ class User
      */
     public function getBatchUserGroup($conditions) {
         $userGroup = new UserGroupData();
-        $data = $userGroup->getUserGroup($condition);
+        $data = $userGroup->getUserGroup($conditions);
         return $data;
+    }
+
+    public function checkUserGroupByUserId($userId,$groupId)
+    {
+        if(empty($userId) || empty($groupId)) {
+            return false;
+        }
+        $userGroup = new UserGroupData();
+        $conditions['user_id'] = $userId;
+        $conditions['role_id'] = $groupId;
+        $conditions['status'] = 1;
+
+        $res = $userGroup->getUserGroupInfo($conditions);
+        if(empty($res)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 }

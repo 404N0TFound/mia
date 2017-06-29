@@ -88,4 +88,30 @@ class GroupUserRole extends DB_Query {
         return $result;
     }
 
+    public function getUserGroupInfo($conditions)
+    {
+        $where = [];
+        $result = [];
+        if(!isset($conditions['role_id']) && !isset($conditions['user_id'])) {
+            return $result;
+        }
+
+        if(isset($conditions['role_id'])){
+            $where[] = ['role_id',$conditions['role_id']];
+        }
+        if(isset($conditions['user_id'])){
+            $where[] = ['user_id',$conditions['user_id']];
+        }
+        if(isset($conditions['status'])){
+            $where[] = ['status',$conditions['status']];
+        }
+
+        $field = "id,role_id,user_id,role_name";
+        $result = $this->getRows($where, $field);
+
+        return $result;
+    }
+
+
+
 }
