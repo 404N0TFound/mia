@@ -1402,7 +1402,7 @@ class Subject extends \mia\miagroup\Lib\Service
 
         //扣除蜜豆
         $mibean = new \mia\miagroup\Remote\MiBean();
-        $param['user_id'] = 3782852;//蜜芽兔
+        $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');//蜜芽兔
         if($subjectInfo["is_fine"] == 1) {
             $param['mibean'] = -60;
         } else {
@@ -1413,7 +1413,6 @@ class Subject extends \mia\miagroup\Lib\Service
         $param['to_user_id'] = $userId;
         $param['dscrp'] = "删除帖子，扣除蜜豆";
         $mibean->sub($param);
-
         if ($result) {
             return $this->succ(true);
         } else {
