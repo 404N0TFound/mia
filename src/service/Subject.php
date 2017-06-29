@@ -1395,7 +1395,7 @@ class Subject extends \mia\miagroup\Lib\Service
     }
 
     /**
-     * 删除帖子
+     * 删除帖子（用户操作删帖）
      */
     public function delete($subjectId,$userId){
         $status = array();
@@ -1403,6 +1403,29 @@ class Subject extends \mia\miagroup\Lib\Service
         if($subjectInfo['status'] == 0) {
             return $this->succ(true);
         }
+        //付费用户删帖处理
+        //判断是否是付费用户
+        $groupId = 20;//站内付费达人分组
+        $userService = new User();
+        $group = $userService->checkUserGroupByUserId($subjectInfo["user_id"], $groupId)['data'];
+        if ($group) {
+            //查询是否有相应标签（妈妈达人  乐活达人）
+            $labelService = new LabelService();
+            $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'];
+            if (!empty($labelInfo)) {
+                $labelInfo = array_column($labelInfo[$subjectId], "title");
+            }
+            if (array_search("妈妈达人", $labelInfo) !== FALSE || array_search("乐活达人", $labelInfo) !== FALSE) {
+                //只能删当前自然月的
+                $pubTime = strtotime($subjectInfo["created"]);
+                $cancelTime = strtotime(date("Y-m"));//月初时间
+                if ($pubTime < $cancelTime) {
+                    //无法删除
+                    return $this->error(1130);
+                }
+            }
+        }
+
         //删除帖子
         $result = $this->subjectModel->delete($subjectId, $userId);
         
@@ -1424,6 +1447,19 @@ class Subject extends \mia\miagroup\Lib\Service
             $labelService->setLabelSubjectStatus([$subjectId], ["status" => 0]);
         }
 
+        //扣除蜜豆
+        $mibean = new \mia\miagroup\Remote\MiBean();
+        $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');//蜜芽兔
+        if($subjectInfo["is_fine"] == 1) {
+            $param['mibean'] = -60;
+        } else {
+            $param['mibean'] = -10;
+        }
+        $param['relation_type'] = "delete_subject";
+        $param['relation_id'] = $subjectId;
+        $param['to_user_id'] = $userId;
+        $param['dscrp'] = "删除帖子，扣除蜜豆";
+        $mibean->sub($param);
         if ($result) {
             return $this->succ(true);
         } else {
