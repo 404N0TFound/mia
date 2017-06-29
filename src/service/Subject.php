@@ -1404,7 +1404,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $mibean = new \mia\miagroup\Remote\MiBean();
         $param['user_id'] = 3782852;//蜜芽兔
         if($subjectInfo["is_fine"] == 1) {
-            $param['mibean'] = -50;
+            $param['mibean'] = -60;
         } else {
             $param['mibean'] = -10;
         }
