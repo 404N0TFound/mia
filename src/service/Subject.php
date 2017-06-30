@@ -1405,7 +1405,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         //付费用户删帖处理
         //判断是否是付费用户
-        $groupId = 20;//站内付费达人分组
+        $groupId = \F_Ice::$ins->workApp->config->get('busconf.user.paidUserGroup');//站内付费达人分组
         $userService = new User();
         $group = $userService->checkUserGroupByUserId($subjectInfo["user_id"], $groupId)['data'];
         if ($group) {
