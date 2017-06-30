@@ -59,12 +59,6 @@ class SetCoupon extends \mia\miagroup\Lib\Service {
         if (!empty($data['image'])) {
             $params['image'] = trim($data['image']);
         }
-        if (!empty($data['start_time'])) {
-            $params['start_time'] = trim($data['start_time']);
-        }
-        if (!empty($data['end_time'])) {
-            $params['end_time'] = trim($data['end_time']);
-        }
 
         if (!empty($data['coupon_code'])) {
             $coupon_code = trim($data['coupon_code']);
@@ -78,9 +72,14 @@ class SetCoupon extends \mia\miagroup\Lib\Service {
             $coupon_info = $couponRemote->getBatchCodeList([$coupon_code]);
             if(!empty($coupon_info)) {
                 $coupon_price = $coupon_info[$coupon_code]['value'];
+                if(!empty($coupon_info[$coupon_code]['startTimestamp'])) {
+                    $params['start_time'] = $coupon_info[$coupon_code]['startTimestamp'];
+                }
+                if(!empty($coupon_info[$coupon_code]['expireTimestamp'])) {
+                    $params['end_time'] = $coupon_info[$coupon_code]['expireTimestamp'];
+                }
             }
         }
-
         $params['coupon_money'] = $coupon_price;
         $params['coupon_code'] = $coupon_code;
 
