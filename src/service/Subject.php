@@ -1379,6 +1379,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if($subjectInfo['status'] == 0) {
             return $this->succ(true);
         }
+
         //删除帖子
         $result = $this->subjectModel->delete($subjectId, $userId);
         
