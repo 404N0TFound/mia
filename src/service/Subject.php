@@ -19,6 +19,7 @@ use mia\miagroup\Service\Feed as FeedServer;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service as Service;
 use mia\miagroup\Lib\Redis;
+use function GuzzleHttp\json_encode;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -478,6 +479,13 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['id'] = $subjectInfo['id'];
             $subjectRes[$subjectInfo['id']]['created'] = $subjectInfo['created'];
             $subjectRes[$subjectInfo['id']]['title'] = $subjectInfo['title'];
+            if (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
+                $subjectRes[$subjectInfo['id']]['type'] = 'video';
+            } else if ($subjectInfos[$subjectId]['ext_info']['is_blog'] == 1) {
+                $subjectRes[$subjectInfo['id']]['type'] = 'blog';
+            } else {
+                $subjectRes[$subjectInfo['id']]['type'] = 'normal';
+            }
             if (in_array('content_format', $field)) {
                 $text = $subjectInfo['text'];
                 $text = str_replace("\r\n", ' ', $text);
@@ -704,6 +712,12 @@ class Subject extends \mia\miagroup\Lib\Service
         
         /*蜜芽帖、口碑贴相关逻辑开始*/
         if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
+            if ($subjectInfo['type'] == 'blog') {
+                $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId])[$subjectId];
+                if (!empty($blog_info)) {
+                    $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
+                }
+            }
             //获取商品推荐
             if (in_array('item', $field)) {
                 $itemRecommendService = new \mia\miagroup\Remote\RecommendItem($this->ext_params);
@@ -1952,5 +1966,217 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
         $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
         return $this->succ($data);
+    }
+    
+    /**
+     * 发布长文
+     */
+    public function issueBlog($param) {
+        if (empty($param['user_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
+            return $this->error(500);
+        }
+        $subject_info = []; //帖子信息
+        $blog_meta = []; //长文信息
+        $items = []; //关联商品
+        $labels = []; //关联标签
+        //封面图
+        if (!empty($param['cover_image'])) {
+            $subject_info['ext_info']['cover_image'] = $param['cover_image'];
+        }
+        if (!empty($param['cover_image']) && $param['cover_image_hidden'] != 1) {
+            $param['cover_image']['is_cover'] = 1;
+            $blog_meta[] = ['blog_image' => $param['cover_image']];
+        }
+        //作者
+        $subject_info['user_info']['user_id'] = $param['user_id'];
+        if ($param['author_hidden'] != 1) {
+            $blog_meta[] = ['blog_user' => $param['user_id']];
+        }
+        //标题
+        if (!empty($param['title'])) {
+            $subject_info['title'] = $param['title'];
+        }
+        if (!empty($param['title']) && $param['title_hidden'] != 1) {
+            $blog_meta[] = ['blog_title' => $param['title']];
+        }
+        $subject_info['text'] = '';
+        //其他元素
+        foreach ($param['blog_meta'] as $v) {
+            if (!isset($v[$v['type']]) || empty($v[$v['type']])) {
+                continue;
+            }
+            switch ($v['type']) {
+                case 'blog_text':
+                    if (empty($v['blog_text']['text'])) {
+                        continue;
+                    }
+                    $tmp_text = null;
+                    $tmp_text['text'] = $v['blog_text']['text'];
+                    if (!empty($v['blog_text']['urls'])) {
+                        foreach ($v['blog_text']['urls'] as $tmp_url) {
+                            if (isset($tmp_url['start']) && !empty($tmp_url['length']) && !empty($tmp_url['url'])) {
+                                $tmp_text['urls'][] = $tmp_url;
+                            }
+                        }
+                    }
+                    $subject_info['text'] .= $v['blog_text']['text'] . "\n";
+                    $parsed_result = $this->_parseBlogText($v['blog_text']['text']);
+                    if (!empty($parsed_result['labels'])) {
+                        foreach ($parsed_result['labels'] as $v) {
+                            $labels[] = ['title' => $v];
+                        }
+                    }
+                    if (!empty($parsed_result['urls']) && is_array($parsed_result['urls'])) {
+                        $tmp_text['urls'] = array_merge($tmp_text['urls'], $parsed_result['urls']);
+                    }
+                    $tmp_labels = $parsed_result['labels'];
+                    $blog_meta[] = ['blog_text' => $tmp_text];
+                    break;
+                case 'blog_sub_title':
+                    if (strval($v['blog_sub_title']) == '') {
+                        continue;
+                    }
+                    $subject_info['text'] .= $v['blog_sub_title'] . "\n";
+                    $blog_meta[] = ['blog_sub_title' => $v['blog_sub_title']];
+                    break;
+                case 'blog_image':
+                    if (empty($v['blog_image']['width']) || empty($v['blog_image']['height']) || empty($v['blog_image']['url'])) {
+                        continue;
+                    }
+                    $subject_info['image_infos'][] = $v['blog_image'];
+                    $blog_meta[] = ['blog_image' => $v['blog_image']];
+                    break;
+                case 'blog_relate_subject':
+                    if (intval($v['blog_relate_subject']) <= 0) {
+                        continue;
+                    }
+                    $blog_meta[] = ['blog_relate_subject' => $v['blog_relate_subject']];
+                    break;
+                case 'blog_relate_item':
+                    if (intval($v['blog_relate_item']) <= 0) {
+                        continue;
+                    }
+                    $items[] = ['item_id' => $v['blog_relate_item']];
+                    $blog_meta[] = ['blog_relate_item' => $v['blog_relate_item']];
+                    break;
+                case 'blog_relate_user':
+                    if (intval($v['blog_relate_user']) <= 0) {
+                        continue;
+                    }
+                    $blog_meta[] = ['blog_relate_user' => $v['blog_relate_user']];
+                    break;
+            }
+        }
+        $subject_info['ext_info']['is_blog'] = 1;
+        //发布长文贴子
+        $result = $this->issue($subject_info, $items, $labels);
+        if ($result['code'] > 0) {
+            return $this->error($result['code'], $result['msg']);
+        }
+        $blog_info = [];
+        $blog_info['subject_id'] = $result['data']['id'];
+        $blog_info['user_id'] = $param['user_id'];
+        $blog_info['blog_meta'] = $blog_meta;
+        $blog_info['create_time'] = $result['data']['created'];
+        $this->subjectModel->addBlog($blog_info);
+        return $this->succ($result['data']);
+    }
+    
+    /**
+     * 编辑长文
+     */
+    public function editBlog() {
+        
+    }
+    
+    /**
+     * 格式化长文meta信息
+     */
+    private function _formatBlogMeta($blog_meta_list) {
+        if (empty($blog_meta_list)) {
+            return array();
+        }
+        //收集id
+        $user_ids = [];
+        $subject_ids = [];
+        $item_ids = [];
+        foreach ($blog_meta_list as $key => $blog_meta) {
+            if (isset($blog_meta['blog_user'])) {
+                $user_ids[] = intval($blog_meta['blog_user']);
+            }
+            if (isset($blog_meta['blog_relate_user'])) {
+                $user_ids[] = intval($blog_meta['blog_relate_user']);
+            }
+            if (isset($blog_meta['blog_relate_subject'])) {
+                $subject_ids[] = intval($blog_meta['blog_relate_subject']);
+            }
+            if (isset($blog_meta['blog_relate_item'])) {
+                $item_ids[] = intval($blog_meta['blog_relate_item']);
+            }
+        }
+        //获取信息
+        $user_service = new \mia\miagroup\Service\User();
+        $item_service = new \mia\miagroup\Service\Item();
+        $subjects = $this->getBatchSubjectInfos($subject_ids, 0, ['user_info', 'content_format'])['data'];
+        $users = $user_service->getUserInfoByUids($user_ids)['data'];
+        $items = $item_service->getBatchItemBrandByIds($item_ids)['data'];
+        //拼装结果集
+        foreach ($blog_meta_list as $key => $blog_meta) {
+            if (isset($blog_meta['blog_user'])) {
+                if (!empty($users[$blog_meta['blog_user']])) {
+                    $blog_meta_list[$key]['blog_user'] = $users[$blog_meta['blog_user']];
+                } else {
+                    unset($blog_meta_list[$key]);
+                }
+            }
+            if (isset($blog_meta['blog_relate_user'])) {
+                if (!empty($users[$blog_meta['blog_user']])) {
+                    $blog_meta_list[$key]['blog_user'] = $users[$blog_meta['blog_user']];
+                } else {
+                    unset($blog_meta_list[$key]);
+                }
+            }
+            if (isset($blog_meta['blog_relate_subject'])) {
+                if (!empty($subjects[$blog_meta['blog_relate_subject']])) {
+                    $blog_meta_list[$key]['blog_relate_subject'] = $subjects[$blog_meta['blog_relate_subject']];
+                } else {
+                    unset($blog_meta_list[$key]);
+                }
+            }
+            if (isset($blog_meta['blog_relate_item'])) {
+                if (!empty($items[$blog_meta['blog_relate_item']])) {
+                    $blog_meta_list[$key]['blog_relate_item'] = $items[$blog_meta['blog_relate_item']];
+                } else {
+                    unset($blog_meta_list[$key]);
+                }
+            }
+        }
+        return is_array($blog_meta_list) ? array_values($blog_meta_list) : [];
+    }
+    
+    /**
+     * 解析长文文字模块
+     */
+    private function _parseBlogText($text) {
+        $result = ['labels' => [], 'urls' => []];
+        if (empty($text)) {
+            return $result;
+        }
+        //解析标签
+        preg_match_all('/#(?!\s*#)[^#]{1,15}#/s', $text, $output);
+        if (!empty($output[0])) {
+            $offset = 0;
+            foreach ($output[0] as $v) {
+                $pos = mb_strpos($text, $v, $offset, 'utf8');
+                $lenth = mb_strlen($v, 'utf8');
+                $offset = $pos + $lenth;
+                $label = str_replace('#', '', $v);
+                $label_id = $this->labelService->addLabel($label)['data'];
+                $url = sprintf(F_Ice::$ins->workApp->config->get('busconf.app_mapping.label_detail'), $label_id);
+                $result['urls'][] = ['start' => $pos + 1, 'length' => $lenth, 'url' => $url];
+                $result['labels'][] = $label;
+            }
+        }
+        return $result;
     }
 }

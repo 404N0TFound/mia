@@ -15,12 +15,16 @@ class Subject {
     protected $videoData = null;
     protected $tabData = null;
     protected $tabOpeationData = null;
+    protected $subjectCollectData = null;
+    protected $subjectBlogData = null;
+    
     public function __construct() {
         $this->subjectData = new SubjectData();
         $this->videoData = new VideoData();
         $this->tabData = new TabData();
         $this->tabOpeationData = new TabNoteOperation();
         $this->subjectCollectData = new SubjectCollect();
+        $this->subjectBlogData = new \mia\miagroup\Data\Subject\SubjectBlog();
     }
 
     /**
@@ -648,5 +652,29 @@ class Subject {
         }
         $res = $this->subjectCollectData->getCollectNum($subjectIds);
         return $res;
+    }
+    
+    /**
+     * 新增长文数据
+     */
+    public function addBlog($blog_info) {
+        $result = $this->subjectBlogData->addBlog($blog_info);
+        return $result;
+    }
+    
+    /**
+     * 修改长文数据
+     */
+    public function editBlog($subject_id, $blog_info) {
+        $result = $this->subjectBlogData->updateBlogBySubjectId($subject_id, $blog_info);
+        return $result;
+    }
+    
+    /**
+     * 根据帖子id批量获取长文信息
+     */
+    public function getBlogBySubjectIds($subject_ids, $status = [1]) {
+        $result = $this->subjectBlogData->getBlogBySubjectIds($subject_ids, $status);
+        return $result;
     }
 }

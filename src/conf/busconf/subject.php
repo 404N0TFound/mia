@@ -106,7 +106,8 @@ $album = array(
      'cover_image',
      'selection_label',
      'selection',
-     'user_period'
+     'user_period',
+     'is_blog',
  );
  
  /**
