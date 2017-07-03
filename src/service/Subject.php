@@ -1371,7 +1371,7 @@ class Subject extends \mia\miagroup\Lib\Service
     }
     
     /**
-     * 删除帖子
+     * 删除帖子（用户操作删帖）
      */
     public function delete($subjectId,$userId){
         $status = array();
@@ -1379,6 +1379,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if($subjectInfo['status'] == 0) {
             return $this->succ(true);
         }
+
         //删除帖子
         $result = $this->subjectModel->delete($subjectId, $userId);
         
@@ -1400,6 +1401,19 @@ class Subject extends \mia\miagroup\Lib\Service
             $labelService->setLabelSubjectStatus([$subjectId], ["status" => 0]);
         }
 
+        //扣除蜜豆
+        $mibean = new \mia\miagroup\Remote\MiBean();
+        $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');//蜜芽兔
+        if($subjectInfo["is_fine"] == 1) {
+            $param['mibean'] = -60;
+        } else {
+            $param['mibean'] = -10;
+        }
+        $param['relation_type'] = "delete_subject";
+        $param['relation_id'] = $subjectId;
+        $param['to_user_id'] = $userId;
+        $param['dscrp'] = "删除帖子，扣除蜜豆";
+        $mibean->sub($param);
         if ($result) {
             return $this->succ(true);
         } else {

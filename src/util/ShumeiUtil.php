@@ -47,6 +47,10 @@ class ShumeiUtil
     public function checkImg($url)
     {
         $token_id = !empty($this->session_info['dvc_id']) ? $this->session_info['dvc_id'] : \F_Ice::$ins->runner->request->id;
+        if(empty($token_id)) {
+            //pc站只有uid
+            $token_id = $this->session_info['current_uid'];
+        }
         $remote_curl = new RemoteCurl('shumei_img');
         $params['accessKey'] = $this->_config['accessKey'];
         $params['type'] = $this->_config['imgType'];
