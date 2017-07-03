@@ -208,6 +208,7 @@ class Subjectdump extends \FD_Daemon {
                 continue;
             }
             $subject = $subjectInfos[$value['id']];
+            $extInfo = json_decode($value['ext_info'], true);
             //专栏或者视频过滤掉
             if (!empty($subject['album_article']) || !empty($subject['video_info'])) {
                 continue;
@@ -286,6 +287,14 @@ class Subjectdump extends \FD_Daemon {
                 $dumpdata['negative_result'] = 'NULL';
             } else {
                 $dumpdata['negative_result'] = $value['semantic_analys'] ? $value['semantic_analys'] : 'NULL';
+            }
+            //封面图宽高
+            if (!empty($subject['cover_image'])) {
+                $dumpdata['cover_image_width'] = $extInfo['cover_image']['width'];
+                $dumpdata['cover_image_height'] = $extInfo['cover_image']['height'];
+            } else {
+                $dumpdata['cover_image_width'] = 'NULL';
+                $dumpdata['cover_image_height'] = 'NULL';
             }
             //写入文本
             $put_content = implode("\t", $dumpdata);
