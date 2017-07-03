@@ -2,6 +2,7 @@
 namespace mia\miagroup\Remote;
 
 use mia\miagroup\Lib\Redis;
+use mia\miagroup\Lib\RemoteCurl;
 
 class Solr
 {
@@ -161,14 +162,16 @@ class Solr
                 // 每组返回的文档数(默认为1)
                 $params['group.limit'] = $data['group.limit'];
             }
-            $method = 'select';
-            $solrData = $this->httpGet($method, $params);
+
+            // solr 操作目前只处理get形式
+            $remote_curl = new RemoteCurl($this->core);
+            $solrData = $remote_curl->curl_remote('', $params);
+
             if(empty($solrData) == false) {
-                $data = json_decode($solrData, true);
-                if(isset($data['responseHeader']['status']) == true && $data['responseHeader']['status'] == 0) {
-                    $result = array('success'=>1,'info'=>'操作成功', 'data'=>$data);
+                if(isset($solrData['responseHeader']['status']) == true && $solrData['responseHeader']['status'] == 0) {
+                    $result = array('success'=>1,'info'=>'操作成功', 'data'=>$solrData);
                 } else {
-                    $result = array('success'=>0,'info'=>'查询失败', 'error'=>$solrData);
+                    $result = array('success'=>0,'info'=>'查询失败', 'error'=>json_encode($solrData));
                 }
             } else {
                 $result = array('success'=>0,'info'=>'网络错误,服务器繁忙');
@@ -192,82 +195,6 @@ class Solr
         $solrData = curl_exec($ch);
         return $solrData;
     }
-
-
-    private function httpGet($method, $parame) {
-
-        $url = $this->solrserver . $this->core."/".$method;
-        $data = "";
-        $wt = 'json';
-        if(empty($parame['wt']) == false) {
-            $wt = $parame['wt'];
-            unset($parame['wt']);
-        }
-        $url .= "?wt=".$wt;
-        foreach($parame as $key=>$value) {
-            $data .= "&". $key."=".$value;
-        }
-        $url .= $data;
-        //echo $url."\n";
-
-        //初始化
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        $result = curl_exec($ch);
-        //释放curl句柄
-        curl_close($ch);
-        return $result;
-    }
-
-    /*public function httpGet($method, $parame){
-
-        try{
-            $url = $this->solrserver . $this->core."/".$method;
-            $data = "";
-            $wt = 'json';
-            if(empty($parame['wt']) == false) {
-                $wt = $parame['wt'];
-                unset($parame['wt']);
-            }
-            $url .= "?wt=".$wt;
-            foreach($parame as $key=>$value) {
-                $data .= "&". $key."=".$value;
-            }
-            $url .= $data;
-            echo $url."\n";
-            $request_startTime = gettimeofday(true);
-            $result = file_get_contents($url);
-            $request_endTime = gettimeofday(true);
-            $res_log = json_decode($result,true);
-
-            $code = $res_log['responseHeader']['status'] === 0 ? $res_log['responseHeader']['status'] : -1;
-            // 日志记录
-            \F_Ice::$ins->mainApp->logger_remote->info(array(
-                'third_server'  =>  'solr',
-                'type'          =>  'INFO',
-                'request_param' =>  $data,
-                'response_code' =>  $code,
-                'response_msg'  =>  '',
-                'request_url'   =>  $url,
-                'resp_time'     =>  number_format(($request_endTime - $request_startTime), 4),
-            ));
-            return $result;
-        }catch (\Exception $e){
-            \F_Ice::$ins->mainApp->logger_remote->warn(array(
-                'third_server'  =>  'solr',
-                'type'          =>  'ERROR',
-                'exception' => get_class($e),
-                'message'   => $e->getMessage(),
-                'code'      => $e->getCode(),
-                'file'      => $e->getFile(),
-                'line'      => $e->getLine(),
-                'trace'     => $e->getTraceAsString(),
-            ));
-        }
-    }*/
 
     /**
      * 删除索引

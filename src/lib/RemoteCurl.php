@@ -6,6 +6,7 @@ class RemoteCurl {
     private $_remote_name;
     private $_url; //接口URL
     private $_method; //请求协议
+    private $_type; //类型处理
     private $_charset = 'utf8'; //接口返回数据编码
     private $_data_key = 'data'; //json结果集，数据key
     private $_code_key = 'code'; //json结果集，错误码key
@@ -40,12 +41,22 @@ class RemoteCurl {
                 //post get 分别处理
                 if ($this->_method == 'get') {
                     //请求的URL处理，如果是GET，需要将参数变成get字串拼进URL
-                    $concat_char = '?';
-                    if (strpos($request_url, '?')) {
-                        $concat_char = '&';
+                    if(!empty($this->_type) && $this->_type == "solr") {
+                        // url有json形式数据，使用http_build_query出错
+                        $data = '';
+                        $request_url .= "?wt=json";
+                        foreach($arguments as $key=>$value) {
+                            $data .= "&". $key."=".$value;
+                        }
+                        $request_url .= $data;
+                    }else{
+                        $concat_char = '?';
+                        if (strpos($request_url, '?')) {
+                            $concat_char = '&';
+                        }
+                        $arguments = http_build_query($arguments);
+                        $request_url = $request_url . $concat_char . $arguments;
                     }
-                    $arguments = http_build_query($arguments);
-                    $request_url = $request_url . $concat_char . $arguments;
                     $return_data = $this->get($request_url, $this->_charset);
                 } else {
                     $return_data = $this->post($request_url, $arguments, $this->_charset);
@@ -64,6 +75,9 @@ class RemoteCurl {
                     throw new \Exception(strval($return_data[$this->_msg_key]), $return_data[$this->_code_key]);
                 }
                 $return_data = isset($return_data[$this->_data_key]) ? $return_data[$this->_data_key] : array();
+            }
+            if(!empty($this->_type) && $this->_type == "solr") {
+                $this->_url = $request_url;
             }
             \F_Ice::$ins->mainApp->logger_remote->info(array(
                 'third_server'  =>  $this->_remote_name,
@@ -124,6 +138,9 @@ class RemoteCurl {
             }
             if (isset($remote_info['log_response']) && $remote_info['log_response'] === true) {
                 $this->_log_response = true;
+            }
+            if (isset($remote_info['type'])) {
+                $this->_type = $remote_info['type'];
             }
         }
     }

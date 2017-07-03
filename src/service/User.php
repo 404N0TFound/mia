@@ -705,5 +705,20 @@ class User extends \mia\miagroup\Lib\Service {
     
         return $this->succ($data);
     }
+
+    /**
+     * 检查用户分组
+     * @param $userId
+     * @param $groupId
+     * @return bool
+     */
+    public function checkUserGroupByUserId($userId,$groupId)
+    {
+        if(empty($userId) || empty($groupId)) {
+            return false;
+        }
+        $res = $this->userModel->checkUserGroupByUserId($userId,$groupId);
+        return $this->succ($res);
+    }
     
 }
