@@ -16,10 +16,8 @@ use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
 use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Service\Feed as FeedServer;
-use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service as Service;
 use mia\miagroup\Lib\Redis;
-use function GuzzleHttp\json_encode;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
