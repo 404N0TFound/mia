@@ -47,7 +47,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         if (!empty($params['nick_name']) && intval($condition['user_id']) <= 0 && intval($condition['id']) <= 0) {
             //用户昵称
-            $condition['user_id'] = $koubeiCondtion['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
+            $condition['user_id'] = $koubeiCondtion['user_id'] = $this->userModel->getUidByNickName($params['nick_name']);
         }
         if (!empty($params['title'])) {
             //标题搜索
