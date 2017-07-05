@@ -120,6 +120,49 @@ class Subject extends \mia\miagroup\Lib\Service {
         $result['count'] = $data['count'];
         return $this->succ($result);
     }
+    
+    /**
+     * 获取长文列表
+     */
+    public function getBlogList($params) {
+        $result = array('list' => array(), 'count' => 0);
+        $condition = array();
+        //初始化入参
+        $orderBy = 'id desc'; //默认排序
+        if ($params['limit'] === false) {
+            $limit = false;
+        } else {
+            $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 20;
+        }
+        $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
+        if (intval($params['user_id']) > 0 && intval($condition['id']) <= 0) {
+            //用户id
+            $condition['user_id'] = $params['user_id'];
+        }
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && intval($condition['id']) <= 0) {
+            //状态
+            $condition['status'] = $params['status'];
+        }
+        
+        if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
+            //起始时间
+            $condition['start_time'] = $params['start_time'];
+        }
+        if (strtotime($params['end_time']) > 0 && intval($condition['id']) <= 0) {
+            //结束时间
+            $condition['end_time'] = $params['end_time'];
+        }
+        $data = $this->subjectModel->getBlogData($condition, $offset, $limit, $orderBy);
+        if (empty($data['list'])) {
+            return $this->succ($result);
+        }
+        $subjectIds = $data['list'];
+        $subjectService = new SubjectService();
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
+        $result['list'][] = $subjectInfos;
+        $result['count'] = $data['count'];
+        return $this->succ($result);
+    }
 
     /*
      * 帖子综合搜索
