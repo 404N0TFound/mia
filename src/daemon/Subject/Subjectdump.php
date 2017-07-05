@@ -292,9 +292,9 @@ class Subjectdump extends \FD_Daemon {
             if (!empty($extInfo['cover_image'])) {
                 $dumpdata['cover_image_width'] = $extInfo['cover_image']['width'];
                 $dumpdata['cover_image_height'] = $extInfo['cover_image']['height'];
-            } else if (!empty($extInfo['ext_info']['image'])) {
-                $dumpdata['cover_image_width'] = $extInfo['ext_info']['image'][0]['width'];
-                $dumpdata['cover_image_height'] = $extInfo['ext_info']['image'][0]['height'];
+            } else if (!empty($extInfo['image'])) {
+                $dumpdata['cover_image_width'] = $extInfo['image'][0]['width'];
+                $dumpdata['cover_image_height'] = $extInfo['image'][0]['height'];
             } else {
                 $dumpdata['cover_image_width'] = 'NULL';
                 $dumpdata['cover_image_height'] = 'NULL';
