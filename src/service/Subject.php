@@ -2185,6 +2185,9 @@ class Subject extends \mia\miagroup\Lib\Service
                     unset($blog_meta_list[$key]);
                 }
             }
+            if (isset($blog_meta['blog_image'])) {
+                $blog_meta_list[$key]['blog_image'] = NormalUtil::buildImgUrl($blog_meta['blog_image']['url'], 'normal', $blog_meta['blog_image']['width'], $blog_meta['blog_image']['height']);
+            }
         }
         return is_array($blog_meta_list) ? array_values($blog_meta_list) : [];
     }
