@@ -2046,6 +2046,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                     $tmp_text = null;
                     $tmp_text['text'] = $v['blog_text']['text'];
+                    $tmp_text['urls'] = [];
                     if (!empty($v['blog_text']['urls'])) {
                         foreach ($v['blog_text']['urls'] as $tmp_url) {
                             if (isset($tmp_url['start']) && !empty($tmp_url['length']) && !empty($tmp_url['url'])) {
@@ -2197,7 +2198,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $result;
         }
         //解析标签
-        preg_match_all('/#(?!\s*#)[^#]{1,15}#/s', $text, $output);
+        preg_match_all('/#(?!\s*#)[^#]{1,45}#/s', $text, $output);
         if (!empty($output[0])) {
             $offset = 0;
             foreach ($output[0] as $v) {
