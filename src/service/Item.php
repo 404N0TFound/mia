@@ -110,12 +110,12 @@ class Item extends \mia\miagroup\Lib\Service {
     /**
      * 根据商品ID批量获取蜜芽圈商品展示信息
      */
-    public function getBatchItemBrandByIds($itemIds, $is_show_cart = true)
+    public function getBatchItemBrandByIds($itemIds, $is_show_cart = true, $item_status = [0,1])
     {
         if (empty($itemIds)) {
             return $this->succ(array());
         }
-        $items = $this->getItemList($itemIds,[0,1])['data'];
+        $items = $this->getItemList($itemIds, $item_status)['data'];
         $itemList = array();
         if (!empty($items)) {
             foreach ($items as $item) {
