@@ -213,7 +213,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //标签名称
             $labelService = new \mia\miagroup\Service\Label();
             $label = $labelService->getLabelInfoByTitle($data['label_name'])['data'];
-            $solrParams['label'] = $label['label_id'];
+            $solrParams['label'] = $label['id'];
         }
         if ($data['is_pic'] == 1) {
             //带图
