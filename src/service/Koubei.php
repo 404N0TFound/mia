@@ -930,8 +930,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             $userId = $supplierUserRelation['user_id'];
         } else {
-            //如果没有指定商家，默认蜜芽兔
-            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+            //如果没有指定商家，默认蜜芽客服
+            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
         }
         //判断是否是口碑
         $subjectService = new SubjectService();
@@ -1977,7 +1977,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         
         //蜜芽兔
-        $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+        $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
         //如果有回复内容，则需要入评论表
         if(!empty($setData['comment']))
         {
