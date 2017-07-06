@@ -245,7 +245,9 @@ class User extends Service{
         
         //标签
         if (!empty($params['label'])) {
-            $solrCond['label'] = $params['label'];
+            $labelService = new \mia\miagroup\Service\Label();
+            $label = $labelService->getLabelInfoByTitle($params['label'])['data'];
+            $solrCond['label'] = $label['id'];
         }
         
         if (strtotime($params['start_time']) > 0) {

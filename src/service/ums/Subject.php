@@ -252,9 +252,11 @@ class Subject extends \mia\miagroup\Lib\Service {
             //商家ID
             $solrParams['supplier_id'] = $data['supplier_id'];
         }
-        if (!empty($data['label_id'])) {
-            //标签ID
-            $solrParams['label'] = $data['label_id'];
+        if (!empty($data['label_name'])) {
+            //标签名称
+            $labelService = new \mia\miagroup\Service\Label();
+            $label = $labelService->getLabelInfoByTitle($data['label_name'])['data'];
+            $solrParams['label'] = $label['label_id'];
         }
         if ($data['is_pic'] == 1) {
             //带图
