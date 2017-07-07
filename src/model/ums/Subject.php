@@ -72,16 +72,16 @@ class Subject extends \DB_Query {
      */
     public function getOperationNoteData($tabId, $page, $timeTag=null)
     {
-        if (empty($tabId)) {
-            return [];
+        if (!empty($tabId)) {
+            $conditions['tab_id'] = $tabId;
         }
-        $conditions['tab_id'] = $tabId;
+        
         $conditions['page'] = $page;
         if(isset($timeTag)){
             $conditions['time_tag'] = $timeTag;
         }
         $result = array();
-        $operationInfos = $this->tabOpeationData->getBatchOperationNotes($conditions);
+        $operationInfos = $this->tabOpeationData->getBatchOperationInfos($conditions);
         if(!empty($operationInfos)){
             $result = $operationInfos;
         }

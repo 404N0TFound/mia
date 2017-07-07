@@ -207,12 +207,24 @@ class Subject extends \mia\miagroup\Lib\Service
                 $noteRemote = new RecommendNote($this->ext_params);
                 $tabName = $this->subjectModel->getTabInfos($tabId);
                 $tabName = implode(",", array_keys($tabName));
+                
+                $firstLevel = $this->config['first_level'];
+                $firstLevel = array_flip($firstLevel);
+                $secondLevel = $this->config['second_level'];
+                if(isset($secondLevel[$tabName])){
+                    $otherTabId = $firstLevel[$secondLevel[$tabName]];
+                }
+
                 $userNoteListIds = $noteRemote->getNoteListByCate($tabName, $page, $count);
         }
 
         //发现列表，增加运营广告位
         $operationNoteData = [];
-        if ($tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) {
+        if (($tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) || isset($otherTabId)) {
+            //如果是其他频道页，将需要转换tabid
+            if(isset($otherTabId)){
+                $tabId = $otherTabId;
+            }
             $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
             //运营数据和普通数据去重
             $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
@@ -221,7 +233,6 @@ class Subject extends \mia\miagroup\Lib\Service
         $combineIds = $this->combineOperationIds($userNoteListIds, $operationNoteData);
 
         $res['content_lists'] = $this->formatNoteData($combineIds, $operationNoteData);
-
         return $this->succ($res);
     }
 
@@ -1858,7 +1869,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * @param $tabId
      * @param $page
      */
-    public function getOperationNoteList($tabId=1, $page = 1)
+    public function getOperationNoteList($tabId=array(1), $page = 1)
     {
         //发现列表，增加运营广告位
         $res = array();

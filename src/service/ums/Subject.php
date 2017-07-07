@@ -278,7 +278,7 @@ class Subject extends \mia\miagroup\Lib\Service {
      * @param $tabId
      * @param $page
      */
-    public function getOperationNoteList($tabId=1, $page = 1)
+    public function getOperationNoteList($tabId= array(), $page = 1)
     {
         //发现列表，增加运营广告位
         $res = array();
@@ -400,5 +400,30 @@ class Subject extends \mia\miagroup\Lib\Service {
             unset($relation_cover_image);
         }
         return $return;
+    }
+    
+    /**
+     * 首页导航分类标签
+     * @return mixed
+     */
+    public function indexTabLists()
+    {
+        $config = \F_Ice::$ins->workApp->config->get('busconf.subject');
+        //起始固定位，“发现”，“关注”
+        $headTabs = $config['group_fixed_tab_first'];
+        //一级频道分类
+        $middleTabs = $config['first_level'];
+        //结尾固定位，“育儿”
+        $endTabs = $config['group_fixed_tab_last'];
+    
+        //将首页固定频道和一级频道格式统一
+        $fixTabs = array_merge($headTabs,$endTabs);
+        $newTab = array();
+        foreach ($fixTabs as $v) {
+            $newTab[$v['extend_id']] = $v['name'];
+        }
+    
+        $tabResult = $newTab+$middleTabs;
+        return $this->succ($tabResult);
     }
 }

@@ -15,22 +15,59 @@ class Active {
         $this->activeSubjectData = new ActiveSubjectData();
         $this->relationData = new RelationData();
     }
-
-    /**
-     * 获取活动列表
-    */
-    public function getActiveByActiveIds($page, $limit, $status = array(1), $condition = array()) {
-        //获取活动的基本信息
-        $actives = $this->activeData->getBatchActiveInfos($page, $limit, $status, $condition);
-        $activesArr = array();
-        if(!empty($actives)){
-            foreach($actives as $active){
-                $activesArr[$active['id']] = $active;
-            }
+    
+    //活动列表第一页的取所有进行中和未开始活动
+    public function getFirstPageActive($status = array(1), $activeStatus){
+        $activeRes = array();
+        foreach($activeStatus as $value){
+            $condition = array();
+            $condition['active_status'] = $value;//活动状态（进行中、未开始）
+            $activeRes += $this->getActiveList(false, 0, $status,$condition);
         }
-        return $activesArr;
+        return $activeRes;
     }
     
+    //获取活动列表
+    public function getActiveList($page, $limit, $status = array(1), $condition){
+        $activeRes = $this->activeData->getBatchActiveInfos($page, $limit, $status,$condition);
+        $activeArr = array();
+        if(!empty($activeRes)){
+            foreach($activeRes as $active){
+                $activeArr[$active['id']] = $active;
+                if(!empty($active['ext_info'])){
+                    $extInfo = json_decode($active['ext_info'],true);
+                    if(!empty($extInfo['labels'])){
+                        $activeArr[$active['id']]['labels'] = $extInfo['labels'];
+                    }
+                    if(!empty($extInfo['labels'])){
+                        $activeArr[$active['id']]['labels'] = $extInfo['labels'];
+                        $activeArr[$active['id']]['label_titles'] = implode(',',array_column($extInfo['labels'], 'title'));
+                    }
+                    if(!empty($extInfo['image'])){
+                        $activeArr[$active['id']]['top_img'] = $extInfo['image'];
+                        $activeArr[$active['id']]['top_img_url'] = $active['top_img'];
+                    }
+                    if(!empty($extInfo['cover_img'])){
+                        $activeArr[$active['id']]['cover_img'] = $extInfo['cover_img'];
+                    }
+                    if(!empty($extInfo['icon_img'])){
+                        $activeArr[$active['id']]['icon_img'] = $extInfo['icon_img'];
+                    }
+                    if(!empty($extInfo['image_count_limit'])){
+                        $activeArr[$active['id']]['image_count_limit'] = $extInfo['image_count_limit'];
+                    }
+                    if(!empty($extInfo['text_lenth_limit'])){
+                        $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
+                    }
+                }
+                
+                if(isset($condition['active_status'])){
+                    $activeArr[$active['id']]['active_status'] = $condition['active_status'];
+                }
+            }
+        }
+        return $activeArr;
+    }
     //创建活动
     public function addActive($insertData){
         $data = $this->activeData->addActive($insertData);
@@ -49,11 +86,6 @@ class Active {
         return $affect;
     }
     
-//     //批量获取活动下图片计数（图片数，发帖用户数）(暂时用这个方法，数据导入关联表后用新方法)
-//     public function getBatchActiveSubjectCounts($activeIds) {
-//         $data = $this->activeSubjectData->getBatchActiveSubjectCounts($activeIds);
-//         return $data;
-//     }
     
     //批量获取活动下图片计数（图片数，发帖用户数）（数据导入关联表后可以改方法）
     public function getBatchActiveSubjectCounts($activeIds) {
