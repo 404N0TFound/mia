@@ -2164,7 +2164,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $label = str_replace('#', '', $v);
                 $label_id = $this->labelService->addLabel($label)['data'];
                 $url = sprintf(F_Ice::$ins->workApp->config->get('busconf.app_mapping.label_detail'), $label_id);
-                $result['urls'][] = ['start' => $pos + 1, 'length' => $lenth, 'url' => $url];
+                $result['urls'][] = ['start' => $pos, 'length' => $lenth, 'url' => $url, 'color' => 'fa4b9b'];
                 $result['labels'][] = $label;
             }
         }
