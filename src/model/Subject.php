@@ -35,10 +35,10 @@ class Subject {
      */
     public function getOperationNoteData($tabId, $page, $timeTag=null)
     {
-        if (empty($tabId)) {
-            return [];
+        if (!empty($tabId)) {
+            $conditions['tab_id'] = $tabId;
         }
-        $conditions['tab_id'] = $tabId;
+        
         $conditions['page'] = $page;
         if(isset($timeTag)){
             $conditions['time_tag'] = $timeTag;
