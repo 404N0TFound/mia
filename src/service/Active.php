@@ -15,30 +15,31 @@ class Active extends \mia\miagroup\Lib\Service {
         parent::__construct();
         $this->activeModel = new ActiveModel();
     }
-
+    
     /**
      * 获取活动列表
      */
     public function getActiveList($page, $limit, $fields = array('count'), $status = [1])
     {
         $activeRes = array();
-        // 获取活动列表
-        $activeInfos = $this->activeModel->getActiveByActiveIds($page, $limit, $status);
+        if($page == 1){
+            $activeStatus = array(2,1);
+            $activeInfos = $this->activeModel->getFirstPageActive($status,$activeStatus);
+        }else{
+            $page = $page - 1;
+            $activeStatus = array('active_status'=>3);
+            $activeInfos = $this->activeModel->getActiveList($page, $limit, $status,$activeStatus);
+        }
+    
         if (empty($activeInfos)) {
             return $this->succ(array());
         }
-        
-        $activeIds = array();
-        foreach($activeInfos as $activeInfo){
-            $activeIds[] = $activeInfo['id'];
-        }
+    
+        $activeIds = array_keys($activeInfos);
         $activeCount = $this->activeModel->getBatchActiveSubjectCounts($activeIds);
-        
+    
         foreach($activeInfos as $activeInfo){
             $tmp = $activeInfo;
-            $extInfo = json_decode($activeInfo['ext_info'],true);
-            $tmp['top_img'] = $extInfo['image'];
-            $tmp['cover_img'] = isset($extInfo['cover_img']) ? $extInfo['cover_img'] : $extInfo['image'];
             $tmp['img_nums'] = 0;
             $tmp['user_nums'] = 0;
             if (in_array('count', $fields)) {
@@ -49,8 +50,7 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($activeRes);
     }
-    
-    
+
     /**
      * 获取单条活动信息
      */
@@ -58,26 +58,11 @@ class Active extends \mia\miagroup\Lib\Service {
         $condition = array('active_ids' => array($activeId));
         $activeRes = array();
         // 获取活动基本信息
-        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 1, $status, $condition);
+        $activeInfos = $this->activeModel->getActiveList(1, 1, $status, $condition);
         if (empty($activeInfos[$activeId])) {
             return $this->succ(array());
         }
         $activeRes = $activeInfos[$activeId];
-        if(!empty($activeInfos[$activeId]['ext_info'])){
-            $extInfo = json_decode($activeInfos[$activeId]['ext_info'],true);
-            
-            if(!empty($extInfo['labels'])){
-                $activeRes['labels'] = $extInfo['labels'];
-                $activeRes['label_titles'] = implode(',',array_column($activeRes['labels'], 'title'));
-            }
-            if(!empty($extInfo['image'])){
-                $activeRes['top_img'] = $extInfo['image'];
-                $activeRes['top_img_url'] = $activeInfos[$activeId]['top_img'];
-            }
-            if(!empty($extInfo['cover_img'])){
-                $activeRes['cover_img'] = $extInfo['cover_img'];
-            }
-        }
         
         if (in_array('share_info', $fields)) {
             // 分享内容
@@ -107,30 +92,17 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 获取当前在线活动
      */
-    public function getCurrentActive() {
-        $condition = array('current_time' => date('Y-m-d H:i:s',time()));
+    public function getCurrentActive($limit=0) {
+        $condition = array('active_status' => 2);
         $activeRes = array();
         // 获取活动基本信息
-        $activeInfos = $this->activeModel->getActiveByActiveIds(false, 0, array(1), $condition);
-        if (empty($activeInfos)) {
+        $activeRes = $this->activeModel->getActiveList(false, $limit, array(1), $condition);
+        if (empty($activeRes)) {
             return $this->succ(array());
-        }
-        if(!empty($activeInfos)){
-            foreach($activeInfos as $key=>$activeInfo){
-                $tmp = $activeInfo;
-                if(!empty($activeInfo['ext_info'])){
-                    $extInfo = json_decode($activeInfo['ext_info'],true);
-                    if(!empty($extInfo['labels'])){
-                        $tmp['labels'] = $extInfo['labels'];
-                    }
-                }
-                $activeRes[$key] = $tmp;
-            }
         }
 
         return $this->succ($activeRes);
     }
-    
 
     /**
      * 创建活动（用于后台活动发布）
@@ -156,6 +128,15 @@ class Active extends \mia\miagroup\Lib\Service {
                 unset($activeInfo['label_titles']);
             }
         }
+        if(isset($activeInfo['image_count_limit'])){
+            $extInfo['image_count_limit']= $activeInfo['image_count_limit'];
+            unset($activeInfo['image_count_limit']);
+        }
+        
+        if(isset($activeInfo['text_lenth_limit'])){
+            $extInfo['text_lenth_limit']= $activeInfo['text_lenth_limit'];
+            unset($activeInfo['text_lenth_limit']);
+        }
 
         if(!empty($activeInfo['image_info'])){
             $extInfo['image']= $activeInfo['image_info'];
@@ -165,6 +146,11 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['cover_img']= $activeInfo['cover_img_info'];
             unset($activeInfo['cover_img_info']);
         }
+        if(!empty($activeInfo['icon_img_info'])){
+            $extInfo['icon_img']= $activeInfo['icon_img_info'];
+            unset($activeInfo['icon_img_info']);
+        }
+        
         $activeInfo['ext_info'] = json_encode($extInfo);
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
         
@@ -211,6 +197,20 @@ class Active extends \mia\miagroup\Lib\Service {
         if(!empty($activeInfo['cover_img_info'])){
             $extInfo['cover_img']= $activeInfo['cover_img_info'];
             unset($activeInfo['cover_img_info']);
+        }
+        
+        if(!empty($activeInfo['icon_img_info'])){
+            $extInfo['icon_img']= $activeInfo['icon_img_info'];
+            unset($activeInfo['icon_img_info']);
+        }
+        
+        if(isset($activeInfo['image_count_limit'])){
+            $extInfo['image_count_limit']= $activeInfo['image_count_limit'];
+            unset($activeInfo['image_count_limit']);
+        }
+        if(isset($activeInfo['text_lenth_limit'])){
+            $extInfo['text_lenth_limit']= $activeInfo['text_lenth_limit'];
+            unset($activeInfo['text_lenth_limit']);
         }
         
         $activeInfo['ext_info'] = json_encode($extInfo);

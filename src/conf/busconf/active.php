@@ -31,5 +31,7 @@ $activeShare = array(
         'share_mia_url'  => '{|wap_url|}',
     ),
 );
+//参加活动的文案
+$activeTitle = '参加活动';
 
 
