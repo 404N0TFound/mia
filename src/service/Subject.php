@@ -1986,8 +1986,13 @@ class Subject extends \mia\miagroup\Lib\Service
         //查询贴子收藏数
         $collect_num = $this->getBatchSubjectCollectCount(intval($sourceId))["data"][intval($sourceId)];
         $res = [];
+        if ($collectInfo["status"] == $status) {
+            $success = $status;
+        } else {
+            $success = intval(!$collectInfo["status"]);
+        }
         $res["collected_count"] = intval($collect_num);
-        $res["collected_by_me"] = $result ? TRUE : FALSE;
+        $res["collected_by_me"] = $success;
         return $this->succ($res);
     }
 
@@ -2020,6 +2025,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['user_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
             return $this->error(500);
         }
+
         //解析参数
         $parsed_param = $this->_parseBlogParam($param);
         //发布长文贴子
