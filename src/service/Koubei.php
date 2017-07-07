@@ -6,6 +6,7 @@ use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Label as LabelService;
+use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
 use mia\miagroup\Remote\Coupon as CouponRemote;
@@ -1129,7 +1130,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $item_id        可选
      * @param $issue_type[default:koubei]  发布类型
      */
-    public function issueinit($order_id = 0, $item_id = 0, $issue_type = 'koubei'){
+    public function issueinit($order_id = 0, $item_id = 0, $issue_type = 'koubei', $active_id = 0){
 
         // 发布口碑传入，帖子不需要传
         if($issue_type == 'koubei') {
@@ -1196,7 +1197,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
                 // 展示商品信息
                 $return_Info['item_info'] = $item_info[$item_id];
-
+                //展示当前在线活动
+                $active_service = new ActiveService();
+                if($active_id > 0){
+                    $active_info[$active_id] = $active_service->getSingleActiveById($active_id)['data'];
+                }else{
+                    $active_info = $active_service->getCurrentActive(6)['data'];
+                }
+                $return_Info['current_actives'] = $active_info;
+                
+                //参加活动文案
+                $active_title = \F_Ice::$ins->workApp->config->get('busconf.active.activeTitle');
+                $return_Info['active_title'] = $active_title;
                 break;
         }
         // 容错
