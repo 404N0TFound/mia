@@ -159,7 +159,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         $subjectIds = $data['list'];
         $subjectService = new SubjectService();
         $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
-        $result['list'][] = array_values($subjectInfos);
+        $result['list'] = array_values($subjectInfos);
         $result['count'] = $data['count'];
         return $this->succ($result);
     }
