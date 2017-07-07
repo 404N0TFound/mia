@@ -2075,14 +2075,18 @@ class Subject extends \mia\miagroup\Lib\Service
         //修改长文表
         $blog_info = [];
         $blog_info['blog_meta'] = $parsed_param['blog_meta'];
-        if (!empty($param['index_cover_image']) && !empty($param['index_cover_image']['width']) && empty($param['index_cover_image']['height']) && empty($param['index_cover_image']['url'])) {
+        if (!empty($param['index_cover_image']) && !empty($param['index_cover_image']['width']) && !empty($param['index_cover_image']['height']) && !empty($param['index_cover_image']['url'])) {
             $blog_info['index_cover_image'] = $param['index_cover_image'];
-            $parsed_param['subject_info']['cover_image'] = $param['index_cover_image'];
+            $parsed_param['subject_info']['ext_info']['cover_image'] = $param['index_cover_image'];
         }
         $this->subjectModel->editBlog($param['subject_id'], $blog_info);
-        
         //修改帖子表
-        $this->updateSubject($param['subject_id'], $parsed_param['subject_info']);
+        $subject_set_data = [];
+        $subject_set_data['title'] = $parsed_param['subject_info']['title'];
+        $subject_set_data['text'] = $parsed_param['subject_info']['text'];
+        $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
+        $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
+        $this->updateSubject($param['subject_id'], $subject_set_data);
         return $this->succ(true);
     }
     
