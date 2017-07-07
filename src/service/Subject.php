@@ -1975,8 +1975,13 @@ class Subject extends \mia\miagroup\Lib\Service
         //查询贴子收藏数
         $collect_num = $this->getBatchSubjectCollectCount(intval($sourceId))["data"][intval($sourceId)];
         $res = [];
+        if ($collectInfo["status"] == $status) {
+            $success = $status;
+        } else {
+            $success = intval(!$collectInfo["status"]);
+        }
         $res["collected_count"] = intval($collect_num);
-        $res["collected_by_me"] = $result ? TRUE : FALSE;
+        $res["collected_by_me"] = $success;
         return $this->succ($res);
     }
 
