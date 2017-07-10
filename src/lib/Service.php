@@ -5,10 +5,17 @@ class Service extends \FS_Service {
 
     private $startTime;
     private $endTime;
-    static private $logFlag;
+    static private $count = 0;
+    static private $entranceClass;
     
     function __construct() {
         parent::__construct();
+        if (self::$entranceClass === null) {
+            self::$entranceClass = get_class($this);
+        }
+        if (self::$entranceClass == get_class($this)) {
+            self::$count ++;
+        }
         $this->startTime = gettimeofday(true);
         if (empty($this->ext_params['dvc_id']) && !empty($this->ext_params['unique_key'])) {
             $this->ext_params['dvc_id'] = $this->ext_params['unique_key'];
@@ -16,8 +23,10 @@ class Service extends \FS_Service {
     }
     
     function __destruct() {
-        if (self::$logFlag == null && isset($this->code) && !empty($this->params)) {
-            self::$logFlag = 1;
+        if (self::$entranceClass == get_class($this)) {
+            self::$count --;
+        }
+        if (self::$entranceClass == get_class($this) && self::$count == 0 && !empty($this->params)) {
             $this->endTime = gettimeofday(true);
             $respTime = number_format(($this->endTime - $this->startTime), 4, '.', '');
             \F_Ice::$ins->mainApp->logger_access->info(array(
