@@ -60,9 +60,21 @@ class Active {
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
                     }
                 }
-                
+                //如果传入了活动的进行状态，就直接返回改状态
                 if(isset($condition['active_status'])){
                     $activeArr[$active['id']]['active_status'] = $condition['active_status'];
+                }else{
+                    //如果没有传入，活动的进行状态就根据开始结束时间判断
+                    $activeStatus = '';
+                    $currentTime = date('Y-m-d H:i:s');
+                    if($active['start_time']<=$currentTime && $active['end_time']>=$currentTime){
+                        $activeStatus = 2;
+                    }elseif($active['end_time']<$currentTime){
+                        $activeStatus = 3;
+                    }elseif($active['start_time']>$currentTime){
+                        $activeStatus = 1;
+                    }
+                    $activeArr[$active['id']]['active_status'] = $activeStatus;
                 }
             }
         }
