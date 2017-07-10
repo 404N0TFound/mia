@@ -1,7 +1,7 @@
 <?php
 namespace mia\miagroup\Daemon\Temp;
 
-use mia\miagroup\Remote\miBean as miBeanRemote;
+use mia\miagroup\Remote\MiBean as miBeanRemote;
 
 /**
  * 运营相关-临时脚本
@@ -35,9 +35,12 @@ class Operate extends \FD_Daemon
             $param['user_id'] = 3782852;//蜜芽兔
             $param['to_user_id'] = $user_id;
             $param['relation_type'] = "group_operator";
-            $param['relation_id'] = 0;
+            $param['relation_id'] = $user_id;
             $param['mibean'] = $count;
             $res = $bean->add($param);
+            if($res['code'] != 200) {
+                $bean->add($param);
+            }
         }
     }
 
