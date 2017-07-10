@@ -579,6 +579,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 'extr_info' => $koubei['extr_info'],
                 'type' => $koubei['type']
             );
+            //收集itemid
+            $item_ids[] = $koubei['item_id'];
             //获取口碑订单id，用于获取订单编号(order_code)
             if(!empty($koubei['order_id'])){
                 $orderIds[] = $koubei['order_id'];
@@ -604,17 +606,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
             // 口碑包含删除的逻辑，帖子也要包含
             $subject_status = [];
         }
-        //3、根据口碑中帖子id批量获取帖子信息（subject service）
+        //查询商品信息
+        $itemService = new \mia\miagroup\service\Item();
+        $itemInfos = $itemService->getBatchItemBrandByIds($item_ids, true, [])['data'];
+        //根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field, $subject_status);
         foreach ($itemKoubei as $key => $value) {
             if (!empty($subjectRes['data'][$key])) {
-                if (!empty($subjectRes['data'][$key]['items'])) {
-                    foreach ($subjectRes['data'][$key]['items'] as $item) {
-                        if ($item['item_id'] == $value['item_id']) {
-                            $value['item_info'] = $item;
-                            break;
-                        }
-                    }
+                if (!empty($itemInfos[$value['item_id']])) {
+                    $value['item_info'] = $itemInfos[$value['item_id']];
                 }
                 if ($subjectRes['data'][$key]['status'] == 3) {
                     $subjectRes['data'][$key]['text'] = \F_Ice::$ins->workApp->config->get('busconf.koubei.autoEvaluateText');
@@ -930,8 +930,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             $userId = $supplierUserRelation['user_id'];
         } else {
-            //如果没有指定商家，默认蜜芽兔
-            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+            //如果没有指定商家，默认蜜芽客服
+            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
         }
         //判断是否是口碑
         $subjectService = new SubjectService();
@@ -1977,7 +1977,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         
         //蜜芽兔
-        $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');
+        $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
         //如果有回复内容，则需要入评论表
         if(!empty($setData['comment']))
         {

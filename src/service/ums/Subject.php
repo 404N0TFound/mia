@@ -47,7 +47,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         if (!empty($params['nick_name']) && intval($condition['user_id']) <= 0 && intval($condition['id']) <= 0) {
             //用户昵称
-            $condition['user_id'] = $koubeiCondtion['user_id'] = intval($this->userModel->getUidByNickName($params['nick_name']));
+            $condition['user_id'] = $koubeiCondtion['user_id'] = $this->userModel->getUidByNickName($params['nick_name']);
         }
         if (!empty($params['title'])) {
             //标题搜索
@@ -209,9 +209,11 @@ class Subject extends \mia\miagroup\Lib\Service {
             //商家ID
             $solrParams['supplier_id'] = $data['supplier_id'];
         }
-        if (!empty($data['label_id'])) {
-            //标签ID
-            $solrParams['label'] = $data['label_id'];
+        if (!empty($data['label_name'])) {
+            //标签名称
+            $labelService = new \mia\miagroup\Service\Label();
+            $label = $labelService->getLabelInfoByTitle($data['label_name'])['data'];
+            $solrParams['label'] = $label['id'];
         }
         if ($data['is_pic'] == 1) {
             //带图

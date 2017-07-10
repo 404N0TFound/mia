@@ -229,12 +229,14 @@ class User extends \DB_Query {
             return false;
         }
         $where[] = array('nickname', $nickName);
-        $data = $this->getRow($where, 'id');
+        $data = $this->getRows($where, 'id');
+        $result = [];
         if (!empty($data)) {
-            return $data['id'];
-        } else {
-            return false;
+            foreach ($data as $v) {
+                $result[] = $v['id'];
+            }
         }
+        return $result;
     }
     
     /**
@@ -247,12 +249,14 @@ class User extends \DB_Query {
             return false;
         }
         $where[] = array('cell_phone', $phone);
-        $data = $this->getRow($where, 'id');
+        $data = $this->getRows($where, 'id');
+        $result = [];
         if (!empty($data)) {
-            return $data['id'];
-        } else {
-            return false;
+            foreach ($data as $v) {
+                $result[] = $v['id'];
+            }
         }
+        return $result;
     }
 
     /*
