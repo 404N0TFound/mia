@@ -710,12 +710,12 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectInfo['relate_items'] = array_values($ItemInfos);
             }
             //获取相关帖子
-            $noteRecommendService = new \mia\miagroup\Remote\RecommendNote($this->ext_params);
-            $relatedIds = $noteRecommendService->getRelatedNote($subjectId);
-            $relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
-            if (!empty($relatedSubjects)) {
-                $subjectInfo['related_subject'] = array_values($relatedSubjects);
-            }
+            //$noteRecommendService = new \mia\miagroup\Remote\RecommendNote($this->ext_params);
+            //$relatedIds = $noteRecommendService->getRelatedNote($subjectId);
+            //$relatedSubjects = $this->getBatchSubjectInfos($relatedIds, 0, array('user_info', 'count'))['data'];
+            //if (!empty($relatedSubjects)) {
+            //    $subjectInfo['related_subject'] = array_values($relatedSubjects);
+            //}
         }
         /*蜜芽帖、口碑贴相关逻辑结束*/
         

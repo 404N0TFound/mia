@@ -52,7 +52,7 @@ class User extends Service{
         }
         
         //用户信息的查询（用户id、用户名、昵称、手机号，这些都为单条）
-        if (intval($params['user_id']) > 0) {
+        if (!empty($params['user_id'])) {
             //用户ID
             $userId= $params['user_id'];
         }
@@ -68,7 +68,7 @@ class User extends Service{
             $userId = $this->userModel->getUidByPhone($params['phone']);
         }
         if(isset($userId)){
-            $userIds = array($userId);
+            $userIds = is_array($userId) ? $userId : [$userId];
             $count = 1;
         }
         //用户类型查询（全部、屏蔽）
@@ -245,7 +245,9 @@ class User extends Service{
         
         //标签
         if (!empty($params['label'])) {
-            $solrCond['label'] = $params['label'];
+            $labelService = new \mia\miagroup\Service\Label();
+            $label = $labelService->getLabelInfoByTitle($params['label'])['data'];
+            $solrCond['label'] = $label['id'];
         }
         
         if (strtotime($params['start_time']) > 0) {
