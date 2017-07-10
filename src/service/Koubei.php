@@ -1155,7 +1155,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }else{
                     $active_info = $active_service->getCurrentActive(6)['data'];
                 }
-                $return_Info['current_actives'] = $active_info;
+                $return_Info['current_actives'] = array_values($active_info);
                 
                 //参加活动文案
                 $active_title = \F_Ice::$ins->workApp->config->get('busconf.active.activeTitle');
