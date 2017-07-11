@@ -238,6 +238,11 @@ class User extends Service{
             $solrCond['c_type'] = $params['category'];
         }
         
+        //帖子来源（默认为1，蜜芽圈）
+        if (!isset($params['source'])) {
+            $solrCond['source'] = 1;
+        }
+        
         //活动
         if (!empty($params['active_id'])) {
             $solrCond['active_id'] = $params['active_id'];
