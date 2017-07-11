@@ -11,6 +11,7 @@ use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
 use mia\miagroup\Service\Koubei as KoubeiService;
+use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
@@ -2287,4 +2288,44 @@ class Subject extends \mia\miagroup\Lib\Service
         $subject_info['ext_info']['is_blog'] = 1;
         return ['subject_info' => $subject_info, 'blog_meta' => $blog_meta, 'labels' => $labels, 'items' => $items];
     }
+
+    /*
+     * 蜜芽圈口碑跳转数据列表
+     * condition:[1：新分类]
+     * */
+    public function group_cate_note_list ($item_id, $page = 1, $count = 20, $userId = 0) {
+
+        if(empty($item_id)) {
+            return $this->succ([]);
+        }
+        $item_service = new ItemService();
+        $condition['type'] = 1;
+        // 旧二级分类对应的一级分类
+        $parent_category_id = $item_service->getRelationCateId($item_id, 0, $condition)['data'];
+        // 获取旧二级分类对应的信息
+        $cate_info = $item_service->getCategoryIdInfo($parent_category_id, $condition)['data'];
+        if(empty($cate_info)) {
+            return $this->succ([]);
+        }
+        $cate_name = $cate_info['name'];
+        //$cate_name = '童装童鞋';
+        $first_level_info = $this->getFirstLevel([$cate_name]);
+        $mapping = $this->config['miagroup_cate_mapping'];
+        $params['title'] = $mapping['default_title'].array_values($first_level_info)[0]['name'];
+        $params['item_id'] = $item_id;
+        $params['source'] = $mapping['source'];
+        $mapping_params = '';
+        foreach($params as $key=>$value) {
+            $mapping_params .= "&". $key."=".$value;
+        }
+        $mapping_url = $mapping['skip_url'].$mapping_params;
+        // 获取分类对应的印象笔记
+        $noteRemote = new RecommendNote($this->ext_params);
+        $userNoteListIds = $noteRemote->getNoteListByCate($cate_name, $page, $count);
+
+        $res['note_cate_lists'] = $this->formatNoteData($userNoteListIds);
+        $res['mapping_url'] = $mapping_url;
+        return $this->succ($res);
+    }
+
 }
