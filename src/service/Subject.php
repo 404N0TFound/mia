@@ -2196,6 +2196,9 @@ class Subject extends \mia\miagroup\Lib\Service
         $labels = []; //关联标签
         //封面图
         if (!empty($param['cover_image'])) {
+            if (!empty($param['cover_image']['redirect_url'])) {
+                $param['cover_image']['redirect_url'] = str_replace('http://', 'https://', $param['cover_image']['redirect_url']);
+            }
             $subject_info['ext_info']['cover_image'] = $param['cover_image'];
         }
         if (!empty($param['cover_image']) && $param['cover_image_hidden'] != 1) {
@@ -2258,6 +2261,9 @@ class Subject extends \mia\miagroup\Lib\Service
                 case 'blog_image':
                     if (empty($v['blog_image']['width']) || empty($v['blog_image']['height']) || empty($v['blog_image']['url'])) {
                         continue;
+                    }
+                    if (!empty($v['blog_image']['redirect_url'])) {
+                        $v['blog_image']['redirect_url'] = str_replace('http://', 'https://', $v['blog_image']['redirect_url']);
                     }
                     $subject_info['image_infos'][] = $v['blog_image'];
                     $blog_meta[] = ['blog_image' => $v['blog_image']];
