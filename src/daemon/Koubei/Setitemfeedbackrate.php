@@ -75,7 +75,7 @@ class Setitemfeedbackrate extends \FD_Daemon {
                 continue;
             }
             //4、获取商品4分以上的评分口碑数量
-            $where['score'] = 4;
+            $where['score_in'] = [4, 5, 0];
             $highScoreNums = $this->koubeiData->getItemInvolveNums($filed, $where);
             //5、通过口碑评分，计算出商品关联及套装好评率
             $feedbackRate = round($highScoreNums/$totalNums* 100,2) ;
@@ -115,7 +115,7 @@ class Setitemfeedbackrate extends \FD_Daemon {
                 continue;
             }
             //4、获取商品4分以上的评分口碑数量
-            $where['score'] = 4;
+            $where['score_in'] = [4, 5, 0];
             $highScoreNums = $this->koubeiData->getItemInvolveNums($filed, $where);
         
             //5、通过口碑评分，计算出商品关联及套装好评率
