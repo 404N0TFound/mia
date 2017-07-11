@@ -161,6 +161,9 @@ class Koubei extends \DB_Query {
         if(isset($con['score'])){
             $where[] = [':ge','score',$con['score']];
         }
+        if(isset($con['score_in'])){
+            $where[] = ['score', $con['score_in']];
+        }
 
         // 封测报告首页报告数逻辑处理(不包含口碑数)
         if(isset($con['pick_num'])) {
