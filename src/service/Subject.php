@@ -169,7 +169,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         switch ($tabId) {
             //育儿
-            case $this->config['group_fixed_tab_last'][0]['extend_id']:
+            case $tabId == $this->config['group_fixed_tab_last'][0]['extend_id']:
                 $noteRemote = new RecommendNote($this->ext_params);
                 $userNoteListIds = $noteRemote->getYuerNoteList($this->config['yuer_labels'], $page, $count);
                 if (empty($userNoteListIds)) {
@@ -207,11 +207,12 @@ class Subject extends \mia\miagroup\Lib\Service
                 $tabName = $this->subjectModel->getTabInfos($tabId);
                 $tabName = implode(",", array_keys($tabName));
                 
+                //通过一级分类和频道tab的匹配关系，获取到首页频道tab_id
                 $firstLevel = $this->config['first_level'];
                 $firstLevel = array_flip($firstLevel);
                 $secondLevel = $this->config['second_level'];
                 if(isset($secondLevel[$tabName])){
-                    $otherTabId = $firstLevel[$secondLevel[$tabName]];
+                    $tabId = $firstLevel[$secondLevel[$tabName]];
                 }
 
                 $userNoteListIds = $noteRemote->getNoteListByCate($tabName, $page, $count);
@@ -219,15 +220,9 @@ class Subject extends \mia\miagroup\Lib\Service
 
         //发现列表，增加运营广告位
         $operationNoteData = [];
-        if (($tabId == $this->config['group_fixed_tab_first'][0]['extend_id']) || isset($otherTabId)) {
-            //如果是其他频道页，将需要转换tabid
-            if(isset($otherTabId)){
-                $tabId = $otherTabId;
-            }
-            $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
-            //运营数据和普通数据去重
-            $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
-        }
+        $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page);
+        //运营数据和普通数据去重
+        $userNoteListIds = array_diff($userNoteListIds, array_intersect(array_keys($operationNoteData), $userNoteListIds));
         //合并数据Ids
         $combineIds = $this->combineOperationIds($userNoteListIds, $operationNoteData);
 
@@ -1978,8 +1973,13 @@ class Subject extends \mia\miagroup\Lib\Service
         //查询贴子收藏数
         $collect_num = $this->getBatchSubjectCollectCount(intval($sourceId))["data"][intval($sourceId)];
         $res = [];
+        if ($collectInfo["status"] == $status) {
+            $success = $status;
+        } else {
+            $success = intval(!$collectInfo["status"]);
+        }
         $res["collected_count"] = intval($collect_num);
-        $res["collected_by_me"] = $result ? TRUE : FALSE;
+        $res["collected_by_me"] = $success;
         return $this->succ($res);
     }
 
@@ -2012,6 +2012,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['user_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
             return $this->error(500);
         }
+
         //解析参数
         $parsed_param = $this->_parseBlogParam($param);
         //发布长文贴子

@@ -24,9 +24,9 @@ class Active extends \DB_Query {
                 $where[] = [':le','start_time', $currentTime];
                 $where[] = [':ge','end_time', $currentTime];
             }elseif($condition['active_status'] == 3){//已结束
-                $where[] = [':le','end_time', $currentTime];
+                $where[] = [':lt','end_time', $currentTime];
             }else{
-                $where[] = [':ge','start_time', $currentTime];//未开始
+                $where[] = [':gt','start_time', $currentTime];//未开始
             }
         }
 

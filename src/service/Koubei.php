@@ -1147,6 +1147,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $label_service = new LabelService();
                 $labels = $label_service->getRecommendLabels()['data'];
                 $return_Info['labels'] = $labels;
+                
+                //展示当前在线活动
+                $active_service = new ActiveService();
+                if($active_id > 0){
+                    $active_info[$active_id] = $active_service->getSingleActiveById($active_id)['data'];
+                }else{
+                    $active_info = $active_service->getCurrentActive(6)['data'];
+                }
+                $return_Info['current_actives'] = array_values($active_info);
+                
+                //参加活动文案
+                $active_title = \F_Ice::$ins->workApp->config->get('busconf.active.activeTitle');
+                $return_Info['active_title'] = $active_title;
+                
                 break;
 
             default:
@@ -1197,18 +1211,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
                 // 展示商品信息
                 $return_Info['item_info'] = $item_info[$item_id];
-                //展示当前在线活动
-                $active_service = new ActiveService();
-                if($active_id > 0){
-                    $active_info[$active_id] = $active_service->getSingleActiveById($active_id)['data'];
-                }else{
-                    $active_info = $active_service->getCurrentActive(6)['data'];
-                }
-                $return_Info['current_actives'] = $active_info;
-                
-                //参加活动文案
-                $active_title = \F_Ice::$ins->workApp->config->get('busconf.active.activeTitle');
-                $return_Info['active_title'] = $active_title;
                 break;
         }
         // 容错
