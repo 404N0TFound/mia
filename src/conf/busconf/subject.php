@@ -98,6 +98,18 @@ $album = array(
  );
  
  /**
+  * 帖子状态
+  */
+ $status = array(
+     'user_delete'   => 0,   //用户已删除
+     'shield'        => -1,  //管理员屏蔽
+     'normal'        => 1,   //正常状态
+     'transcoding'   => 2,   //视频转码中
+     'koubei_hidden' => 3,   //口碑默认好评不展示
+     'suspicious'    => 4,   //可疑帖子，暂不展示
+ );
+ 
+ /**
   * 帖子ext_info字段
   */
  $extinfo_field = array(

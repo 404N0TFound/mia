@@ -268,17 +268,13 @@ class Active extends \mia\miagroup\Lib\Service {
                 $type = 'active_over';
             }
         }
-        $activeIds = array($activeId);
-        $subjectArrs = $this->activeModel->getBatchActiveSubjects($activeIds, $type, $page, $limit);
-        if(empty($subjectArrs) || empty($subjectArrs[$activeId])){
+        $subjectIds = $this->activeModel->getBatchActiveSubjects($activeId, $type, $page, $limit);
+        if(empty($subjectIds)){
             return $this->succ($data);
         }
-        $subjectIds = array_column($subjectArrs[$activeId], 'subject_id');
-        if(!empty($subjectIds)) {
-            $subjectService = new SubjectService();
-            $subjects = $subjectService->getBatchSubjectInfos($subjectIds,$currentId)['data'];
-            $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
-        }
+        $subjectService = new SubjectService();
+        $subjects = $subjectService->getBatchSubjectInfos($subjectIds,$currentId)['data'];
+        $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
         return $this->succ($data);
     }
     

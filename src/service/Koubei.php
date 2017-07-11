@@ -300,7 +300,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $subjectInfo['user_info']['user_id'] = $koubeiSetData['user_id'];
             $subjectInfo['title'] = '';
             $subjectInfo['text'] = '';
-            $subjectInfo['status'] = 3; //不展示
+            $subjectInfo['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.koubei_hidden'); //默认好评口碑不展示
             $subjectInfo['created'] = $koubeiSetData['created_time'];
             $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
             $subjectIssue = $this->subjectService->issue($subjectInfo, array('item_id'=>$koubeiSetData['item_id']), array(), $koubeiInsertId)['data'];

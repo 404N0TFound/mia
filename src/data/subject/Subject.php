@@ -158,7 +158,7 @@ class Subject extends \DB_Query {
      */
     public function delete($subjectId,$userId){
         //删除帖子
-        $setData[] = ['status',0];
+        $setData[] = ['status', \F_Ice::$ins->workApp->config->get('busconf.subject.status.user_delete')];
         $where[] = ['id',$subjectId];
         $where[] = ['user_id',$userId];
         $affect = $this->update($setData,$where);
@@ -179,31 +179,6 @@ class Subject extends \DB_Query {
         $orderBy = 'top_time desc, update_time desc';
         $subjectsArrs = $this->getRows($where,'id',$iPageSize,$offsetLimit,$orderBy);
         return array_column($subjectsArrs, 'id');
-    }
-    
-    /**
-     * 根据用户ID获取帖子信息
-     */
-    public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
-        $where[] = ['id', $subjectId];
-        $where[] = ['user_id', $userId];
-        $where[] = ['status', $status];
-        $data = $this->getRow($where);
-        return $data;
-    }
-    
-    /**
-     * 获取用户的帖子
-     */
-    public function getSubjectsByUid($userId){
-        if (empty($userId)) {
-            return array();
-        }
-        $where = array();
-        $where[] = ['user_id',$userId];
-        $where[] = ['status',1];
-        $result = $this->getRows($where);
-        return $result;
     }
     
     /**
@@ -287,55 +262,6 @@ class Subject extends \DB_Query {
     }
     
     /**
-     * 获取蜜芽圈活动下的帖子（全部/精华）
-     */
-    public function getSubjectIdsByActiveid($activeId, $type = 'all', $page = 1, $limit = 20){
-        $offsetLimit = $page > 1 ? $limit * ($page - 1) : 0;    
-        $where[] = ['active_id',$activeId];
-        $where[] = ['status',1];
-        $orderBy = 'created desc';
-        if($type == 'recommend'){
-            $where[] = ['is_fine',1];
-            $orderBy = 'top_time desc, update_time desc';
-        }
-        
-        $subjectsArrs = $this->getRows($where,'id',$limit,$offsetLimit,$orderBy);
-        return array_column($subjectsArrs, 'id');
-    }
-
-    /**
-     * 获取帖子列表
-     * @param $params
-     * @return array
-     */
-    public function getSubjectList($params)
-    {
-        $where = [];
-        if(isset($params['is_fine'])){
-            $where[] = array(':eq', 'group_subjects.is_fine', $params['is_fine']);
-        }
-        if (intval($params['iPageSize']) > 0) {
-            $offset = ($params['page'] - 1) > 0 ? (($params['page'] - 1) * $params['iPageSize']) : 0;
-            $limit = $params['iPageSize'];
-        }
-        $join = FALSE;
-        if (isset($params['without_item']) && $params['without_item'] == 1) {
-            $join = 'LEFT JOIN group_subject_point_tags ON  group_subjects.id = group_subject_point_tags.subject_id';
-            $where[] = array(':and', array(
-                array(':isnull', 'group_subject_point_tags.id'),
-            ));
-        }
-        $orderBy = array('group_subjects.id DESC');
-        $data = $this->getRows($where, array('group_subjects.id as id'), $limit, $offset, $orderBy, $join);
-        if ($data) {
-            foreach ($data as $value) {
-                $subjectIds[] = $value['id'];
-            }
-        }
-        return $subjectIds;
-    }
-    
-    /**
      * 获取用户在某个时间段内的发帖排行
      */
     public function getPushlishRankByTime($user_ids, $start_time, $end_time, $conditon = [], $offset = 0, $limit = false) {
@@ -368,5 +294,41 @@ class Subject extends \DB_Query {
             }
         }
         return $result;
+    }
+    
+    /**
+     * 获取帖子表的最大ID
+     */
+    public function getMaxSubjectId($condition = array()) {
+        $where = [];
+        foreach ($condition as $k => $v) {
+            switch ($k) {
+                default:
+                    $where[] = [$k, $v];
+            }
+        }
+        $data = $this->getRow($where, 'max(id)');
+        return $data;
+    }
+    
+    /**
+     * 获取帖子列表
+     */
+    public function getSubjectList($condition, $offset = 0, $limit = 10) {
+        $where = [];
+        $order_by = 'id desc';
+        foreach ($condition as $k => $v) {
+            switch ($k) {
+                case 'id_begin':
+                    $where[] = ['gt', 'id', $v];
+                    $order_by = 'id asc';
+                    break;
+                default:
+                    $where[] = [$k, $v];
+            }
+        }
+        $data = $this->getRows($where, 'id', $limit, $offset, $order_by);
+        $data = array_column($data, 'id');
+        return $data;
     }
 }

@@ -920,7 +920,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $videoInfo['user_id'] = $subjectInfo['user_info']['user_id'];
             $videoInfo['video_origin_url'] = $subjectInfo['video_url'];
             $videoInfo['source'] = 'qiniu';
-            $videoInfo['status'] = 2;
+            $videoInfo['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.transcoding');
             $videoInfo['create_time'] = $subjectSetInfo['created'];
             $videoId = $this->addSubjectVideo($videoInfo, true)['data'];
             if ($videoId > 0) {
@@ -1506,14 +1506,6 @@ class Subject extends \mia\miagroup\Lib\Service
             $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
         }
         return $this->succ($data);
-    }
-    
-    /**
-     * 根据用户ID获取帖子信息
-     */
-    public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
-        $data = $this->subjectModel->getSubjectDataByUserId($subjectId, $userId, $status);
-        return $data;
     }
     
     /**
