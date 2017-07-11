@@ -108,7 +108,7 @@ class Setitemfeedbackrate extends \FD_Daemon {
             $where = array();
             $where['item_id'] = $itemIds;
             $where['status'] = 2;
-            $where['score'] = 1;
+            $where['subject_id'] = 0;
             
             $totalNums = $this->koubeiData->getItemInvolveNums($filed, $where);
             if(empty($totalNums)) {
