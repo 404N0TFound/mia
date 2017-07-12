@@ -346,7 +346,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         $doozerIds = array();
         $operationNoteIds = array_keys($operationNoteData);
         foreach ($operationNoteIds as $key => $value) {
-            list($relation_id, $relation_type) = explode('_', $value, 2);
+            list($tab_id, $relation_id, $relation_type) = explode('_', $value, 3);
             if($relation_type == 'link'){
                 continue;
             }
@@ -373,7 +373,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     
         $return = [];
         foreach ($operationNoteIds as $value) {
-            list($relation_id, $relation_type) = explode('_', $value, 2);
+            list($tab_id, $relation_id, $relation_type) = explode('_', $value, 3);
             //使用运营配置信息
             if (array_key_exists($value, $operationNoteData)) {
                 $relation_id = $operationNoteData[$value]['relation_id'];
