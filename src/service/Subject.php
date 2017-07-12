@@ -721,6 +721,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 if (!empty($blog_info)) {
                     $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
                 }
+                unset($subjectInfo['share_info']);
             }
             //获取商品推荐
             if (in_array('item', $field)) {
