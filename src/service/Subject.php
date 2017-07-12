@@ -2112,7 +2112,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $user_service = new \mia\miagroup\Service\User();
         $item_service = new \mia\miagroup\Service\Item();
         $subjects = $this->getBatchSubjectInfos($subject_ids, 0, ['user_info', 'content_format'])['data'];
-        $users = $user_service->getUserInfoByUids($user_ids)['data'];
+        $users = $user_service->getUserInfoByUids($user_ids, intval($this->ext_params['current_uid']))['data'];
         $items = $item_service->getBatchItemBrandByIds($item_ids)['data'];
         //拼装结果集
         foreach ($blog_meta_list as $key => $blog_meta) {
