@@ -1804,6 +1804,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 usort($tagList, function ($left, $right) {
                     return $left['count'] < $right['count'];
                 });
+
+                // 好评率标签（add by 5.6）
+                $version = explode('_', $this->ext_params['version'], 3);
+                array_shift($version);
+                $version = intval(implode($version));
+                if ($version >= 56) {
+                    $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
+                    $praise = [];
+                    if(!empty($feedbackRate)){
+                        $feedback_rate = $feedbackRate."%";
+                        $praise['type'] = "collect";
+                        $praise['tag_id'] = 1;
+                        $praise['tag_name'] = $feedback_rate.'好评';
+                        $praise['count'] = 1;
+                        $praise['positive'] = 1;
+                    }
+                }
+                if(!empty($praise)) {
+                    array_unshift($tagList, $praise);
+                }
             }
         }
 
