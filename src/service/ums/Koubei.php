@@ -165,7 +165,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //思源二级商家id
             $solrCond['siyuan_son_supplier_id'] = $params['siyuan_son_supplier_id'];
         }
-        
+
+        // 商家开通回复权限时间限制
+        if(intval($params['reply_authority']) && intval($params['reply_authority']) == 1 && !empty($solrCond['supplier_id'])) {
+            $itemService = new \mia\miagroup\Service\Item();
+            $supplier = $itemService->getMappingBySupplierId($solrCond['supplier_id'])['data'];
+            if($supplier['status'] == 1 && !empty($supplier['create_time'])) {
+                if(!empty($solrCond['end_time']) && ($supplier['create_time'] > $solrCond['end_time'])) {
+                    return $this->succ($result);
+                }
+                $solrCond['start_time'] = $supplier['create_time'];
+            }
+        }
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');
             $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);
