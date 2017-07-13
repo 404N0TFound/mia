@@ -167,7 +167,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
 
         // 商家开通回复权限时间限制
-        if(intval($params['reply_authority']) && intval($params['reply_authority']) == 1 && !empty($solrCond['supplier_id'])) {
+        if(!empty($solrCond['supplier_id'])) {
             $itemService = new \mia\miagroup\Service\Item();
             $supplier = $itemService->getMappingBySupplierId($solrCond['supplier_id'])['data'];
             if($supplier['status'] == 1 && !empty($supplier['create_time'])) {
