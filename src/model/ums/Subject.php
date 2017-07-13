@@ -14,6 +14,8 @@ class Subject extends \DB_Query {
     protected $indexSubject = array('id', 'user_id', 'created', 'status', 'is_top', 'is_fine');
     //帖子草稿
     protected $tableSubjectDraft = 'group_subject_draft';
+    //长文
+    protected $tableBlog = 'group_subject_blog_info';
 
     protected $tabData = null;
     protected $tabOpeationData = null;
@@ -65,6 +67,48 @@ class Subject extends \DB_Query {
     }
     
     /**
+     * 查询长文数据
+     */
+    public function getBlogData($cond, $offset = 0, $limit = 50, $orderBy = '') {
+        $this->tableName = $this->tableBlog;
+        $result = array('count' => 0, 'list' => array());
+        $where = array();
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'index_cover':
+                        if ($v == 1) {
+                            $where[] = [':notnull','index_cover_image'];
+                        } else {
+                            $where[] = [':isnull','index_cover_image'];
+                        }
+                        break;
+                    case 'start_time':
+                        $where[] = [':ge','created', $v];
+                        break;
+                    case 'end_time':
+                        $where[] = [':le','created', $v];
+                        break;
+                    default:
+                        $where[] = [$k, $v];
+                }
+            }
+        }
+        $result['count'] = $this->count($where);
+        if (intval($result['count']) <= 0) {
+            return $result;
+        }
+        $data = $this->getRows($where, 'subject_id', $limit, $offset, $orderBy);
+        if (!empty($data)) {
+            foreach ($data as $k => $v) {
+                $result['list'][] = $v['subject_id'];
+            }
+        }
+        return $result;
+    }
+    
+    /**
      * 获取首页，推荐栏目，运营数据
      * @param $tabId
      * @param $page
@@ -72,16 +116,16 @@ class Subject extends \DB_Query {
      */
     public function getOperationNoteData($tabId, $page, $timeTag=null)
     {
-        if (empty($tabId)) {
-            return [];
+        if (!empty($tabId)) {
+            $conditions['tab_id'] = $tabId;
         }
-        $conditions['tab_id'] = $tabId;
+        
         $conditions['page'] = $page;
         if(isset($timeTag)){
             $conditions['time_tag'] = $timeTag;
         }
         $result = array();
-        $operationInfos = $this->tabOpeationData->getBatchOperationNotes($conditions);
+        $operationInfos = $this->tabOpeationData->getBatchOperationInfos($conditions);
         if(!empty($operationInfos)){
             $result = $operationInfos;
         }
