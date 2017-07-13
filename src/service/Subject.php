@@ -2125,8 +2125,8 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
             if (isset($blog_meta['blog_relate_user'])) {
-                if (!empty($users[$blog_meta['blog_user']])) {
-                    $blog_meta_list[$key]['blog_user'] = $users[$blog_meta['blog_user']];
+                if (!empty($users[$blog_meta['blog_relate_user']])) {
+                    $blog_meta_list[$key]['blog_relate_user'] = $users[$blog_meta['blog_relate_user']];
                 } else {
                     unset($blog_meta_list[$key]);
                 }
