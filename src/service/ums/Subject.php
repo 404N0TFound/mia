@@ -120,6 +120,49 @@ class Subject extends \mia\miagroup\Lib\Service {
         $result['count'] = $data['count'];
         return $this->succ($result);
     }
+    
+    /**
+     * 获取长文列表
+     */
+    public function getBlogList($params) {
+        $result = array('list' => array(), 'count' => 0);
+        $condition = array();
+        //初始化入参
+        $orderBy = 'id desc'; //默认排序
+        if ($params['limit'] === false) {
+            $limit = false;
+        } else {
+            $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 20;
+        }
+        $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
+        if (intval($params['user_id']) > 0 && intval($condition['id']) <= 0) {
+            //用户id
+            $condition['user_id'] = $params['user_id'];
+        }
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && intval($condition['id']) <= 0) {
+            //状态
+            $condition['status'] = $params['status'];
+        }
+        
+        if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
+            //起始时间
+            $condition['start_time'] = $params['start_time'];
+        }
+        if (strtotime($params['end_time']) > 0 && intval($condition['id']) <= 0) {
+            //结束时间
+            $condition['end_time'] = $params['end_time'];
+        }
+        $data = $this->subjectModel->getBlogData($condition, $offset, $limit, $orderBy);
+        if (empty($data['list'])) {
+            return $this->succ($result);
+        }
+        $subjectIds = $data['list'];
+        $subjectService = new SubjectService();
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
+        $result['list'] = array_values($subjectInfos);
+        $result['count'] = $data['count'];
+        return $this->succ($result);
+    }
 
     /*
      * 帖子综合搜索
@@ -280,7 +323,7 @@ class Subject extends \mia\miagroup\Lib\Service {
      * @param $tabId
      * @param $page
      */
-    public function getOperationNoteList($tabId=1, $page = 1)
+    public function getOperationNoteList($tabId= array(), $page = 1)
     {
         //发现列表，增加运营广告位
         $res = array();
@@ -303,7 +346,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         $doozerIds = array();
         $operationNoteIds = array_keys($operationNoteData);
         foreach ($operationNoteIds as $key => $value) {
-            list($relation_id, $relation_type) = explode('_', $value, 2);
+            list($tab_id, $relation_id, $relation_type) = explode('_', $value, 3);
             if($relation_type == 'link'){
                 continue;
             }
@@ -330,7 +373,7 @@ class Subject extends \mia\miagroup\Lib\Service {
     
         $return = [];
         foreach ($operationNoteIds as $value) {
-            list($relation_id, $relation_type) = explode('_', $value, 2);
+            list($tab_id, $relation_id, $relation_type) = explode('_', $value, 3);
             //使用运营配置信息
             if (array_key_exists($value, $operationNoteData)) {
                 $relation_id = $operationNoteData[$value]['relation_id'];
@@ -402,5 +445,30 @@ class Subject extends \mia\miagroup\Lib\Service {
             unset($relation_cover_image);
         }
         return $return;
+    }
+    
+    /**
+     * 首页导航分类标签
+     * @return mixed
+     */
+    public function indexTabLists()
+    {
+        $config = \F_Ice::$ins->workApp->config->get('busconf.subject');
+        //起始固定位，“发现”，“关注”
+        $headTabs = $config['group_fixed_tab_first'];
+        //一级频道分类
+        $middleTabs = $config['first_level'];
+        //结尾固定位，“育儿”
+        $endTabs = $config['group_fixed_tab_last'];
+    
+        //将首页固定频道和一级频道格式统一
+        $fixTabs = array_merge($headTabs,$endTabs);
+        $newTab = array();
+        foreach ($fixTabs as $v) {
+            $newTab[$v['extend_id']] = $v['name'];
+        }
+    
+        $tabResult = $newTab+$middleTabs;
+        return $this->succ($tabResult);
     }
 }
