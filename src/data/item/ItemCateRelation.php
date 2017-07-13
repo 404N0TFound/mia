@@ -8,6 +8,7 @@ class ItemCateRelation extends \DB_Query {
     protected $dbResource = 'miadefault';
 
     protected $tableName = 'app_menu_category_v2';
+    protected $tableOldCategory = 'item_category';
     protected $tableNewCategory = 'item_category_ng';
     protected $mapping = array();
 
@@ -54,16 +55,39 @@ class ItemCateRelation extends \DB_Query {
     /*
      * 根据四级分类查询父类目路径
      * */
-    public function getparentCategoryPath($category_id_ng) {
+    public function getparentCategoryPath($category_id_ng, $condition) {
 
         if(empty($category_id_ng)) {
             return '';
         }
         $this->tableName = $this->tableNewCategory;
+        if($condition['type'] == 1) {
+            $this->tableName = $this->tableOldCategory;
+        }
         $where[] = ['status', 1];
         $where[] = ['id',$category_id_ng];
         $fields = "path";
         $result = $this->getRows($where,$fields);
         return $result[0]['path'];
+    }
+
+    /*
+     * 获取分类相关信息
+     * */
+    public function getCategoryIdInfo($category_id, $condition)
+    {
+        if(empty($category_id)) {
+            return [];
+        }
+        $category_info = [];
+        $this->tableName = $this->tableNewCategory;
+        if($condition['type'] == 1) {
+            $this->tableName = $this->tableOldCategory;
+        }
+        $where[] = ['status', 1];
+        $where[] = ['id',$category_id];
+        $fields = "*";
+        $category_info = $this->getRow($where,$fields);
+        return $category_info;
     }
 }

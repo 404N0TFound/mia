@@ -118,15 +118,18 @@ class Item extends \DB_Query {
     /*
      * 获取商品的四级分类（new）
      * */
-    public function getItemNewCategory($item_id)
+    public function getItemNewCategory($item_id, $condition)
     {
         if (empty($item_id)) {
             return false;
         }
         $where[] = ['id', $item_id];
         $fields = 'category_id_ng';
+        if($condition['type'] == 1) {
+            $fields = 'category_id';
+        }
         $data = $this->getRow($where, $fields);
-        $category_id_ng = $data['category_id_ng'];
-        return $category_id_ng;
+        $category_id = $data[$fields];
+        return $category_id;
     }
 }

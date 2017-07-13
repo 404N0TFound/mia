@@ -206,14 +206,14 @@ class Item extends \mia\miagroup\Lib\Service {
     /*
      * 根据商品ID获取商品父分类ID
      * */
-    public function getRelationCateId($item_id, $level)
+    public function getRelationCateId($item_id, $level, $condition = array())
     {
         if(empty($item_id)) {
             return $this->succ();
         }
         $parent_category_id = '';
-        $catgory_id_ng = $this->getCategoryIdNgByItem($item_id)['data'];
-        $category_path = $this->getParentCatePath($catgory_id_ng)['data'];
+        $category_id_ng = $this->getCategoryIdNgByItem($item_id, $condition)['data'];
+        $category_path = $this->getParentCatePath($category_id_ng, $condition)['data'];
         $parent_cate_id = explode('-', $category_path);
         if(!empty($parent_cate_id)) {
             $parent_category_id = $parent_cate_id[$level];
@@ -224,24 +224,36 @@ class Item extends \mia\miagroup\Lib\Service {
     /*
      * 根据商品ID获取新类目ID
      * */
-    public function getCategoryIdNgByItem($item_id)
+    public function getCategoryIdNgByItem($item_id, $condition = array())
     {
         if(empty($item_id)) {
             return $this->succ();
         }
-        $catgory_id_ng = $this->itemModel->itemCategoryIdNg($item_id);
+        $catgory_id_ng = $this->itemModel->itemCategoryIdNg($item_id, $condition);
         return $this->succ($catgory_id_ng);
     }
 
     /*
      * 根据商品四级类目获取父类目路径
      * */
-    public function getParentCatePath($category_id_ng)
+    public function getParentCatePath($category_id_ng, $condition = array())
     {
         if(empty($category_id_ng)) {
             return $this->succ();
         }
-        $catgory_path = $this->itemModel->parentCatePath($category_id_ng);
+        $catgory_path = $this->itemModel->parentCatePath($category_id_ng, $condition);
         return $this->succ($catgory_path);
+    }
+
+    /*
+     * 根据类目id获取类目信息
+     * */
+    public function getCategoryIdInfo($category_id, $condition = array())
+    {
+        if(empty($category_id)) {
+            return $this->succ([]);
+        }
+        $category_info = $this->itemModel->categoryInfo($category_id, $condition);
+        return $this->succ($category_info);
     }
 }
