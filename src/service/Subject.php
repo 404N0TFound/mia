@@ -2312,7 +2312,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $first_level_info = $this->getFirstLevel([$cate_name]);
         $mapping = $this->config['miagroup_cate_mapping'];
         $params['title'] = $mapping['default_title'].array_values($first_level_info)[0]['name'];
-        $params['item_id'] = $item_id;
+        $params['id'] = $item_id;
         $params['source'] = $mapping['source'];
         $mapping_params = '';
         foreach($params as $key=>$value) {
