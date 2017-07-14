@@ -263,7 +263,16 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectIds = array();
         $doozerIds = array();
         foreach ($ids as $key => $value) {
-            list($relation_id, $relation_type) = explode('_', $value, 2);
+            //区分前端和ums后台的关联id（ums的用_拼了一个tab_id）
+            $count = substr_count($value, "_");
+            //count为2的为后台的，这种情况是处理同一个帖子出现在不用tab下的情况
+            if($count == 2){
+                list($tab_id, $relation_id, $relation_type) = explode('_', $value, 3);
+            }else{
+                //前端不会出现，前端展示的都是单个tab下的帖子瀑布流
+                list($relation_id, $relation_type) = explode('_', $value, 2);
+            }
+            
             if($relation_type == 'link'){
                 continue;
             }
@@ -275,7 +284,6 @@ class Subject extends \mia\miagroup\Lib\Service
                 $doozerIds[] = $relation_id;
             }
         }
-        
         //批量获取帖子信息
         if(!empty($subjectIds)){
             $subjects = $this->getBatchSubjectInfos($subjectIds, 0, ['user_info', 'count', 'content_format'])['data'];
@@ -288,10 +296,18 @@ class Subject extends \mia\miagroup\Lib\Service
 
         $return = [];
         foreach ($ids as $value) {
-            list($relation_id, $relation_type) = explode('_', $value, 2);
+            $count = substr_count($value, "_");
+            if($count == 2){
+                list($tab_id, $relation_id, $relation_type) = explode('_', $value, 3);
+            }else{
+                list($relation_id, $relation_type) = explode('_', $value, 2);
+            }
+            
             //使用运营配置信息
             $is_opearation = 0;
             if (array_key_exists($value, $operationNoteData)) {
+                $relation_id = $operationNoteData[$value]['relation_id'];
+                $relation_type = $operationNoteData[$value]['relation_type'];
                 $relation_desc = $operationNoteData[$value]['ext_info']['desc'] ? $operationNoteData[$value]['ext_info']['desc'] : '';
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
                 $relation_cover_image = !empty($operationNoteData[$value]['ext_info']['cover_image']) ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
@@ -1923,21 +1939,6 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         $data = $this->subjectModel->getOperateNoteByRelationId($relation_id, $relation_type);
         return $this->succ($data);
-    }
-    
-    /**
-     * 获取蜜芽圈笔记推广位列表
-     * @param $tabId
-     * @param $page
-     */
-    public function getOperationNoteList($tabId=array(1), $page = 1)
-    {
-        //发现列表，增加运营广告位
-        $res = array();
-        $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page, 'all');
-        $operationNoteIds = array_keys($operationNoteData);
-        $res['content_lists'] = $this->formatNoteData($operationNoteIds,$operationNoteData);
-        return $this->succ($res);
     }
 
     /**
