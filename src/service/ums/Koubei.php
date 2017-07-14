@@ -174,7 +174,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 if(!empty($solrCond['end_time']) && ($supplier['create_time'] > $solrCond['end_time'])) {
                     return $this->succ($result);
                 }
-                $solrCond['start_time'] = $supplier['create_time'];
+                if(!empty($solrCond['start_time']) && $supplier['create_time'] > $solrCond['start_time']) {
+                    $solrCond['start_time'] = $supplier['create_time'];
+                }
             }
         }
         if($isRealtime == false){
