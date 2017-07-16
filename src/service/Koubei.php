@@ -123,7 +123,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         // 排序权重新增封测报告逻辑(新增封测报告逻辑)
         $koubeiSetData['extr_info'] = json_encode($labels);
-        $koubeiSetData['immutable_score'] = $this->calImmutableScore($koubeiSetData);
+
+
+        // 统计分值参数
+        $scoreParams['text'] = $koubeiSetData['content'];
+        $scoreParams['score'] = $koubeiSetData['score'];
+        $scoreParams['image_infos'] = $koubeiData['image_infos'];
+        // 蜜芽圈
+        $scoreParams['source'] = $koubeiData['source'];
+        // 封测报告
+        $scoreParams['type'] = $koubeiData['type'];
+        $scoreParams['selection'] = $labels['selection'];
+
+        $koubeiSetData['immutable_score'] = $this->calImmutableScore($scoreParams);
         $koubeiSetData['rank_score'] = $koubeiSetData['immutable_score'] + 12 * 0.5;
         //供应商ID获取
         $itemService = new ItemService();
@@ -765,7 +777,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $immutable_score += (0.3 * 10 * $hasPic);
 
         //文本长度分，100字以上10分，50字以上8分，30字以上5分，10字以上3分，10字以下1分，权重0.2
-        $content_count = mb_strlen($data['content'],'utf-8');
+        $content_count = mb_strlen($data['text'],'utf-8');
         if($content_count > 100) {
             $immutable_score += (10 * 0.2);
         }
@@ -786,14 +798,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $immutable_score += (($data['source'] == 1 ? 8 : 0) * 1);
 
         //封测报告，权重（上下浮动3分）
-        if(!empty($data['extr_info'])) {
-            $extr_arr = json_decode($data['extr_info'], true);
-            if($data['type'] == 1) {
-                if(!empty($extr_arr['selection']) && $extr_arr['selection'] == 1) {
-                    $immutable_score += 3;
-                }else {
-                    $immutable_score -= 3;
-                }
+        if(!empty($data['type']) && $data['type'] == 'pick') {
+            if(!empty($data['selection'])) {
+                $immutable_score += 3;
+            }else{
+                $immutable_score -= 3;
             }
         }
         return $immutable_score;
