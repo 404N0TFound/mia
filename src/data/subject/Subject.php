@@ -40,7 +40,10 @@ class Subject extends \DB_Query {
             if (!empty($output[0])) {
                 $tmp_text = [];
                 foreach ($output[0] as $tmp) {
-                    $tmp_text[] = strip_tags($tmp, '');
+                    $tmp = strip_tags($tmp, '');
+                    if (!empty($tmp)) {
+                        $tmp_text[] = $tmp;
+                    }
                 }
                 $tmp_text = implode("\n", $tmp_text);
             }
