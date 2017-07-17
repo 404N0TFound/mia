@@ -2147,7 +2147,7 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (isset($blog_meta['blog_image'])) {
                 if (!preg_match("/^(http|https):\/\//", $blog_meta['blog_image']['url'])) {
-                    $blog_meta_list[$key]['blog_image'] = NormalUtil::buildImgUrl($blog_meta['blog_image']['url'], 'normal', $blog_meta['blog_image']['width'], $blog_meta['blog_image']['height']);
+                    $blog_meta_list[$key]['blog_image']['url'] = NormalUtil::buildImgUrl($blog_meta['blog_image']['url'], 'normal', $blog_meta['blog_image']['width'], $blog_meta['blog_image']['height'])['url'];
                 }
             }
         }
