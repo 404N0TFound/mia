@@ -1805,7 +1805,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     return $left['count'] < $right['count'];
                 });
 
-                // 好评率标签（add by 5.6）
+                // 好评率标签（add by 5.6）,好评默认不显示count
                 $version = explode('_', $this->ext_params['version'], 3);
                 array_shift($version);
                 $version = intval(implode($version));
@@ -1817,7 +1817,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         $praise['type'] = "collect";
                         $praise['tag_id'] = 1;
                         $praise['tag_name'] = $feedback_rate.'好评';
-                        $praise['count'] = 1;
+                        $praise['count'] = 0;
                         $praise['positive'] = 1;
                     }
                 }
