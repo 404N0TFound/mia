@@ -95,12 +95,26 @@ class Active extends \mia\miagroup\Lib\Service {
     public function getCurrentActive($limit=0) {
         $condition = array('active_status' => 2);
         $activeRes = array();
-        // 获取活动基本信息
-        $activeRes = $this->activeModel->getActiveList(false, $limit, array(1), $condition);
-        if (empty($activeRes)) {
-            return $this->succ(array());
+        // 获取所有活动基本信息
+        $activeArr = $this->activeModel->getActiveList(0, false, array(1), $condition);
+        if (empty($activeArr)) {
+            return $this->succ($activeRes);
         }
 
+        //如果传入数量，则需要过滤掉没有小图的活动，用到发帖页
+        if($limit > 0){
+            foreach($activeArr as $key=>$active){
+                if(!isset($active['icon_img'])){
+                    continue;
+                }
+                $activeRes[$key] = $active;
+            }
+            $activeRes = array_slice($activeRes,0,$limit);
+        }else{
+            //如果没有传入数量，则获取所有的活动，无需过滤没有小图的
+            $activeRes = $activeArr;
+        }
+        
         return $this->succ($activeRes);
     }
 

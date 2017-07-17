@@ -32,13 +32,10 @@ class Active {
         $activeRes = $this->activeData->getBatchActiveInfos($page, $limit, $status,$condition);
         $activeArr = array();
         if(!empty($activeRes)){
-            foreach($activeRes as $active){
+        foreach($activeRes as $active){
                 $activeArr[$active['id']] = $active;
                 if(!empty($active['ext_info'])){
                     $extInfo = json_decode($active['ext_info'],true);
-                    if(!empty($extInfo['labels'])){
-                        $activeArr[$active['id']]['labels'] = $extInfo['labels'];
-                    }
                     if(!empty($extInfo['labels'])){
                         $activeArr[$active['id']]['labels'] = $extInfo['labels'];
                         $activeArr[$active['id']]['label_titles'] = implode(',',array_column($extInfo['labels'], 'title'));
@@ -47,16 +44,18 @@ class Active {
                         $activeArr[$active['id']]['top_img'] = $extInfo['image'];
                         $activeArr[$active['id']]['top_img_url'] = $active['top_img'];
                     }
-                    if(!empty($extInfo['cover_img'])){
+                    if(isset($extInfo['cover_img']) && !empty($extInfo['cover_img'])){
                         $activeArr[$active['id']]['cover_img'] = $extInfo['cover_img'];
+                    }else{
+                        $activeArr[$active['id']]['cover_img'] = $extInfo['image'];
                     }
-                    if(!empty($extInfo['icon_img'])){
+                    if(isset($extInfo['icon_img']) && !empty($extInfo['icon_img'])){
                         $activeArr[$active['id']]['icon_img'] = $extInfo['icon_img'];
                     }
-                    if(!empty($extInfo['image_count_limit'])){
+                    if(isset($extInfo['image_count_limit']) && !empty($extInfo['image_count_limit'])){
                         $activeArr[$active['id']]['image_count_limit'] = $extInfo['image_count_limit'];
                     }
-                    if(!empty($extInfo['text_lenth_limit'])){
+                    if(isset($extInfo['text_lenth_limit']) && !empty($extInfo['text_lenth_limit'])){
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
                     }
                 }

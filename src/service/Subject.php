@@ -11,6 +11,7 @@ use mia\miagroup\Service\Comment as CommentService;
 use mia\miagroup\Service\Praise as PraiseService;
 use mia\miagroup\Service\Album as AlbumService;
 use mia\miagroup\Service\Koubei as KoubeiService;
+use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Util\NormalUtil;
 use mia\miagroup\Service\PointTags as PointTagsService;
 use mia\miagroup\Remote\RecommendedHeadline as HeadlineRemote;
@@ -262,7 +263,16 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectIds = array();
         $doozerIds = array();
         foreach ($ids as $key => $value) {
-            list($relation_id, $relation_type) = explode('_', $value, 2);
+            //区分前端和ums后台的关联id（ums的用_拼了一个tab_id）
+            $count = substr_count($value, "_");
+            //count为2的为后台的，这种情况是处理同一个帖子出现在不用tab下的情况
+            if($count == 2){
+                list($tab_id, $relation_id, $relation_type) = explode('_', $value, 3);
+            }else{
+                //前端不会出现，前端展示的都是单个tab下的帖子瀑布流
+                list($relation_id, $relation_type) = explode('_', $value, 2);
+            }
+            
             if($relation_type == 'link'){
                 continue;
             }
@@ -274,7 +284,6 @@ class Subject extends \mia\miagroup\Lib\Service
                 $doozerIds[] = $relation_id;
             }
         }
-        
         //批量获取帖子信息
         if(!empty($subjectIds)){
             $subjects = $this->getBatchSubjectInfos($subjectIds, 0, ['user_info', 'count', 'content_format'])['data'];
@@ -287,10 +296,18 @@ class Subject extends \mia\miagroup\Lib\Service
 
         $return = [];
         foreach ($ids as $value) {
-            list($relation_id, $relation_type) = explode('_', $value, 2);
+            $count = substr_count($value, "_");
+            if($count == 2){
+                list($tab_id, $relation_id, $relation_type) = explode('_', $value, 3);
+            }else{
+                list($relation_id, $relation_type) = explode('_', $value, 2);
+            }
+            
             //使用运营配置信息
             $is_opearation = 0;
             if (array_key_exists($value, $operationNoteData)) {
+                $relation_id = $operationNoteData[$value]['relation_id'];
+                $relation_type = $operationNoteData[$value]['relation_type'];
                 $relation_desc = $operationNoteData[$value]['ext_info']['desc'] ? $operationNoteData[$value]['ext_info']['desc'] : '';
                 $relation_title = $operationNoteData[$value]['ext_info']['title'] ? $operationNoteData[$value]['ext_info']['title'] : '';
                 $relation_cover_image = !empty($operationNoteData[$value]['ext_info']['cover_image']) ? $operationNoteData[$value]['ext_info']['cover_image'] : '';
@@ -1923,21 +1940,6 @@ class Subject extends \mia\miagroup\Lib\Service
         $data = $this->subjectModel->getOperateNoteByRelationId($relation_id, $relation_type);
         return $this->succ($data);
     }
-    
-    /**
-     * 获取蜜芽圈笔记推广位列表
-     * @param $tabId
-     * @param $page
-     */
-    public function getOperationNoteList($tabId=array(1), $page = 1)
-    {
-        //发现列表，增加运营广告位
-        $res = array();
-        $operationNoteData = $this->subjectModel->getOperationNoteData($tabId, $page, 'all');
-        $operationNoteIds = array_keys($operationNoteData);
-        $res['content_lists'] = $this->formatNoteData($operationNoteIds,$operationNoteData);
-        return $this->succ($res);
-    }
 
     /**
      * 收藏/取消收藏，帖子
@@ -2286,4 +2288,44 @@ class Subject extends \mia\miagroup\Lib\Service
         $subject_info['ext_info']['is_blog'] = 1;
         return ['subject_info' => $subject_info, 'blog_meta' => $blog_meta, 'labels' => $labels, 'items' => $items];
     }
+
+    /*
+     * 蜜芽圈口碑跳转数据列表
+     * condition:[1：新分类]
+     * */
+    public function group_cate_note_list ($item_id, $page = 1, $count = 20, $userId = 0) {
+
+        if(empty($item_id)) {
+            return $this->succ([]);
+        }
+        $item_service = new ItemService();
+        $condition['type'] = 1;
+        // 旧二级分类对应的一级分类
+        $parent_category_id = $item_service->getRelationCateId($item_id, 0, $condition)['data'];
+        // 获取旧二级分类对应的信息
+        $cate_info = $item_service->getCategoryIdInfo($parent_category_id, $condition)['data'];
+        if(empty($cate_info)) {
+            return $this->succ([]);
+        }
+        $cate_name = $cate_info['name'];
+        //$cate_name = '童装童鞋';
+        $first_level_info = $this->getFirstLevel([$cate_name]);
+        $mapping = $this->config['miagroup_cate_mapping'];
+        $params['title'] = $mapping['default_title'].array_values($first_level_info)[0]['name'];
+        $params['id'] = $item_id;
+        $params['source'] = $mapping['source'];
+        $mapping_params = '';
+        foreach($params as $key=>$value) {
+            $mapping_params .= "&". $key."=".$value;
+        }
+        $mapping_url = $mapping['skip_url'].$mapping_params;
+        // 获取分类对应的印象笔记
+        $noteRemote = new RecommendNote($this->ext_params);
+        $userNoteListIds = $noteRemote->getNoteListByCate($cate_name, $page, $count);
+
+        $res['note_cate_lists'] = $this->formatNoteData($userNoteListIds);
+        $res['mapping_url'] = $mapping_url;
+        return $this->succ($res);
+    }
+
 }
