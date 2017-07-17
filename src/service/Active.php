@@ -156,6 +156,15 @@ class Active extends \mia\miagroup\Lib\Service {
                 unset($activeInfo['label_titles']);
             }
         }
+        if(isset($activeInfo['image_count_limit'])){
+            $extInfo['image_count_limit']= $activeInfo['image_count_limit'];
+            unset($activeInfo['image_count_limit']);
+        }
+        
+        if(isset($activeInfo['text_lenth_limit'])){
+            $extInfo['text_lenth_limit']= $activeInfo['text_lenth_limit'];
+            unset($activeInfo['text_lenth_limit']);
+        }
 
         if(!empty($activeInfo['image_info'])){
             $extInfo['image']= $activeInfo['image_info'];
@@ -165,6 +174,11 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['cover_img']= $activeInfo['cover_img_info'];
             unset($activeInfo['cover_img_info']);
         }
+        if(!empty($activeInfo['icon_img_info'])){
+            $extInfo['icon_img']= $activeInfo['icon_img_info'];
+            unset($activeInfo['icon_img_info']);
+        }
+        
         $activeInfo['ext_info'] = json_encode($extInfo);
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
         
@@ -213,10 +227,25 @@ class Active extends \mia\miagroup\Lib\Service {
             unset($activeInfo['cover_img_info']);
         }
         
+        if(!empty($activeInfo['icon_img_info'])){
+            $extInfo['icon_img']= $activeInfo['icon_img_info'];
+            unset($activeInfo['icon_img_info']);
+        }
+        
+        if(isset($activeInfo['image_count_limit'])){
+            $extInfo['image_count_limit']= $activeInfo['image_count_limit'];
+            unset($activeInfo['image_count_limit']);
+        }
+        if(isset($activeInfo['text_lenth_limit'])){
+            $extInfo['text_lenth_limit']= $activeInfo['text_lenth_limit'];
+            unset($activeInfo['text_lenth_limit']);
+        }
+        
         $activeInfo['ext_info'] = json_encode($extInfo);
         $this->activeModel->updateActive($activeInfo, $activeId);
         return $this->succ(true);
     }
+    
     
     /**
      * 删除活动（用于后台活动管理删除活动）
