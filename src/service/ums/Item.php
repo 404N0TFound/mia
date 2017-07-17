@@ -62,7 +62,11 @@ class Item extends \mia\miagroup\Lib\Service {
             }
         }
         $itemService = new ItemService();
-        $res = $itemService->getItemList($itemIds)['data'];
+        if(isset($param["search_type"]) && $param["search_type"] == 1) {
+            $res = $itemService->getBatchItemBrandByIds($itemIds)['data'];
+        } else {
+            $res = $itemService->getItemList($itemIds)['data'];
+        }
         return $this->succ(array_values($res));
     }
 }
