@@ -36,6 +36,15 @@ class Subject extends \DB_Query {
             $v['title'] = $emojiUtil->emoji_html_to_unified($v['title']);
             $v['text'] = $emojiUtil->emoji_html_to_unified($v['text']);
             $v['text'] = str_replace('&nbsp;', ' ', $v['text']);
+            preg_match_all('/<p[^>]*>(?:(?!<\/p>)[\s\S])*<\/p>/si', $v['text'], $output);
+            if (!empty($output[0])) {
+                $tmp_text = [];
+                foreach ($output[0] as $tmp) {
+                    $tmp_text[] = strip_tags($tmp, '');
+                }
+                $tmp_text = implode("\n", $tmp_text);
+            }
+            $v['text'] = $tmp_text ? $tmp_text : $v['text'];
             $v['text'] = strip_tags($v['text']);
             $v['ext_info'] = json_decode($v['ext_info'], true);
             if (!is_array($v['ext_info'])) {
