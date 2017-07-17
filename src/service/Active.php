@@ -218,6 +218,7 @@ class Active extends \mia\miagroup\Lib\Service {
         return $this->succ(true);
     }
     
+    
     /**
      * 删除活动（用于后台活动管理删除活动）
      */

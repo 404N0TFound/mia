@@ -191,11 +191,20 @@ $cron_list['group_video_transcoding'] = array(
     'interval' => 60
 );
 
-//计算口碑好评率
-$cron_list['koubei_feedback_rate'] = array(
+//商品好评率（全量）
+$cron_list['item_score_full_sync'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=koubei --action=setitemfeedbackrate",
+    'cli_args' => "--class=koubei --action=setitemfeedbackrate full_dump",
+    'start_time' => '2017-07-12 02:00:00',
+    'interval' => 432000
+);
+
+//商品好评率（增量）
+$cron_list['item_score_incremental_sync'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=koubei --action=setitemfeedbackrate incremental_dump",
     'start_time' => '2017-07-12 02:00:00',
     'interval' => 86400
 );
