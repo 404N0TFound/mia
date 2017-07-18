@@ -46,8 +46,8 @@ class Subject extends \DB_Query {
                     }
                 }
                 $tmp_text = implode("\n", $tmp_text);
+                $v['text'] = $tmp_text ? $tmp_text : $v['text'];
             }
-            $v['text'] = $tmp_text ? $tmp_text : $v['text'];
             $v['text'] = strip_tags($v['text']);
             $v['ext_info'] = json_decode($v['ext_info'], true);
             if (!is_array($v['ext_info'])) {
