@@ -504,6 +504,16 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['type'] = 'video';
             } else if ($subjectInfos[$subjectId]['ext_info']['is_blog'] == 1) {
                 $subjectRes[$subjectInfo['id']]['type'] = 'blog';
+                //5.6以下去除长文
+                if ($this->ext_params['version']) {
+                    $version = explode('_', $this->ext_params['version'], 3);
+                    array_shift($version);
+                    $version = intval(implode($version));
+                    if ($version < 56) {
+                        unset($subjectRes[$subjectInfo['id']]);
+                        continue;
+                    }
+                }
             } else {
                 $subjectRes[$subjectInfo['id']]['type'] = 'normal';
             }
