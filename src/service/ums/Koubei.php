@@ -178,6 +178,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $solrCond['start_time'] = $supplier['create_time'];
                 }
             }
+            if(empty($solrCond['start_time']) && !empty($supplier['create_time'])) {
+                $solrCond['start_time'] = $supplier['create_time'];
+            }
         }
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');
