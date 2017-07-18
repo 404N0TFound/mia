@@ -37,6 +37,8 @@ class Subject {
     {
         if (!empty($tabId)) {
             $conditions['tab_id'] = $tabId;
+        } else {
+            return [];
         }
         
         $conditions['page'] = $page;
