@@ -70,7 +70,6 @@ class Subject {
             }else{
                 $key = $detail['relation_id'] . '_' . $detail['relation_type'];
             }
-            
             $data[$key] = $detail;
         }
         return $data;
