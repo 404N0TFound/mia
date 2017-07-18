@@ -817,7 +817,38 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         /*专栏、头条相关逻辑结束*/
-        
+
+
+        //删除提示
+        $mibeanNum = 10;
+        if ($subjectInfo['is_fine'] == 1) {
+            $mibeanNum = 60;
+        }
+        $subjectInfo['delete_text'] = "确认删除吗？将扣减掉该帖奖励的" . $mibeanNum . "蜜豆";
+        $subjectInfo['delete_enable'] = 1;
+        //付费用户删帖处理
+        //判断是否是付费用户
+        $groupId = \F_Ice::$ins->workApp->config->get('busconf.user.paidUserGroup');//站内付费达人分组
+        $userService = new User();
+        $group = $userService->checkUserGroupByUserId($subjectInfo["user_id"], $groupId)['data'];
+        if ($group) {
+            //查询是否有相应标签（妈妈达人  乐活达人）
+            $labelService = new LabelService();
+            $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'];
+            if (!empty($labelInfo)) {
+                $labelInfo = array_column($labelInfo[$subjectId], "title");
+            }
+            if (array_search("妈妈达人", $labelInfo) !== FALSE || array_search("乐活达人", $labelInfo) !== FALSE) {
+                //只能删当前自然月的
+                $pubTime = strtotime($subjectInfo["created"]);
+                $cancelTime = strtotime(date("Y-m"));//月初时间
+                if ($pubTime < $cancelTime) {
+                    //无法删除
+                    $subjectInfo['delete_text'] = "该帖蜜芽已付费结算了，不能删除，若有问题请联系管理员";
+                    $subjectInfo['delete_enable'] = 0;
+                }
+            }
+        }
         //阅读量计数
         if (in_array('view_num_record', $field)) {
             $this->subjectModel->viewNumRecord($subjectId);
