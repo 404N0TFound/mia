@@ -166,7 +166,7 @@ class Koubei extends \DB_Query {
         }
 
         // 封测报告首页报告数逻辑处理(不包含口碑数)
-        if(isset($con['pick_num'])) {
+        if(isset($con['home_show_pick_count'])) {
             if(isset($con['type'])){
                 $where[] = ['type',$con['type']];
             }
@@ -180,6 +180,10 @@ class Koubei extends \DB_Query {
                     [':or', [':ne', 'type', $con['type']]]
                 ]
             ];
+        }else{
+            if(isset($con['auto_evaluate'])){
+                $where[] = ['auto_evaluate', $con['auto_evaluate']];
+            }
         }
 
         $order_by = FALSE;

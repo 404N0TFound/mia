@@ -136,7 +136,8 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp['show_cart'] = $is_show_cart ? 1 : 0;
 
                 // 甄选商品标识（v5.3） 0:普通 1:甄选
-                $tmp['is_pick'] = $item['is_pick'];
+                $tmp['is_pick'] = isset($item['is_pick']) ? $item['is_pick'] : 0;
+                $tmp['pick_status'] = isset($item['pick_status']) ? $item['pick_status'] : 0;
                 if ($item['status'] == 0) {
                     $tmp['show_cart'] = 0;
                 }
