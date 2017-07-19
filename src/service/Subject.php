@@ -1679,6 +1679,10 @@ class Subject extends \mia\miagroup\Lib\Service
             if (!empty($labelInfo)) {
                 $labelService->setLabelSubjectStatus([$subjectId], ["status" => $status]);
             }
+            //修改上文表status
+            if (isset($subjectInfo['ext_info']['is_blog']) && $subjectInfo['ext_info']['is_blog'] == 1) {
+                $this->subjectModel->editBlog($subjectId, ['status' => $status]);
+            }
         }
         return $this->succ($result);
     }
