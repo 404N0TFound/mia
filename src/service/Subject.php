@@ -939,7 +939,7 @@ class Subject extends \mia\miagroup\Lib\Service
         
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         /**临时活动代码**/
-        if ($subjectInfo['active_id'] == 537) {
+        if ($subjectInfo['active_id'] == 553) {
             $text_lenth = mb_strlen($subjectSetInfo['text'], 'utf8');
             $image_count = count($imageInfo);
             if ($image_count < 2 || $text_lenth < 20) {
