@@ -2350,7 +2350,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $noteRemote = new RecommendNote($this->ext_params);
         $userNoteListIds = $noteRemote->getNoteListByCate($cate_name, $page, $count);
 
-        $res['note_cate_lists'] = $this->formatNoteData($userNoteListIds);
+        $res['content_lists'] = $this->formatNoteData($userNoteListIds);
         $res['mapping_url'] = $mapping_url;
         return $this->succ($res);
     }
