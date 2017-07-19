@@ -200,7 +200,7 @@ class Koubei {
      * @param  $orderId
      * @param  $itemId
      */
-    public function getItemKoubeiInfo($orderId, $itemId, $itemSize = '')
+    public function getItemKoubeiInfo($orderId, $itemId)
     {
         if(intval($orderId) < 0 || intval($itemId) < 0){
             return array();
@@ -208,7 +208,7 @@ class Koubei {
         $orderId = intval($orderId);
         $itemId = intval($itemId);
         
-        $koubeiInfo = $this->koubeiData->getKoubeiByOrderItem($orderId, $itemId, $itemSize);
+        $koubeiInfo = $this->koubeiData->getKoubeiByOrderItem($orderId, $itemId);
         return $koubeiInfo;
     }
     

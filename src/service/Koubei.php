@@ -52,7 +52,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 return $this->error(6102);
             }
             //获取口碑信息，验证是否该口碑已经发布过
-            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id'], strval($koubeiData['item_size']));
+            $koubeiInfo = $this->koubeiModel->getItemKoubeiInfo($orderId, $koubeiData['item_id']);
             if(!empty($koubeiInfo)){
                 return $this->error(6103);
             }
@@ -277,7 +277,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $itemId = $item['item_id'];
             $itemSize = $item['item_size'];
             //获取口碑信息，验证是否该口碑已经发布过
-            $koubeInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'], $itemId, $itemSize);
+            $koubeInfo = $this->koubeiModel->getItemKoubeiInfo($orderInfo['id'], $itemId);
             if(!empty($koubeInfo)) {
                 continue;
             }
@@ -464,6 +464,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         // 获取商品信息
         $item_info = $item_service->getBatchItemBrandByIds([$item_id]);
 
+        if(!empty($item_info['data'][$item_id]['is_pick'])) {
+            $is_pick = $item_info['data'][$item_id]['is_pick'];
+        }
+
         // 甄选商品状态(正常商品及待上线的甄选商品为1)
         $pick_status =  $item_info['data'][$item_id]['pick_status'];
 
@@ -471,7 +475,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!in_array($pick_status, [2, 3])) {
             $condition['machine_score'] = 3;
         }
-        $condition['auto_evaluate'] = 0;
+
+        if(!empty($is_pick) && $is_pick == 1 ) {
+            // 封测报告列表不展示默认好评(甄选商品)
+            $condition['is_pick'] = $is_pick;
+            $condition['auto_evaluate'] = 1;
+            $condition['type'] =  1;
+        }
 
         //获取口碑数量
         $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);
@@ -519,6 +529,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         if(empty($koubei_ids)) {
+            $condition['auto_evaluate'] = 0;
             $condition['with_pic'] = true;
             $condition['score'] = array(0, 4, 5);
             $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
