@@ -2075,6 +2075,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->error(1131);
         }
         $parsed_param = $this->_parseBlogParam($param);
+        var_dump($parsed_param);exit;
         //处理修改过的商品
         $exist_items = [];
         if (!empty($subject_info['items'])) {
@@ -2274,6 +2275,17 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                     if (!empty($parsed_result['urls']) && is_array($parsed_result['urls'])) {
                         $tmp_text['urls'] = array_merge($tmp_text['urls'], $parsed_result['urls']);
+                        $url_unique_flag = [];
+                        //去除重复的url
+                        foreach ($tmp_text['urls'] as $k_url => $v_url) {
+                            $md5_flag = md5(json_encode($v_url));
+                            if (!in_array($md5_flag, $url_unique_flag)) {
+                                $url_unique_flag[] = $md5_flag;
+                            } else {
+                                unset($tmp_text['urls'][$k_url]);
+                            }
+                        }
+                        $tmp_text['urls'] = array_values($tmp_text['urls']);
                     }
                     $tmp_labels = $parsed_result['labels'];
                     $blog_meta[] = ['blog_text' => $tmp_text];
