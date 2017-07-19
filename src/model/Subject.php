@@ -37,6 +37,8 @@ class Subject {
     {
         if (!empty($tabId)) {
             $conditions['tab_id'] = $tabId;
+        } else {
+            return [];
         }
         
         $conditions['page'] = $page;
@@ -68,7 +70,6 @@ class Subject {
             }else{
                 $key = $detail['relation_id'] . '_' . $detail['relation_type'];
             }
-            
             $data[$key] = $detail;
         }
         return $data;
