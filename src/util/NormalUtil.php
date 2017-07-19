@@ -191,7 +191,7 @@ class NormalUtil {
         }
         $host = \F_Ice::$ins->workApp->config->get('busconf.subject.img_watermark_url');
         $img_format = \F_Ice::$ins->workApp->config->get('busconf.subject.img_format');
-        if($type == 'normal'){
+        if($type == 'original'){
             $host = \F_Ice::$ins->workApp->config->get('app.url.img_url');
             if(substr($host, -1) == '/'){
                 $host = substr($host, 0, -1);
@@ -202,7 +202,7 @@ class NormalUtil {
         }
         $pathurl = pathinfo($img_path);
         switch ($type){
-            case 'normal':
+            case 'original':
                 $url = $host . $img_path;
                 break;
             default :
@@ -222,7 +222,7 @@ class NormalUtil {
         }
         $host = \F_Ice::$ins->workApp->config->get('busconf.subject.img_watermark_url');
         $img_format = \F_Ice::$ins->workApp->config->get('busconf.subject.img_format');
-        if($type == 'normal'){
+        if($type == 'original'){
             $host = \F_Ice::$ins->workApp->config->get('app.url.img_url');
             if(substr($host, -1) == '/'){
                 $host = substr($host, 0, -1);
@@ -233,7 +233,7 @@ class NormalUtil {
         }
         $pathurl = pathinfo($url);
         switch ($type){
-            case 'normal':
+            case 'original':
                 $url = $host . $url;
                 $real_width = $width;
                 $real_height = $height;

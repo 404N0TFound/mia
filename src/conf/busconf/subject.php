@@ -129,6 +129,9 @@ $album = array(
  
  $img_format = array(
      'subject' => array(
+         'normal' => array(
+             'file_type' => '@style@normalcompress',
+         ),
          'watermark' => array(
              'width' => 640,
              'height' => 640,
