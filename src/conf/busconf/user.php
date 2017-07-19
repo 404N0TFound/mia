@@ -16,6 +16,11 @@ $miaKefuUid = '13638396';
 $miaAngelUid = '1026069';
 
 /**
+ * 付费发帖用户role_id
+ */
+$paidUserGroup = 20;
+
+/**
  * 用户默认头像
  */
 

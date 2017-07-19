@@ -45,29 +45,28 @@ class ActiveSubjectRelation extends \DB_Query {
     /**
      * 批量查活动帖子(全部，热门（活动进行中按推荐排序[recommend]，结束后按热度值排序[hotvalue]）)
      */
-    public function getBatchActiveSubjects($activeIds, $type = 'all', $page=1, $limit=20) {
+    public function getBatchActiveSubjects($activeId, $type = 'all', $page=1, $limit=20) {
         $result = array();
         $offsetLimit = $page > 1 ? ($page - 1) * $limit : 0;
-        $where[] = [$this->tableName.'.active_id',$activeIds];
-        $where[] = [$this->tableName.'.status',1];
+        $where[] = ['active_id', $activeId];
+        $where[] = ['status', 1];
 
-        $fileds = "active_id,subject_id";
         if ($type == 'all') {
-            $orderBy = $this->tableName . '.subject_id desc';
+            $orderBy = 'subject_id desc';
         } else {
-            $where[] = [$this->tableName . '.is_recommend', 1];
+            $where[] = ['is_recommend', 1];
             if ($type == 'active_over') {
                 //过期按hot值排
-                $orderBy = $this->tableName . '.hot_value desc,' . $this->tableName . '.create_time desc';
-            } elseif ($type == 'recommend') {
+                $orderBy = 'hot_value desc, create_time desc';
+            } else if ($type == 'recommend') {
                 //未过期按发布时间排
-                $orderBy = $this->tableName . '.create_time desc';
+                $orderBy = 'create_time desc';
             }
         }
-        $subjectArrs = $this->getRows($where,$fileds, $limit, $offsetLimit, $orderBy);
+        $subjectArrs = $this->getRows($where, 'subject_id', $limit, $offsetLimit, $orderBy);
         if (!empty($subjectArrs)) {
             foreach ($subjectArrs as $subject) {
-                $result[$subject['active_id']][] = $subject;
+                $result[] = $subject['subject_id'];
             }
         }
         return $result;

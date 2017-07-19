@@ -95,6 +95,7 @@ class Subject extends \DB_Query {
                 }
             }
         }
+        $where[] = ['status', 1];
         $result['count'] = $this->count($where);
         if (intval($result['count']) <= 0) {
             return $result;

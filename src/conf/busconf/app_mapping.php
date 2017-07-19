@@ -12,3 +12,8 @@ $search_result = 'miyabaobei://search_result?keyword=%s&brand_id=%s&category_id=
  * 分类品牌页
  */
 $category_detail = 'miyabaobei://category_detail?id=%s&type=%s&name=%s'; 
+
+/**
+ * 标签详情页
+ */
+$label_detail = 'miyabaobei://topic?id=%s' ;

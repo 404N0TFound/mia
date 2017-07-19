@@ -29,10 +29,10 @@ class TabNoteOperation extends \DB_Query
         $data = $this->getRows($where);
         $result = [];
         foreach ($data as $v) {
-            if($v['relation_type'] == 'link'){
-                $tmpId = $v['id'];
-            }else{
-                $tmpId = $v['relation_id'];
+            if ($v['relation_type'] == 'link') {
+                $tmpId = $v['tab_id'] . "_" . $v['id'];
+            } else {
+                $tmpId = $v['tab_id'] . "_" . $v['relation_id'];
             }
             //http转https
             $result[$tmpId . '_' . $v['relation_type']] = array_merge($v, ['ext_info' => json_decode(str_replace('http:\/\/', 'https:\/\/', strval($v['ext_info'])), true)]);

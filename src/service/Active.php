@@ -15,30 +15,31 @@ class Active extends \mia\miagroup\Lib\Service {
         parent::__construct();
         $this->activeModel = new ActiveModel();
     }
-
+    
     /**
      * 获取活动列表
      */
     public function getActiveList($page, $limit, $fields = array('count'), $status = [1])
     {
         $activeRes = array();
-        // 获取活动列表
-        $activeInfos = $this->activeModel->getActiveByActiveIds($page, $limit, $status);
+        if($page == 1){
+            $activeStatus = array(2,1);
+            $activeInfos = $this->activeModel->getFirstPageActive($status,$activeStatus);
+        }else{
+            $page = $page - 1;
+            $activeStatus = array('active_status'=>3);
+            $activeInfos = $this->activeModel->getActiveList($page, $limit, $status,$activeStatus);
+        }
+    
         if (empty($activeInfos)) {
             return $this->succ(array());
         }
-        
-        $activeIds = array();
-        foreach($activeInfos as $activeInfo){
-            $activeIds[] = $activeInfo['id'];
-        }
+    
+        $activeIds = array_keys($activeInfos);
         $activeCount = $this->activeModel->getBatchActiveSubjectCounts($activeIds);
-        
+    
         foreach($activeInfos as $activeInfo){
             $tmp = $activeInfo;
-            $extInfo = json_decode($activeInfo['ext_info'],true);
-            $tmp['top_img'] = $extInfo['image'];
-            $tmp['cover_img'] = isset($extInfo['cover_img']) ? $extInfo['cover_img'] : $extInfo['image'];
             $tmp['img_nums'] = 0;
             $tmp['user_nums'] = 0;
             if (in_array('count', $fields)) {
@@ -49,8 +50,7 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($activeRes);
     }
-    
-    
+
     /**
      * 获取单条活动信息
      */
@@ -58,26 +58,11 @@ class Active extends \mia\miagroup\Lib\Service {
         $condition = array('active_ids' => array($activeId));
         $activeRes = array();
         // 获取活动基本信息
-        $activeInfos = $this->activeModel->getActiveByActiveIds(1, 1, $status, $condition);
+        $activeInfos = $this->activeModel->getActiveList(1, 1, $status, $condition);
         if (empty($activeInfos[$activeId])) {
             return $this->succ(array());
         }
         $activeRes = $activeInfos[$activeId];
-        if(!empty($activeInfos[$activeId]['ext_info'])){
-            $extInfo = json_decode($activeInfos[$activeId]['ext_info'],true);
-            
-            if(!empty($extInfo['labels'])){
-                $activeRes['labels'] = $extInfo['labels'];
-                $activeRes['label_titles'] = implode(',',array_column($activeRes['labels'], 'title'));
-            }
-            if(!empty($extInfo['image'])){
-                $activeRes['top_img'] = $extInfo['image'];
-                $activeRes['top_img_url'] = $activeInfos[$activeId]['top_img'];
-            }
-            if(!empty($extInfo['cover_img'])){
-                $activeRes['cover_img'] = $extInfo['cover_img'];
-            }
-        }
         
         if (in_array('share_info', $fields)) {
             // 分享内容
@@ -107,30 +92,31 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 获取当前在线活动
      */
-    public function getCurrentActive() {
-        $condition = array('current_time' => date('Y-m-d H:i:s',time()));
+    public function getCurrentActive($limit=0) {
+        $condition = array('active_status' => 2);
         $activeRes = array();
-        // 获取活动基本信息
-        $activeInfos = $this->activeModel->getActiveByActiveIds(false, 0, array(1), $condition);
-        if (empty($activeInfos)) {
-            return $this->succ(array());
-        }
-        if(!empty($activeInfos)){
-            foreach($activeInfos as $key=>$activeInfo){
-                $tmp = $activeInfo;
-                if(!empty($activeInfo['ext_info'])){
-                    $extInfo = json_decode($activeInfo['ext_info'],true);
-                    if(!empty($extInfo['labels'])){
-                        $tmp['labels'] = $extInfo['labels'];
-                    }
-                }
-                $activeRes[$key] = $tmp;
-            }
+        // 获取所有活动基本信息
+        $activeArr = $this->activeModel->getActiveList(0, false, array(1), $condition);
+        if (empty($activeArr)) {
+            return $this->succ($activeRes);
         }
 
+        //如果传入数量，则需要过滤掉没有小图的活动，用到发帖页
+        if($limit > 0){
+            foreach($activeArr as $key=>$active){
+                if(!isset($active['icon_img'])){
+                    continue;
+                }
+                $activeRes[$key] = $active;
+            }
+            $activeRes = array_slice($activeRes,0,$limit);
+        }else{
+            //如果没有传入数量，则获取所有的活动，无需过滤没有小图的
+            $activeRes = $activeArr;
+        }
+        
         return $this->succ($activeRes);
     }
-    
 
     /**
      * 创建活动（用于后台活动发布）
@@ -297,17 +283,13 @@ class Active extends \mia\miagroup\Lib\Service {
                 $type = 'active_over';
             }
         }
-        $activeIds = array($activeId);
-        $subjectArrs = $this->activeModel->getBatchActiveSubjects($activeIds, $type, $page, $limit);
-        if(empty($subjectArrs) || empty($subjectArrs[$activeId])){
+        $subjectIds = $this->activeModel->getBatchActiveSubjects($activeId, $type, $page, $limit);
+        if(empty($subjectIds)){
             return $this->succ($data);
         }
-        $subjectIds = array_column($subjectArrs[$activeId], 'subject_id');
-        if(!empty($subjectIds)) {
-            $subjectService = new SubjectService();
-            $subjects = $subjectService->getBatchSubjectInfos($subjectIds,$currentId)['data'];
-            $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
-        }
+        $subjectService = new SubjectService();
+        $subjects = $subjectService->getBatchSubjectInfos($subjectIds,$currentId)['data'];
+        $data['subject_lists'] = !empty($subjects) ? array_values($subjects) : array();
         return $this->succ($data);
     }
     

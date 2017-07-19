@@ -153,9 +153,9 @@ class Item {
     /*
      * 获取商品新定义分类
      * */
-    public function itemCategoryIdNg($item_id)
+    public function itemCategoryIdNg($item_id, $condition = array())
     {
-        $res = $this->itemData->getItemNewCategory($item_id);
+        $res = $this->itemData->getItemNewCategory($item_id, $condition);
         return $res;
     }
 
@@ -163,9 +163,19 @@ class Item {
      * 获取商品分类
      * 维度：等级
      * */
-    public function parentCatePath($category_id_ng)
+    public function parentCatePath($category_id_ng, $condition = array())
     {
-        $res = $this->itemCateRelationData->getparentCategoryPath($category_id_ng);
+        $res = $this->itemCateRelationData->getparentCategoryPath($category_id_ng, $condition);
         return $res;
     }
+
+    /*
+     * 获取分类信息
+     * */
+    public function categoryInfo($category_id, $condition)
+    {
+        $res = $this->itemCateRelationData->getCategoryIdInfo($category_id, $condition);
+        return $res;
+    }
+
 }

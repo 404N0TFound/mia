@@ -66,7 +66,7 @@ class Item extends \mia\miagroup\Lib\Service {
      * 根据商品id批量获取商品
      * @param int $itemIds
      */
-    public function getItemList($itemIds, $status = array(0, 1))
+    public function getItemList($itemIds, $status = array(0, 1, 3))
     {
         $itemList = $this->itemModel->getBatchItemByIds($itemIds,$status);
         if (empty($itemList)) {
@@ -122,6 +122,7 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp = null;
                 $tmp['item_id'] = $item['id'];
                 $tmp['item_name'] = $item['name'];
+                $tmp['item_desc'] = $item['name_added'];
                 $tmp['item_img'] = isset($item['img'][3]) ? $item['img'][3] : '';
                 $tmp['brand_id'] = $item['brand_id'];
                 $tmp['category_id'] = $item['category_id'];
@@ -132,7 +133,9 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp['is_self'] = $item['is_self'];
                 $tmp['business_mode'] = $item['business_mode'];
                 $tmp['favorable_comment_percent'] = $item['favorable_comment_percent'];
-                $tmp['feedback_rate'] = $item['feedback_rate'];
+                if (!empty($item['feedback_rate'])) {
+                    $tmp['feedback_rate'] = $item['feedback_rate'];
+                }
                 $tmp['show_cart'] = $is_show_cart ? 1 : 0;
 
                 // 甄选商品标识（v5.3） 0:普通 1:甄选
@@ -204,14 +207,14 @@ class Item extends \mia\miagroup\Lib\Service {
     /*
      * 根据商品ID获取商品父分类ID
      * */
-    public function getRelationCateId($item_id, $level)
+    public function getRelationCateId($item_id, $level, $condition = array())
     {
         if(empty($item_id)) {
             return $this->succ();
         }
         $parent_category_id = '';
-        $catgory_id_ng = $this->getCategoryIdNgByItem($item_id)['data'];
-        $category_path = $this->getParentCatePath($catgory_id_ng)['data'];
+        $category_id_ng = $this->getCategoryIdNgByItem($item_id, $condition)['data'];
+        $category_path = $this->getParentCatePath($category_id_ng, $condition)['data'];
         $parent_cate_id = explode('-', $category_path);
         if(!empty($parent_cate_id)) {
             $parent_category_id = $parent_cate_id[$level];
@@ -222,24 +225,36 @@ class Item extends \mia\miagroup\Lib\Service {
     /*
      * 根据商品ID获取新类目ID
      * */
-    public function getCategoryIdNgByItem($item_id)
+    public function getCategoryIdNgByItem($item_id, $condition = array())
     {
         if(empty($item_id)) {
             return $this->succ();
         }
-        $catgory_id_ng = $this->itemModel->itemCategoryIdNg($item_id);
+        $catgory_id_ng = $this->itemModel->itemCategoryIdNg($item_id, $condition);
         return $this->succ($catgory_id_ng);
     }
 
     /*
      * 根据商品四级类目获取父类目路径
      * */
-    public function getParentCatePath($category_id_ng)
+    public function getParentCatePath($category_id_ng, $condition = array())
     {
         if(empty($category_id_ng)) {
             return $this->succ();
         }
-        $catgory_path = $this->itemModel->parentCatePath($category_id_ng);
+        $catgory_path = $this->itemModel->parentCatePath($category_id_ng, $condition);
         return $this->succ($catgory_path);
+    }
+
+    /*
+     * 根据类目id获取类目信息
+     * */
+    public function getCategoryIdInfo($category_id, $condition = array())
+    {
+        if(empty($category_id)) {
+            return $this->succ([]);
+        }
+        $category_info = $this->itemModel->categoryInfo($category_id, $condition);
+        return $this->succ($category_info);
     }
 }

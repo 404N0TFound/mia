@@ -2,6 +2,7 @@
 namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
+use mia\miagroup\Data\Subject\SubjectCollect;
 use mia\miagroup\Data\Subject\TabNoteOperation;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\Tab as TabData;
@@ -14,11 +15,16 @@ class Subject {
     protected $videoData = null;
     protected $tabData = null;
     protected $tabOpeationData = null;
+    protected $subjectCollectData = null;
+    protected $subjectBlogData = null;
+    
     public function __construct() {
         $this->subjectData = new SubjectData();
         $this->videoData = new VideoData();
         $this->tabData = new TabData();
         $this->tabOpeationData = new TabNoteOperation();
+        $this->subjectCollectData = new SubjectCollect();
+        $this->subjectBlogData = new \mia\miagroup\Data\Subject\SubjectBlog();
     }
 
     /**
@@ -29,10 +35,12 @@ class Subject {
      */
     public function getOperationNoteData($tabId, $page, $timeTag=null)
     {
-        if (empty($tabId)) {
+        if (!empty($tabId)) {
+            $conditions['tab_id'] = $tabId;
+        } else {
             return [];
         }
-        $conditions['tab_id'] = $tabId;
+        
         $conditions['page'] = $page;
         if(isset($timeTag)){
             $conditions['time_tag'] = $timeTag;
@@ -57,23 +65,14 @@ class Subject {
         //返回的键名保留格式
         $data = [];
         foreach ($return as $detail) {
-            $key = $detail['id'] . '_' . $detail['relation_type'];
+            if($detail['relation_type'] == 'link'){
+                $key = $detail['id'] . '_' . $detail['relation_type'];
+            }else{
+                $key = $detail['relation_id'] . '_' . $detail['relation_type'];
+            }
             $data[$key] = $detail;
         }
         return $data;
-    }
-
-    public function getYuerList($page, $count)
-    {
-        $conditions['is_fine'] = 1;
-        $conditions['iPageSize'] = $count;
-        $conditions['page'] = $page;
-        $conditions['without_item'] = 1;
-        $subjectIds = $this->subjectData->getSubjectList($conditions);
-        $subjectIds = array_map(function ($v) {
-            return $v . "_subject";
-        }, $subjectIds);
-        return $subjectIds;
     }
 
     /**
@@ -327,14 +326,6 @@ class Subject {
      }
      
      /**
-      * 根据用户ID获取帖子信息
-      */
-     public function getSubjectDataByUserId($subjectId, $userId, $status = array(1,2)){
-         $data = $this->subjectData->getSubjectDataByUserId($subjectId, $userId, $status);
-         return $data;
-     }
-     
-     /**
       * 分享
       */
      public function addShare($sourceId, $userId, $type, $platform,$status){
@@ -348,7 +339,9 @@ class Subject {
       * @param int $userId
       */
      public function getSubjectsByUid($userId){
-         $result = $this->subjectData->getSubjectsByUid($userId);
+         $condition['user_id'] = $userId;
+         $condition['status'] = 1;
+         $result = $this->subjectData->getSubjectList($condition, 0, false);
          return $result;
      }
      
@@ -413,50 +406,6 @@ class Subject {
     public function cacelSubjectIsFine($subjectId){
         $affect = $this->subjectData->cacelSubjectIsFine($subjectId);
         return $affect;
-    }
-    
-    /**
-     * 获取活动的帖子（全部/精华）
-     */
-    public function getSubjectIdsByActiveId($activeId, $type, $page = 1, $limit = 20){
-        if (empty($activeId)) {
-            return array();
-        }
-        //如果没有session信息，直接返回翻页结果
-        if (empty(\F_Ice::$ins->runner->request->ext_params['dvc_id'])) {
-            $data = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page, $limit);
-            return $data;
-        }
-        $redis_key =  sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_read_session.key'), $activeId, $type, \F_Ice::$ins->runner->request->ext_params['dvc_id']);
-        $redis = new Redis();
-        //如果是第一页，刷新已读缓存
-        if ($page == 1) {
-            $redis->del($redis_key);
-        }
-        $data = $this->subjectData->getSubjectIdsByActiveid($activeId, $type, $page, $limit);
-        if (empty($data)) {
-            return array();
-        }
-        //获取已读数据
-        $read_data = [];
-        $read_count = 0;
-        if ($redis->exists($redis_key)) {
-            $read_count = $redis->llen($redis_key);
-            $read_data = $redis->lrange($redis_key, 0, $read_count);
-        }
-        //去重
-        $diff_data = array_diff($data, $read_data);
-        if (empty($diff_data)) {
-            return array();
-        }
-        //记录本次已读数据
-        if ($read_count < 1000) {
-            foreach ($diff_data as $v) {
-                $r = $redis->lpush($redis_key, $v);
-            }
-            $redis->expire($redis_key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_read_session.expire_time'));
-        }
-        return $diff_data;
     }
     
     /**
@@ -557,5 +506,118 @@ class Subject {
         $redis = new \mia\miagroup\Lib\Redis();
         $redis->set($key, 1);
         $redis->expire($key, \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_check_resubmit.expire_time'));
+    }
+
+    /**
+     * 根据用户收藏信息，查询收藏信息
+     */
+    public function getCollectInfo($userId, $sourceId, $type = 1, $status = [0, 1])
+    {
+        if(empty($userId) || empty($sourceId) || empty($type)) {
+            return [];
+        }
+        $conditions["user_id"] = $userId;
+        $conditions["source_id"] = $sourceId;
+        $conditions["source_type"] = $type;
+        $conditions["status"] = $status;
+
+        $res = $this->subjectCollectData->getCollectInfo($conditions);
+        return $res;
+    }
+
+    /**
+     * 添加收藏
+     */
+    public function addCollection($userId, $sourceId, $type)
+    {
+        if(empty($userId) || empty($sourceId) || empty($type)) {
+            return 0;
+        }
+        $insertData["user_id"] = $userId;
+        $insertData["source_id"] = $sourceId;
+        $insertData["source_type"] = $type;
+
+        $now = date("Y-m-d H:i:s");
+        $insertData["update_time"] = $now;
+        $insertData["create_time"] = $now;
+
+        $res = $this->subjectCollectData->addCollection($insertData);
+        return $res;
+    }
+
+    /**
+     * 根据用户收藏信息，查询收藏信息
+     * @param $setData
+     * @param $where
+     * @return array
+     */
+    public function updateCollect($setData, $where)
+    {
+        if(empty($setData) || empty($where)) {
+            return [];
+        }
+        $res = $this->subjectCollectData->updateCollect($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 用户收藏列表
+     * @param $userId
+     * @param $page
+     * @param $type
+     * @param $count
+     * @return array
+     */
+    public function userCollectList($userId, $page, $type, $count)
+    {
+        if (empty($userId)) {
+            return [];
+        }
+        $conditions["user_id"] = $userId;
+        $conditions["type"] = $type;
+        $conditions['status'] = 1;
+        $conditions["offset"] = ($page - 1) * $count;
+        $conditions["limit"] = $count;
+
+        $conditions["order"] = "update_time DESC";
+
+        $res = $this->subjectCollectData->getCollectInfo($conditions);
+        return $res;
+    }
+
+    /**
+     * 获取帖子收藏数
+     */
+    public function getCollectNum($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return [];
+        }
+        $res = $this->subjectCollectData->getCollectNum($subjectIds);
+        return $res;
+    }
+    
+    /**
+     * 新增长文数据
+     */
+    public function addBlog($blog_info) {
+        $result = $this->subjectBlogData->addBlog($blog_info);
+        return $result;
+    }
+    
+    /**
+     * 修改长文数据
+     */
+    public function editBlog($subject_id, $blog_info) {
+        $result = $this->subjectBlogData->updateBlogBySubjectId($subject_id, $blog_info);
+        return $result;
+    }
+    
+    /**
+     * 根据帖子id批量获取长文信息
+     */
+    public function getBlogBySubjectIds($subject_ids, $status = [1]) {
+        $result = $this->subjectBlogData->getBlogBySubjectIds($subject_ids, $status);
+        return $result;
     }
 }
