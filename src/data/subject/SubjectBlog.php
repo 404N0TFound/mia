@@ -17,7 +17,7 @@ class SubjectBlog extends \DB_Query {
             return false;
         }
         foreach ($insert_data as $k => $v) {
-            if (in_array($k, ['index_cover_image', 'blog_meta', 'ext_info'])) {
+            if (in_array($k, ['index_cover_image', 'blog_meta', 'ext_info', 'status'])) {
                 $insert_data[$k] = json_encode($v);
             }
         }
