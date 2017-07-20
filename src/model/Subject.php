@@ -616,7 +616,8 @@ class Subject {
     /**
      * 根据帖子id批量获取长文信息
      */
-    public function getBlogBySubjectIds($subject_ids, $status = [1]) {
+    public function getBlogBySubjectIds($subject_ids, $status = [1, 3])
+    {
         $result = $this->subjectBlogData->getBlogBySubjectIds($subject_ids, $status);
         return $result;
     }
