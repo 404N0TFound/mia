@@ -500,6 +500,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_ids = $res['data'];
         }
 
+        // 统一逻辑：推荐服务没有返回数据，不再二次查询
         if(empty($koubei_ids)) {
             return $this->succ($koubei_res);
         }
