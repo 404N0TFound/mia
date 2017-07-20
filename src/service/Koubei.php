@@ -1260,14 +1260,22 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
             // 排序过滤（获取第一屏符合条件的最优口碑）
             foreach($koubei_list as $koubei) {
+                // 帖子
                 if($koubei['source'] == 1 && $koubei['item_koubei']['machine_score'] ==3 &&
                     $koubei['item_koubei']['auto_evaluate'] == 0 ) {
                     $transfer_koubei[$item_id] = $koubei;
                     break;
                 }
+                // 口碑
                 if($koubei['source'] != 1  && $koubei['item_koubei']['score'] >=4
                     && $koubei['item_koubei']['machine_score'] ==3 &&
                     $koubei['item_koubei']['auto_evaluate'] == 0 ) {
+                    $transfer_koubei[$item_id] = $koubei;
+                    break;
+                }
+                // 封测报告
+                if($koubei['source'] != 1  && $koubei['item_koubei']['type'] ==1
+                    && $koubei['item_koubei']['auto_evaluate'] == 0 ) {
                     $transfer_koubei[$item_id] = $koubei;
                     break;
                 }
