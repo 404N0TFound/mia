@@ -77,9 +77,9 @@ class User extends \mia\miagroup\Lib\Service {
             // 用户是否有专栏发布权限
             $userInfo['is_have_publish_permission'] = !empty($userPermissions['album'][$userInfo['id']]) ? 1 : 0;
             // 用户是否有PC帖子发布权限
-            $userInfo['is_have_pcpub_permission'] = !empty($userPermissions['video'][$userInfo['id']]) ? 1 : 0;
+            $userInfo['is_have_pcpub_permission'] = !empty($userPermissions['pcpub'][$userInfo['id']]) ? 1 : 0;
             // 用户是否有长文发布权限
-            $userInfo['is_have_blog_permission'] = !empty($userPermissions['album'][$userInfo['id']]) ? 1 : 0;
+            $userInfo['is_have_blog_permission'] = !empty($userPermissions['blog'][$userInfo['id']]) ? 1 : 0;
             $userInfo['user_type'] = 'normal';
             if ($userCate[$userInfo['id']]) { //用户类型
                 $userInfo['user_type'] = $userCate[$userInfo['id']]['type'];
