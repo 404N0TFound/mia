@@ -299,6 +299,8 @@ class Subjectdump extends \FD_Daemon {
                 $dumpdata['cover_image_width'] = 'NULL';
                 $dumpdata['cover_image_height'] = 'NULL';
             }
+            //帖子类型
+            $dumpdata['subject_type'] = $subject['type'];
             //写入文本
             $put_content = implode("\t", $dumpdata);
             file_put_contents($this->dumpSubjectFile, $put_content . "\n", FILE_APPEND);

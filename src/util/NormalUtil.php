@@ -183,14 +183,46 @@ class NormalUtil {
     }
     
     /**
-     * 图片地址生成器
+     * 图片url生成(不含宽高)
+     */
+    public static function getImgUrl($img_path, $type) {
+        if (preg_match("/^(http|https):\/\//", $img_path)) {
+            return $img_path;
+        }
+        $host = \F_Ice::$ins->workApp->config->get('busconf.subject.img_watermark_url');
+        $img_format = \F_Ice::$ins->workApp->config->get('busconf.subject.img_format');
+        if($type == 'original'){
+            $host = \F_Ice::$ins->workApp->config->get('app.url.img_url');
+            if(substr($host, -1) == '/'){
+                $host = substr($host, 0, -1);
+            }
+        }
+        if($img_path[0] != '/'){
+            $img_path = '/' . $img_path;
+        }
+        $pathurl = pathinfo($img_path);
+        switch ($type){
+            case 'original':
+                $url = $host . $img_path;
+                break;
+            default :
+                $url = $host . $pathurl['dirname'] . '/' . $pathurl['filename'] . '.' . $pathurl['extension'] . $img_format['subject'][$type]['file_type'];
+        }
+        return $url;
+    }
+    
+    /**
+     * 图片地址生成器（含宽高）
      * @param $url 图片地址
      * @param $type 图片类型：small 小图   watermark 水印图  normal 正常图
      */
-    public static function buildImgUrl($url, $type, $width=0, $height=0){
+    public static function buildImgUrl($url, $type, $width=640, $height=640){
+        if (preg_match("/^(http|https):\/\//", $url)) {
+            return ['url'=>$url,'width'=>$width,'height'=>$height];
+        }
         $host = \F_Ice::$ins->workApp->config->get('busconf.subject.img_watermark_url');
         $img_format = \F_Ice::$ins->workApp->config->get('busconf.subject.img_format');
-        if($type == 'normal'){
+        if($type == 'original'){
             $host = \F_Ice::$ins->workApp->config->get('app.url.img_url');
             if(substr($host, -1) == '/'){
                 $host = substr($host, 0, -1);
@@ -201,7 +233,7 @@ class NormalUtil {
         }
         $pathurl = pathinfo($url);
         switch ($type){
-            case 'normal':
+            case 'original':
                 $url = $host . $url;
                 $real_width = $width;
                 $real_height = $height;

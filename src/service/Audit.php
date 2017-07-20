@@ -164,7 +164,7 @@ class Audit extends \mia\miagroup\Lib\Service {
         }
         //屏蔽帖子
         $subjectService = new \mia\miagroup\Service\Subject();
-        $shieldRes = $subjectService->delSubjects(array($subjectInfo['id']),-1,$subjectInfo['shield_text'])['data'];
+        $shieldRes = $subjectService->delSubjects(array($subjectInfo['id']),\F_Ice::$ins->workApp->config->get('busconf.subject.status.shield'),$subjectInfo['shield_text'])['data'];
         
         return $this->succ($shieldRes);
     }

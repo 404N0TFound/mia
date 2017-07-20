@@ -6,6 +6,7 @@ use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\Order as OrderService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Label as LabelService;
+use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Remote\Solr as SolrRemote;
 use mia\miagroup\Remote\Coupon as CouponRemote;
@@ -311,7 +312,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $subjectInfo['user_info']['user_id'] = $koubeiSetData['user_id'];
             $subjectInfo['title'] = '';
             $subjectInfo['text'] = '';
-            $subjectInfo['status'] = 3; //不展示
+            $subjectInfo['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.koubei_hidden'); //默认好评口碑不展示
             $subjectInfo['created'] = $koubeiSetData['created_time'];
             $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
             $subjectIssue = $this->subjectService->issue($subjectInfo, array('item_id'=>$koubeiSetData['item_id']), array(), $koubeiInsertId)['data'];
@@ -1136,7 +1137,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $item_id        可选
      * @param $issue_type[default:koubei]  发布类型
      */
-    public function issueinit($order_id = 0, $item_id = 0, $issue_type = 'koubei'){
+    public function issueinit($order_id = 0, $item_id = 0, $issue_type = 'koubei', $active_id = 0){
 
         // 发布口碑传入，帖子不需要传
         if($issue_type == 'koubei') {
@@ -1153,6 +1154,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $label_service = new LabelService();
                 $labels = $label_service->getRecommendLabels()['data'];
                 $return_Info['labels'] = $labels;
+                
+                //展示当前在线活动
+                $active_service = new ActiveService();
+                if($active_id > 0){
+                    $active_info[$active_id] = $active_service->getSingleActiveById($active_id)['data'];
+                }else{
+                    $active_info = $active_service->getCurrentActive(6)['data'];
+                }
+                $return_Info['current_actives'] = array_values($active_info);
+                
+                //参加活动文案
+                $active_title = \F_Ice::$ins->workApp->config->get('busconf.active.activeTitle');
+                $return_Info['active_title'] = $active_title;
+                
                 break;
 
             default:
@@ -1203,7 +1218,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
                 // 展示商品信息
                 $return_Info['item_info'] = $item_info[$item_id];
-
                 break;
         }
         // 容错
@@ -1800,6 +1814,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 usort($tagList, function ($left, $right) {
                     return $left['count'] < $right['count'];
                 });
+
+                // 好评率标签（add by 5.6）,好评默认不显示count
+                $version = explode('_', $this->ext_params['version'], 3);
+                array_shift($version);
+                $version = intval(implode($version));
+                if ($version >= 56) {
+                    $feedbackRate = intval($item_info['data'][$item_id]['feedback_rate']);
+                    $praise = [];
+                    if(!empty($feedbackRate)){
+                        $feedback_rate = $feedbackRate."%";
+                        $praise['type'] = "collect";
+                        $praise['tag_id'] = 1;
+                        $praise['tag_name'] = $feedback_rate.'好评';
+                        $praise['count'] = 0;
+                        $praise['positive'] = 1;
+                    }
+                }
+                if(!empty($praise)) {
+                    array_unshift($tagList, $praise);
+                }
             }
         }
 
