@@ -1661,7 +1661,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
             switch ($tag_id) {
                 case 1 ://全部
                     //通过商品id获取口碑id
-                    $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $condition);
+                    // 全部与商品详情列表保持一致（推荐逻辑 add by 5.6）
+                    $remote_curl = new RemoteCurl('koubei_high_optimize');
+                    $remote_data['skuIds'] = implode(',', $item_ids);
+                    $remote_data['page'] = $page - 1;
+                    $remote_data['pagesize'] = $limit;
+                    $remote_data['source'] = 'more';
+                    $res = $remote_curl->curl_remote('', $remote_data);
+                    if($res['code'] == 0) {
+                        $koubei_ids = $res['data'];
+                    }
+                    if(empty($koubei_ids)) {
+                        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $condition);
+                    }
                     break;
                 case 2 ://有图
                     //通过商品id获取口碑id
