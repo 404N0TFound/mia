@@ -68,14 +68,6 @@ $shumei_img = array(
     'log_response' => true
 );
 
-//口碑策略
-$koubei_sample = array(
-    'url' => 'http://sample.miyabaobei.com/sample/koubeisort',
-    //'url' => 'http://sample.miyabaobei.com/sample/sample?action=koubeisort',
-    'method' => 'post',
-    'result_format' => false
-);
-
 // 口碑排序优化策略
 $koubei_high_optimize = array(
     'url' => 'http://kbrank.rec.mia.com/koubei/get_koubei',

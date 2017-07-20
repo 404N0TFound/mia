@@ -1411,12 +1411,6 @@ $koubei_issue = array(
 );
 
 /*
- * 口碑列表策略状态码
- * */
-$koubei_sample_id = 20001;
-
-
-/*
  * 领券引导
  */
 $coupon_guide = array(
@@ -1440,9 +1434,3 @@ $coupon_guide = array(
  * 发布奖励蜜豆
  */
 $mibean_reward = 10;
-
-
-/*
- * 优质口碑分流
- */
-$tactics = [0,10];
