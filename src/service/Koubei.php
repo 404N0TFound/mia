@@ -1242,29 +1242,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $item_rec_nums = $this->koubeiModel->getItemRecNums($item_ids);
 
             // 商品首页推荐口碑分流策略，维度：sku
-            $hashNum = sprintf("%u", crc32($item_id));
-            $location = $hashNum % 10;
-            //分配
-            $check = 0;
-            foreach($tactics as $k => $v) {
-                if (0 <= $location && $location < $v && $check == 0) {
-                    $radio[] = 1;
-                    $check = 1;
-                } else {
-                    $radio[] = 0;
-                    $location -= $v;
-                }
-            }
-            $koubei_ids = [];
-            $radio_slice = array_search(1, $radio);
-            if(!empty($radio_slice)) {
-                $remote_data['skuIds'] = implode(',', $item_ids);
-                $remote_data['pagesize'] = 10;
-                $remote_data['source'] = 'home';
-                $res = $remote_curl->curl_remote('', $remote_data);
-                if($res['code'] == 0) {
-                    $koubei_ids = $res['data'];
-                }
+            $remote_data['skuIds'] = implode(',', $item_ids);
+            $remote_data['pagesize'] = 10;
+            $remote_data['source'] = 'home';
+            $res = $remote_curl->curl_remote('', $remote_data);
+            if($res['code'] == 0) {
+                $koubei_ids = $res['data'];
             }
             if(empty($koubei_ids)) {
                 $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, 20, 0);
