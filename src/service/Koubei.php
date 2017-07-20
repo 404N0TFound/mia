@@ -400,27 +400,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //通过商品id获取口碑id
         $offset = $page > 1 ? ($page - 1) * $count : 0;
 
-        // 获取口碑id策略(封测报告排除)
-        $sample_id = 0;
-        $ori_sample_id = \F_Ice::$ins->workApp->config->get('busconf.koubei.koubei_sample_id');
-        $remote_curl = new RemoteCurl('koubei_sample');
-        $dvc_id = $this->ext_params['dvc_id'];
-
-        if(!empty($dvc_id)) {
-            $item_str = implode(',', $item_ids);
-            $remote_data = array('dvcid' => $dvc_id, 'params' => json_encode(array('skuIds'=>$item_str,'page'=>$page-1,'pagesize'=>$count,'source'=>'more','dvc_id'=>$dvc_id)));
-            $curl_info = $remote_curl->curl_remote('', $remote_data);
-            $koubei_ids = $curl_info['data']['data'];
-            $sample_id = $curl_info['data']['sample_id'];
+        // 获取口碑id策略(封测报告+口碑)
+        $remote_curl = new RemoteCurl('koubei_high_optimize');
+        $remote_data['skuIds'] = implode(',', $item_ids);
+        $remote_data['page'] = $page - 1;
+        $remote_data['pagesize'] = $count;
+        $remote_data['source'] = 'more';
+        $res = $remote_curl->curl_remote('', $remote_data);
+        if($res['code'] == 0) {
+            $koubei_ids = $res['data'];
         }
-
-        if(($sample_id == $ori_sample_id) || empty($dvc_id) || $is_pick == 1) {
+        if(empty($koubei_ids)) {
             $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $count, $offset, $condition);
-        }
-
-        // BI统计
-        if(empty($sample_id)) {
-            $sample_id = $ori_sample_id;
         }
 
         //获取口碑信息
@@ -444,8 +435,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $selection_info = $this->getSelectionKoubeiInfo([$itemId])['data'];
             $koubei_res['selection_rate'] = $selection_info[$itemId]['rate'];
         }
-        // BI统计抽样平台分流
-        $koubei_res['sample_id'] = $sample_id;
         return $this->succ($koubei_res);
     }
 
