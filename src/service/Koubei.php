@@ -1211,8 +1211,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $transfer_koubei = array();
         $remote_curl = new RemoteCurl('koubei_high_optimize');
-        $tactics = \F_Ice::$ins->workApp->config->get('busconf.koubei.tactics');
-
         $item_service = new ItemService();
 
         //通过商品id获取口碑id
