@@ -501,15 +501,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
 
         if(empty($koubei_ids)) {
-            $condition['auto_evaluate'] = 0;
-            $condition['with_pic'] = true;
-            $condition['score'] = array(0, 4, 5);
-            $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
-            if (count($koubei_ids) < $count) {
-                $count = $count - count($koubei_ids);
-                $condition['with_pic'] = false;
-                $koubei_ids = array_merge($koubei_ids, $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count));
-            }
+            return $this->succ($koubei_res);
         }
 
         //获取口碑信息
