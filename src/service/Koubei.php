@@ -492,31 +492,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         // 优质口碑分流策略，维度：sku
         $remote_curl = new RemoteCurl('koubei_high_optimize');
-        $hashNum = sprintf("%u", crc32($item_id));
-        $location = $hashNum % 10;
-        $tactics = \F_Ice::$ins->workApp->config->get('busconf.koubei.tactics');
-        //分配
-        $check = 0;
-        foreach($tactics as $k => $v) {
-            if (0 <= $location && $location < $v && $check == 0) {
-                $radio[] = 1;
-                $check = 1;
-            } else {
-                $radio[] = 0;
-                $location -= $v;
-            }
+        $remote_data['skuIds'] = implode(',', $item_ids);
+        $remote_data['pagesize'] = $count;
+        $remote_data['source'] = 'outline';
+        $res = $remote_curl->curl_remote('', $remote_data);
+        if($res['code'] == 0) {
+            $koubei_ids = $res['data'];
         }
-        $koubei_ids = [];
-        $radio_slice = array_search(1, $radio);
-        if(!empty($radio_slice)) {
-            $remote_data['skuIds'] = implode(',', $item_ids);
-            $remote_data['pagesize'] = $count;
-            $remote_data['source'] = 'outline';
-            $res = $remote_curl->curl_remote('', $remote_data);
-            if($res['code'] == 0) {
-                $koubei_ids = $res['data'];
-            }
-        }
+
         if(empty($koubei_ids)) {
             $condition['auto_evaluate'] = 0;
             $condition['with_pic'] = true;
