@@ -201,6 +201,9 @@ class NormalUtil {
             $img_path = '/' . $img_path;
         }
         $pathurl = pathinfo($img_path);
+        if ($pathurl['extension'] == 'gif') { //gif格式直接返回原图
+            $type = 'original';
+        }
         switch ($type){
             case 'original':
                 $url = $host . $img_path;
@@ -232,6 +235,9 @@ class NormalUtil {
             $url = '/' . $url;
         }
         $pathurl = pathinfo($url);
+        if ($pathurl['extension'] == 'gif') { //gif格式直接返回原图
+            $type = 'original';
+        }
         switch ($type){
             case 'original':
                 $url = $host . $url;
