@@ -2075,7 +2075,6 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->error(1131);
         }
         $parsed_param = $this->_parseBlogParam($param);
-        var_dump($parsed_param);exit;
         //处理修改过的商品
         $exist_items = [];
         if (!empty($subject_info['items'])) {
