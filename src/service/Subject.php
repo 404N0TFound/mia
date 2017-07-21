@@ -2075,6 +2075,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->error(1131);
         }
         $parsed_param = $this->_parseBlogParam($param);
+        var_dump($parsed_param);exit;
         //处理修改过的商品
         $exist_items = [];
         if (!empty($subject_info['items'])) {
@@ -2226,7 +2227,9 @@ class Subject extends \mia\miagroup\Lib\Service
             if (!empty($param['cover_image']['redirect_url'])) {
                 $param['cover_image']['redirect_url'] = str_replace('http://', 'https://', $param['cover_image']['redirect_url']);
             }
-            $param['cover_image']['url'] = substr($param['cover_image']['url'], 0, strpos($param['cover_image']['url'], '@'));
+            if (strpos($param['cover_image']['url'], '@') !== false) {
+                $param['cover_image']['url'] = substr($param['cover_image']['url'], 0, strpos($param['cover_image']['url'], '@'));
+            }
             $subject_info['ext_info']['cover_image'] = $param['cover_image'];
         }
         if (!empty($param['cover_image']) && $param['cover_image_hidden'] != 1) {
@@ -2304,7 +2307,9 @@ class Subject extends \mia\miagroup\Lib\Service
                     if (!empty($v['blog_image']['redirect_url'])) {
                         $v['blog_image']['redirect_url'] = str_replace('http://', 'https://', $v['blog_image']['redirect_url']);
                     }
-                    $v['blog_image']['url'] = substr($v['blog_image']['url'], 0, strpos($v['blog_image']['url'], '@'));
+                    if (strpos($v['cover_image']['url'], '@') !== false) {
+                        $v['blog_image']['url'] = substr($v['blog_image']['url'], 0, strpos($v['blog_image']['url'], '@'));
+                    }
                     $subject_info['image_infos'][] = $v['blog_image'];
                     $blog_meta[] = ['blog_image' => $v['blog_image']];
                     break;
