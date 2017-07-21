@@ -2083,7 +2083,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['subject_id']) || empty($param['user_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
             return $this->error(500);
         }
-        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'])['data'];
+        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[1,3])['data'];
         if (empty($subject_info) || $subject_info['type'] != 'blog') {
             return $this->error(1131);
         }
