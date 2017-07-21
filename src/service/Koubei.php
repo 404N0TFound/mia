@@ -1639,7 +1639,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
 
         //获取口碑数量
-        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);
+        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids);
         if ($koubei_nums <= 0) {
             return $this->succ($koubei_res);
         }
