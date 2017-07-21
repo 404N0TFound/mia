@@ -17,8 +17,11 @@ class SubjectBlog extends \DB_Query {
             return false;
         }
         foreach ($insert_data as $k => $v) {
-            if (in_array($k, ['index_cover_image', 'blog_meta', 'ext_info', 'status'])) {
+            if (in_array($k, ['index_cover_image', 'blog_meta', 'ext_info'])) {
                 $insert_data[$k] = json_encode($v);
+            }
+            if ($k == "status") {
+                $insert_data[$k] = $v;
             }
         }
         $insert_id = $this->insert($insert_data);
