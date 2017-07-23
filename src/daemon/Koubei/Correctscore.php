@@ -52,14 +52,17 @@ class Correctscore extends \FD_Daemon {
         }
         
         //拉取待修正的口碑id
-        $data = $this->koubeiScoreData->getListById($lastId, 1000);
+
+        $data = $this->koubeiData->query("select a.id as id,b.semantic_analys as semantic_analys 
+                      from koubei as a 
+                      left join group_subjects as b  
+                      on a.subject_id = b.id
+                      where a.id > {$lastId} and b.semantic_analys > 0 limit 1000");
+
         if (empty($data)) {
             return ;
         }
-        $koubeiIds = array();
-        foreach ($data as $value) {
-            $koubeiIds[] = $value['id'];
-        }
+        $koubeiIds = array_column($data, 'id');
         $koubeiInfos = $this->koubeiData->getBatchKoubeiByIds($koubeiIds, array());
         foreach ($data as $value) {
             if (isset($maxId)) { //获取最大event_id
@@ -71,13 +74,13 @@ class Correctscore extends \FD_Daemon {
                 continue;
             }
             $tmpKoubei = $koubeiInfos[$value['id']];
-            //蜜芽圈同步过来的不需要修正，自动好评不需要修正
-            if ($tmpKoubei['score'] == 0 || $tmpKoubei['auto_evaluate'] == 1) {
+            //自动好评不需要修正
+            if ($tmpKoubei['auto_evaluate'] == 1 || $tmpKoubei['subject_id'] <= 0) {
                 continue;
             }
             $score = null;
             $reduce = 0;
-            switch ($value['flag']) {
+            switch ($value['semantic_analys']) {
                 case 1: //差评往一星分数修正
                     $reduce = ($tmpKoubei['score'] - 1) * 2;
                     break;
@@ -85,7 +88,7 @@ class Correctscore extends \FD_Daemon {
                     $reduce = ($tmpKoubei['score']-2)>0 ? (($tmpKoubei['score'] - 2) * 2) : 0;
                     break;
             }
-            $score[] = array('machine_score', $value['flag']); //机器评分
+            $score[] = array('machine_score', $value['semantic_analys']); //机器评分
             if ($reduce > 0) {
                 $rankScore = (($tmpKoubei['rank_score'] - $reduce) > 0) ? ($tmpKoubei['rank_score'] - $reduce) : 0;
                 $immutableScore = (($tmpKoubei['immutable_score'] - $reduce) > 0) ? ($tmpKoubei['immutable_score'] - $reduce) : 0;
