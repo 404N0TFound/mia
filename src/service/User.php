@@ -728,5 +728,15 @@ class User extends \mia\miagroup\Lib\Service {
         $res = $this->userModel->checkUserGroupByUserId($userId,$groupId);
         return $this->succ($res);
     }
+
+
+    /*
+     * 获取达人分组列表
+     * */
+    public function getDoozerByCategory($count = 0)
+    {
+        $res = $this->userModel->getGroupUserIdList($count);
+        return $this->succ($res);
+    }
     
 }
