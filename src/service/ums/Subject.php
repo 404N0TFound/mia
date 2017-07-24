@@ -282,6 +282,12 @@ class Subject extends \mia\miagroup\Lib\Service {
             //查询文字内容数
             $solrParams['after_text_count'] = $data['contentnum'];
         }
+        
+        if (!empty($data['subject_type'])) {
+            //查询帖子类型
+            $solrParams['subject_type'] = $data['subject_type'];
+        }
+        
         $solr = new Solr('pic_search', 'group_search_solr');
 
         // 总用户数查询
