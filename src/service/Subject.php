@@ -476,6 +476,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         $subjectRes = array();
+        $userService = new UserService();
         // 拼装结果集
         foreach ($subjectIds as $subjectId) {
             if (!empty($subjectInfos[$subjectId])) {
@@ -545,7 +546,8 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
             // 美化图片
-            $daren_list = $this->config['daren_beautyimage_list'];
+            $daren_list = $userService->getDoozerByCategory(0)['data'];
+            // 获取达人列表
             if (!empty($subjectInfo['ext_info']['beauty_image']) && !in_array($subjectInfo['user_id'], $daren_list)) {
                 $imageInfos = $subjectInfo['ext_info']['beauty_image'];
                 if (is_array($imageInfos) && !empty($imageInfos)) {
@@ -1985,12 +1987,20 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($userId) || empty($sourceId)) {
             return $this->error(500);
         }
+        //查询贴子收藏数，线上有主从同步，必须先查
+        $collect_num = $this->getBatchSubjectCollectCount(intval($sourceId))["data"][intval($sourceId)];
+
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
 
         if(empty($collectInfo)) {
             //插入
             $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
+            if ($status == 1) {
+                $collect_num++;
+            } else if ($status == 0) {
+                $collect_num--;
+            }
         } else {
             if ($collectInfo["status"] == $status) {
                 //无需修改
@@ -2002,10 +2012,14 @@ class Subject extends \mia\miagroup\Lib\Service
                 $where[] = ['source_id', $sourceId];
                 $where[] = ['source_type', $type];
                 $result = $this->subjectModel->updateCollect($setData, $where);
+                if ($status == 1) {
+                    $collect_num++;
+                } else if ($status == 0) {
+                    $collect_num--;
+                }
             }
         }
-        //查询贴子收藏数
-        $collect_num = $this->getBatchSubjectCollectCount(intval($sourceId))["data"][intval($sourceId)];
+
         $res = [];
         if ($collectInfo["status"] == $status) {
             $success = $status;
@@ -2058,6 +2072,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $blog_info['subject_id'] = $result['data']['id'];
         $blog_info['user_id'] = $param['user_id'];
         $blog_info['blog_meta'] = $parsed_param['blog_meta'];
+        $blog_info['status'] = $parsed_param['subject_info']['status'];
         $blog_info['create_time'] = $result['data']['created'];
         $this->subjectModel->addBlog($blog_info);
         return $this->succ($result['data']);
@@ -2070,7 +2085,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['subject_id']) || empty($param['user_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
             return $this->error(500);
         }
-        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'])['data'];
+        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[1,3])['data'];
         if (empty($subject_info) || $subject_info['type'] != 'blog') {
             return $this->error(1131);
         }
@@ -2102,6 +2117,9 @@ class Subject extends \mia\miagroup\Lib\Service
         //修改长文表
         $blog_info = [];
         $blog_info['blog_meta'] = $parsed_param['blog_meta'];
+        if (isset($parsed_param['subject_info']['status'])) {
+            $blog_info['status'] = $parsed_param['subject_info']['status'];
+        }
         if (!empty($param['index_cover_image']) && !empty($param['index_cover_image']['width']) && !empty($param['index_cover_image']['height']) && !empty($param['index_cover_image']['url'])) {
             $blog_info['index_cover_image'] = $param['index_cover_image'];
             $parsed_param['subject_info']['ext_info']['cover_image'] = $param['index_cover_image'];
@@ -2110,6 +2128,9 @@ class Subject extends \mia\miagroup\Lib\Service
         //修改帖子表
         $subject_set_data = [];
         $subject_set_data['title'] = $parsed_param['subject_info']['title'];
+        if (isset($parsed_param['subject_info']['status'])) {
+            $subject_set_data['status'] = $parsed_param['subject_info']['status'];
+        }
         $subject_set_data['text'] = $parsed_param['subject_info']['text'];
         $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
         $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
@@ -2334,6 +2355,9 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         $subject_info['ext_info']['is_blog'] = 1;
+        if (!empty($param['status'])) {
+            $subject_info['status']= $param['status'];
+        }
         return ['subject_info' => $subject_info, 'blog_meta' => $blog_meta, 'labels' => $labels, 'items' => $items];
     }
 

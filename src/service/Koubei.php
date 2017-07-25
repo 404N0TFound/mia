@@ -500,16 +500,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubei_ids = $res['data'];
         }
 
+        // 统一逻辑：推荐服务没有返回数据，不再二次查询
         if(empty($koubei_ids)) {
-            $condition['auto_evaluate'] = 0;
-            $condition['with_pic'] = true;
-            $condition['score'] = array(0, 4, 5);
-            $koubei_ids = $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count);
-            if (count($koubei_ids) < $count) {
-                $count = $count - count($koubei_ids);
-                $condition['with_pic'] = false;
-                $koubei_ids = array_merge($koubei_ids, $this->koubeiModel->getKoubeiByItemIdsAndCondition($item_ids, $condition, $count));
-            }
+            return $this->succ($koubei_res);
         }
 
         //获取口碑信息
@@ -1260,14 +1253,22 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
             // 排序过滤（获取第一屏符合条件的最优口碑）
             foreach($koubei_list as $koubei) {
+                // 帖子
                 if($koubei['source'] == 1 && $koubei['item_koubei']['machine_score'] ==3 &&
                     $koubei['item_koubei']['auto_evaluate'] == 0 ) {
                     $transfer_koubei[$item_id] = $koubei;
                     break;
                 }
+                // 口碑
                 if($koubei['source'] != 1  && $koubei['item_koubei']['score'] >=4
                     && $koubei['item_koubei']['machine_score'] ==3 &&
                     $koubei['item_koubei']['auto_evaluate'] == 0 ) {
+                    $transfer_koubei[$item_id] = $koubei;
+                    break;
+                }
+                // 封测报告
+                if($koubei['source'] != 1  && $koubei['item_koubei']['type'] ==1
+                    && $koubei['item_koubei']['auto_evaluate'] == 0 ) {
                     $transfer_koubei[$item_id] = $koubei;
                     break;
                 }
@@ -1638,7 +1639,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
 
         //获取口碑数量
-        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids, 0, $condition);
+        $koubei_nums = $this->koubeiModel->getItemKoubeiNums($item_ids);
         if ($koubei_nums <= 0) {
             return $this->succ($koubei_res);
         }
@@ -1661,7 +1662,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
             switch ($tag_id) {
                 case 1 ://全部
                     //通过商品id获取口碑id
-                    $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $condition);
+                    // 全部与商品详情列表保持一致（推荐逻辑 add by 5.6）
+                    $remote_curl = new RemoteCurl('koubei_high_optimize');
+                    $remote_data['skuIds'] = implode(',', $item_ids);
+                    $remote_data['page'] = $page - 1;
+                    $remote_data['pagesize'] = $limit;
+                    $remote_data['source'] = 'more';
+                    $res = $remote_curl->curl_remote('', $remote_data);
+                    if($res['code'] == 0) {
+                        $koubei_ids = $res['data'];
+                    }
+                    if(empty($koubei_ids)) {
+                        $koubei_ids = $this->koubeiModel->getKoubeiIdsByItemIds($item_ids, $limit, $offset, $condition);
+                    }
                     break;
                 case 2 ://有图
                     //通过商品id获取口碑id
