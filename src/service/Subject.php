@@ -2327,7 +2327,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     if (!empty($v['blog_image']['redirect_url'])) {
                         $v['blog_image']['redirect_url'] = str_replace('http://', 'https://', $v['blog_image']['redirect_url']);
                     }
-                    if (strpos($v['cover_image']['url'], '@') !== false) {
+                    if (strpos($v['blog_image']['url'], '@') !== false) {
                         $v['blog_image']['url'] = substr($v['blog_image']['url'], 0, strpos($v['blog_image']['url'], '@'));
                     }
                     $subject_info['image_infos'][] = $v['blog_image'];
