@@ -211,7 +211,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $wearhouseInfo = $this->stockModel->getBatchNameBySupplyIds($supplierIds);
         
         $koubeiService = new KoubeiService();
-        $maxKoubeiCount = 10000;
+        $maxKoubeiCount = 20000;
         $pieceCount = 100;
         $koubeiIds = count($koubeiIds) > $maxKoubeiCount ? array_splice($koubeiIds, 0, $maxKoubeiCount) : $koubeiIds;
         $koubeiInfos = array();
