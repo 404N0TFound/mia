@@ -407,19 +407,33 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         
         $supplierIds = array_keys($supplyInfo);
-        //如果无某商家查询，则默为所有自主商家
-        if (intval($params['supplier_id']) > 0) {
-            //商家ID
-            $condition['supplier_id'] = $params['supplier_id'];
-        }else{
-            //默认为所有的自主商家id
-            $condition['supplier_id'] = $supplierIds;
-        }
 
         //起始时间
         $condition['start_time'] = $params['start_time'];
         //结束时间
         $condition['end_time'] = $params['end_time'];
+
+        //如果无某商家查询，则默为所有自主商家
+        if (intval($params['supplier_id']) > 0) {
+            //商家ID
+            $condition['supplier_id'] = $params['supplier_id'];
+            $itemService = new \mia\miagroup\Service\Item();
+            $supplier = $itemService->getMappingBySupplierId($params['supplier_id'])['data'];
+            if($supplier['status'] == 1 && !empty($supplier['create_time'])) {
+                if(!empty($condition['end_time']) && ($supplier['create_time'] > $condition['end_time'])) {
+                    return $this->succ($result);
+                }
+                if(!empty($condition['start_time']) && $supplier['create_time'] > $condition['start_time']) {
+                    $condition['start_time'] = $supplier['create_time'];
+                }
+            }
+            if(empty($condition['start_time']) && !empty($supplier['create_time'])) {
+                $condition['start_time'] = $supplier['create_time'];
+            }
+        }else{
+            //默认为所有的自主商家id
+            $condition['supplier_id'] = $supplierIds;
+        }
     
         //查询商家的口碑信息，用来过滤掉无口碑的商家id ######start
         $data = $this->koubeiModel->getSupplierKoubeiData($condition, $orderBy);
