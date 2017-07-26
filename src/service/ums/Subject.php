@@ -139,14 +139,10 @@ class Subject extends \mia\miagroup\Lib\Service {
             //用户id
             $condition['user_id'] = $params['user_id'];
         }
-        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && intval($condition['id']) <= 0) {
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1, 3))) && intval($condition['id']) <= 0) {
             //状态
             $condition['status'] = $params['status'];
         }
-        if (!isset($condition['status'])) {
-            $condition['status'] = [1, 3];
-        }
-        
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
             $condition['start_time'] = $params['start_time'];
