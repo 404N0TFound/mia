@@ -139,11 +139,10 @@ class Subject extends \mia\miagroup\Lib\Service {
             //用户id
             $condition['user_id'] = $params['user_id'];
         }
-        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && intval($condition['id']) <= 0) {
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1, 3))) && intval($condition['id']) <= 0) {
             //状态
             $condition['status'] = $params['status'];
         }
-        
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
             $condition['start_time'] = $params['start_time'];
@@ -156,10 +155,18 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (empty($data['list'])) {
             return $this->succ($result);
         }
-        $subjectIds = $data['list'];
+        $subjectIds = array_keys($data['list']);
         $subjectService = new SubjectService();
         $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
-        $result['list'] = array_values($subjectInfos);
+        foreach ($data['list'] as $subject_id => $v) {
+            if (!empty($subjectInfos[$subject_id])) {
+                $subject = $subjectInfos[$subject_id];
+                if (!empty($v['index_cover_image'])) {
+                    $subject['cover_image'] = \mia\miagroup\Util\NormalUtil::buildImgUrl($v['index_cover_image']['url'], 'normal', $v['index_cover_image']['width'], $v['index_cover_image']['height']);
+                }
+                $result['list'][] = $subject;
+            }
+        }
         $result['count'] = $data['count'];
         return $this->succ($result);
     }
