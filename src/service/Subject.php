@@ -2082,7 +2082,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * 编辑长文
      */
     public function editBlog($param) {
-        if (empty($param['subject_id']) || empty($param['user_id'])) {
+        if (empty($param['subject_id'])) {
             return $this->error(500);
         }
         $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[1,3])['data'];
