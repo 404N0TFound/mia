@@ -7,6 +7,7 @@ use mia\miagroup\Model\Ums\Subject as SubjectModel;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\User as UserService;
 use \mia\miagroup\Remote\Solr;
+use mia\miagroup\Util\NormalUtil;
 
 class Subject extends \mia\miagroup\Lib\Service {
     
@@ -156,10 +157,16 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (empty($data['list'])) {
             return $this->succ($result);
         }
-        $subjectIds = $data['list'];
+        $subjectIds = array_keys($data['list']);
         $subjectService = new SubjectService();
         $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
-        $result['list'] = array_values($subjectInfos);
+        foreach ($data['list'] as $subject_id => $v) {
+            if (empty($subjectInfos[$subject_id])) {
+                $subject = $subjectInfos[$subject_id];
+                $subject['cover_image'] = NormalUtil::buildImgUrl($v['index_cover_image']['url'], 'normal', $v['index_cover_image']['width'], $v['index_cover_image']['height']);
+                $result['list'][] = $subject;
+            }
+        }
         $result['count'] = $data['count'];
         return $this->succ($result);
     }

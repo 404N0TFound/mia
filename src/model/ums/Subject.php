@@ -100,10 +100,11 @@ class Subject extends \DB_Query {
         if (intval($result['count']) <= 0) {
             return $result;
         }
-        $data = $this->getRows($where, 'subject_id', $limit, $offset, $orderBy);
+        $data = $this->getRows($where, 'subject_id, index_cover_image', $limit, $offset, $orderBy);
         if (!empty($data)) {
             foreach ($data as $k => $v) {
-                $result['list'][] = $v['subject_id'];
+                $v = json_encode($v['index_cover_image'], true);
+                $result['list'][$v['subject_id']] = $v;
             }
         }
         return $result;
