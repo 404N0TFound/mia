@@ -1032,6 +1032,9 @@ class Subject extends \mia\miagroup\Lib\Service
             if (intval($subjectInfo['active_id']) > 0) {
                 //获取活动信息
                 $activeInfo = $activeService->getSingleActiveById($subjectInfo['active_id'])['data'];
+                if (!empty($activeInfo['label_titles'])) {
+                    $labelInfos[] = ['title' => $activeInfo['label_titles']];
+                }
                 $currentTime = date("Y-m-d H:i:s",time());
                 if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time']){
                     $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
@@ -2124,6 +2127,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         if (!empty($param['index_cover_image']) && !empty($param['index_cover_image']['width']) && !empty($param['index_cover_image']['height']) && !empty($param['index_cover_image']['url'])) {
             $blog_info['index_cover_image'] = $param['index_cover_image'];
+            $parsed_param['subject_info']['ext_info']['index_cover'] = $param['index_cover_image'];
         }
         if (!empty($blog_info)) {
             $this->subjectModel->editBlog($param['subject_id'], $blog_info);
