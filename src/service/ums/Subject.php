@@ -37,15 +37,15 @@ class Subject extends \mia\miagroup\Lib\Service {
             //帖子ID
             $condition['id'] = $koubeiCondtion['subject_id'] = $params['id'];
         }
-        if (intval($params['user_id']) > 0 && !empty($condition['id'])) {
+        if (intval($params['user_id']) > 0 && empty($condition['id'])) {
             //用户id
             $condition['user_id'] = $koubeiCondtion['user_id'] = $params['user_id'];
         }
-        if (!empty($params['user_name']) && intval($condition['user_id']) <= 0 && !empty($condition['id'])) {
+        if (!empty($params['user_name']) && intval($condition['user_id']) <= 0 && empty($condition['id'])) {
             //用户名
             $condition['user_id'] = $koubeiCondtion['user_id'] = intval($this->userModel->getUidByUserName($params['user_name']));
         }
-        if (!empty($params['nick_name']) && intval($condition['user_id']) <= 0 && !empty($condition['id'])) {
+        if (!empty($params['nick_name']) && intval($condition['user_id']) <= 0 && empty($condition['id'])) {
             //用户昵称
             $condition['user_id'] = $koubeiCondtion['user_id'] = $this->userModel->getUidByNickName($params['nick_name']);
         }
@@ -53,15 +53,15 @@ class Subject extends \mia\miagroup\Lib\Service {
             //标题搜索
             $condition['title'] = $params['title'];
         }
-        if (!empty($params['uid_list']) && is_array($params['uid_list']) && intval($condition['user_id']) <= 0 && !empty($condition['id'])) {
+        if (!empty($params['uid_list']) && is_array($params['uid_list']) && intval($condition['user_id']) <= 0 && empty($condition['id'])) {
             $condition['user_id'] = $params['uid_list'];
         }
-        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && !empty($condition['id'])) {
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && empty($condition['id'])) {
             //帖子状态
             $condition['status'] = $params['status'];
         }
         
-        if ($params['source'] !== null && $params['source'] !== '' && in_array($params['source'], array(0, 1, 2, 4)) && !empty($condition['id'])) {
+        if ($params['source'] !== null && $params['source'] !== '' && in_array($params['source'], array(0, 1, 2, 4)) && empty($condition['id'])) {
             //帖子来源
             if($params['source'] == 0){
                 $params['source'] = array(1, 2, 4);
@@ -69,11 +69,11 @@ class Subject extends \mia\miagroup\Lib\Service {
             $condition['source'] = $params['source'];
         }
         
-        if ($params['is_fine'] !== null && $params['is_fine'] !== '' && in_array($params['is_fine'], array(0, 1)) && !empty($condition['id'])) {
+        if ($params['is_fine'] !== null && $params['is_fine'] !== '' && in_array($params['is_fine'], array(0, 1)) && empty($condition['id'])) {
             //是否是推荐
             $condition['is_fine'] = $params['is_fine'];
         }
-        if ($params['is_top'] !== null && $params['is_top'] !== '' && in_array($params['is_top'], array(0, 1)) && !empty($condition['id'])) {
+        if ($params['is_top'] !== null && $params['is_top'] !== '' && in_array($params['is_top'], array(0, 1)) && empty($condition['id'])) {
             //是否是置顶
             $condition['is_top'] = $params['is_top'];
         }
@@ -82,15 +82,15 @@ class Subject extends \mia\miagroup\Lib\Service {
             $koubeiCondtion['is_audited'] = $params['is_audited'];
         }
         
-        if (intval($params['item_id']) > 0 && !empty($condition['id'])) {
+        if (intval($params['item_id']) > 0 && empty($condition['id'])) {
             //商品ID
             $koubeiCondtion['item_id'] = $params['item_id'];
         }
-        if (strtotime($params['start_time']) > 0 && !empty($condition['id'])) {
+        if (strtotime($params['start_time']) > 0 && empty($condition['id'])) {
             //起始时间
             $condition['start_time'] = $koubeiCondtion['start_time'] = $params['start_time'];
         }
-        if (strtotime($params['end_time']) > 0 && !empty($condition['id'])) {
+        if (strtotime($params['end_time']) > 0 && empty($condition['id'])) {
             //结束时间
             $condition['end_time'] = $koubeiCondtion['end_time'] = $params['end_time'];
         }
@@ -135,19 +135,19 @@ class Subject extends \mia\miagroup\Lib\Service {
             $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 20;
         }
         $offset = intval($params['page']) > 1 ? ($params['page'] - 1) * $limit : 0;
-        if (intval($params['user_id']) > 0 && !empty($condition['id'])) {
+        if (intval($params['user_id']) > 0 && empty($condition['id'])) {
             //用户id
             $condition['user_id'] = $params['user_id'];
         }
-        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1, 3))) && !empty($condition['id'])) {
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1, 3))) && empty($condition['id'])) {
             //状态
             $condition['status'] = $params['status'];
         }
-        if (strtotime($params['start_time']) > 0 && !empty($condition['id'])) {
+        if (strtotime($params['start_time']) > 0 && empty($condition['id'])) {
             //起始时间
             $condition['start_time'] = $params['start_time'];
         }
-        if (strtotime($params['end_time']) > 0 && !empty($condition['id'])) {
+        if (strtotime($params['end_time']) > 0 && empty($condition['id'])) {
             //结束时间
             $condition['end_time'] = $params['end_time'];
         }
