@@ -95,7 +95,6 @@ class Subject extends \DB_Query {
                 }
             }
         }
-        $where[] = ['status', [1, 3]];
         $result['count'] = $this->count($where);
         if (intval($result['count']) <= 0) {
             return $result;
@@ -103,7 +102,7 @@ class Subject extends \DB_Query {
         $data = $this->getRows($where, 'subject_id, index_cover_image', $limit, $offset, $orderBy);
         if (!empty($data)) {
             foreach ($data as $k => $v) {
-                $v['index_cover_image'] = json_encode($v['index_cover_image'], true);
+                $v['index_cover_image'] = json_decode($v['index_cover_image'], true);
                 $result['list'][$v['subject_id']] = $v;
             }
         }

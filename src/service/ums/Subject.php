@@ -143,6 +143,9 @@ class Subject extends \mia\miagroup\Lib\Service {
             //状态
             $condition['status'] = $params['status'];
         }
+        if (!isset($condition['status'])) {
+            $condition['status'] = [1, 3];
+        }
         
         if (strtotime($params['start_time']) > 0 && intval($condition['id']) <= 0) {
             //起始时间
@@ -160,7 +163,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         $subjectService = new SubjectService();
         $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
         foreach ($data['list'] as $subject_id => $v) {
-            if (empty($subjectInfos[$subject_id])) {
+            if (!empty($subjectInfos[$subject_id])) {
                 $subject = $subjectInfos[$subject_id];
                 if (!empty($v['index_cover_image'])) {
                     $subject['cover_image'] = \mia\miagroup\Util\NormalUtil::buildImgUrl($v['index_cover_image']['url'], 'normal', $v['index_cover_image']['width'], $v['index_cover_image']['height']);
