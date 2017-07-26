@@ -1032,6 +1032,9 @@ class Subject extends \mia\miagroup\Lib\Service
             if (intval($subjectInfo['active_id']) > 0) {
                 //获取活动信息
                 $activeInfo = $activeService->getSingleActiveById($subjectInfo['active_id'])['data'];
+                if (!empty($activeInfo['label_titles'])) {
+                    $labelInfos[] = ['title' => $activeInfo['label_titles']];
+                }
                 $currentTime = date("Y-m-d H:i:s",time());
                 if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time']){
                     $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
