@@ -2124,6 +2124,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         if (!empty($param['index_cover_image']) && !empty($param['index_cover_image']['width']) && !empty($param['index_cover_image']['height']) && !empty($param['index_cover_image']['url'])) {
             $blog_info['index_cover_image'] = $param['index_cover_image'];
+            $parsed_param['subject_info']['ext_info']['index_cover'] = $param['index_cover_image'];
         }
         if (!empty($blog_info)) {
             $this->subjectModel->editBlog($param['subject_id'], $blog_info);

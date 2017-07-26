@@ -120,6 +120,7 @@ $album = array(
      'selection',
      'user_period',
      'is_blog',
+     'index_cover',
  );
  
  /**
