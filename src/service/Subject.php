@@ -2180,6 +2180,15 @@ class Subject extends \mia\miagroup\Lib\Service
         $items = $item_service->getBatchItemBrandByIds($item_ids)['data'];
         //拼装结果集
         foreach ($blog_meta_list as $key => $blog_meta) {
+            if (isset($blog_meta['blog_text'])) {
+                if (!empty($blog_meta['blog_text']['urls'])) {
+                    foreach ($blog_meta['blog_text']['urls'] as $url_key => $url) {
+                        if (!isset($url['color']) || empty($url['color'])) {
+                            $blog_meta_list[$key]['blog_text']['urls'][$url_key]['color'] = 'fa4b9b';
+                        }
+                    }
+                }
+            }
             if (isset($blog_meta['blog_user'])) {
                 if (!empty($users[$blog_meta['blog_user']])) {
                     $blog_meta_list[$key]['blog_user'] = $users[$blog_meta['blog_user']];
