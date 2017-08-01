@@ -8,17 +8,517 @@ use mia\miagroup\Service\Comment as commentService;
 use mia\miagroup\Service\Praise as praiseService;
 use mia\miagroup\Service\Subject as subjectService;
 use mia\miagroup\Service\UserRelation as userRelationService;
+use mia\miagroup\Lib\Redis;
 
 class News extends \mia\miagroup\Lib\Service
 {
-
     public $newsModel;
 
     public function __construct()
     {
         parent::__construct();
         $this->newsModel = new NewsModel();
+        $this->config = \F_Ice::$ins->workApp->config->get('busconf.news');
     }
+
+    /*=============5.7新版本消息=============*/
+    public function test()
+    {
+        list($redis, $redis_key, $expire_time) = $this->getRedis("to_write_news");
+        return $this->succ($redis->lrange($redis_key, 0, -1));
+    }
+
+    /**
+     * 发送会员Plus站内信
+     * @param $to_user_id
+     * @param $news_type string
+     * plus_new_members：新plus会员提醒；
+     * plus_new_fans：Plus会员新粉丝提醒；
+     * plus_get_commission：获取佣金提醒；
+     * @param $ext_info string JSON
+     * user_id：相关用户id；
+     * money：金额；
+     */
+    public function addPlusNews($to_user_id, $news_type, $ext_info = [])
+    {
+        if (empty($to_user_id) || !is_numeric(intval($to_user_id))) {
+            return $this->error(500, 'to_user_id参数错误！');
+        }
+        if (empty($news_type) || !in_array($news_type, $this->config['plus_news_type'])) {
+            return $this->error(500, 'news_type参数错误！');
+        }
+        //获取信息
+        $type = "plus";
+        $newsType = $news_type;
+
+        if (!empty($ext_info)) {
+            if (!is_array($ext_info)) {
+                return $this->error(500, 'ext_info格式错误！');
+            }
+            foreach ($ext_info as $k => $v) {
+                if (!in_array($k, ["user_id", "money"])) {
+                    return $this->error(500, 'ext_info参数错误！');
+                }
+            }
+        }
+
+        $time = date("Y-m-d H:i:s");
+
+        $newsInfo = json_encode(
+            [
+                "type" => $type,
+                "newsType" => $newsType,
+                "toUserId" => $to_user_id,
+                "ext_info" => $ext_info,
+                "time" => $time
+            ]
+        );
+
+        //存储redis
+        list($redis, $redis_key, $expire_time) = $this->getRedis("to_write_news");
+        $redis->lpush($redis_key, $newsInfo);
+        $redis->expire($redis_key, $expire_time);
+
+        return $this->succ("发送成功");
+    }
+
+    /**
+     * 发送交易相关站内信
+     * @param $to_user_id
+     * @param $order_code string 订单号
+     * @param $order_status string 订单状态
+     * order_unpay：订单未付款；
+     * order_cancel：订单取消；
+     * order_send_out：订单已发货；
+     * order_delivery：订单正在派送；
+     * return_audit_pass：退货申请审核通过；
+     * return_audit_refuse：退货申请审核不通过；
+     * return_overdue：退货申请过期；
+     * refund_success：退款成功；
+     * refund_fail：退款失败；
+     */
+    public function addTradingNews($to_user_id, $order_code, $order_status)
+    {
+        if (empty($to_user_id) || !is_numeric(intval($to_user_id))) {
+            return $this->error(500, 'to_user_id参数错误！');
+        }
+        if (empty($order_code)) {
+            return $this->error(500, 'order_code不为空！');
+        }
+        if (empty($order_status) || !in_array($order_status, $this->config['trade_order_status'])) {
+            return $this->error(500, 'news_type参数错误！');
+        }
+        //获取信息
+        $type = "trade";
+        $newsType = $order_status;
+        $orderCode = $order_code;
+
+        $time = date("Y-m-d H:i:s");
+
+        $newsInfo = json_encode(
+            [
+                "type" => $type,
+                "newsType" => $newsType,
+                "toUserId" => $to_user_id,
+                "ext_info" => ["orderCode" => $orderCode],
+                "time" => $time
+            ]
+        );
+
+        //存储redis
+        list($redis, $redis_key, $expire_time) = $this->getRedis("to_write_news");
+        $redis->lpush($redis_key, $newsInfo);
+        $redis->expire($redis_key, $expire_time);
+
+        return $this->succ("发送成功");
+    }
+
+    /**
+     * 发送用户资产站内信
+     * @param $to_user_id
+     * @param $news_type string 站内信类型
+     * coupon_receive：优惠券获取通知；
+     * coupon_overdue：优惠券过期通知；
+     * redbag_receive：红包获取通知；
+     * redbag_overdue：红包过期通知；
+     * @param $ext_info string JSON
+     * money：金额；
+     */
+    public function addCouponNews($to_user_id, $news_type, $ext_info)
+    {
+        if (empty($to_user_id) || !is_numeric(intval($to_user_id))) {
+            return $this->error(500, 'to_user_id参数错误！');
+        }
+        if (empty($news_type) || !in_array($news_type, $this->config['coupon_news_type'])) {
+            return $this->error(500, 'news_type参数错误！');
+        }
+        //获取信息
+        $type = "coupon";
+        $newsType = $news_type;
+
+        if (!empty($ext_info)) {
+            if (!is_array($ext_info)) {
+                return $this->error(500, 'ext_info格式错误！');
+            }
+            foreach ($ext_info as $k => $v) {
+                if (!in_array($k, ["money"])) {
+                    return $this->error(500, 'ext_info参数错误！');
+                }
+            }
+        }
+
+        $time = date("Y-m-d H:i:s");
+
+        $newsInfo = json_encode(
+            [
+                "type" => $type,
+                "newsType" => $newsType,
+                "toUserId" => $to_user_id,
+                "ext_info" => $ext_info,
+                "time" => $time
+            ]
+        );
+
+        //存储redis
+        list($redis, $redis_key, $expire_time) = $this->getRedis("to_write_news");
+        $redis->lpush($redis_key, $newsInfo);
+        $redis->expire($redis_key, $expire_time);
+
+        return $this->succ("发送成功");
+    }
+
+    /**
+     * 获取redis实例，key，expire_time
+     * @param $key string 变量名
+     * @param $format_str string 格式化的变量
+     * @return array
+     */
+    public function getRedis($key, $format_str = "")
+    {
+        if ($this->redis) {
+            $redis = $this->redis;
+        } else {
+            $redis = new Redis('news/default');
+            $this->redis = $redis;
+        }
+        $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.newsKey.' . $key);
+        if (!empty($format_str)) {
+
+        } else {
+            $key = $redis_info['key'];
+        }
+        $expire_time = $redis_info['expire_time'];
+        return [$redis, $key, $expire_time];
+    }
+
+    /**
+     * 发布消息，提供外部接口
+     * 1.交易物流：订单状态变更，物流动态。
+     * 2.我的资产：红包优惠券。
+     * 3.会员plus：佣金，提现，成员加入，新增粉丝，分享购买，分享页面产生新Plus会员，即将成为城市经理。
+     * 4.蜜芽圈：活动：旧蜜芽圈活动 ；动态：被关注、被回复、被点赞、帖子被加精、关注的达人发了新帖。
+     * 5.蜜芽活动：旧特卖消息。
+     *
+     * @param $type string 消息类型
+     * @param $sendFromUserId int 发送人ID
+     * @param $toUserId int 接收人ID
+     * @param $source_id int 来源ID
+     * @param $status int 消息状态
+     *
+     *
+     */
+    public function postMessage($type, $toUserId = 0, $sendFromUserId = 0, $source_id = 0, $ext_info = [])
+    {
+        //参数检测
+        if (empty($type)) {
+            return $this->error(500, 'type参数不为空！');
+        }
+
+        //检查是否是最低级分类
+        if (!in_array($type, $this->getFinalCate()['data'])) {
+            return $this->error(500, 'type不合法！');
+        }
+
+        $insert_data = [];
+        $insert_data['news_type'] = $type;
+        $insert_data['user_id'] = $toUserId;
+        $insert_data['send_user'] = $sendFromUserId;
+        $insert_data['source_id'] = $source_id;
+        //发送时间
+        if (isset($ext_info['time'])) {
+            $insert_data['create_time'] = $ext_info['time'];
+            unset($ext_info['time']);
+        } else {
+            $insert_data['create_time'] = date("Y-m-d H:i:s");
+        }
+
+        switch ($type) {
+            /*========蜜芽圈：动态========*/
+            case "img_comment"://被回复
+                //评论消息里面，source_id记得是评论ID，ext_info补上：帖子ID
+                $commentService = new commentService();
+                $subject_id = $commentService->getBatchComments([$source_id], [])["data"][$source_id]["subject_id"];
+                if (!empty($subject_id)) {
+                    $ext_info["subject_id"] = $subject_id;
+                }
+                break;
+            case "img_like"://被点赞
+                //点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
+                $praiseService = new praiseService();
+                $subject_id = $praiseService->getPraisesByIds([$source_id], [])["data"][$source_id]["subject_id"];
+                if (!empty($subject_id)) {
+                    $ext_info["subject_id"] = $subject_id;
+                }
+                break;
+            case "follow"://被关注
+                break;
+            case "add_fine"://帖子被加精
+                //加精消息里面，source_id记得就是帖子ID
+                break;
+            case "new_subject"://关注的达人发了新帖
+                break;
+            /*========蜜芽圈：活动========*/
+            case "group_custom"://蜜芽圈：活动，后台发送
+                break;
+            /*========交易物流：订单状态变更，物流动态========*/
+            case "order"://订单，旧的消息类型
+                break;
+            case "order_unpay":
+            case "order_cancel":
+            case "order_send_out":
+            case "order_delivery":
+            case "return_audit_pass":
+            case "return_audit_refuse":
+            case "return_overdue":
+            case "refund_success":
+            case "refund_fail":
+                //每个订单只有最新的一条信息，不需要按天合并
+                $lastNewsInfo = $this->newsModel->getLastNews($this->config["layer"]["trade"], $toUserId, $source_id, false)[0];
+                if (!empty($lastNewsInfo)) {
+                    //更新
+                    $insert_data['id'] = $lastNewsInfo['id'];
+                    //删除和已读状态还原
+                    $insert_data['is_read'] = 0;
+                    $insert_data['status'] = 1;
+                }
+                break;
+            /*========蜜芽活动：旧特卖消息========*/
+            case "custom"://蜜芽活动：旧特卖消息，后台发送
+                break;
+            /*========我的资产：红包优惠券========*/
+            case "coupon"://旧优惠券
+                break;
+            //以下4种类型，按天跑脚本，需要把同类型多条合并
+            case "coupon_receive":
+            case "coupon_overdue":
+            case "redbag_receive":
+            case "redbag_overdue":
+                $lastNewsInfo = $this->newsModel->getLastNews($type, $toUserId, $source_id, true)[0];
+                if (!empty($lastNewsInfo)) {
+                    //更新
+                    $insert_data['id'] = $lastNewsInfo['id'];
+                    //删除和已读状态还原
+                    $insert_data['is_read'] = 0;
+                    $insert_data['status'] = 1;
+
+                    $ext_info["money"] += $lastNewsInfo["ext_info"]["money"];
+                    $ext_info["num"] = $lastNewsInfo["ext_info"]["num"] + 1;
+                } else {
+                    $ext_info["num"] += 1;
+                }
+                break;
+            /*========会员plus：动态========*/
+            //以下2种类型，plus_new_members，plus_new_fans按天把同类型合并
+            case "plus_new_members":
+            case "plus_new_fans":
+                $lastNewsInfo = $this->newsModel->getLastNews($type, $toUserId, $source_id, true)[0];
+                if (!empty($lastNewsInfo)) {
+                    //更新
+                    $insert_data['id'] = $lastNewsInfo['id'];
+                    //删除和已读状态：还原
+                    $insert_data['is_read'] = 0;
+                    $insert_data['status'] = 1;
+
+                    $ext_info["user_id"] = array_merge([$ext_info["user_id"]], $lastNewsInfo["ext_info"]["user_id"]);
+                    $ext_info["num"] = $lastNewsInfo["ext_info"]["num"] + 1;
+                } else {
+                    $ext_info["user_id"] = [$ext_info["user_id"]];
+                    $ext_info["num"] += 1;
+                }
+                break;
+            case "plus_get_commission":
+                break;
+            /*========会员plus：活动========*/
+        }
+
+        if (!empty($ext_info)) {
+            $insert_data['ext_info'] = json_encode($ext_info);
+        }
+
+        //添加消息
+        $insertRes = $this->newsModel->postNews($insert_data);
+        if (!$insertRes) {
+            return $this->error(500, '发送用户消息失败！');
+        } else {
+            return $this->succ("发送成功");
+        }
+    }
+
+
+    /**
+     * 写入消息
+     */
+    public function addMessage()
+    {
+
+    }
+
+
+    /**
+     * 获取站内信未读数
+     */
+    public function noReadCounts()
+    {
+
+    }
+
+    /**
+     * 站内信首页列表
+     */
+    public function indexList()
+    {
+
+
+    }
+
+    /**
+     * 删除站内信
+     */
+    public function deleteNews()
+    {
+
+    }
+
+
+    /**
+     * 设置已读
+     */
+    public function setReadStatus()
+    {
+
+    }
+
+    /**
+     * 清空消息
+     * @param $type ：all-所有；trade-交易物流；plus-会员plus；group-蜜芽圈；activity-蜜芽活动；property-我的资产；
+     */
+    public function delNews($type)
+    {
+
+    }
+
+    /**
+     * 站内信子分类列表
+     * @param $type ：trade-交易物流；plus-会员plus；group-蜜芽圈；activity-蜜芽活动；property-我的资产；
+     */
+    public function categoryList($type, $offset)
+    {
+        if (empty($type)) {
+            return $this->succ([]);
+        }
+    }
+
+
+    /**
+     * 用户设置允许的push消息类型
+     */
+    public function setAcceptCate()
+    {
+
+    }
+
+    /**
+     * 查询最低级分类的上个父级分类（展示分类）
+     */
+    public function getAncestor($lastType)
+    {
+        //检查是否是最低级分类
+        if (!in_array($lastType, $this->getFinalCate()['data'])) {
+            return $this->succ("");
+        }
+        $layer = $this->config['layer'];
+        $belongTo = $this->isLastChild($lastType, $layer);
+        return $this->succ($belongTo);
+    }
+
+    public function isLastChild($lastType, $layer, $before = '')
+    {
+        foreach ($layer as $key => $val) {
+            if (!is_array($val)) {
+                if ($lastType == $val) {
+                    return $before;
+                } else {
+                    continue;
+                }
+            }
+            if (is_array($val)) {
+                $res = $this->isLastChild($lastType, $val, $key);
+                if (!$res) {
+                    continue;
+                } else {
+                    return $res;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取非最低级分类 (用于展示列表的分类)
+     */
+    public function getShowCate()
+    {
+        $layer = $this->config['layer'];
+        $showArr = array_unique($this->getNextLevel($layer));
+        return $this->succ(array_values($showArr));
+    }
+
+    public function getNextLevel($layer, $before = [])
+    {
+        $cateArr = [];
+        foreach ($layer as $key => $val) {
+            if (is_array($val)) {
+                $cateArr = array_merge($cateArr, $this->getNextLevel($val, [$key]));
+            } else {
+                $cateArr = array_merge($cateArr, $before);
+            }
+        }
+        return $cateArr;
+    }
+
+    /**
+     * 获取最低级分类
+     */
+    public function getFinalCate()
+    {
+        $layer = $this->config['layer'];
+        $lastCate = $this->getNextCate($layer);
+        return $this->succ($lastCate);
+    }
+
+    public function getNextCate($layer)
+    {
+        $cateArr = [];
+        foreach ($layer as $val) {
+            if (is_array($val)) {
+                $cateArr = array_merge($cateArr, $this->getNextCate($val));
+            } elseif (!empty($val)) {
+                $cateArr[] = $val;
+            }
+        }
+        return $cateArr;
+    }
+    /*=============5.7新版本消息end=============*/
 
 
     /**
@@ -192,7 +692,7 @@ class News extends \mia\miagroup\Lib\Service
                     $tmp["resource_id"] = "0";
 
                     //蜜芽小天使
-                    if(empty($news["send_user"])) {
+                    if (empty($news["send_user"])) {
                         $tmp["user_info"] = $miaAngelInfo;
                     } else {
                         $sendUserInfos[$news["send_user"]];
@@ -425,21 +925,21 @@ class News extends \mia\miagroup\Lib\Service
                 $ext_info['content'] = $content_info['content'];
                 break;
         }
-        if(isset($content_info['create_time'])){
+        if (isset($content_info['create_time'])) {
             $insert_data['create_time'] = $content_info['create_time'];
         } else {
             $insert_data['create_time'] = date("Y-m-d H:i:s");
         }
-        if(isset($content_info['id'])){
+        if (isset($content_info['id'])) {
             $insert_data['id'] = $content_info['id'];
         }
-        if(isset($content_info['news_id'])){
+        if (isset($content_info['news_id'])) {
             $insert_data['news_id'] = $content_info['news_id'];
         }
-        if(isset($content_info['is_read'])){
+        if (isset($content_info['is_read'])) {
             $insert_data['is_read'] = $content_info['is_read'];
         }
-        if(isset($content_info['status'])){
+        if (isset($content_info['status'])) {
             $insert_data['status'] = $content_info['status'];
         }
 

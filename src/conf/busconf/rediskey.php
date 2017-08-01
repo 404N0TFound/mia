@@ -49,6 +49,16 @@ $newsKey = [
         'key' => $newsServicePrefix . 'user:groupindexnum:%d',
         'expire_time' => 86400,
     ],
+    /*==========消息5.7相关==========*/
+    //未写入消息redis链表
+    "to_write_news" => [
+        'key' => $newsServicePrefix . 'towritenews',
+        'expire_time' => 86400 * 30
+    ],
+
+
+
+
 ];
 
 /**

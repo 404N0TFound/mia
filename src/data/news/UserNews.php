@@ -134,10 +134,31 @@ class UserNews extends DB_Query
         if (isset($conditions['id'])) {
             $where[] = ['id', $conditions['id']];
         }
-        $where[] = ['status', 1];
+
+        if (isset($conditions['by_day'])) {
+            $timeBegin = date("Y-m-d");
+            $timeEnd = date("Y-m-d H:i:s", strtotime($timeBegin) + 86399);
+            $where[] = [':gt', 'create_time', $timeBegin];
+            $where[] = [':lt', 'create_time', $timeEnd];
+        }
+
+        if (isset($conditions['news_type'])) {
+            $where[] = ['news_type', $conditions['news_type']];
+        }
+        if (isset($conditions['source_id'])) {
+            $where[] = ['source_id', $conditions['source_id']];
+        }
+        if (isset($conditions['status'])) {
+            $where[] = ['status', $conditions['status']];
+        } else {
+            $where[] = ['status', 1];
+        }
 
         $fields = "id,news_type,user_id,send_user,news_id,is_read,source_id,ext_info,create_time";
-        $data = $this->getRows($where, $fields);
+        $data = $this->getRows($where, $fields, false, 0, "create_time desc");
+        foreach ($data as &$val) {
+            $val["ext_info"] = json_decode($val["ext_info"], true);
+        }
         return $data;
     }
 
@@ -181,5 +202,25 @@ class UserNews extends DB_Query
         $fields = "count(id) as num";
         $data = $this->getRow($where, $fields);
         return intval($data["num"]);
+    }
+
+
+    /**
+     * 更新
+     * @param $setData
+     * @param $where
+     * @return mixed
+     */
+    public function updateNews($setData, $where)
+    {
+        $isShardExists = $this->doShard($setData);
+        foreach ($setData as $key => $val) {
+            $changeData[] = [$key, $val];
+        }
+        if (!$isShardExists) {
+            return false;
+        }
+        $res = $this->update($changeData, $where);
+        return $res;
     }
 }

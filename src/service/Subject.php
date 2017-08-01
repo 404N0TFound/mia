@@ -1369,7 +1369,9 @@ class Subject extends \mia\miagroup\Lib\Service
                 $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
             }
             //发送站内信
+            //TODO 完全切换后关掉旧的
             $news->addNews('single', 'group', 'add_fine', \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['user_id'], $subject_info['id'])['data'];
+            $news->postMessage('add_fine', $subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['id']);
         }
         //推荐更新入队列
         foreach ($subjectId as $v) {

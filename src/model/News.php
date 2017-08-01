@@ -28,6 +28,49 @@ class News
     }
 
 
+    /*=============5.7新版本消息=============*/
+    /**
+     * 发送消息
+     * @param $insertData array
+     * @return mixed
+     */
+    public function postNews($insertData)
+    {
+        if (empty($insertData['user_id'])) {
+            return false;
+        }
+        if (isset($insertData['id'])) {
+            //更新
+            $setData = $insertData;
+            $where[] = ['id', $insertData['id']];
+            $res = $this->userNews->updateNews($setData, $where);
+        } else {
+            //新增
+            $res = $this->userNews->addUserNews($insertData);
+        }
+        return $res;
+    }
+
+    public function getLastNews($type, $toUserId, $source_id, $by_day)
+    {
+        $conditions["user_id"] = $toUserId;
+        $conditions["news_type"] = $type;
+        if (!empty($source_id)) {
+            $conditions["source_id"] = $source_id;
+        }
+        $conditions["status"] = [0, 1];
+        if ($by_day) {
+            $conditions["by_day"] = $by_day;
+        }
+        $res = $this->userNews->getNewsList($conditions);
+        return $res;
+    }
+
+
+
+    /*=============5.7新版本消息end=============*/
+
+
     /**
      *发布一条消息 | 旧版本
      * @param $type              enum 消息类型 enum('single','all')
@@ -255,32 +298,31 @@ class News
 
         $res = $this->userNews->addUserNews($insertData);
         //redis list 添加数据（在列表不为空的情况下）
-        list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
-        $user_news_id_list = $redis->zRevRange($user_list_key, 0, -1);
-        if (!empty($user_news_id_list)) {
-            $redis->zAdd($user_list_key, $res, strtotime($insertData['create_time']));
-            $num = $redis->zCard($user_list_key);
-            if($num > $this->newsSetLimit) {
-                $redis->zRemRangeByRank($user_list_key, 0, $num - $this->newsSetLimit - 1);
-            }
-        }
+//        list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
+//        $user_news_id_list = $redis->zRevRange($user_list_key, 0, -1);
+//        if (!empty($user_news_id_list)) {
+//            $redis->zAdd($user_list_key, $res, strtotime($insertData['create_time']));
+//            $num = $redis->zCard($user_list_key);
+//            if($num > $this->newsSetLimit) {
+//                $redis->zRemRangeByRank($user_list_key, 0, $num - $this->newsSetLimit - 1);
+//            }
+//        }
         //消息计数增加
-
-        if (in_array("group", $curType)) {
-            list($redis, $resisKey, $expire_time) = $this->getRedisKey("group_count", $insertData['user_id']);
-            $redis->incr($resisKey);
-            $redis->expire($resisKey, $expire_time);
-        }
-        if (in_array("outlets", $curType)) {
-            list($redis, $resisKey, $expire_time) = $this->getRedisKey("outlets_count", $insertData['user_id']);
-            $redis->incr($resisKey);
-            $redis->expire($resisKey, $expire_time);
-        }
-        if (in_array("group_index", $curType)) {
-            list($redis, $resisKey, $expire_time) = $this->getRedisKey("index_group_count", $insertData['user_id']);
-            $redis->incr($resisKey);
-            $redis->expire($resisKey, $expire_time);
-        }
+//        if (in_array("group", $curType)) {
+//            list($redis, $resisKey, $expire_time) = $this->getRedisKey("group_count", $insertData['user_id']);
+//            $redis->incr($resisKey);
+//            $redis->expire($resisKey, $expire_time);
+//        }
+//        if (in_array("outlets", $curType)) {
+//            list($redis, $resisKey, $expire_time) = $this->getRedisKey("outlets_count", $insertData['user_id']);
+//            $redis->incr($resisKey);
+//            $redis->expire($resisKey, $expire_time);
+//        }
+//        if (in_array("group_index", $curType)) {
+//            list($redis, $resisKey, $expire_time) = $this->getRedisKey("index_group_count", $insertData['user_id']);
+//            $redis->incr($resisKey);
+//            $redis->expire($resisKey, $expire_time);
+//        }
         return $res;
     }
 
