@@ -1094,7 +1094,8 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         $subjectSetInfo['cover_image'] = NormalUtil::buildImgUrl($subjectInfo['cover_image']['url'], 'watermark', $subjectInfo['cover_image']['width'], $subjectInfo['cover_image']['height']);
-        if ($koubeiId <= 0) { //口碑不再发蜜豆
+        $material_source = $this->config['source']['material'];
+        if ($koubeiId <= 0 && $subjectInfo['source'] != $material_source) { //口碑不再发蜜豆(5.7素材不发蜜豆)
             // 赠送用户蜜豆
             $mibean = new \mia\miagroup\Remote\MiBean();
             $param['user_id'] = $subjectSetInfo['user_id'];
@@ -1515,19 +1516,23 @@ class Subject extends \mia\miagroup\Lib\Service
             $labelService->setLabelSubjectStatus([$subjectId], ["status" => 0]);
         }
 
-        //扣除蜜豆
-        $mibean = new \mia\miagroup\Remote\MiBean();
-        $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');//蜜芽兔
-        if($subjectInfo["is_fine"] == 1) {
-            $param['mibean'] = -60;
-        } else {
-            $param['mibean'] = -10;
+        //扣除蜜豆(5.7删除素材不扣蜜豆)
+        $source = $subjectInfo['source'];
+        $material_source = $this->config['source']['material'];
+        if($source != $material_source) {
+            $mibean = new \mia\miagroup\Remote\MiBean();
+            $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');//蜜芽兔
+            if($subjectInfo["is_fine"] == 1) {
+                $param['mibean'] = -60;
+            } else {
+                $param['mibean'] = -10;
+            }
+            $param['relation_type'] = "delete_subject";
+            $param['relation_id'] = $subjectId;
+            $param['to_user_id'] = $userId;
+            $param['dscrp'] = "删除帖子，扣除蜜豆";
+            $mibean->sub($param);
         }
-        $param['relation_type'] = "delete_subject";
-        $param['relation_id'] = $subjectId;
-        $param['to_user_id'] = $userId;
-        $param['dscrp'] = "删除帖子，扣除蜜豆";
-        $mibean->sub($param);
         if ($result) {
             return $this->succ(true);
         } else {
@@ -2408,5 +2413,70 @@ class Subject extends \mia\miagroup\Lib\Service
         $res['mapping_url'] = $mapping_url;
         return $this->succ($res);
     }
+
+
+    /*
+     * 素材精选列表
+     * */
+    public function getItemMaterialList($itemId, $page = 1, $count = 20, $userId = 0)
+    {
+
+        $koubei_res = array("koubei_info" => array());
+        $item_service = new ItemService();
+        $item_ids = $item_service->getRelateItemById($itemId);
+        if (empty($item_ids)) {
+            return $this->succ($koubei_res);
+        }
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+        $condition['source'] = $this->config['source']['material'];
+
+        // 获取用户发布素材总数
+        $user_material_ids = $this->subjectModel->getUserMaterialIds($itemId, $userId, 0, 0, $condition);
+        $user_total_count = count($user_material_ids);
+        $user_page = ceil($user_total_count / $count);
+        if ($page <= $user_page) {
+            // 获取用户素材列表
+            $subjectIds = $this->subjectModel->getUserMaterialIds($itemId, $userId, $count, $offset, $condition);
+            if (count($subjectIds) < $count) {
+                // 获取精选推荐列表
+                $supplement_count = $count - count($subjectIds);
+            }
+        } else {
+            // 获取精选推荐列表
+        }
+        // 批量获取素材信息
+        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'count', 'content_format'])['data'];
+        $koubei_res['koubei_info'] = $material_infos;
+        $this->succ($koubei_res);
+    }
+
+    /*
+     * 用户素材列表
+     * */
+    public function getUserMaterialList($userId, $page = 1, $count = 20)
+    {
+
+        $user_materials = array("lists" => array(), 'status' => 0);
+        if (empty($userId)) {
+            return $this->succ($user_materials);
+        }
+        //校验是否是屏蔽用户
+        $audit = new \mia\miagroup\Service\Audit();
+        $isShieldStatus = $audit->checkUserIsShield($userId)['data'];
+        if ($isShieldStatus['is_shield']) {
+            $user_materials['status'] = -1;
+            return $this->succ($user_materials);
+        }
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+        $condition['source'] = $this->config['source']['material'];
+        $subjectIds = $this->subjectModel->getUserOwnMaterialIds($userId, $count, $offset, $condition);
+        if (empty($subjectIds)) {
+            return $this->succ($user_materials);
+        }
+        $user_material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'count', 'content_format'])['data'];
+        $user_materials['lists'] = $user_material_infos;
+        return $this->succ($user_materials);
+    }
+
 
 }

@@ -343,4 +343,55 @@ class Subject extends \DB_Query {
         $data = array_column($data, 'id');
         return $data;
     }
+
+    /*
+     * 获取plus用户素材列表
+     * */
+    public function getUserMaterialIds($item_id, $user_id, $count, $offset, $condition) {
+        if(empty($item_id)) {
+            return array();
+        }
+        if(!empty($condition['source'])) {
+            $source = $condition['source'];
+        }
+        $sql = "SELECT a.subject_id AS subject_id FROM group_subject_point_tags AS a
+                LEFT JOIN group_subjects AS b ON a.subject_id = b.id 
+                WHERE a.item_id = ".$item_id." 
+                AND b.user_id = ".$user_id." 
+                AND b.status = 1 
+                AND b.source = ".$source." 
+                AND a.type = 'sku'  
+                ORDER BY 
+	              b.created DESC 
+	            ";
+        if(empty($offset) && !empty($count)) {
+            $sql.= "LIMIT {$count}";
+        }
+        if(!empty($offset) && !empty($count)) {
+            $sql.= "LIMIT {$offset},{$count}";
+        }
+        $result = $this->query($sql);
+        $res = array_column($result, 'subject_id');
+        return $res;
+    }
+
+    /*
+     * 获取用户发布的素材列表
+     * */
+    public function getUserOwnMaterialIds($user_id, $count, $offset, $condition) {
+
+        if(empty($user_id)) {
+            return array();
+        }
+        $field = 'id';
+        $where[] = ['status', 1];
+        $where[] = ['user_id', $user_id];
+        if(!empty($condition['source'])) {
+            $where[] = ['source', $condition['source']];
+        }
+        $order_by = array('created DESC');
+        $result = $this->getRows($where, $field, $count, $offset, $order_by);
+        $res = array_column($result, 'id');
+        return $res;
+    }
 }

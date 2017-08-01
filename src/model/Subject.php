@@ -621,4 +621,23 @@ class Subject {
         $result = $this->subjectBlogData->getBlogBySubjectIds($subject_ids, $status);
         return $result;
     }
+
+    /*
+     * 获取plus用户素材列表
+     * */
+    public function getUserMaterialIds($item_id, $user_id, $count, $offset, $condition = [])
+    {
+        $result = $this->subjectData->getUserMaterialIds($item_id, $user_id, $count, $offset, $condition);
+        return $result;
+    }
+
+    /*
+     * 获取用户发布的素材列表
+     * */
+    public function getUserOwnMaterialIds($user_id, $count, $offset, $condition = [])
+    {
+        $result = $this->subjectData->getUserOwnMaterialIds($user_id, $count, $offset, $condition);
+        return $result;
+    }
+
 }

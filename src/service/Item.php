@@ -89,6 +89,10 @@ class Item extends \mia\miagroup\Lib\Service {
             } else {
                 $itemList[$key]['favorable_comment_percent'] = '';
             }
+            //商品佣金
+            if(!empty($item['cashback_ratio'])) {
+                $itemList[$key]['cashback_ratio'] = ($item['cashback_ratio'] * 100) .'%';
+            }
             //商品业务模式
             $business_mode = '';
             if ($item['is_single_sale'] == 1) {
