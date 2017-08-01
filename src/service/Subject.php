@@ -2275,10 +2275,13 @@ class Subject extends \mia\miagroup\Lib\Service
             $blog_meta[] = ['blog_image' => $param['cover_image']];
         }
         //作者
-        $subject_info['user_info']['user_id'] = $param['user_id'];
-        if ($param['author_hidden'] != 1) {
-            $blog_meta[] = ['blog_user' => $param['user_id']];
+        if (intval($param['user_id']) > 0) {
+            $subject_info['user_info']['user_id'] = $param['user_id'];
+            if ($param['author_hidden'] != 1) {
+                $blog_meta[] = ['blog_user' => $param['user_id']];
+            }
         }
+        
         //标题
         if (!empty($param['title'])) {
             $subject_info['title'] = $param['title'];
@@ -2286,93 +2289,95 @@ class Subject extends \mia\miagroup\Lib\Service
         if (!empty($param['title']) && $param['title_hidden'] != 1) {
             $blog_meta[] = ['blog_title' => $param['title']];
         }
-        $subject_info['text'] = '';
         //其他元素
-        foreach ($param['blog_meta'] as $v) {
-            if (!isset($v[$v['type']]) || empty($v[$v['type']])) {
-                continue;
-            }
-            switch ($v['type']) {
-                case 'blog_text':
-                    if (empty($v['blog_text']['text'])) {
-                        continue;
-                    }
-                    $tmp_text = null;
-                    $tmp_text['text'] = $v['blog_text']['text'];
-                    $tmp_text['urls'] = [];
-                    if (!empty($v['blog_text']['urls'])) {
-                        foreach ($v['blog_text']['urls'] as $tmp_url) {
-                            if (isset($tmp_url['start']) && !empty($tmp_url['length']) && !empty($tmp_url['url'])) {
-                                $tmp_text['urls'][] = $tmp_url;
+        if (!empty($param['blog_meta'])) {
+            $subject_info['text'] = '';
+            $subject_info['ext_info']['is_blog'] = 1;
+            foreach ($param['blog_meta'] as $v) {
+                if (!isset($v[$v['type']]) || empty($v[$v['type']])) {
+                    continue;
+                }
+                switch ($v['type']) {
+                    case 'blog_text':
+                        if (empty($v['blog_text']['text'])) {
+                            continue;
+                        }
+                        $tmp_text = null;
+                        $tmp_text['text'] = $v['blog_text']['text'];
+                        $tmp_text['urls'] = [];
+                        if (!empty($v['blog_text']['urls'])) {
+                            foreach ($v['blog_text']['urls'] as $tmp_url) {
+                                if (isset($tmp_url['start']) && !empty($tmp_url['length']) && !empty($tmp_url['url'])) {
+                                    $tmp_text['urls'][] = $tmp_url;
+                                }
                             }
                         }
-                    }
-                    $subject_info['text'] .= $v['blog_text']['text'] . "\n";
-                    $parsed_result = $this->_parseBlogText($v['blog_text']['text']);
-                    if (!empty($parsed_result['labels'])) {
-                        foreach ($parsed_result['labels'] as $v) {
-                            $labels[] = ['title' => $v];
-                        }
-                    }
-                    if (!empty($parsed_result['urls']) && is_array($parsed_result['urls'])) {
-                        $tmp_text['urls'] = array_merge($tmp_text['urls'], $parsed_result['urls']);
-                        $url_unique_flag = [];
-                        //去除重复的url
-                        foreach ($tmp_text['urls'] as $k_url => $v_url) {
-                            $md5_flag = md5(json_encode($v_url));
-                            if (!in_array($md5_flag, $url_unique_flag)) {
-                                $url_unique_flag[] = $md5_flag;
-                            } else {
-                                unset($tmp_text['urls'][$k_url]);
+                        $subject_info['text'] .= $v['blog_text']['text'] . "\n";
+                        $parsed_result = $this->_parseBlogText($v['blog_text']['text']);
+                        if (!empty($parsed_result['labels'])) {
+                            foreach ($parsed_result['labels'] as $v) {
+                                $labels[] = ['title' => $v];
                             }
                         }
-                        $tmp_text['urls'] = array_values($tmp_text['urls']);
-                    }
-                    $tmp_labels = $parsed_result['labels'];
-                    $blog_meta[] = ['blog_text' => $tmp_text];
-                    break;
-                case 'blog_sub_title':
-                    if (strval($v['blog_sub_title']) == '') {
-                        continue;
-                    }
-                    $subject_info['text'] .= $v['blog_sub_title'] . "\n";
-                    $blog_meta[] = ['blog_sub_title' => $v['blog_sub_title']];
-                    break;
-                case 'blog_image':
-                    if (empty($v['blog_image']['width']) || empty($v['blog_image']['height']) || empty($v['blog_image']['url'])) {
-                        continue;
-                    }
-                    if (!empty($v['blog_image']['redirect_url'])) {
-                        $v['blog_image']['redirect_url'] = str_replace('http://', 'https://', $v['blog_image']['redirect_url']);
-                    }
-                    if (strpos($v['blog_image']['url'], '@') !== false) {
-                        $v['blog_image']['url'] = substr($v['blog_image']['url'], 0, strpos($v['blog_image']['url'], '@'));
-                    }
-                    $subject_info['image_infos'][] = $v['blog_image'];
-                    $blog_meta[] = ['blog_image' => $v['blog_image']];
-                    break;
-                case 'blog_relate_subject':
-                    if (intval($v['blog_relate_subject']) <= 0) {
-                        continue;
-                    }
-                    $blog_meta[] = ['blog_relate_subject' => $v['blog_relate_subject']];
-                    break;
-                case 'blog_relate_item':
-                    if (intval($v['blog_relate_item']) <= 0) {
-                        continue;
-                    }
-                    $items[] = ['item_id' => $v['blog_relate_item']];
-                    $blog_meta[] = ['blog_relate_item' => $v['blog_relate_item']];
-                    break;
-                case 'blog_relate_user':
-                    if (intval($v['blog_relate_user']) <= 0) {
-                        continue;
-                    }
-                    $blog_meta[] = ['blog_relate_user' => $v['blog_relate_user']];
-                    break;
+                        if (!empty($parsed_result['urls']) && is_array($parsed_result['urls'])) {
+                            $tmp_text['urls'] = array_merge($tmp_text['urls'], $parsed_result['urls']);
+                            $url_unique_flag = [];
+                            //去除重复的url
+                            foreach ($tmp_text['urls'] as $k_url => $v_url) {
+                                $md5_flag = md5(json_encode($v_url));
+                                if (!in_array($md5_flag, $url_unique_flag)) {
+                                    $url_unique_flag[] = $md5_flag;
+                                } else {
+                                    unset($tmp_text['urls'][$k_url]);
+                                }
+                            }
+                            $tmp_text['urls'] = array_values($tmp_text['urls']);
+                        }
+                        $tmp_labels = $parsed_result['labels'];
+                        $blog_meta[] = ['blog_text' => $tmp_text];
+                        break;
+                    case 'blog_sub_title':
+                        if (strval($v['blog_sub_title']) == '') {
+                            continue;
+                        }
+                        $subject_info['text'] .= $v['blog_sub_title'] . "\n";
+                        $blog_meta[] = ['blog_sub_title' => $v['blog_sub_title']];
+                        break;
+                    case 'blog_image':
+                        if (empty($v['blog_image']['width']) || empty($v['blog_image']['height']) || empty($v['blog_image']['url'])) {
+                            continue;
+                        }
+                        if (!empty($v['blog_image']['redirect_url'])) {
+                            $v['blog_image']['redirect_url'] = str_replace('http://', 'https://', $v['blog_image']['redirect_url']);
+                        }
+                        if (strpos($v['blog_image']['url'], '@') !== false) {
+                            $v['blog_image']['url'] = substr($v['blog_image']['url'], 0, strpos($v['blog_image']['url'], '@'));
+                        }
+                        $subject_info['image_infos'][] = $v['blog_image'];
+                        $blog_meta[] = ['blog_image' => $v['blog_image']];
+                        break;
+                    case 'blog_relate_subject':
+                        if (intval($v['blog_relate_subject']) <= 0) {
+                            continue;
+                        }
+                        $blog_meta[] = ['blog_relate_subject' => $v['blog_relate_subject']];
+                        break;
+                    case 'blog_relate_item':
+                        if (intval($v['blog_relate_item']) <= 0) {
+                            continue;
+                        }
+                        $items[] = ['item_id' => $v['blog_relate_item']];
+                        $blog_meta[] = ['blog_relate_item' => $v['blog_relate_item']];
+                        break;
+                    case 'blog_relate_user':
+                        if (intval($v['blog_relate_user']) <= 0) {
+                            continue;
+                        }
+                        $blog_meta[] = ['blog_relate_user' => $v['blog_relate_user']];
+                        break;
+                }
             }
         }
-        $subject_info['ext_info']['is_blog'] = 1;
         if (!empty($param['status'])) {
             $subject_info['status']= $param['status'];
         }
