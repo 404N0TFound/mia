@@ -1056,6 +1056,12 @@ class Subject extends \mia\miagroup\Lib\Service
                             $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
                             //活动id为在线活动的索引(key)，如果标签中有参加活动的，则保存活动id
                             if(!empty($attendLabels)){
+                                if (intval($activeInfo['text_lenth_limit']) > 0 && mb_strlen($subjectSetInfo['text'], 'utf8') < $activeInfo['text_lenth_limit']) {
+                                    continue;
+                                }
+                                if (intval($activeInfo['image_count_limit']) > 0 && count($imageInfo) < $activeInfo['image_count_limit']) {
+                                    continue;
+                                }
                                 $subjectSetInfo['active_id'] = $key;
                                 $relationSetInfo['active_id'] = $key;
                                 break;
@@ -2135,9 +2141,20 @@ class Subject extends \mia\miagroup\Lib\Service
         //修改帖子表
         if (!empty($parsed_param['subject_info'])) {
             $subject_set_data = [];
-            $subject_set_data['title'] = $parsed_param['subject_info']['title'];
+            if (!empty($parsed_param['subject_info']['title'])) {
+                $subject_set_data['title'] = $parsed_param['subject_info']['title'];
+            }
             if (isset($parsed_param['subject_info']['status'])) {
                 $subject_set_data['status'] = $parsed_param['subject_info']['status'];
+            }
+            if (!empty($parsed_param['subject_info']['text'])) {
+                $subject_set_data['text'] = $parsed_param['subject_info']['text'];
+            }
+            if (!empty($parsed_param['subject_info']['image_url'])) {
+                $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
+            }
+            if (!empty($parsed_param['subject_info']['ext_info'])) {
+                $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
             }
             $subject_set_data['text'] = $parsed_param['subject_info']['text'];
             $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
