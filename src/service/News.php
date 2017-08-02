@@ -193,7 +193,7 @@ class News extends \mia\miagroup\Lib\Service
      * @param $format_str string 格式化的变量
      * @return array
      */
-    public function getRedis($key, $format_str = "")
+    public function getRedis($key, $format_str = null)
     {
         if ($this->redis) {
             $redis = $this->redis;
@@ -203,7 +203,7 @@ class News extends \mia\miagroup\Lib\Service
         }
         $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.newsKey.' . $key);
         if (!empty($format_str)) {
-
+            $key = sprintf($redis_info['key'], $format_str);
         } else {
             $key = $redis_info['key'];
         }
@@ -220,11 +220,10 @@ class News extends \mia\miagroup\Lib\Service
      * 5.蜜芽活动：旧特卖消息。
      *
      * @param $type string 消息类型
-     * @param $sendFromUserId int 发送人ID
      * @param $toUserId int 接收人ID
+     * @param $sendFromUserId int 发送人ID
      * @param $source_id int 来源ID
-     * @param $status int 消息状态
-     *
+     * @param $ext_info array
      *
      */
     public function postMessage($type, $toUserId = 0, $sendFromUserId = 0, $source_id = 0, $ext_info = [])
@@ -251,7 +250,8 @@ class News extends \mia\miagroup\Lib\Service
         } else {
             $insert_data['create_time'] = date("Y-m-d H:i:s");
         }
-
+        //检测是否需要增加需要消息未读计数
+        $addCountCheck = 0;
         switch ($type) {
             /*========蜜芽圈：动态========*/
             case "img_comment"://被回复
@@ -300,6 +300,9 @@ class News extends \mia\miagroup\Lib\Service
                     //删除和已读状态还原
                     $insert_data['is_read'] = 0;
                     $insert_data['status'] = 1;
+                    if ($lastNewsInfo["is_read"] == 0 && $lastNewsInfo["status"] == 1) {
+                        $addCountCheck = 1;
+                    }
                 }
                 break;
             /*========蜜芽活动：旧特卖消息========*/
@@ -323,6 +326,9 @@ class News extends \mia\miagroup\Lib\Service
 
                     $ext_info["money"] += $lastNewsInfo["ext_info"]["money"];
                     $ext_info["num"] = $lastNewsInfo["ext_info"]["num"] + 1;
+                    if ($lastNewsInfo["is_read"] == 0 && $lastNewsInfo["status"] == 1) {
+                        $addCountCheck = 1;
+                    }
                 } else {
                     $ext_info["num"] += 1;
                 }
@@ -341,6 +347,9 @@ class News extends \mia\miagroup\Lib\Service
 
                     $ext_info["user_id"] = array_merge([$ext_info["user_id"]], $lastNewsInfo["ext_info"]["user_id"]);
                     $ext_info["num"] = $lastNewsInfo["ext_info"]["num"] + 1;
+                    if ($lastNewsInfo["is_read"] == 0 && $lastNewsInfo["status"] == 1) {
+                        $addCountCheck = 1;
+                    }
                 } else {
                     $ext_info["user_id"] = [$ext_info["user_id"]];
                     $ext_info["num"] += 1;
@@ -360,26 +369,64 @@ class News extends \mia\miagroup\Lib\Service
         if (!$insertRes) {
             return $this->error(500, '发送用户消息失败！');
         } else {
+            //消息计数增加，后台发的消息这里不能体现出来
+            //计数存在，才操作
+            list($redis, $redis_key, $expire_time) = $this->getRedis("news_count", intval($toUserId));
+            //合并类型的消息中，更新旧的未读消息不需要计数加1，$addCountCheck为1时，不需要增加计数
+            if($redis->exists($redis_key) && $addCountCheck == 0) {
+                $listType = $this->getAncestor($type)['data'];
+                if($redis->hExists($redis_key, $listType)) {
+                    $redis->hIncrBy($redis_key, $listType, 1);
+                    $redis->expire($redis_key, $expire_time);
+                }
+                if($redis->hExists($redis_key, "total")) {
+                    //总数+1
+                    $redis->hIncrBy($redis_key, "total", 1);
+                }
+            }
             return $this->succ("发送成功");
         }
     }
 
-
     /**
-     * 写入消息
+     * 获取站内信未读数 total_count，group_count
      */
-    public function addMessage()
+    public function noReadCounts($userId)
     {
+        //total_count,group_count
+        list($redis, $redis_key, $expire_time) = $this->getRedis("news_count", intval($userId));
 
-    }
+        $total_check = 0;
+        $group_check = 0;
+        if ($redis->exists($redis_key)) {
+            if ($redis->hExists($redis_key, "total")) {
+                //取redis的total
+                $total_check = 1;
+                $total_count = $redis->hGet($redis_key, "total");
+            }
+            if ($redis->hExists($redis_key, "group_interact")) {
+                //取redis的group_interact
+                $group_check = 1;
+                $group_count = $redis->hGet($redis_key, "group_interact");
+            }
+        }
+        if ($total_check == 0) {
+            $total_count = $this->newsModel->getUserNewsCount($userId, ["total"]);
+            $redis->hSet($redis_key, "total", $total_count);
+            $redis->expire($redis_key, $expire_time);
+        }
 
-
-    /**
-     * 获取站内信未读数
-     */
-    public function noReadCounts()
-    {
-
+        if ($group_check == 0) {
+            $group_count = $this->newsModel->getUserNewsCount($userId, $this->getAllChlidren("group_interact")['data']);
+            $redis->hSet($redis_key, "group_interact", $group_count);
+            $redis->expire($redis_key, $expire_time);
+        }
+        //计算总数
+        $return = [
+            "total_count" => $total_count,
+            "group_count" => $group_count,
+        ];
+        return $this->succ($return);
     }
 
     /**
@@ -392,11 +439,40 @@ class News extends \mia\miagroup\Lib\Service
     }
 
     /**
-     * 删除站内信
+     * 清空站内信
+     * @param $userId
+     * @param $type string 列表用的分类
+     * @return mixed
      */
-    public function deleteNews()
+    public function clearList($userId, $type)
     {
+        //type类型验证
+        if (!in_array($type, $this->getShowCate()['data'])) {
+            return $this->error(500, '类型不合法！');
+        }
+        //status状态置0
+        $lastType = $this->getAllChlidren($type)['data'];
+        $res = $this->newsModel->delUserNews($userId, $lastType);
 
+        if ($res) {
+            //计数修改
+            list($redis, $redis_key, $expire_time) = $this->getRedis("news_count", intval($userId));
+            if ($redis->exists($redis_key)) {
+                if ($redis->hExists($redis_key, "total")) {
+                    $redis->hIncrBy($redis_key, "total", -$res);
+                    $redis->hGet($redis_key, "total");
+                    $redis->expire($redis_key, $expire_time);
+                }
+                if ($redis->hExists($redis_key, $type)) {
+                    $redis->hSet($redis_key, $type, 0);
+                    $redis->expire($redis_key, $expire_time);
+                }
+            }
+            //首页列表修改
+            return $this->succ("清空列表成功");
+        } else {
+            return $this->succ("清空列表失败");
+        }
     }
 
 
@@ -404,15 +480,6 @@ class News extends \mia\miagroup\Lib\Service
      * 设置已读
      */
     public function setReadStatus()
-    {
-
-    }
-
-    /**
-     * 清空消息
-     * @param $type ：all-所有；trade-交易物流；plus-会员plus；group-蜜芽圈；activity-蜜芽活动；property-我的资产；
-     */
-    public function delNews($type)
     {
 
     }
@@ -438,7 +505,7 @@ class News extends \mia\miagroup\Lib\Service
     }
 
     /**
-     * 查询最低级分类的上个父级分类（展示分类）
+     * 查询最低级分类的上个父级分类（展示分类，列表用）
      */
     public function getAncestor($lastType)
     {
@@ -518,6 +585,40 @@ class News extends \mia\miagroup\Lib\Service
         }
         return $cateArr;
     }
+
+    /**
+     * 获取指定分类下，所有最低级分类
+     * @param $type string 非最低级分类
+     */
+    public function getAllChlidren($type)
+    {
+        $layer = $this->config['layer'];
+        $newLayer = $this->getChlidren($layer,$type);
+        $lastCate = $this->getNextCate($newLayer);
+        return $this->succ($lastCate);
+    }
+
+    public function getChlidren($layer, $type)
+    {
+        foreach ($layer as $key => $val) {
+            if ($key == $type && is_array($val)) {
+                return $val;
+            }
+            if (!is_array($val)) {
+                continue;
+            }
+            if ($key != $type && is_array($val)) {
+                $res = $this->getChlidren($val, $type);
+                if (empty($res)) {
+                    continue;
+                } else {
+                    return $res;
+                }
+            }
+        }
+        return [];
+    }
+
     /*=============5.7新版本消息end=============*/
 
 

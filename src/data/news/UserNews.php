@@ -223,4 +223,23 @@ class UserNews extends DB_Query
         $res = $this->update($changeData, $where);
         return $res;
     }
+
+    /**
+     * 更新状态
+     * @param $where
+     * @return mixed
+     */
+    public function updateStatus($where)
+    {
+        $isShardExists = $this->doShard($where);
+        if (!$isShardExists) {
+            return false;
+        }
+        foreach ($where as $key => $val) {
+            $conditions[] = [$key, $val];
+        }
+        $setData[] = ["status", 0];
+        $res = $this->update($setData, $conditions);
+        return $res;
+    }
 }

@@ -50,15 +50,31 @@ $newsKey = [
         'expire_time' => 86400,
     ],
     /*==========消息5.7相关==========*/
-    //未写入消息redis链表
+    //待写入消息，redis链表
     "to_write_news" => [
         'key' => $newsServicePrefix . 'towritenews',
         'expire_time' => 86400 * 30
     ],
+    /**
+     * 消息计数 Hash
+     * key如下：
+     * "total"
+     * "trade",
+     * "plus_active",
+     * "plus_interact",
+     * "group_active",
+     * "group_interact",
+     * "activity",
+     * "coupon"
+     */
+    "news_count" => [
+        'key' => $newsServicePrefix . 'newcount:%d',
+        'expire_time' => 300
+    ]
 
 
 
-
+    /*==========消息5.7相关end==========*/
 ];
 
 /**

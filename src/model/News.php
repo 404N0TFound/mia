@@ -66,7 +66,45 @@ class News
         return $res;
     }
 
+    /**
+     * 获取不同分类计数
+     * @param $userId
+     * @param array $type array 包括多个最低级的news类型；或者total
+     * @return int
+     */
+    public function getUserNewsCount($userId, $type = [])
+    {
+        if(empty($userId)) {
+            return 0;
+        }
+        $conditions = [];
+        if (count($type) == 1 && $type[0] == "total") {
 
+        } else {
+            $conditions["news_type"] = $type;
+        }
+        $conditions["user_id"] = $userId;
+        $newsNum = $this->userNews->getUserNewsNum($conditions);
+        return $newsNum;
+    }
+
+    /**
+     * 按分类删除用户消息
+     * @param $userId
+     * @param $type array 最低级消息分类数组
+     * @return boolean
+     */
+    public function delUserNews($userId, $type)
+    {
+        if (empty($userId) || empty($type)) {
+            return false;
+        }
+        $where = [];
+        $where["user_id"] = $userId;
+        $where["news_type"] = $type;
+        $res = $this->userNews->updateStatus($where);
+        return $res;
+    }
 
     /*=============5.7新版本消息end=============*/
 
