@@ -37,7 +37,7 @@ class Operate extends \FD_Daemon
             $param['relation_type'] = "group_operator";
             $param['relation_id'] = $user_id;
             $param['mibean'] = $count;
-            $res = $bean->add($param);
+            $res = $bean->agent('add', $param);
             if($res['code'] != 200) {
                 $bean->add($param);
             }
