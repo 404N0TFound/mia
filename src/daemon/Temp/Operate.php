@@ -39,7 +39,7 @@ class Operate extends \FD_Daemon
             $param['mibean'] = $count;
             $res = $bean->agent('add', $param);
             if($res['code'] != 200) {
-                $bean->add($param);
+                $bean->agent('add', $param);
             }
         }
     }
