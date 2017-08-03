@@ -3,6 +3,7 @@ namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Subject\SubjectCollect;
+use mia\miagroup\Data\Subject\SubjectDownload;
 use mia\miagroup\Data\Subject\TabNoteOperation;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\Tab as TabData;
@@ -16,6 +17,7 @@ class Subject {
     protected $tabData = null;
     protected $tabOpeationData = null;
     protected $subjectCollectData = null;
+    protected $subjectDownloadData = null;
     protected $subjectBlogData = null;
     
     public function __construct() {
@@ -24,6 +26,7 @@ class Subject {
         $this->tabData = new TabData();
         $this->tabOpeationData = new TabNoteOperation();
         $this->subjectCollectData = new SubjectCollect();
+        $this->subjectDownloadData = new SubjectDownload();
         $this->subjectBlogData = new \mia\miagroup\Data\Subject\SubjectBlog();
     }
 
@@ -625,9 +628,9 @@ class Subject {
     /*
      * 获取plus用户素材列表
      * */
-    public function getUserMaterialIds($item_id, $user_id, $count, $offset, $condition = [])
+    public function getUserMaterialIds($item_ids, $user_id, $count, $offset, $condition = [])
     {
-        $result = $this->subjectData->getUserMaterialIds($item_id, $user_id, $count, $offset, $condition);
+        $result = $this->subjectData->getUserMaterialIds($item_ids, $user_id, $count, $offset, $condition);
         return $result;
     }
 
@@ -640,4 +643,28 @@ class Subject {
         return $result;
     }
 
+    /*
+     * 素材下载信息
+     * */
+    public function checkSubjectDownload($userId, $source_id, $source_type)
+    {
+        $conditions["user_id"] = $userId;
+        $conditions["source_type"] = $source_type;
+        $conditions["source_id"] = $source_id;
+        $result = $this->subjectDownloadData->getDownloadInfo($conditions);
+        return $result;
+    }
+
+    /*
+     * 更新下载记录
+     * */
+    public function updateSubjectDownload($userId, $source_id, $source_type)
+    {
+        $where["user_id"] = $userId;
+        $where["source_type"] = $source_type;
+        $where["source_id"] = $source_id;
+        $setData['count'] = ;
+        $result = $this->subjectDownloadData->updateSubjectDownload($setData, $where);
+        return $result;
+    }
 }

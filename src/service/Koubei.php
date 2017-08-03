@@ -2244,4 +2244,20 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($couponGuide);
     }
+
+    /*
+     * 口碑精品列表
+     * */
+    public function getRankKoubeiList($itemIds, $del_subjects, $page, $count, $userId) {
+
+        $subject_ids = [];
+        if(empty($itemIds)) {
+            return $this->succ($subject_ids);
+        }
+        //通过商品id获取口碑id
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+        // 获取口碑id策略(封测报告+口碑)
+        $subject_ids = $this->koubeiModel->getRankKoubeiListByItem($itemIds, $del_subjects, $count, $offset);
+        return $this->succ($subject_ids);
+    }
 }

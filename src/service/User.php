@@ -71,7 +71,9 @@ class User extends \mia\miagroup\Lib\Service {
             // 用户是否是专家
             $userInfo['is_experts'] = $userCate[$userInfo['id']] ? 1 : 0; 
             // 用户是否是供应商
-            $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; 
+            $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0;
+            // 用户是否是plus
+            $userInfo['mia_user_type'] = !empty($userInfo['user_type']) ? $userInfo['user_type'] : 1;
             // 用户是否有发视频权限
             $userInfo['is_have_permission'] = !empty($userPermissions['video'][$userInfo['id']]) ? 1 : 0; 
             // 用户是否有专栏发布权限
@@ -96,6 +98,11 @@ class User extends \mia\miagroup\Lib\Service {
                 } else {
                     $userInfo['relation_with_him'] = 0;
                 }
+            }
+
+            // 获取plus用户信息
+            if($userInfo['mia_user_type'] == 2) {
+                $userInfo['user_plus_info'] = array();
             }
             
             if (in_array('count', $fields)) {

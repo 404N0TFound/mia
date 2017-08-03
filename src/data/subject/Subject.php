@@ -347,16 +347,16 @@ class Subject extends \DB_Query {
     /*
      * 获取plus用户素材列表
      * */
-    public function getUserMaterialIds($item_id, $user_id, $count, $offset, $condition) {
-        if(empty($item_id)) {
+    public function getUserMaterialIds($item_ids, $user_id, $count, $offset, $condition) {
+        if(empty($item_ids) || !is_array($item_ids)) {
             return array();
         }
         if(!empty($condition['source'])) {
             $source = $condition['source'];
         }
-        $sql = "SELECT a.subject_id AS subject_id FROM group_subject_point_tags AS a
+        $sql = "SELECT DISTINCT(a.subject_id) AS subject_id FROM group_subject_point_tags AS a
                 LEFT JOIN group_subjects AS b ON a.subject_id = b.id 
-                WHERE a.item_id = ".$item_id." 
+                WHERE a.item_id in (".implode(',', $item_ids).") 
                 AND b.user_id = ".$user_id." 
                 AND b.status = 1 
                 AND b.source = ".$source." 
@@ -393,5 +393,23 @@ class Subject extends \DB_Query {
         $result = $this->getRows($where, $field, $count, $offset, $order_by);
         $res = array_column($result, 'id');
         return $res;
+    }
+
+    /*
+     * 下载图文记录是否存在
+     * */
+    public function checkSubjectDownload($params) {
+
+        $where = [];
+        if($params['user_id']) {
+            $where[] = ['user_id', $params['user_id']];
+        }
+        if($params['source_id']) {
+            $where[] = ['source_id', $params['source_id']];
+        }
+        if($params['source_type']) {
+            $where[] = ['source_type', $params['source_type']];
+        }
+        $result = $this->count($where);
     }
 }

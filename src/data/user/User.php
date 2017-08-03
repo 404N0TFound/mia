@@ -20,7 +20,7 @@ class User extends DB_Query {
      * @return array
      */
     public function getUserInfoByIds($user_ids) {    
-        $field = "id,username,nickname,child_birth_day,user_status,cell_phone,child_sex,child_nickname,consume_money,icon,level,is_id_verified,is_cell_verified,mibean_level,create_date,status";
+        $field = "id,username,nickname,child_birth_day,user_status,cell_phone,child_sex,child_nickname,consume_money,icon,level,is_id_verified,is_cell_verified,mibean_level,create_date,status,user_type";
         $where[] = array('id', $user_ids);
         $user_data = $this->getRows($where, $field);
         if (!empty($user_data)) {

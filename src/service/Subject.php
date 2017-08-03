@@ -2423,6 +2423,7 @@ class Subject extends \mia\miagroup\Lib\Service
 
         $koubei_res = array("koubei_info" => array());
         $item_service = new ItemService();
+        // 关联商品
         $item_ids = $item_service->getRelateItemById($itemId);
         if (empty($item_ids)) {
             return $this->succ($koubei_res);
@@ -2431,23 +2432,40 @@ class Subject extends \mia\miagroup\Lib\Service
         $condition['source'] = $this->config['source']['material'];
 
         // 获取用户发布素材总数
-        $user_material_ids = $this->subjectModel->getUserMaterialIds($itemId, $userId, 0, 0, $condition);
-        $user_total_count = count($user_material_ids);
-        $user_page = ceil($user_total_count / $count);
-        if ($page <= $user_page) {
-            // 获取用户素材列表
-            $subjectIds = $this->subjectModel->getUserMaterialIds($itemId, $userId, $count, $offset, $condition);
-            if (count($subjectIds) < $count) {
-                // 获取精选推荐列表
-                $supplement_count = $count - count($subjectIds);
-            }
-        } else {
+        $user_material_ids = $this->subjectModel->getUserMaterialIds($item_ids, $userId, 0, 0, $condition);
+        if(empty($user_material_ids)) {
             // 获取精选推荐列表
+            $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $page, $count, $userId)['data'];
+        }else {
+            $user_total_count = count($user_material_ids);
+            $user_page = ceil($user_total_count / $count);
+            if ($page <= $user_page) {
+                // 获取用户素材列表
+                $user_subjectIds = $this->subjectModel->getUserMaterialIds($item_ids, $userId, $count, $offset, $condition);
+                if (count($user_subjectIds) < $count) {
+                    // 获取精选推荐列表
+                    $reco_count = $count - count($user_subjectIds);
+                    $rank_subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, 1, $reco_count, $userId)['data'];
+                }
+                if(empty($rank_subjectIds)) {
+                    $subjectIds = $user_subjectIds;
+                }else {
+                    $subjectIds = array_merge($user_subjectIds, $rank_subjectIds);
+                }
+            }else {
+                // 获取精选推荐列表
+                $reco_page = $page - $user_page;
+                $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $reco_page, $count, $userId)['data'];
+            }
         }
+        if(empty($subjectIds)) {
+            return $this->succ($koubei_res);
+        }
+
         // 批量获取素材信息
         $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'count', 'content_format'])['data'];
         $koubei_res['koubei_info'] = $material_infos;
-        $this->succ($koubei_res);
+        return $this->succ($koubei_res);
     }
 
     /*
@@ -2478,5 +2496,48 @@ class Subject extends \mia\miagroup\Lib\Service
         return $this->succ($user_materials);
     }
 
+    /*
+     * 临时接口
+     * 素材推荐精选列表ids
+     * */
+    public function rankMaterialList($itemIds, $del_subjects, $page = 1, $count = 20, $userId = 0) {
+
+        $rank_ids = [];
+        if(empty($itemIds)) {
+            return $this->succ($rank_ids);
+        }
+        $koubeiService = new KoubeiService();
+        $rank_ids = $koubeiService->getRankKoubeiList($itemIds, $del_subjects, $page, $count, $userId)['data'];
+        return $this->succ($rank_ids);
+    }
+
+    /*
+     * 素材图文下载统计数
+     * type :[1:帖子]
+     * */
+    public function subjectDownCount($userId, $source_id, $source_type = 1) {
+
+        $res = array('status' => false);
+        if (empty($userId) || empty($source_id)) {
+            return $this->succ($res);
+        }
+        // 判断当前的记录是否存在
+        $count = $this->subjectModel->checkSubjectDownload($userId, $source_id, $source_type);
+
+        $where[] = ['user_id', $userId];
+        $where[] = ['source_id', $source_id];
+        $where[] = ['source_type', $source_type];
+        if(!empty($count)) {
+            // update
+            $setData = ['count', $count + 1];
+            $where[] = ['update_time',date("Y-m-d H:i:s")];
+            $this->subjectModel->updateSubjectDownload($setData, $where);
+        }else {
+            // insert
+            $this->subjectModel->insertSubjectDownload($userId, $source_id, $source_type);
+        }
+        $res["status"] = true;
+        return $this->succ($res);
+    }
 
 }
