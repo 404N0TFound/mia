@@ -35,21 +35,29 @@ class SubjectDownload extends \DB_Query
         }
         $field = 'count';
         $data = $this->getRows($where, $field);
-        return $data[0]['count'];
+        $res = [];
+        if(!empty($data)) {
+            $res['count'] = $data[0]['count'];
+        }
+        return $res;
     }
 
     /*
      * 添加下载记录
      * */
-    public function insertSubjectDownload() {
+    public function insertSubjectDownload($insert) {
 
+        $data = $this->insert($insert);
+        return $data;
     }
 
     /*
      * 更新下载记录
      * */
-    public function updateSubjectDownload() {
+    public function updateSubjectDownload($setData, $where) {
 
+        $data = $this->update($setData, $where);
+        return $data;
     }
 
 }

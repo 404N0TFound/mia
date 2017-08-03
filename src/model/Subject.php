@@ -655,15 +655,32 @@ class Subject {
         return $result;
     }
 
+    /**
+     * 添加素材下载
+     */
+    public function insertSubjectDownload($userId, $sourceId, $source_type)
+    {
+        if(empty($userId) || empty($sourceId) || empty($source_type)) {
+            return 0;
+        }
+        $insertData["count"] = 1;
+        $insertData["user_id"] = $userId;
+        $insertData["source_id"] = $sourceId;
+        $insertData["source_type"] = $source_type;
+
+        $now = date("Y-m-d H:i:s");
+        $insertData["update_time"] = $now;
+        $insertData["create_time"] = $now;
+
+        $res = $this->subjectDownloadData->insertSubjectDownload($insertData);
+        return $res;
+    }
+
     /*
      * 更新下载记录
      * */
-    public function updateSubjectDownload($userId, $source_id, $source_type)
+    public function updateSubjectDownload($setData, $where)
     {
-        $where["user_id"] = $userId;
-        $where["source_type"] = $source_type;
-        $where["source_id"] = $source_id;
-        $setData['count'] = ;
         $result = $this->subjectDownloadData->updateSubjectDownload($setData, $where);
         return $result;
     }

@@ -2513,7 +2513,6 @@ class Subject extends \mia\miagroup\Lib\Service
 
     /*
      * 素材图文下载统计数
-     * type :[1:帖子]
      * */
     public function subjectDownCount($userId, $source_id, $source_type = 1) {
 
@@ -2522,21 +2521,27 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($res);
         }
         // 判断当前的记录是否存在
-        $count = $this->subjectModel->checkSubjectDownload($userId, $source_id, $source_type);
+        $count = 0;
+        $result = $this->subjectModel->checkSubjectDownload($userId, $source_id, $source_type);
+        if(!empty($result)) {
+            $count = $result['count'];
+        }
 
         $where[] = ['user_id', $userId];
         $where[] = ['source_id', $source_id];
         $where[] = ['source_type', $source_type];
         if(!empty($count)) {
             // update
-            $setData = ['count', $count + 1];
-            $where[] = ['update_time',date("Y-m-d H:i:s")];
-            $this->subjectModel->updateSubjectDownload($setData, $where);
+            $setData[] = ['count', $count + 1];
+            $setData[] = ['update_time',date("Y-m-d H:i:s")];
+            $result = $this->subjectModel->updateSubjectDownload($setData, $where);
         }else {
             // insert
-            $this->subjectModel->insertSubjectDownload($userId, $source_id, $source_type);
+            $result = $this->subjectModel->insertSubjectDownload($userId, $source_id, $source_type);
         }
-        $res["status"] = true;
+        if(!empty($result)) {
+            $res["status"] = true;
+        }
         return $this->succ($res);
     }
 
