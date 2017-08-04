@@ -915,7 +915,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubeiId = $subjectInfo['koubei_id'];
         $koubei = $this->getBatchKoubeiByIds([$koubeiId])['data'][$koubeiId];
-        if ($koubei['item_info']['brand_id'] == \F_Ice::$ins->workApp->config->get('busconf.item.zhenxuan_brand_id')) {
+        if ($koubei['item_koubei']['item_info']['brand_id'] == \F_Ice::$ins->workApp->config->get('busconf.item.zhenxuan_brand_id')) {
             //如果是甄选商品，评论人为甄选开发小组
             $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaZhenXuanKefuUid');
         }
