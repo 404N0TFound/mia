@@ -149,11 +149,11 @@ class News extends \mia\miagroup\Lib\Service
         if (empty($to_user_id) || !is_numeric(intval($to_user_id))) {
             return $this->error(500, 'to_user_id参数错误！');
         }
-        if (empty($news_type) || !in_array($news_type, $this->config['coupon_news_type'])) {
+        if (empty($news_type) || !in_array($news_type, $this->config['property_news_type'])) {
             return $this->error(500, 'news_type参数错误！');
         }
         //获取信息
-        $type = "coupon";
+        $type = "property";
         $newsType = $news_type;
 
         if (!empty($ext_info)) {
@@ -430,12 +430,360 @@ class News extends \mia\miagroup\Lib\Service
     }
 
     /**
+     * 获取分类计数
+     * @param $cate
+     * @param $userId
+     * @return int
+     */
+    public function getCateNewsNum($cate, $userId)
+    {
+        //type类型验证
+        list($redis, $redis_key, $expire_time) = $this->getRedis("news_count", intval($userId));
+        if ($redis->exists($redis_key)) {
+            if ($redis->hExists($redis_key, $cate)) {
+                //取redis
+                $num = $redis->hGet($redis_key, $cate);
+                return $num;
+            }
+        }
+        $num = $this->newsModel->getUserNewsCount($userId, $this->getAllChlidren($cate)['data']);
+        $redis->hSet($redis_key, $cate, $num);
+        $redis->expire($redis_key, $expire_time);
+        return $num;
+    }
+
+    /**
      * 站内信首页列表
      */
-    public function indexList()
+    public function indexList($userId)
     {
+        $news_list["news_list"] = [];
+        if (empty(intval($userId))) {
+            return $this->succ($news_list);
+        }
+        //redis取列表
+        list($redis, $redis_key, $expire_time) = $this->getRedis("news_index", intval($userId));
+        $indexList = $redis->zRevRange($redis_key, 0, -1);
 
+        if (empty($indexList)) {
+            //数据库查询，查询最新的分类下最新一条记录
+            $cateList = $this->getShowCate()['data'];
+            $tmp = [];
+            foreach ($cateList as $showCate) {
+                $res = $this->newsModel->getLastNews($this->getAllChlidren($showCate)['data'], $userId, 0, false, [1]);
+                if(!empty($res)) {
+                    $tmp[strtotime($res[0]["create_time"])] = $showCate.":".$res[0]["id"];
+                    $redis->zAdd($redis_key, strtotime($res[0]["create_time"]), $showCate.":".$res[0]["id"]);
+                }
+            }
+            $redis->expire($redis_key, $expire_time);
+            //需要对查出的数据排序
+            krsort($tmp);
+            $indexList = array_values($tmp);
+        }
 
+        //查询列表信息
+        $newsIds = [];
+        foreach ($indexList as $val) {
+            list($type, $id) = explode(":", $val);
+            $newsIds[] = $id;
+        }
+        //var_dump($newsIds);
+        $indexNewsList = $this->formatNews($newsIds, $userId, 1);
+        //合并同类型
+        //plus_interact plus_active 合并，计数相加
+        //group_interact group_active 合并，计数相加
+        $return = [];
+        foreach ($indexNewsList as $val) {
+            if (in_array($val['type'], ['plus_interact', 'plus_active', 'group_interact', 'group_active'])) {
+                list($firstType, $secondType) = explode(",", $val['type']);
+                if (isset($return[$firstType])) {
+                    if ($return[$firstType]['news_sub_category_template']['news_sub_category_template'] < $val['news_sub_category_template']['news_sub_category_template']) {
+                        $return[$firstType]['news_sub_category_template']['text'] = $val['news_sub_category_template']['text'];
+                    }
+                    $return[$firstType]['news_sub_category_template']['news_count'] += $val['news_sub_category_template']['news_count'];
+                } else {
+                    $return[$firstType] = $val;
+                }
+            } else {
+                $return[$val['type']] = $val;
+            }
+        }
+        return $this->succ(array_values($return));
+    }
+
+    /**
+     * 格式化消息模板
+     * @param $newsIds
+     * @param $userId
+     * @param $type int 控制使用的模板的。格式化方式：
+     * 1.子分类列表；
+     * 2.消息详情页；
+     * @return mixed
+     */
+    public function formatNews($newsIds, $userId, $type)
+    {
+        if(empty($newsIds) || empty($userId) || empty($type)) {
+            return $this->succ([]);
+        }
+
+        //查询消息基础信息
+        $newsList = $this->getNewListByIds($newsIds, $userId)['data'];
+        //查询消息相关信息
+        //订单号
+        //退货单号
+        //帖子ID
+        //评论ID
+        //用户ID
+        $orderIds = [];
+        $returnIds = [];
+        $subjectIds = [];
+        $commentIds = [];
+        $userIds = [];
+        foreach ($newsList as $val) {
+            switch ($val['news_type']) {
+                case "order":
+                    break;
+                case "order_unpay":
+                case "order_cancel":
+                case "order_send_out":
+                case "order_delivery":
+                    //收集订单号
+                    $orderIds[] = $val["source_id"];
+                    break;
+                case "return_audit_pass":
+                case "return_audit_refuse":
+                case "return_overdue":
+                    //收集退货单号
+                    $returnIds[] = $val["source_id"];
+                    break;
+                case "refund_success":
+                case "refund_fail":
+                    break;
+                case "plus_active":
+                    break;
+                case "plus_new_members":
+                case "plus_new_fans":
+                    break;
+                case "plus_get_commission":
+                    break;
+                case "group_custom":
+                    break;
+                case "img_comment"://source_id记得是评论ID，ext_info补上：帖子ID
+                    //收集subject_id和comment_id和user_id
+                    $commentIds[] = $val["source_id"];
+                    $subjectIds[] = $val["ext_info"]["subject_id"];
+                    $userIds[] = $val["send_user"];
+                    break;
+                case "add_fine"://加精消息里面，source_id记得就是帖子ID
+                    //收集subject_id
+                    $subjectIds[] = $val["source_id"];
+                    break;
+                case "img_like"://点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
+                    //收集subject_id
+                    $subjectIds[] = $val["ext_info"]["subject_id"];
+                    $userIds[] = $val["send_user"];
+                    break;
+                case "follow":
+                    //从发送人，收集user_id
+                    $userIds[] = $val["send_user"];
+                    break;
+                case "new_subject":
+                    //收集subject_id
+                    break;
+                case "custom":
+                    break;
+                case "coupon":
+                case "coupon_receive":
+                case "coupon_overdue":
+                case "redbag_receive":
+                case "redbag_overdue":
+                    break;
+            }
+        }
+        //print_r([$orderIds,$subjectIds,$commentIds,$userIds]);
+        //查询额外信息
+        if (!empty($orderIds)) {
+            $orderService = new Order();
+            $this->orderInfo = $orderService->getOrderInfoByOrderCode($orderIds)['data'];
+        }
+        if (!empty($returnIds)) {
+
+        }
+        if (!empty($subjectIds)) {
+            $subjectService = new Subject();
+            $this->subjectInfo = $subjectService->getBatchSubjectInfos($subjectIds, 0, [])['data'];
+        }
+        if (!empty($commentIds)) {
+            $commentService = new Comment();
+            $this->commentInfo = $commentService->getBatchComments($commentIds,[])['data'];
+        }
+        if (!empty($userIds)) {
+            $userService = new User();
+            $this->userInfo = $userService->getUserInfoByUids($userIds)['data'];
+        }
+
+        $formatList = [];
+        foreach ($newsList as $newsInfo) {
+            $tmp = [];
+            $tmp['id'] = $newsInfo['id'];
+            //模板选择
+            if ($type == 1) {
+                $newShowType = $this->getAncestor($newsInfo['news_type'])['data'];
+            } elseif ($type == 2) {
+                $newShowType = $newsInfo['news_type'];
+            }
+            $tmp['template_type'] = $this->getTemplate($newShowType)['data'];//模板读配置
+            $tmp['type'] = $newShowType;//展示分类
+            $tmp[$tmp['template_type']] = $this->singleTemplate($tmp['template_type'], $newsInfo, $newShowType,$userId);
+            $formatList[] = $tmp;
+        }
+        return $formatList;
+    }
+
+    //单个模板解析
+    public function singleTemplate($templateType, $newsInfo, $showType, $userId)
+    {
+        switch ($templateType) {
+            case "news_sub_category_template"://站内信子分类模板
+                $resArr = [
+                    "news_title" => $this->config['new_index_title'][$showType],
+                    "news_text" => $this->getNewsTypeInfo($newsInfo,"text"),
+                    "news_image_url" => $this->config['new_index_img'][$showType],
+                    "news_count" => $this->getCateNewsNum($showType, $userId),
+                    "redirect_url" => "",
+                ];
+                break;
+            case "news_text_pic_template"://站内信图文模板
+                $resArr = [
+                    "news_title" => "",
+                    "news_text" => "",
+                    "news_image" => "",
+                    "mark_icon_type" => "",
+                    "redirect_url" => "",
+                ];
+                break;
+            case "news_pic_template"://站内信图片模板
+                $resArr = [
+                    "news_title" => "",
+                    "news_image_list" => "",
+                    "mark_icon_type" => "",
+                    "redirect_url" => "",
+                ];
+                break;
+            case "news_banner_template"://站内信banner模板
+                $resArr = [
+                    "news_text" => "",
+                    "news_image" => "",
+                    "redirect_url" => "",
+                ];
+                break;
+            case "news_miagroup_template":
+                //站内信蜜芽圈消息模板
+                $resArr = [
+                    "user_info" => "",
+                    "news_text" => "",
+                    "news_refer_text" => "",
+                    "news_refer_image" => "",
+                    "redirect_url" => "",
+                ];
+                break;
+        }
+        return $resArr;
+    }
+
+    //根据不同的type类型获取不同信息
+    public function getNewsTypeInfo($newsInfo, $formatType)
+    {
+        switch ($newsInfo['news_type']) {
+            case "order":
+                break;
+            case "order_unpay":
+                break;
+            case "order_cancel":
+                break;
+            case "order_send_out":
+                break;
+            case "order_delivery":
+                break;
+            case "return_audit_pass":
+                $text = "退货文字目前为空";
+                break;
+            case "return_audit_refuse":
+                break;
+            case "return_overdue":
+                break;
+            case "refund_success":
+                break;
+            case "refund_fail":
+                break;
+            case "plus_active":
+                break;
+            case "plus_new_members":
+                $text = "有" . $newsInfo['ext_info']['num'] . "个用户在您的影响下成为Plus会员";
+                break;
+            case "plus_new_fans":
+                $text = "有" . $newsInfo['ext_info']['num'] . "个用户成为了您的粉丝";
+                break;
+            case "plus_get_commission":
+                break;
+            case "group_custom":
+                break;
+            case "img_comment"://source_id记得是评论ID，ext_info补上：帖子ID
+                //收集subject_id和comment_id和user_id
+                break;
+            case "add_fine"://加精消息里面，source_id记得就是帖子ID
+                //收集subject_id
+                break;
+            case "img_like"://点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
+                //收集subject_id
+                break;
+            case "follow":
+                //从发送人，收集user_id
+                $followUser = $this->userInfo[$newsInfo['send_user']];
+                $userName = $followUser['nickname']?$followUser['nickname']:$followUser['nickname'];
+                $text = $userName."关注了你";
+                break;
+            case "new_subject":
+                //收集subject_id
+                break;
+            case "custom":
+                break;
+            case "coupon":
+                break;
+            case "coupon_receive":
+                $text = "您收到" . $newsInfo['ext_info']['num'] . "张总价值" . $newsInfo['ext_info']['money'] . "元优惠券，愉快的买买买吧~";
+                break;
+            case "coupon_overdue":
+                $text = "您有" . $newsInfo['ext_info']['num'] . "张总价值" . $newsInfo['ext_info']['money'] . "元优惠券即将到期，快去用吧，浪费太可惜啦~";
+                break;
+            case "redbag_receive":
+                $text = "您收到" . $newsInfo['ext_info']['num'] . "个总价值" . $newsInfo['ext_info']['money'] . "元的红包，愉快的买买买吧~";
+                break;
+            case "redbag_overdue":
+                $text = "您有" . $newsInfo['ext_info']['num'] . "个总价值" . $newsInfo['ext_info']['money'] . "元的红包即将到期，快去用吧，浪费太可惜啦~";
+                break;
+        }
+        return $$formatType;
+    }
+
+    /**
+     * 根据id，查询用户news列表
+     * @param $newsIds
+     * @param $userId
+     * @return mixed
+     */
+    public function getNewListByIds($newsIds, $userId)
+    {
+        if (empty($newsIds) || empty($useId)) {
+            $this->succ([]);
+        }
+        $newsList = $this->newsModel->getNewsInfoList($newsIds, $userId);
+        $return = [];
+        foreach ($newsIds as $val) {
+            $return[$val] = $newsList[$val];
+        }
+        return $this->succ($return);
     }
 
     /**
@@ -502,6 +850,39 @@ class News extends \mia\miagroup\Lib\Service
     public function setAcceptCate()
     {
 
+    }
+
+    /**
+     * 查询分类所用模板
+     */
+    public function getTemplate($type)
+    {
+        $templateInfo = $this->config['template_news_type'];
+
+        $template = $this->searchTemplate($templateInfo,$type);
+        return $this->succ($template);
+    }
+
+    public function searchTemplate($templateInfo, $type, $before = "")
+    {
+        foreach ($templateInfo as $key => $val) {
+            if (!is_array($val)) {
+                if ($type == $val) {
+                    return $before;
+                } else {
+                    continue;
+                }
+            }
+            if (is_array($val)) {
+                $res = $this->searchTemplate($val, $type, $key);
+                if (!$res) {
+                    continue;
+                } else {
+                    return $res;
+                }
+            }
+        }
+        return false;
     }
 
     /**

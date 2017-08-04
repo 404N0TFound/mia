@@ -51,17 +51,18 @@ class News
         return $res;
     }
 
-    public function getLastNews($type, $toUserId, $source_id, $by_day)
+    public function getLastNews($type, $toUserId, $source_id = 0, $by_day = false, $status = [0, 1])
     {
         $conditions["user_id"] = $toUserId;
         $conditions["news_type"] = $type;
         if (!empty($source_id)) {
             $conditions["source_id"] = $source_id;
         }
-        $conditions["status"] = [0, 1];
+        $conditions["status"] = $status;
         if ($by_day) {
             $conditions["by_day"] = $by_day;
         }
+        $conditions["limit"] = 1;
         $res = $this->userNews->getNewsList($conditions);
         return $res;
     }
@@ -105,6 +106,28 @@ class News
         $res = $this->userNews->updateStatus($where);
         return $res;
     }
+
+    /**
+     * 根据id，查询用户news列表
+     * @param $newsIds
+     * @param $useId
+     * @return array
+     */
+    public function getNewsInfoList($newsIds, $useId)
+    {
+        if (empty($newsIds) || empty($useId)) {
+            return [];
+        }
+        $conditions["id"] = $newsIds;
+        $conditions["user_id"] = $useId;
+        $res = $this->userNews->getNewsList($conditions);
+        $return = [];
+        foreach ($res as $val) {
+            $return[$val['id']] = $val;
+        }
+        return $return;
+    }
+
 
     /*=============5.7新版本消息end=============*/
 

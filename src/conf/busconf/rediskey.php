@@ -59,6 +59,7 @@ $newsKey = [
      * 消息计数 Hash
      * key如下：
      * "total"
+     * getAncestor()获取到的
      * "trade",
      * "plus_active",
      * "plus_interact",
@@ -68,7 +69,12 @@ $newsKey = [
      * "coupon"
      */
     "news_count" => [
-        'key' => $newsServicePrefix . 'newcount:%d',
+        'key' => $newsServicePrefix . 'newscount:%d',
+        'expire_time' => 300
+    ],
+    //消息首页列表，有序集合
+    "news_index" => [
+        'key' => $newsServicePrefix . 'newsindex:%d',
         'expire_time' => 300
     ]
 

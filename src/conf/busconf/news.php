@@ -49,6 +49,7 @@ $newsType = ['trade', 'plus', 'group', 'activity', 'coupon'];
 /**
  * 消息类
  * 最低层级的上一级，用于展示分类
+ * 注意：名称不要重复！！！！！
  * group_custom
  * coupon
  * img_comment
@@ -96,7 +97,7 @@ $layer = [
     "activity" => [
         "custom"
     ],
-    "coupon" => [
+    "property" => [
         "coupon",//旧类型
         "coupon_receive",
         "coupon_overdue",
@@ -126,9 +127,68 @@ $trade_order_status = [
 ];
 
 //用户资产站内信：news_type类型
-$coupon_news_type = [
+$property_news_type = [
     "coupon_receive",
     "coupon_overdue",
     "redbag_receive",
     "redbag_overdue"
 ];
+
+//消息类型和模板的对应关系
+$template_news_type = [
+    //站内信子分类模板，展示分类用的
+    "news_sub_category_template" => [
+        "trade",
+        "plus_active",
+        "plus_interact",
+        "group_active",
+        "group_interact",
+        "activity",
+        "property"
+    ],
+    //以下是消息列表用的，最低级分类模板
+    "news_text_pic_template" => [
+
+
+    ],
+    "news_pic_template" => [
+
+    ],
+    "news_banner_template" => [
+
+    ],
+    "news_miagroup_template" => [
+
+    ],
+];
+
+$new_index_title = [
+    "trade" => "交易物流",
+    "plus_active" => "会员Plus",
+    "plus_interact" => "会员Plus",
+    "group_active" => "蜜芽圈",
+    "group_interact" => "蜜芽圈",
+    "activity" => "蜜芽活动",
+    "property" => "我的资产"
+];
+
+$new_index_img = [
+    "trade" => "",
+    "plus_active" => "",
+    "plus_interact" => "",
+    "group_active" => "",
+    "group_interact" => "",
+    "activity" => "",
+    "property" => ""
+];
+
+$new_index_url = [
+    "trade" => "",
+    "plus_active" => "",
+    "plus_interact" => "",
+    "group_active" => "",
+    "group_interact" => "",
+    "activity" => "",
+    "property" => ""
+];
+
