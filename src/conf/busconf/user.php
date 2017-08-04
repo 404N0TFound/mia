@@ -11,6 +11,11 @@ $miaTuUid = '3782852';
 $miaKefuUid = '13638396';
 
 /**
+ * 蜜芽甄选客服uid
+ */
+$miaZhenXuanKefuUid = '19080286';
+
+/**
  * 蜜芽小天使
  */
 $miaAngelUid = '1026069';

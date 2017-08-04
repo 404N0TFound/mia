@@ -914,6 +914,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->error(6106);
         }
         $koubeiId = $subjectInfo['koubei_id'];
+        $koubei = $this->getBatchKoubeiByIds([$koubeiId])['data'][$koubeiId];
+        if ($koubei['item_koubei']['item_info']['brand_id'] == \F_Ice::$ins->workApp->config->get('busconf.item.zhenxuan_brand_id')) {
+            //如果是甄选商品，评论人为甄选开发小组
+            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaZhenXuanKefuUid');
+        }
         //判断是否有父评论
         $commentService = new \mia\miagroup\Service\Comment();
         if (intval($fid) > 0) {
