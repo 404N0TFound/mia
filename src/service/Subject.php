@@ -406,6 +406,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
             $viewCounts = $this->getBatchSubjectViewCount($subjectIds)['data'];
             $collectCounts = $this->getBatchSubjectCollectCount($subjectIds)['data'];
+            $downloadCounts = $this->getBatchSubjectDownloadCount($subjectIds)['data'];
         }
         // 获取赞用户
         if (in_array('praise_info', $field)) {
@@ -633,6 +634,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['fancied_count'] = intval($praiseCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['view_count'] = intval($viewCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['collect_count'] = intval($collectCounts[$subjectInfo['id']]);
+                $subjectRes[$subjectInfo['id']]['download_count'] = intval($downloadCounts[$subjectInfo['id']]);
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
@@ -2494,16 +2496,55 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($subjectIds)) {
             return $this->succ($user_materials);
         }
-        $user_material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item'])['data'];
+        $user_material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
         $user_materials['lists'] = $user_material_infos;
         return $this->succ($user_materials);
+    }
+
+    /*
+     * 发现banner素材列表
+     * */
+    public function getBannerMaterialList($source_id, $type, $page, $count) {
+
+        $koubei_res = array("koubei_info" => array());
+        if(empty($jump_id) || empty($jump_type)) {
+            return $this->succ($koubei_res);
+        }
+        switch ($type) {
+            case 'brand':
+                //品牌
+                break;
+            case 'category':
+                //分类
+                break;
+            case 'user':
+                //用户
+                break;
+            default:
+                //商品
+                $koubei_res = array("koubei_info" => array());
+                $item_service = new ItemService();
+                // 关联商品
+                $item_ids = $item_service->getRelateItemById($source_id);
+                if (empty($item_ids)) {
+                    return $this->succ($koubei_res);
+                }
+                $subjectIds = $this->rankMaterialList($item_ids)['data'];
+                break;
+        }
+        if(empty($subjectIds)) {
+            return $this->succ($koubei_res);
+        }
+        $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
+        $koubei_res['koubei_info'] = $material_infos;
+        return $this->succ($koubei_res);
     }
 
     /*
      * 临时接口
      * 素材推荐精选列表ids
      * */
-    public function rankMaterialList($itemIds, $del_subjects, $page = 1, $count = 20, $userId = 0) {
+    public function rankMaterialList($itemIds, $del_subjects = [], $page = 1, $count = 20, $userId = 0) {
 
         $rank_ids = [];
         if(empty($itemIds)) {
@@ -2546,6 +2587,18 @@ class Subject extends \mia\miagroup\Lib\Service
             $res["status"] = true;
         }
         return $this->succ($res);
+    }
+
+    /**
+     * 批量查询帖子下载数
+     */
+    public function getBatchSubjectDownloadCount($subjectIds)
+    {
+        if(empty($subjectIds)) {
+            return [];
+        }
+        $downloadCount = $this->subjectModel->getDownloadNum($subjectIds);
+        return $this->succ($downloadCount);
     }
 
 }

@@ -655,9 +655,9 @@ class Subject {
         return $result;
     }
 
-    /**
+    /*
      * 添加素材下载
-     */
+     * */
     public function insertSubjectDownload($userId, $sourceId, $source_type)
     {
         if(empty($userId) || empty($sourceId) || empty($source_type)) {
@@ -683,5 +683,17 @@ class Subject {
     {
         $result = $this->subjectDownloadData->updateSubjectDownload($setData, $where);
         return $result;
+    }
+
+    /**
+     * 获取帖子下载数
+     */
+    public function getDownloadNum($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return [];
+        }
+        $res = $this->subjectDownloadData->getDownloadNum($subjectIds);
+        return $res;
     }
 }

@@ -60,4 +60,25 @@ class SubjectDownload extends \DB_Query
         return $data;
     }
 
+    /**
+     * 获取帖子下载计数
+     */
+    public function getDownloadNum($subjectIds)
+    {
+        if(empty($subjectIds)) {
+            return [];
+        }
+        $where[] = ['source_id', $subjectIds];
+        $where[] = ['source_type', 1];
+        $data = $this->getRows($where, 'source_id,count', FALSE, 0, FALSE, FALSE, "source_id");
+        if(empty($data)) {
+            return [];
+        }
+        $res = [];
+        foreach ($data as $val) {
+            $res[$val["source_id"]] = $val["count"];
+        }
+        return $res;
+    }
+
 }

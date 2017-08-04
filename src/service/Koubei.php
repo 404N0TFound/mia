@@ -2248,7 +2248,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /*
      * 口碑精品列表
      * */
-    public function getRankKoubeiList($itemIds, $del_subjects, $page, $count, $userId) {
+    public function getRankKoubeiList($itemIds, $del_subjects = [], $page = 1, $count = 20, $userId = 0) {
 
         $subject_ids = [];
         if(empty($itemIds)) {
