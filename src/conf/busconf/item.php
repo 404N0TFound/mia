@@ -1,4 +1,7 @@
 <?php
+//甄选商品品牌ID
+$zhenxuan_brand_id = '6769';
+
 //搜索筛选器
 $config['filter_rank_extend_list'] = array(
     '5'    =>  array(
