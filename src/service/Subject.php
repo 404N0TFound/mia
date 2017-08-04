@@ -1129,13 +1129,16 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         //发布帖子同时，保存一份未同步到口碑的相关帖子信息，用于后台同步到口碑贴用
-        $koubeiSubject = array();
-        $koubeiSubject['subject_id'] = $subjectId;
-        $koubeiSubject['user_id'] = $subjectSetInfo['user_id'];
-        $koubeiSubject['is_audited'] = 0;
-        $koubeiSubject['create_time'] = $subjectSetInfo['created'];
-        $koubeiService = new KoubeiService();
-        $koubeiService->addKoubeiSubject($koubeiSubject);
+        // 5.7 素材不进入后台同步池
+        if($subjectInfo['source'] != $material_source) {
+            $koubeiSubject = array();
+            $koubeiSubject['subject_id'] = $subjectId;
+            $koubeiSubject['user_id'] = $subjectSetInfo['user_id'];
+            $koubeiSubject['is_audited'] = 0;
+            $koubeiSubject['create_time'] = $subjectSetInfo['created'];
+            $koubeiService = new KoubeiService();
+            $koubeiService->addKoubeiSubject($koubeiSubject);
+        }
 
         //插入帖子标记信息
         if(!empty($pointInfo)){
@@ -2463,7 +2466,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         // 批量获取素材信息
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'count', 'content_format'])['data'];
+        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item'])['data'];
         $koubei_res['koubei_info'] = $material_infos;
         return $this->succ($koubei_res);
     }
@@ -2491,7 +2494,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($subjectIds)) {
             return $this->succ($user_materials);
         }
-        $user_material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'count', 'content_format'])['data'];
+        $user_material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item'])['data'];
         $user_materials['lists'] = $user_material_infos;
         return $this->succ($user_materials);
     }

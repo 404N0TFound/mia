@@ -102,7 +102,13 @@ class User extends \mia\miagroup\Lib\Service {
 
             // 获取plus用户信息
             if($userInfo['mia_user_type'] == 2) {
-                $userInfo['user_plus_info'] = array();
+                $plusInfo = $this->getPlusUserInfo([$userInfo['id']])['data'];
+                if(!empty($plusInfo[0])) {
+                    $userInfo['user_plus_info']['wechat_code'] = $plusInfo[0]['weixin_code'];
+                    $userInfo['user_plus_info']['wechat_nickname'] = $plusInfo[0]['weixin_nickname'];
+                    $userInfo['user_plus_info']['wechat_icon'] = $plusInfo[0]['weixin_icon'];
+                    $userInfo['user_plus_info']['plus_type'] = $plusInfo[0]['plus_status'];
+                }
             }
             
             if (in_array('count', $fields)) {
@@ -743,6 +749,18 @@ class User extends \mia\miagroup\Lib\Service {
     public function getDoozerByCategory($count = 0)
     {
         $res = $this->userModel->getGroupUserIdList($count);
+        return $this->succ($res);
+    }
+
+    /*
+     * 新增类型，plus用户相关补充信息
+     * */
+    public function getPlusUserInfo($userIds)
+    {
+        if(empty($userIds) || !is_array($userIds)) {
+            return $this->succ([]);
+        }
+        $res = $this->userModel->getPlusUserInfo($userIds);
         return $this->succ($res);
     }
     

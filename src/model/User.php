@@ -11,6 +11,7 @@ use mia\miagroup\Data\User\GroupDoozer as GroupDoozerData;
 use mia\miagroup\Data\User\GroupUserCategory as UserCategoryData;
 use mia\miagroup\Data\User\GroupUserPermission as UserPermissionData;
 use mia\miagroup\Data\User\GroupUserRole as UserGroupData;
+use mia\miagroup\Data\User\PlusUser as UserPlusData;
 
 class User
 {
@@ -407,5 +408,16 @@ class User
         } else {
             return true;
         }
+    }
+
+    /*
+     * 批量获取plus用户信息
+     * */
+    public function getPlusUserInfo($userIds)
+    {
+        if(empty($userIds)) return false;
+        $userPlusData = new UserPlusData();
+        $res = $userPlusData->getPlusUserInfo($userIds);
+        return $res;
     }
 }
