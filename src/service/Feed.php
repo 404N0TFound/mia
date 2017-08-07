@@ -101,4 +101,39 @@ class Feed extends \mia\miagroup\Lib\Service {
         $data['label_lists'] = $lableIdInfo;
         return $this->succ($data);
     }
+    
+    /**
+     * 获取发现页的帖子
+     * @param $currentUid 当前登录用户id
+     * @param $use_type （all为发现页，carousel为轮播）
+     * @param $page 当前页
+     * @param $count 每页数量
+     */
+    public function getDiscoverySubjects($use_type, $currentUid = 0, $page = 1, $count = 10) {
+        if(empty($use_type)){
+            return $this->succ(array());
+        }
+        if ($use_type == 'carousel') {
+            $page = 1;
+            $count = 5;
+        }
+        $userIds = array('7509553','13789824');
+        $auditService = new \mia\miagroup\Service\Audit();
+        foreach ($userIds as $key => $userId) {
+            //验证用户是否已屏蔽
+            if($auditService->checkUserIsShield($userId)['data']['is_shield']){
+                unset($userIds[$key]);
+            }
+        }
+    
+        //获取plus用户的帖子列表
+        $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.plus')];
+        $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source);
+        //获取帖子详细信息
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid)['data'];
+        $data = [];
+        $data['subject_lists'] = array_values($subjectsList);
+        return $this->succ($data);
+    }
+    
 }
