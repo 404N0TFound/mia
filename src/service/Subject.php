@@ -1414,9 +1414,10 @@ class Subject extends \mia\miagroup\Lib\Service
     }
 
     /**
-     * 根据用户ID获取帖子信息
+     * 根据用户ID获取帖子信息 (edit by 5.7 material list)
      */
-    public function getSubjectsByUid($userId,$currentId = 0, $page = 1, $iPageSize = 20){
+    public function getSubjectsByUid($userId, $currentId = 0, $page = 1, $iPageSize = 20, $field = '', $conditions = []){
+
         $data = array("subject_lists" => array(), "status" => 0);
         //校验是否是屏蔽用户
         $audit = new \mia\miagroup\Service\Audit();
@@ -1426,13 +1427,12 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($data);
         }
         //获取帖子ID
-        $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId,$currentId,$page,$iPageSize);
+        $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId,$currentId,$page,$iPageSize, $conditions);
         if(empty($subject_ids)){
             return $this->succ($data);
         }
-        $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId)['data']);
+        $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId, $field)['data']);
         $data['status'] = 1;
-        
         return $this->succ($data);
     }
     
@@ -2434,6 +2434,8 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
         $offset = $page > 1 ? ($page - 1) * $count : 0;
+        $condition['type'] = 'sku';
+        $condition['status'] = $this->config['status']['normal'];
         $condition['source'] = $this->config['source']['material'];
 
         // 获取用户发布素材总数
@@ -2479,25 +2481,17 @@ class Subject extends \mia\miagroup\Lib\Service
     public function getUserMaterialList($userId, $page = 1, $count = 20)
     {
 
-        $user_materials = array("lists" => array(), 'status' => 0);
+        $user_materials = array("lists" => array());
         if (empty($userId)) {
             return $this->succ($user_materials);
         }
-        //校验是否是屏蔽用户
-        $audit = new \mia\miagroup\Service\Audit();
-        $isShieldStatus = $audit->checkUserIsShield($userId)['data'];
-        if ($isShieldStatus['is_shield']) {
-            $user_materials['status'] = -1;
-            return $this->succ($user_materials);
-        }
-        $offset = $page > 1 ? ($page - 1) * $count : 0;
         $condition['source'] = $this->config['source']['material'];
-        $subjectIds = $this->subjectModel->getUserOwnMaterialIds($userId, $count, $offset, $condition);
-        if (empty($subjectIds)) {
+        $field = ['user_info', 'content_format', 'share_info', 'item'];
+        $user_material_infos = $this->getSubjectsByUid($userId, 0, $page, $count, $field, $condition)['data'];
+        if (empty($user_material_infos)) {
             return $this->succ($user_materials);
         }
-        $user_material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
-        $user_materials['lists'] = $user_material_infos;
+        $user_materials['lists'] = $user_material_infos['subject_lists'];
         return $this->succ($user_materials);
     }
 
@@ -2556,33 +2550,18 @@ class Subject extends \mia\miagroup\Lib\Service
     }
 
     /*
-     * 素材图文下载统计数
+     * 素材图文下载记录
      * */
-    public function subjectDownCount($userId, $source_id, $source_type = 1) {
+    public function subjectDownload($userId, $source_id, $source_type = 1) {
 
         $res = array('status' => false);
         if (empty($userId) || empty($source_id)) {
             return $this->succ($res);
         }
-        // 判断当前的记录是否存在
-        $count = 0;
-        $result = $this->subjectModel->checkSubjectDownload($userId, $source_id, $source_type);
-        if(!empty($result)) {
-            $count = $result['count'];
-        }
-
         $where[] = ['user_id', $userId];
         $where[] = ['source_id', $source_id];
         $where[] = ['source_type', $source_type];
-        if(!empty($count)) {
-            // update
-            $setData[] = ['count', $count + 1];
-            $setData[] = ['update_time',date("Y-m-d H:i:s")];
-            $result = $this->subjectModel->updateSubjectDownload($setData, $where);
-        }else {
-            // insert
-            $result = $this->subjectModel->insertSubjectDownload($userId, $source_id, $source_type);
-        }
+        $result = $this->subjectModel->insertSubjectDownload($userId, $source_id, $source_type);
         if(!empty($result)) {
             $res["status"] = true;
         }

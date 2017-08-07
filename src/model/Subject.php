@@ -302,8 +302,8 @@ class Subject {
       * @param number $iPage
       * @param number $iPageSize
       */
-     public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
-         $subject_id = $this->subjectData->getSubjectInfoByUserId($userId, $currentId, $iPage, $iPageSize);
+     public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20, $conditions = []){
+         $subject_id = $this->subjectData->getSubjectInfoByUserId($userId, $currentId, $iPage, $iPageSize, $conditions);
          return $subject_id;
      }
      
@@ -628,30 +628,9 @@ class Subject {
     /*
      * 获取plus用户素材列表
      * */
-    public function getUserMaterialIds($item_ids, $user_id, $count, $offset, $condition = [])
+    public function getUserMaterialIds($item_ids, $user_id = 0, $count = 0, $offset = 0, $conditions = [])
     {
-        $result = $this->subjectData->getUserMaterialIds($item_ids, $user_id, $count, $offset, $condition);
-        return $result;
-    }
-
-    /*
-     * 获取用户发布的素材列表
-     * */
-    public function getUserOwnMaterialIds($user_id, $count, $offset, $condition = [])
-    {
-        $result = $this->subjectData->getUserOwnMaterialIds($user_id, $count, $offset, $condition);
-        return $result;
-    }
-
-    /*
-     * 素材下载信息
-     * */
-    public function checkSubjectDownload($userId, $source_id, $source_type)
-    {
-        $conditions["user_id"] = $userId;
-        $conditions["source_type"] = $source_type;
-        $conditions["source_id"] = $source_id;
-        $result = $this->subjectDownloadData->getDownloadInfo($conditions);
+        $result = $this->subjectData->getUserMaterialIds($item_ids, $user_id, $count, $offset, $conditions);
         return $result;
     }
 
@@ -663,26 +642,13 @@ class Subject {
         if(empty($userId) || empty($sourceId) || empty($source_type)) {
             return 0;
         }
-        $insertData["count"] = 1;
         $insertData["user_id"] = $userId;
         $insertData["source_id"] = $sourceId;
         $insertData["source_type"] = $source_type;
-
         $now = date("Y-m-d H:i:s");
-        $insertData["update_time"] = $now;
         $insertData["create_time"] = $now;
-
         $res = $this->subjectDownloadData->insertSubjectDownload($insertData);
         return $res;
-    }
-
-    /*
-     * 更新下载记录
-     * */
-    public function updateSubjectDownload($setData, $where)
-    {
-        $result = $this->subjectDownloadData->updateSubjectDownload($setData, $where);
-        return $result;
     }
 
     /**

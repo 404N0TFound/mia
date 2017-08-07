@@ -72,8 +72,6 @@ class User extends \mia\miagroup\Lib\Service {
             $userInfo['is_experts'] = $userCate[$userInfo['id']] ? 1 : 0; 
             // 用户是否是供应商
             $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0;
-            // 用户是否是plus
-            $userInfo['mia_user_type'] = !empty($userInfo['user_type']) ? $userInfo['user_type'] : 1;
             // 用户是否有发视频权限
             $userInfo['is_have_permission'] = !empty($userPermissions['video'][$userInfo['id']]) ? 1 : 0; 
             // 用户是否有专栏发布权限
@@ -97,17 +95,6 @@ class User extends \mia\miagroup\Lib\Service {
                     $userInfo['relation_with_him'] = $relationWithHim[$userInfo['id']]['relation_with_him'];
                 } else {
                     $userInfo['relation_with_him'] = 0;
-                }
-            }
-
-            // 获取plus用户信息
-            if($userInfo['mia_user_type'] == 2) {
-                $plusInfo = $this->getPlusUserInfo([$userInfo['id']])['data'];
-                if(!empty($plusInfo[0])) {
-                    $userInfo['user_plus_info']['wechat_code'] = $plusInfo[0]['weixin_code'];
-                    $userInfo['user_plus_info']['wechat_nickname'] = $plusInfo[0]['weixin_nickname'];
-                    $userInfo['user_plus_info']['wechat_icon'] = $plusInfo[0]['weixin_icon'];
-                    $userInfo['user_plus_info']['plus_type'] = $plusInfo[0]['plus_status'];
                 }
             }
             
@@ -749,18 +736,6 @@ class User extends \mia\miagroup\Lib\Service {
     public function getDoozerByCategory($count = 0)
     {
         $res = $this->userModel->getGroupUserIdList($count);
-        return $this->succ($res);
-    }
-
-    /*
-     * 新增类型，plus用户相关补充信息
-     * */
-    public function getPlusUserInfo($userIds)
-    {
-        if(empty($userIds) || !is_array($userIds)) {
-            return $this->succ([]);
-        }
-        $res = $this->userModel->getPlusUserInfo($userIds);
         return $this->succ($res);
     }
     

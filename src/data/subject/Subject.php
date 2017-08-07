@@ -146,10 +146,13 @@ class Subject extends \DB_Query {
     /**
      * 获取用户的帖子ID
      */
-    public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
+    public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20, $conditions = []){
         
         $offsetLimit = $iPageSize * ($iPage - 1);
         $where[] = ['user_id',$userId];
+        if(!empty($conditions['source'])) {
+            $where[] = ['source', $conditions['source']];
+        }
         if ($userId == $currentId) { 
             //查看自己空间显示正在转码中的视频
             $where[] = ['status',array(1,2)];
@@ -160,7 +163,6 @@ class Subject extends \DB_Query {
             $orderBy = 'id DESC';
             $result = $this->getRows($where,'id',$iPageSize,$offsetLimit,$orderBy);
         }
-        
         $subject_id = array_column($result, 'id');
         return $subject_id;
     }
@@ -347,69 +349,32 @@ class Subject extends \DB_Query {
     /*
      * 获取plus用户素材列表
      * */
-    public function getUserMaterialIds($item_ids, $user_id, $count, $offset, $condition) {
+    public function getUserMaterialIds($item_ids, $user_id, $limit, $offset, $condition) {
         if(empty($item_ids) || !is_array($item_ids)) {
             return array();
         }
-        if(!empty($condition['source'])) {
-            $source = $condition['source'];
-        }
-        $sql = "SELECT DISTINCT(a.subject_id) AS subject_id FROM group_subject_point_tags AS a
-                LEFT JOIN group_subjects AS b ON a.subject_id = b.id 
-                WHERE a.item_id in (".implode(',', $item_ids).") 
-                AND b.user_id = ".$user_id." 
-                AND b.status = 1 
-                AND b.source = ".$source." 
-                AND a.type = 'sku'  
-                ORDER BY 
-	              b.created DESC 
-	            ";
-        if(empty($offset) && !empty($count)) {
-            $sql.= "LIMIT {$count}";
-        }
-        if(!empty($offset) && !empty($count)) {
-            $sql.= "LIMIT {$offset},{$count}";
-        }
-        $result = $this->query($sql);
-        $res = array_column($result, 'subject_id');
-        return $res;
-    }
-
-    /*
-     * 获取用户发布的素材列表
-     * */
-    public function getUserOwnMaterialIds($user_id, $count, $offset, $condition) {
-
-        if(empty($user_id)) {
-            return array();
-        }
-        $field = 'id';
-        $where[] = ['status', 1];
-        $where[] = ['user_id', $user_id];
-        if(!empty($condition['source'])) {
-            $where[] = ['source', $condition['source']];
-        }
-        $order_by = array('created DESC');
-        $result = $this->getRows($where, $field, $count, $offset, $order_by);
-        $res = array_column($result, 'id');
-        return $res;
-    }
-
-    /*
-     * 下载图文记录是否存在
-     * */
-    public function checkSubjectDownload($params) {
-
         $where = [];
-        if($params['user_id']) {
-            $where[] = ['user_id', $params['user_id']];
+        if(!empty($condition['source'])) {
+            $where[] = ['group_subjects.source', $condition['source']];
         }
-        if($params['source_id']) {
-            $where[] = ['source_id', $params['source_id']];
+        if(!empty($condition['status'])) {
+            $where[] = ['group_subjects.status', $condition['status']];
         }
-        if($params['source_type']) {
-            $where[] = ['source_type', $params['source_type']];
+        if(!empty($condition['type'])) {
+            $where[] = ['group_subject_point_tags.type', $condition['type']];
         }
-        $result = $this->count($where);
+        if(!empty($user_id)) {
+            $where[] = ['group_subjects.user_id', $user_id];
+        }
+        if(!empty($item_ids)) {
+            $where[] = ['group_subject_point_tags.item_id', $item_ids];
+        }
+        $fields = 'group_subjects.id';
+        $orderBy = array('group_subjects.id DESC');
+        $groupBy = array('group_subjects.id');
+        $join[] = 'LEFT JOIN group_subject_point_tags ON group_subjects.id = group_subject_point_tags.subject_id';
+        $data = $this->getRows($where, $fields, $limit, $offset, $orderBy, $join, $groupBy);
+        $res = array_column($data, 'id');
+        return $res;
     }
 }

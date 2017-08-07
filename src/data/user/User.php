@@ -71,7 +71,7 @@ class User extends DB_Query {
             return false;
         }
     }
-    
+
     /**
      * 根据nickname查询uid
      */

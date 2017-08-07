@@ -416,6 +416,7 @@ class Koubei extends \DB_Query {
     }
 
     /*
+     * 临时接口（待删除）
      * 获取精品口碑
      * */
     public function getRankKoubeiIdsByItemIds($itemIds, $del_subjects, $limit = 20, $offset = 0, $orderBy = false) {

@@ -409,15 +409,4 @@ class User
             return true;
         }
     }
-
-    /*
-     * 批量获取plus用户信息
-     * */
-    public function getPlusUserInfo($userIds)
-    {
-        if(empty($userIds)) return false;
-        $userPlusData = new UserPlusData();
-        $res = $userPlusData->getPlusUserInfo($userIds);
-        return $res;
-    }
 }
