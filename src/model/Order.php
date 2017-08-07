@@ -19,7 +19,16 @@ class Order {
         $orderData = $this->orderData->getOrderInfoByOrderCode($orderCodes);
         return $orderData;
     }
-    
+
+    public function getOrderItemInfo($orderCodes)
+    {
+        if(empty($orderCodes)) {
+            return [];
+        }
+        $orderData = $this->orderData->getOrderItemInfo($orderCodes);
+        return $orderData;
+    }
+
     /**
      * 根据订单ID获取订单信息
      */

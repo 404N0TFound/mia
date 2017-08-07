@@ -161,10 +161,17 @@ class UserNews extends DB_Query
         }
 
         $order = "create_time desc";
-        $fields = "id,news_type,user_id,send_user,news_id,is_read,source_id,ext_info,create_time";
+
+        if (isset($conditions['fields'])) {
+            $fields = $conditions['fields'];
+        } else {
+            $fields = "id,news_type,user_id,send_user,news_id,is_read,source_id,ext_info,create_time";
+        }
         $data = $this->getRows($where, $fields, $limit, 0, $order);
         foreach ($data as &$val) {
-            $val["ext_info"] = json_decode($val["ext_info"], true);
+            if (isset($val["ext_info"])) {
+                $val["ext_info"] = json_decode($val["ext_info"], true);
+            }
         }
         return $data;
     }

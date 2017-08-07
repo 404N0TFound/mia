@@ -110,16 +110,16 @@ class News
     /**
      * 根据id，查询用户news列表
      * @param $newsIds
-     * @param $useId
+     * @param $userId
      * @return array
      */
-    public function getNewsInfoList($newsIds, $useId)
+    public function getNewsInfoList($newsIds, $userId)
     {
-        if (empty($newsIds) || empty($useId)) {
+        if (empty($newsIds) || empty($userId)) {
             return [];
         }
         $conditions["id"] = $newsIds;
-        $conditions["user_id"] = $useId;
+        $conditions["user_id"] = $userId;
         $res = $this->userNews->getNewsList($conditions);
         $return = [];
         foreach ($res as $val) {
@@ -128,6 +128,19 @@ class News
         return $return;
     }
 
+    public function getBatchList($category, $userId, $limit)
+    {
+        if (empty($category) || empty($userId)) {
+            return [];
+        }
+        $conditions["news_type"] = $category;
+        $conditions["user_id"] = $userId;
+        $conditions['limit'] = $limit;
+        $conditions['fields'] = "id,create_time";
+        $res = $this->userNews->getNewsList($conditions);
+
+        return $res;
+    }
 
     /*=============5.7新版本消息end=============*/
 

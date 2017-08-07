@@ -19,7 +19,17 @@ class Order extends \mia\miagroup\Lib\Service {
         $orderData = $this->orderModel->getOrderInfoByOrderCode($orderCodes);
         return $this->succ($orderData);
     }
-    
+
+    /**
+     * 获取订单商品信息
+     */
+    public function getOrderItemInfo($orderCodes)
+    {
+        $orderData = $this->orderModel->getOrderItemInfo($orderCodes);
+        return $this->succ($orderData);
+    }
+
+
     /**
      * 根据订单ID获取订单信息
      */

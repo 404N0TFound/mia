@@ -66,6 +66,7 @@ $layer = [
         "order_cancel",
         "order_send_out",
         "order_delivery",
+        "order_received",
         "return_audit_pass",
         "return_audit_refuse",
         "return_overdue",
@@ -119,6 +120,7 @@ $trade_order_status = [
     "order_cancel",
     "order_send_out",
     "order_delivery",
+    "order_received",
     "return_audit_pass",
     "return_audit_refuse",
     "return_overdue",
@@ -147,21 +149,49 @@ $template_news_type = [
         "property"
     ],
     //以下是消息列表用的，最低级分类模板
+    //站内信图文模板
     "news_text_pic_template" => [
-
-
+        "order",
+        "order_unpay",
+        "order_cancel",
+        "order_send_out",
+        "order_delivery",
+        "order_received",
+        "return_audit_pass",
+        "return_audit_refuse",
+        "return_overdue",
+        "refund_success",
+        "refund_fail",
+        "plus_new_members",
+        "plus_new_fans",
+        "plus_get_commission",
+        "coupon",//旧类型
+        "coupon_receive",
+        "coupon_overdue",
+        "redbag_receive",
+        "redbag_overdue"
     ],
+    //站内信图片模板
     "news_pic_template" => [
 
     ],
     "news_banner_template" => [
+        "custom",
+        "group_custom",
+        "plus_active"
 
     ],
     "news_miagroup_template" => [
-
+        "img_comment",
+        "add_fine",
+        "img_like",
+        "follow",
+        "new_subject"
     ],
 ];
 
+
+/*======消息首页标题，图标，跳转。======*/
 $new_index_title = [
     "trade" => "交易物流",
     "plus_active" => "会员Plus",
@@ -173,22 +203,27 @@ $new_index_title = [
 ];
 
 $new_index_img = [
-    "trade" => "",
-    "plus_active" => "",
-    "plus_interact" => "",
-    "group_active" => "",
-    "group_interact" => "",
-    "activity" => "",
-    "property" => ""
+    "trade" => "https://img.miyabaobei.com/d1/p5/2017/08/07/5b/f2/5bf27f66fd50b1bbf9f81eddcec50871730412128.png",
+    "plus_active" => "https://img.miyabaobei.com/d1/p5/2017/08/07/9a/c7/9ac7ec76104517e9ec9a1a28e7bd4a65730722896.png",
+    "plus_interact" => "https://img.miyabaobei.com/d1/p5/2017/08/07/9a/c7/9ac7ec76104517e9ec9a1a28e7bd4a65730722896.png",
+    "group_active" => "https://img.miyabaobei.com/d1/p5/2017/08/07/1b/4e/1b4e708bebf24cdea1d6da1720aa6330731079987.png",
+    "group_interact" => "https://img.miyabaobei.com/d1/p5/2017/08/07/1b/4e/1b4e708bebf24cdea1d6da1720aa6330731079987.png",
+    "activity" => "https://img.miyabaobei.com/d1/p5/2017/08/07/ab/6b/ab6b109038bd981dfb47e1fea90e7c3c730129454.png",
+    "property" => "https://img.miyabaobei.com/d1/p5/2017/08/07/97/bf/97bfe0ed2dadd261ab97390ecab08e5a727857932.png"
 ];
 
 $new_index_url = [
-    "trade" => "",
-    "plus_active" => "",
-    "plus_interact" => "",
-    "group_active" => "",
-    "group_interact" => "",
-    "activity" => "",
-    "property" => ""
+    "trade" => "miyabaobei://message_category?category=trade",
+    "plus_active" => "miyabaobei://message_category?category=plus",
+    "plus_interact" => "miyabaobei://message_category?category=plus",
+    "group_active" => "miyabaobei://message_category?category=group",
+    "group_interact" => "miyabaobei://message_category?category=group",
+    "activity" => "miyabaobei://message_category?category=activity",
+    "property" => "miyabaobei://message_category?category=property"
 ];
+/*======消息首页标题，图标，跳转。END======*/
 
+//消息列表数量限制
+$user_list_limit = 1000;
+
+$page_limit = 20;

@@ -76,8 +76,12 @@ $newsKey = [
     "news_index" => [
         'key' => $newsServicePrefix . 'newsindex:%d',
         'expire_time' => 300
+    ],
+    //子分类列表，%s为类型和uid的组合
+    "cate_list" => [
+        'key' => $newsServicePrefix . 'catelist:%s',
+        'expire_time' => 300
     ]
-
 
 
     /*==========消息5.7相关end==========*/
