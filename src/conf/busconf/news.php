@@ -169,7 +169,8 @@ $template_news_type = [
         "coupon_receive",
         "coupon_overdue",
         "redbag_receive",
-        "redbag_overdue"
+        "redbag_overdue",
+        "add_fine",
     ],
     //站内信图片模板
     "news_pic_template" => [
@@ -183,7 +184,6 @@ $template_news_type = [
     ],
     "news_miagroup_template" => [
         "img_comment",
-        "add_fine",
         "img_like",
         "follow",
         "new_subject"
@@ -214,10 +214,10 @@ $new_index_img = [
 
 $new_index_url = [
     "trade" => "miyabaobei://message_category?category=trade",
-    "plus_active" => "miyabaobei://message_category?category=plus",
-    "plus_interact" => "miyabaobei://message_category?category=plus",
-    "group_active" => "miyabaobei://message_category?category=group",
-    "group_interact" => "miyabaobei://message_category?category=group",
+    "plus_active" => "miyabaobei://message_category?category=plus_active",
+    "plus_interact" => "miyabaobei://message_category?category=plus_interact",
+    "group_active" => "miyabaobei://message_category?category=group_active",
+    "group_interact" => "miyabaobei://message_category?category=group_interact",
     "activity" => "miyabaobei://message_category?category=activity",
     "property" => "miyabaobei://message_category?category=property"
 ];
@@ -225,5 +225,48 @@ $new_index_url = [
 
 //消息列表数量限制
 $user_list_limit = 1000;
-
 $page_limit = 20;
+
+//sub_tab
+$sub_type = [
+    "all" => ["group_active", "group_interact"],
+//    "plus_active" => [
+//        "name" => "活动",
+//        "equal_level" => [
+//            [
+//                "type" => "plus_interact",
+//                "name" => "动态"
+//            ],
+//        ],
+//
+//    ],
+//    "plus_interact" => [
+//        "name" => "动态",
+//        "equal_level" => [
+//            [
+//                "type" => "plus_active",
+//                "name" => "活动"
+//            ],
+//        ],
+//
+//    ],
+    "group_active" => [
+        "name" => "活动",
+        "equal_level" => [
+            [
+                "type" => "group_interact",
+                "name" => "动态"
+            ],
+        ],
+
+    ],
+    "group_interact" => [
+        "name" => "动态",
+        "equal_level" => [
+            [
+                "type" => "group_active",
+                "name" => "活动"
+            ],
+        ],
+    ],
+];
