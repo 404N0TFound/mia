@@ -2428,13 +2428,13 @@ class Subject extends \mia\miagroup\Lib\Service
             $mapping_params .= "&". $key."=".$value;
         }
         $mapping_url = $mapping['skip_url'].$mapping_params;
-        // 获取分类对应的印象笔记
-        $noteRemote = new RecommendNote($this->ext_params);
-        $userNoteListIds = $noteRemote->getNoteListByCate($cate_name, $page, $count);
         if(!empty($type) && $type == 'detail') {
             // 映射地址直接返回(用于区分蜜芽圈统计)
             $res['mapping_url'] = $mapping_url;
         }else{
+            // 获取分类对应的印象笔记
+            $noteRemote = new RecommendNote($this->ext_params);
+            $userNoteListIds = $noteRemote->getNoteListByCate($cate_name, $page, $count);
             $res['content_lists'] = $this->formatNoteData($userNoteListIds);
         }
         return $this->succ($res);
