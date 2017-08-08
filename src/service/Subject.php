@@ -2402,7 +2402,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * 蜜芽圈口碑跳转数据列表
      * condition:[1：新分类]
      * */
-    public function group_cate_note_list ($item_id, $page = 1, $count = 20, $userId = 0) {
+    public function groupCateNoteList ($item_id, $page = 1, $count = 20, $userId = 0, $type = '') {
 
         if(empty($item_id)) {
             return $this->succ([]);
@@ -2431,9 +2431,12 @@ class Subject extends \mia\miagroup\Lib\Service
         // 获取分类对应的印象笔记
         $noteRemote = new RecommendNote($this->ext_params);
         $userNoteListIds = $noteRemote->getNoteListByCate($cate_name, $page, $count);
-
-        $res['content_lists'] = $this->formatNoteData($userNoteListIds);
-        $res['mapping_url'] = $mapping_url;
+        if(!empty($type) && $type == 'detail') {
+            // 映射地址直接返回(用于区分蜜芽圈统计)
+            $res['mapping_url'] = $mapping_url;
+        }else{
+            $res['content_lists'] = $this->formatNoteData($userNoteListIds);
+        }
         return $this->succ($res);
     }
 
