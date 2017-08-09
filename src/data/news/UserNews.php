@@ -182,7 +182,7 @@ class UserNews extends DB_Query
      * @param $userId
      * @return bool
      */
-    public function changeReadStatus($userId)
+    public function changeReadStatus($userId, $type = [])
     {
         $isShardExists = $this->doShard(["user_id" => $userId]);
         if (!$isShardExists) {
@@ -190,6 +190,9 @@ class UserNews extends DB_Query
         }
         $setData[] = ['is_read', 1];
         $where[] = ['user_id', $userId];
+        if(!empty($type)) {
+            $where[] = ['news_type', $type];
+        }
         $res = $this->update($setData, $where);
         return $res;
     }

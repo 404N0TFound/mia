@@ -67,6 +67,7 @@ $layer = [
         "order_send_out",
         "order_delivery",
         "order_received",
+        "order_auto_confirm",
         "return_audit_pass",
         "return_audit_refuse",
         "return_overdue",
@@ -107,6 +108,9 @@ $layer = [
     ]
 ];
 
+//退款图标
+$refund_image = "https://img.miyabaobei.com/d1/p5/2017/08/09/57/64/57646d7a5c9be7770ddfc04fbaf86314498159953.png";
+
 //会员Plus站内信：news_type类型
 $plus_news_type = [
     "plus_new_members",
@@ -121,6 +125,7 @@ $trade_order_status = [
     "order_send_out",
     "order_delivery",
     "order_received",
+    "order_auto_confirm",
     "return_audit_pass",
     "return_audit_refuse",
     "return_overdue",
@@ -157,6 +162,7 @@ $template_news_type = [
         "order_send_out",
         "order_delivery",
         "order_received",
+        "order_auto_confirm",
         "return_audit_pass",
         "return_audit_refuse",
         "return_overdue",
@@ -269,4 +275,41 @@ $sub_type = [
             ],
         ],
     ],
+];
+
+//push设置，顺序固定
+$push_setting_list = [
+    "trade" => "交易物流",
+    "plus" => "会员Plus",
+    "activity" => "蜜芽活动",
+    "group" => "蜜芽圈",
+    "property" => "我的资产",
+];
+
+$push_type = [
+    "order_cancel",//订单取消
+    "order_send_out",//订单发货
+    "order_auto_confirm",
+    "return_audit_pass",
+    "return_audit_refuse",
+    "return_overdue",
+    "refund_success",
+    "refund_fail",
+    "plus_new_members",
+    "plus_active",
+    "img_comment",
+    "add_fine",
+    "new_subject",
+    "group_custom",
+    "coupon_receive",
+    "coupon_overdue",
+    "redbag_receive",
+    "redbag_overdue",
+    "custom"
+];
+
+//推送允许时间
+$push_time = [
+    "start" => "8:00",
+    "end" => "23:00",
 ];

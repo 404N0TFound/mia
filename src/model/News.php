@@ -4,6 +4,7 @@ namespace mia\miagroup\Model;
 
 use mia\miagroup\Data\News\AppNewsInfo;
 use mia\miagroup\Data\News\AppUserNews;
+use mia\miagroup\Data\News\PushSetting;
 use mia\miagroup\Data\News\SystemNews;
 use mia\miagroup\Data\News\UserNews;
 use mia\miagroup\Lib\Redis;
@@ -23,6 +24,7 @@ class News
         $this->userNewsRelation = new AppUserNews();
         $this->systemNews = new SystemNews();
         $this->userNews = new UserNews();
+        $this->pushSetting = new PushSetting();
         $this->config = \F_Ice::$ins->workApp->config->get('busconf.news');
         $this->newsSetLimit = 1000;
     }
@@ -51,6 +53,15 @@ class News
         return $res;
     }
 
+    /**
+     * 获取最新一条消息
+     * @param $type
+     * @param $toUserId
+     * @param int $source_id
+     * @param bool $by_day 是否获取当天的最新消息
+     * @param array $status
+     * @return mixed
+     */
     public function getLastNews($type, $toUserId, $source_id = 0, $by_day = false, $status = [0, 1])
     {
         $conditions["user_id"] = $toUserId;
@@ -108,7 +119,7 @@ class News
     }
 
     /**
-     * 根据id，查询用户news列表
+     * 根据id，查询用户news列表信息
      * @param $newsIds
      * @param $userId
      * @return array
@@ -128,6 +139,13 @@ class News
         return $return;
     }
 
+    /**
+     * 获取用户分类消息列表
+     * @param $category
+     * @param $userId
+     * @param $limit
+     * @return array
+     */
     public function getBatchList($category, $userId, $limit)
     {
         if (empty($category) || empty($userId)) {
@@ -139,6 +157,84 @@ class News
         $conditions['fields'] = "id,create_time";
         $res = $this->userNews->getNewsList($conditions);
 
+        return $res;
+    }
+
+    /**
+     * 设置已读状态
+     * @param $userId
+     * @param $allType array 最低分类数组
+     * @return bool
+     */
+    public function setReadStatus($userId, $allType)
+    {
+        if (empty($userId) || empty($allType)) {
+            return false;
+        }
+        $res = $this->userNews->changeReadStatus($userId, $allType);
+        return $res;
+    }
+
+
+    /**
+     * 获取用户push设置
+     * @param $userId
+     * @return array
+     */
+    public function getUserPushSetting($userId)
+    {
+        if (empty($userId)) {
+            return [];
+        }
+        $conditions['user_id'] = $userId;
+        $res = $this->pushSetting->getList($conditions);
+        return $res;
+    }
+
+    /**
+     * 获取单个type的设置详情
+     * @param $userId
+     * @param $type
+     * @return array
+     */
+    public function getTypeSet($userId, $type)
+    {
+        if (empty($userId) || empty($type)) {
+            return [];
+        }
+        $conditions['user_id'] = $userId;
+        $conditions['type'] = $type;
+        $res = $this->pushSetting->getList($conditions);
+        return $res;
+    }
+
+    /**
+     * 修改push设置
+     * @param $userId
+     * @param $type
+     * @param int $value
+     * @return int
+     */
+    public function pushSet($userId, $type, $value = 1)
+    {
+        if (empty($userId) || empty($type)) {
+            return 0;
+        }
+        $setData[] = ['value', $value];
+        $where[] = ['user_id', $userId];
+        $where[] = ['type', $type];
+        $res = $this->pushSetting->updateSetting($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 添加push设置
+     * @param $insertData
+     * @return bool
+     */
+    public function addTypeSet($insertData)
+    {
+        $res = $this->pushSetting->addTypeSet($insertData);
         return $res;
     }
 
@@ -578,4 +674,5 @@ class News
         }
         return $return;
     }
+
 }

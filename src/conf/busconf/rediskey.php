@@ -70,20 +70,18 @@ $newsKey = [
      */
     "news_count" => [
         'key' => $newsServicePrefix . 'newscount:%d',
-        'expire_time' => 300
+        'expire_time' => 86400
     ],
     //消息首页列表，有序集合
     "news_index" => [
         'key' => $newsServicePrefix . 'newsindex:%d',
-        'expire_time' => 300
+        'expire_time' => 86400
     ],
     //子分类列表，%s为类型和uid的组合
     "cate_list" => [
         'key' => $newsServicePrefix . 'catelist:%s',
-        'expire_time' => 300
+        'expire_time' => 86400
     ]
-
-
     /*==========消息5.7相关end==========*/
 ];
 

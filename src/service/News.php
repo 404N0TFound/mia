@@ -338,6 +338,7 @@ class News extends \mia\miagroup\Lib\Service
 
         //添加消息
         $insertRes = $this->newsModel->postNews($insert_data);
+        $this->newsPush($insert_data, $insertRes);
         if (!$insertRes) {
             return $this->error(500, '发送用户消息失败！');
         } else {
@@ -356,9 +357,70 @@ class News extends \mia\miagroup\Lib\Service
                     $redis->hIncrBy($redis_key, "total", 1);
                 }
             }
+            //发送push提醒
             return $this->succ("发送成功");
         }
     }
+
+    /**
+     * 发送push
+     * @param $newsInfo
+     */
+    public function newsPush($newsInfo, $newsId)
+    {
+        $newsInfo["ext_info"] = json_decode($newsInfo["ext_info"], true);
+        if (!isset($newsInfo["id"])) {
+            $newsInfo["id"] = $newsId;
+        }
+        $type = $newsInfo['news_type'];
+        if (!in_array($type, $this->config["push_type"])) {
+            return;
+        }
+        //判断是否是发送时间
+        $now = time();
+        if (strtotime($this->config['push_time']['start']) > $now || $now > strtotime($this->config['push_time']['end'])) {
+            return;
+        }
+        //判断用户是否开启消息发送
+        $root_cate = $this->getRootCate($newsInfo['news_type']);
+        $typeSetting = $this->newsModel->getTypeSet($newsInfo['user_id'], $root_cate);
+
+        if(!empty($typeSetting) && array_pop($typeSetting)["value"] == 0) {
+            return;
+        }
+
+        $newsInfoRes = $this->formatNews($newsInfo["id"], $newsInfo["user_id"], 2, [$newsInfo]);
+        $newsInfoRes = array_pop($newsInfoRes);
+        $showType = $this->getAncestor($newsInfo['news_type'])["data"];
+
+        switch ($showType) {
+            case "trade":
+            case "group_active":
+            case "group_interact":
+                $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"].$newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
+                $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
+                //标题+正文
+                break;
+            case "plus_interact":
+                //只取消息标题
+                $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"];
+                $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
+                break;
+            case "activity":
+            case "property":
+            case "plus_active":
+                //只取消息正文
+                $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
+            $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
+                break;
+        }
+        $pushService = new Push();
+        if(empty($content) || empty($url) || empty($newsInfo["user_id"])) {
+            return;
+        }
+        $pushService->pushMsg($newsInfo["user_id"], $content, $url);
+    }
+
 
     /**
      * 获取站内信未读数 total_count，group_count
@@ -546,6 +608,12 @@ class News extends \mia\miagroup\Lib\Service
             "offset" => $newOffset,
             "sub_tab" => $this->getSubTab($category, $userId)
         ];
+
+        //清空消息计数
+        $this->clearNewsNum($userId, $category);
+        //设置已读，同级分类下都清空
+        $this->setReadStatus($userId, $category);
+
         return $this->succ($return);
     }
 
@@ -593,14 +661,16 @@ class News extends \mia\miagroup\Lib\Service
      * 2.消息详情页；
      * @return mixed
      */
-    public function formatNews($newsIds, $userId, $type)
+    public function formatNews($newsIds, $userId, $type, $newsList = [])
     {
         if(empty($newsIds) || empty($userId) || empty($type)) {
             return $this->succ([]);
         }
 
         //查询消息基础信息
-        $newsList = $this->getNewListByIds($newsIds, $userId)['data'];
+        if (empty($newsList)) {
+            $newsList = $this->getNewListByIds($newsIds, $userId)['data'];
+        }
         //查询消息相关信息
         //订单号
         //退货单号
@@ -623,6 +693,7 @@ class News extends \mia\miagroup\Lib\Service
                 case "order_cancel":
                 case "order_send_out":
                 case "order_delivery":
+                case "order_auto_confirm":
                     //收集订单号
                     $orderIds[] = $val["source_id"];
                     break;
@@ -822,31 +893,43 @@ class News extends \mia\miagroup\Lib\Service
         switch ($newsInfo['news_type']) {
             case "order":
                 $text = $newsInfo["ext_info"]["content"];
+                $url = "miyabaobei://order_list?tab=0&focus=3";
                 break;
             case "order_unpay":
                 $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品付款后会尽快为您发货";
                 $title = "订单".$newsInfo["source_id"]."未付款";
                 $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $url = "miyabaobei://order_list?tab=0&focus=1";
                 break;
             case "order_cancel":
                 $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品未能及时付款被取消啦";
                 $title = "订单".$newsInfo["source_id"]."已取消";
                 $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $url = "miyabaobei://order_detail?sub_order_id=".$newsInfo["source_id"];
                 break;
             case "order_send_out":
                 $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品发货啦";
                 $title = "订单".$newsInfo["source_id"]."已发货";
                 $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $url = "miyabaobei://order_detail?sub_order_id=".$newsInfo["source_id"];
                 break;
             case "order_delivery":
                 $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品开始派送";
                 $title = "订单".$newsInfo["source_id"]."开始派送";
                 $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $url = "miyabaobei://order_detail?sub_order_id=".$newsInfo["source_id"];
                 break;
             case "order_received":
                 $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品已到，评价晒单得蜜豆哟~";
                 $title = "订单".$newsInfo["source_id"]."已签收";
                 $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $url = "miyabaobei://order_detail?sub_order_id=".$newsInfo["source_id"];
+                break;
+            case "order_auto_confirm":
+                $text = "您的订单将在3日后自动确认收货，如果还没有收到包裹，请到“我的订单”延长收货";
+                $title = "订单".$newsInfo["source_id"]."将在3日后自动确认收货";
+                $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $url = "miyabaobei://order_list?tab=0&focus=3";
                 break;
             case "return_audit_pass":
                 $text = $this->itemInfo[$this->returnInfo[$newsInfo["source_id"]][0]]["item_name"]."申请退货，已审核";
@@ -870,11 +953,13 @@ class News extends \mia\miagroup\Lib\Service
                 $text = "钱款将原路退回，预计入账时间1-5个工作日，如果超时没有收到，请联系客服";
                 $title = "您有一笔".$this->refundInfo[$newsInfo["source_id"]]."元的退款已成功";
                 $url = "miyabaobei://order_refund?tab=refund";
+                $image = $this->config["refund_image"];
                 break;
             case "refund_fail":
                 $text = "退款申请未能通过，请查看详情";
                 $title = "您有一笔".$this->refundInfo[$newsInfo["source_id"]]."元的退款已失败";
                 $url = "miyabaobei://order_refund?tab=refund";
+                $image = $this->config["refund_image"];
                 break;
             case "plus_active":
                 break;
@@ -1047,21 +1132,98 @@ class News extends \mia\miagroup\Lib\Service
         }
     }
 
+    /**
+     * 消息push设置列表
+     * @param $userId
+     * @return mixed
+     */
+    public function pushSetting($userId)
+    {
+        if (empty($userId)) {
+            return $this->succ(["push_setting_list" => []]);
+        }
+        $settingList = $this->newsModel->getUserPushSetting($userId);
+        $return = [];
+        foreach ($this->config["push_setting_list"] as $key=>$val) {
+            foreach ($settingList as $v) {
+                if($key == $v["type"]) {
+                    $return[$key] = [
+                        "title" => $val,
+                        "type" => $key,
+                        "value" => intval($v["value"])
+                    ];
+                }
+            }
+            if(!array_key_exists($key,$return))
+            {
+                $return[$key] = [
+                    "title" => $val,
+                    "type" => $key,
+                    "value" => 1
+                ];
+            }
+        }
+        return $this->succ(["push_setting_list" => array_values($return)]);
+    }
+
+
+    /**
+     * 消息push设置列表
+     * @param $userId
+     * @param $type
+     * @param $value
+     * @return mixed
+     */
+    public function pushSet($userId, $type, $value)
+    {
+        if (empty($userId) || empty($userId) || empty($userId)) {
+            return $this->error("500", "参数不合法");
+        }
+        //查找是否存在
+        $typeSetting = $this->newsModel->getTypeSet($userId, $type);
+        if(empty($typeSetting)) {
+            //插入
+            $insertData = [
+                "user_id" => $userId,
+                "type" => $type,
+                "value" => $value,
+                "create_time" => date("Y-m-d H:i:s"),
+            ];
+            $res = $this->newsModel->addTypeSet($insertData);
+
+        } else {
+            $oldSetting = array_pop($typeSetting);
+            if($value != $oldSetting["value"]) {
+                //更新
+                $res = $this->newsModel->pushSet($userId, $type, $value);
+            } else {
+                return $this->error("500", "无需修改");
+            }
+        }
+        return $this->succ($res);
+    }
+
 
     /**
      * 设置已读
      */
-    public function setReadStatus()
+    public function setReadStatus($userId, $category)
     {
-
+        //$category获取所有自己所有子分类，和同级所有子分类
+        $children = $this->getAllChlidren($category)["data"];
+        $allType = $this->getAllChlidren($this->getRootCate(array_pop($children))["data"])["data"];
+        $res = $this->newsModel->setReadStatus($userId, $allType);
+        return $this->succ($res);
     }
 
     /**
-     * 用户设置允许的push消息类型
+     * 清空计数
      */
-    public function setAcceptCate()
+    public function clearNewsNum($userId, $type)
     {
-
+        list($redis, $redis_key, $expire_time) = $this->getRedis("news_count", intval($userId));
+        $redis->hSet($redis_key, $type, 0);
+        $redis->expire($redis_key, $expire_time);
     }
 
     /**
@@ -1235,6 +1397,20 @@ class News extends \mia\miagroup\Lib\Service
             }
         }
         return [];
+    }
+
+    /**
+     * 获取最低级分类的根分类
+     * @return mixed
+     */
+    public function getRootCate($type)
+    {
+        $layer = $this->config['layer'];
+        foreach ($layer as $key => $val) {
+            if (in_array($type, $this->getAllChlidren($key)["data"])) {
+                return $this->succ($key);
+            }
+        }
     }
     /*=====分类关系操作。end=====*/
 
