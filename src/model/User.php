@@ -11,7 +11,6 @@ use mia\miagroup\Data\User\GroupDoozer as GroupDoozerData;
 use mia\miagroup\Data\User\GroupUserCategory as UserCategoryData;
 use mia\miagroup\Data\User\GroupUserPermission as UserPermissionData;
 use mia\miagroup\Data\User\GroupUserRole as UserGroupData;
-use mia\miagroup\Data\User\PlusUser as UserPlusData;
 
 class User
 {
