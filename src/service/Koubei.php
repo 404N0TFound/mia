@@ -898,13 +898,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->error(1112, '有敏感内容 "' . implode('","', $sensitive_res['sensitive_words']) . '"，发布失败');
         }
         //判断用户是否是商家
-        if ($supplierId > 0) {
+        if ($supplierId > 0 && $supplierId != \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid') && $supplierId != \F_Ice::$ins->workApp->config->get('busconf.user.miaZhenXuanKefuUid')) {
             $itemService = new ItemService();
             $supplierUserRelation = $itemService->getMappingBySupplierId($supplierId)['data'];
             if (empty($supplierUserRelation) || $supplierUserRelation['status'] != 1) {
                 return $this->error(6107);
             }
             $userId = $supplierUserRelation['user_id'];
+        } else if ($supplierId > 0 ) {
+            $userId = $supplierId;
         } else {
             //如果没有指定商家，默认蜜芽客服
             $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
@@ -918,10 +920,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $koubeiId = $subjectInfo['koubei_id'];
         $koubei = $this->getBatchKoubeiByIds([$koubeiId])['data'][$koubeiId];
-//         if ($koubei['item_koubei']['item_info']['brand_id'] == \F_Ice::$ins->workApp->config->get('busconf.item.zhenxuan_brand_id')) {
-//             //如果是甄选商品，评论人为甄选开发小组
-//             $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaZhenXuanKefuUid');
-//         }
         //判断是否有父评论
         $commentService = new \mia\miagroup\Service\Comment();
         if (intval($fid) > 0) {
@@ -1981,8 +1979,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
             'rank_score'=>$setData['score']['rank_score'],
             'immutable_score'=>$setData['score']['immutable'],
             'subject_id' => $setData['subject_id'],
+            'reply_user_type' => $setData['reply_user_type'],
         );
-        
         if(in_array($setData['status'],array(0,2))){
             $arrParams['status'] = $setData['status'];
         }
@@ -1993,9 +1991,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(in_array($setData['is_bottom'],array(0,1))){
             $arrParams['is_bottom'] = $setData['is_bottom'];
         }
+        if(isset($setData['reply_user_type']) && in_array($setData['reply_user_type'],array(1,2))){
+            if($setData['reply_user_type'] == 1){
+                //蜜芽客服
+                $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
+            }else{
+                //甄选客服
+                $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaZhenXuanKefuUid');
+            }
+        }else{
+            //蜜芽客服
+            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
+        }
         
-        //蜜芽兔
-        $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
         //如果有回复内容，则需要入评论表
         if(!empty($setData['comment']))
         {
@@ -2003,7 +2011,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if($setData['fid']){
                 $fid = $setData['fid'];
             }
-            
+            if($setData['supplier_id'] == 0){
+                $setData['supplier_id'] = $userId;
+            }
             $this->koubeiComment($setData['supplier_id'], $setData['subject_id'], $setData['comment'], $fid);
         }
         //如果为通过状态，发蜜豆
