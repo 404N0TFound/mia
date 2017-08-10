@@ -496,11 +496,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($item_ids) || !is_array($item_ids)) {
             return $this->succ($return);
         }
-        $handle = [];
         $return_score = [];
-        $conditions['score'] = 5;
         $conditions['status'] = 2;
         $conditions['auto_evaluate'] = 1;
+        $config = \F_Ice::$ins->workApp->config->get('busconf.koubei.koubei_score');
         // 默认好评
         $default = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
         foreach($default as $default_score) {
@@ -511,26 +510,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $conditions['subject_id'] = 0;
         $conditions['auto_evaluate'] = 0;
 
-        $conditions['score'] = 0;
-        $handle['zero'] = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
-        $conditions['score'] = 1;
-        $handle['one'] = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
-        $conditions['score'] = 2;
-        $handle['two'] = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
-        $conditions['score'] = 3;
-        $handle['three'] = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
-        $conditions['score'] = 4;
-        $handle['four'] = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
-        $conditions['score'] = 5;
-        $handle['five'] = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
-        if(empty($handle)) {
-            return $this->succ($return);
-        }
-        foreach($handle as $item_score) {
-            foreach($item_score as $info) {
-                if(empty($info)) {
-                    continue;
-                }
+        foreach($config as $conf_score) {
+            $conditions['score'] = $conf_score;
+            $res = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
+            if(empty($res)) {
+                continue;
+            }
+            foreach($res as $info) {
                 $item_id = $info['item_id'];
                 $count = $info['count'];
                 $score = $info['score'];
