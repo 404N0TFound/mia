@@ -1988,7 +1988,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(in_array($setData['is_bottom'],array(0,1))){
             $arrParams['is_bottom'] = $setData['is_bottom'];
         }
-        if(in_array($setData['reply_user_type'],array(1,2))){
+        if(isset($setData['reply_user_type']) && in_array($setData['reply_user_type'],array(1,2))){
             if($setData['reply_user_type'] == 1){
                 //蜜芽客服
                 $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
