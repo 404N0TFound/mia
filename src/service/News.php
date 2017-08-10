@@ -1003,7 +1003,7 @@ class News extends \mia\miagroup\Lib\Service
                 ];
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
-                $title = "您的帖子被加精";
+                $title = "您的帖子被加精，奉上50蜜豆";
                 $url = 'miyabaobei://subject?id='.$newsInfo["source_id"];
                 $text = $this->subjectInfo[$newsInfo["source_id"]]["text"];
                 $image = $this->subjectInfo[$newsInfo["source_id"]]["cover_image"]["url"];

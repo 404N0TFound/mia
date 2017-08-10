@@ -1361,13 +1361,13 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             
             //发送消息推送，每天发三次
-            $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
-            $push_num = $redis->get($push_num_key);
-            if ($push_num < 3) {
-                $push->pushMsg($subject_info['user_id'], "您分享的帖子被加精华啦，帖子会有更多展示机会，再奉上50蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
-                $redis->incrBy($push_num_key, 1);
-                $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
-            }
+            // $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
+            // $push_num = $redis->get($push_num_key);
+            // if ($push_num < 3) {
+            //     $push->pushMsg($subject_info['user_id'], "您分享的帖子被加精华啦，帖子会有更多展示机会，再奉上50蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
+            //     $redis->incrBy($push_num_key, 1);
+            //     $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
+            // }
             //发送站内信
             //TODO 完全切换后关掉旧的
             $news->addNews('single', 'group', 'add_fine', \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['user_id'], $subject_info['id'])['data'];

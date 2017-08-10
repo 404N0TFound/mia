@@ -50,14 +50,6 @@ $newsType = ['trade', 'plus', 'group', 'activity', 'coupon'];
  * 消息类
  * 最低层级的上一级，用于展示分类
  * 注意：名称不要重复！！！！！
- * group_custom
- * coupon
- * img_comment
- * add_fine
- * img_like
- * custom
- * follow
- * order
  */
 $layer = [
     "trade" => [

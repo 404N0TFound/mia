@@ -228,14 +228,14 @@ class Comment extends \mia\miagroup\Lib\Service {
             $mibean->add($param);
 
             //8：00-23：00发送评论，发push
-            $timeZero = strtotime(date("Y-m-d"));
-            $timeNow = time();
-            $period = $timeNow - $timeZero;
-            if (28800 < $period && $period < 82800) {
-                $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
-                $push = new Service\Push();
-                $push->pushMsg($toUserId, $nickName . "评论了你的帖子", "miyabaobei://subject?id=" . $subjectId);
-            }
+            // $timeZero = strtotime(date("Y-m-d"));
+            // $timeNow = time();
+            // $period = $timeNow - $timeZero;
+            // if (28800 < $period && $period < 82800) {
+            //     $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
+            //     $push = new Service\Push();
+            //     $push->pushMsg($toUserId, $nickName . "评论了你的帖子", "miyabaobei://subject?id=" . $subjectId);
+            // }
         }
         // 如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
@@ -245,14 +245,14 @@ class Comment extends \mia\miagroup\Lib\Service {
             $this->newService->postMessage('img_comment', $toUserId, $sendFromUserId, $commentInfo['id']);
 
             //8：00-23：00发送评论，发push
-            $timeZero = strtotime(date("Y-m-d"));
-            $timeNow = time();
-            $period = $timeNow - $timeZero;
-            if (28800 < $period && $period < 82800) {
-                $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
-                $push = new Service\Push();
-                $push->pushMsg($toUserId, $nickName . "回复了你的评论", "miyabaobei://subject?id=" . $subjectId);
-            }
+            // $timeZero = strtotime(date("Y-m-d"));
+            // $timeNow = time();
+            // $period = $timeNow - $timeZero;
+            // if (28800 < $period && $period < 82800) {
+            //     $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
+            //     $push = new Service\Push();
+            //     $push->pushMsg($toUserId, $nickName . "回复了你的评论", "miyabaobei://subject?id=" . $subjectId);
+            // }
         }
         
         return $this->succ($commentInfo);
