@@ -362,4 +362,31 @@ class Koubei extends \DB_Query {
     
         return $resArr;
     }
+
+    /*
+     * 统计商品的口碑得分情况
+     * */
+    public function itemKoubeiStatistics($item_ids, $conditions = [])
+    {
+        $this->tableName = $this->tableKoubei;
+        $where = [];
+        $where[] = ['item_id', $item_ids];
+        if(isset($conditions['status'])){
+            $where[] = ['status', $conditions['status']];
+        }
+        if(isset($conditions['score'])){
+            $where[] = ['score', $conditions['score']];
+        }
+        if(isset($conditions['auto_evaluate'])){
+            $where[] = ['auto_evaluate',$conditions['auto_evaluate']];
+        }
+        if(isset($conditions['subject_id'])) {
+            $where[] = [':gt','subject_id', 0];
+        }
+        $groupBy = 'score,item_id';
+        $field = 'count(id) as count, score,item_id';
+        $res = $this->getRows($where, $field, FALSE, 0, FALSE, FALSE, $groupBy);
+        return $res;
+    }
+
 }

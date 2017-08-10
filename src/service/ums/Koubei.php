@@ -220,7 +220,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         do {
             $pieceIds = count($koubeiIds) > $pieceCount ? array_splice($koubeiIds, 0, $pieceCount) : array_splice($koubeiIds, 0, count($koubeiIds));
             //获取口碑信息
-            $tmpKoubeiInfos = $koubeiService->getBatchKoubeiByIds($pieceIds, 0, array('user_info', 'count', 'item', 'order_info', 'koubei_reply', 'content_format'), array())['data'];
+            $tmpKoubeiInfos = $koubeiService->getBatchKoubeiByIds($pieceIds, 0, array('user_info', 'count', 'item', 'order_info', 'koubei_reply', 'content_format', 'filter_ums'), array())['data'];
             if (!empty($tmpKoubeiInfos)) {
                 foreach ($tmpKoubeiInfos as $koubeiId => $koubei) {
                     $koubeiInfos[$koubeiId] = $koubei;
@@ -486,4 +486,61 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($result);
     }
+
+    /*
+    * UMS 商品各分值统计
+    * */
+    public function getItemStatisticsScore($item_ids)
+    {
+        $return = array('koubei_scores' => array());
+        if(empty($item_ids) || !is_array($item_ids)) {
+            return $this->succ($return);
+        }
+        $return_score = [];
+        $conditions['status'] = 2;
+        $conditions['auto_evaluate'] = 1;
+        $config = \F_Ice::$ins->workApp->config->get('busconf.koubei.koubei_score');
+        // 默认好评
+        $default = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
+        foreach($default as $default_score) {
+            $item_id = $default_score['item_id'];
+            $count = $default_score['count'];
+            $return_score[$item_id]['default'] = $count;
+        }
+        $conditions['subject_id'] = 0;
+        $conditions['auto_evaluate'] = 0;
+
+        foreach($config as $conf_score) {
+            $conditions['score'] = $conf_score;
+            $res = $this->koubeiModel->itemKoubeiStatistics($item_ids, $conditions);
+            if(empty($res)) {
+                continue;
+            }
+            foreach($res as $info) {
+                $item_id = $info['item_id'];
+                $count = $info['count'];
+                $score = $info['score'];
+                switch ($score) {
+                    case 1 :
+                        $return_score[$item_id]['one'] = $count;
+                        break;
+                    case 2 :
+                        $return_score[$item_id]['two'] = $count;
+                        break;
+                    case 3 :
+                        $return_score[$item_id]['three'] = $count;
+                        break;
+                    case 4 :
+                        $return_score[$item_id]['four'] = $count;
+                        break;
+                    default:
+                        $return_score[$item_id]['five'] = $count;
+                        break;
+                }
+            }
+        }
+        $return['koubei_scores'] = $return_score;
+        return $this->succ($return);
+    }
+
 }

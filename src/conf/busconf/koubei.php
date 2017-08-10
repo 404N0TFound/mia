@@ -1434,3 +1434,9 @@ $coupon_guide = array(
  * 发布奖励蜜豆
  */
 $mibean_reward = 10;
+
+
+/*
+ * 口碑分值
+ */
+$koubei_score = [0,1,2,3,4,5];
