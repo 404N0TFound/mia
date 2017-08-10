@@ -318,7 +318,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             return $this->succ($subjectInfos);
         }
         $subject_ids = array_column($success_data, 'id');
-        $result['list'] = $this->getSubjectList(['id' => $subject_ids])['data']['list'];
+        $result['list'] = $this->getSubjectList(['id' => $subject_ids, 'limit' => $limit])['data']['list'];
         $result['count'] = !empty($total_count) ? $total_count : 0;
         $result['total_users'] = !empty($total_users) ? $total_users: 0;
         $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
