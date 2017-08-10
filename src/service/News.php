@@ -259,11 +259,28 @@ class News extends \mia\miagroup\Lib\Service
             case "order_cancel":
             case "order_send_out":
             case "order_delivery":
+            case "order_auto_confirm":
+                //item_id
+                $orderService = new Order();
+                $orderInfo = $orderService->getOrderItemInfo([$source_id])['data'];
+                $ext_info["item_ids"] = $orderInfo[$source_id];
             case "return_audit_pass":
             case "return_audit_refuse":
             case "return_overdue":
+                if(empty($orderInfo)) {
+                    $orderService = new Order();
+                    $returnInfo = $orderService->getReturnInfo([$source_id])["data"];
+                    $ext_info["item_ids"] = $returnInfo[$source_id];
+                }
+                //item_id
             case "refund_success":
             case "refund_fail":
+                //money
+                if(empty($orderInfo) && empty($returnInfo)) {
+                    $orderService = new Order();
+                    $refundInfo = $orderService->getRefundInfo([$source_id])["data"];
+                    $ext_info["money"] = $refundInfo[$source_id];
+                }
                 //每个订单只有最新的一条信息，不需要按天合并
                 $lastNewsInfo = $this->newsModel->getLastNews($this->config["layer"]["trade"], $toUserId, $source_id, false)[0];
                 if (!empty($lastNewsInfo)) {
@@ -338,7 +355,7 @@ class News extends \mia\miagroup\Lib\Service
 
         //添加消息
         $insertRes = $this->newsModel->postNews($insert_data);
-        $this->newsPush($insert_data, $insertRes);
+
         if (!$insertRes) {
             return $this->error(500, '发送用户消息失败！');
         } else {
@@ -358,6 +375,16 @@ class News extends \mia\miagroup\Lib\Service
                 }
             }
             //发送push提醒
+            $this->newsPush($insert_data, $insertRes);
+            //链表更新
+            list($redis, $redis_key, $expire_time) = $this->getRedis("cate_list", $this->getAncestor($insert_data["news_type"])["data"].":".intval($insert_data["user_id"]));
+            if(isset($insert_data["id"])) {
+                $score = strtotime($insert_data["create_time"]) . str_pad($insert_data['id'] % 100, 3, 0, STR_PAD_LEFT);
+                $redis->zAdd($redis_key, $score, $insert_data['id']);
+            } else {
+                $score = strtotime($insert_data["create_time"]) . str_pad($insertRes % 100, 3, 0, STR_PAD_LEFT);
+                $redis->zAdd($redis_key, $score, $insertRes);
+            }
             return $this->succ("发送成功");
         }
     }
@@ -677,14 +704,11 @@ class News extends \mia\miagroup\Lib\Service
         //帖子ID
         //评论ID
         //用户ID
-        $orderIds = [];
-        $returnIds = [];
         $subjectIds = [];
         $commentIds = [];
         $userIds = [];
         $itemIds = [];
         $newsIds = [];
-        $refundIds = [];
         foreach ($newsList as $val) {
             switch ($val['news_type']) {
                 case "order":
@@ -694,18 +718,17 @@ class News extends \mia\miagroup\Lib\Service
                 case "order_send_out":
                 case "order_delivery":
                 case "order_auto_confirm":
-                    //收集订单号
-                    $orderIds[] = $val["source_id"];
+                    //收集item_id
+                    $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
                     break;
                 case "return_audit_pass":
                 case "return_audit_refuse":
                 case "return_overdue":
-                    //收集退货单号
-                    $returnIds[] = $val["source_id"];
+                    //收集item_id
+                    $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
                     break;
                 case "refund_success":
                 case "refund_fail":
-                    $refundIds[] = $val["source_id"];
                     break;
                 case "plus_active":
                     break;
@@ -755,32 +778,6 @@ class News extends \mia\miagroup\Lib\Service
             }
         }
         //查询额外信息
-        if (!empty($orderIds)) {
-            $orderService = new Order();
-            $this->orderInfo = $orderService->getOrderItemInfo($orderIds)['data'];
-        }
-        if(!empty($this->orderInfo)) {
-
-            foreach ($this->orderInfo as $val)
-            {
-                $itemIds = array_merge($itemIds,$val);
-            }
-        }
-        if (!empty($returnIds)) {
-            $orderService = new Order();
-            $this->returnInfo = $orderService->getReturnInfo($returnIds)["data"];
-        }
-        if (!empty($this->returnInfo)) {
-            foreach ($this->returnInfo as $v) {
-                $itemIds = array_merge($itemIds, $v);
-            }
-        }
-        if (!empty($refundIds)) {
-            $orderService = new Order();
-            $this->refundInfo = $orderService->getRefundInfo($refundIds)["data"];
-        }
-
-        //item得放到退货，订单后
         if(!empty($itemIds)) {
             $itemService = new Item();
             $this->itemInfo = $itemService->getBatchItemBrandByIds(array_unique($itemIds), true, [-1, 0, 1, 3])["data"];
@@ -896,68 +893,68 @@ class News extends \mia\miagroup\Lib\Service
                 $url = "miyabaobei://order_list?tab=0&focus=3";
                 break;
             case "order_unpay":
-                $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品付款后会尽快为您发货";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品付款后会尽快为您发货";
                 $title = "订单".$newsInfo["source_id"]."未付款";
-                $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://order_list?tab=0&focus=1";
                 break;
             case "order_cancel":
-                $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品未能及时付款被取消啦";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品未能及时付款被取消啦";
                 $title = "订单".$newsInfo["source_id"]."已取消";
-                $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://order_detail?sub_order_id=".$newsInfo["source_id"];
                 break;
             case "order_send_out":
-                $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品发货啦";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品发货啦";
                 $title = "订单".$newsInfo["source_id"]."已发货";
-                $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://order_detail?sub_order_id=".$newsInfo["source_id"];
                 break;
             case "order_delivery":
-                $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品开始派送";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品开始派送";
                 $title = "订单".$newsInfo["source_id"]."开始派送";
-                $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://order_detail?sub_order_id=".$newsInfo["source_id"];
                 break;
             case "order_received":
-                $text = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品已到，评价晒单得蜜豆哟~";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品已到，评价晒单得蜜豆哟~";
                 $title = "订单".$newsInfo["source_id"]."已签收";
-                $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://order_detail?sub_order_id=".$newsInfo["source_id"];
                 break;
             case "order_auto_confirm":
                 $text = "您的订单将在3日后自动确认收货，如果还没有收到包裹，请到“我的订单”延长收货";
                 $title = "订单".$newsInfo["source_id"]."将在3日后自动确认收货";
-                $image = $this->itemInfo[$this->orderInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://order_list?tab=0&focus=3";
                 break;
             case "return_audit_pass":
-                $text = $this->itemInfo[$this->returnInfo[$newsInfo["source_id"]][0]]["item_name"]."申请退货，已审核";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."申请退货，已审核";
                 $title = "退货申请".$newsInfo["source_id"]."审核通过";
-                $image = $this->itemInfo[$this->returnInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://return_detail?id=".$newsInfo["source_id"];
                 break;
             case "return_audit_refuse":
-                $text = $this->itemInfo[$this->returnInfo[$newsInfo["source_id"]][0]]["item_name"]."申请退货，未能通过审核";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."申请退货，未能通过审核";
                 $title = "退货申请".$newsInfo["source_id"]."未能通过审核";
-                $image = $this->itemInfo[$this->returnInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://return_detail?id=".$newsInfo["source_id"];
                 break;
             case "return_overdue":
-                $text = $this->itemInfo[$this->returnInfo[$newsInfo["source_id"]][0]]["item_name"]."申请退货，请尽快填写物流信息";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."申请退货，请尽快填写物流信息";
                 $title = "退货申请".$newsInfo["source_id"]."即将过期";
-                $image = $this->itemInfo[$this->returnInfo[$newsInfo["source_id"]][0]]["item_img"];
+                $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = "miyabaobei://return_detail?id=".$newsInfo["source_id"];
                 break;
             case "refund_success":
                 $text = "钱款将原路退回，预计入账时间1-5个工作日，如果超时没有收到，请联系客服";
-                $title = "您有一笔".$this->refundInfo[$newsInfo["source_id"]]."元的退款已成功";
+                $title = "您有一笔".$newsInfo["ext_info"]["money"]."元的退款已成功";
                 $url = "miyabaobei://order_refund?tab=refund";
                 $image = $this->config["refund_image"];
                 break;
             case "refund_fail":
                 $text = "退款申请未能通过，请查看详情";
-                $title = "您有一笔".$this->refundInfo[$newsInfo["source_id"]]."元的退款已失败";
+                $title = "您有一笔".$newsInfo["ext_info"]["money"]."元的退款已失败";
                 $url = "miyabaobei://order_refund?tab=refund";
                 $image = $this->config["refund_image"];
                 break;

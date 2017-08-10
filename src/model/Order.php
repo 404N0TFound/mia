@@ -24,7 +24,7 @@ class Order {
 
     public function getOrderItemInfo($orderCodes)
     {
-        if(empty($orderIds)) {
+        if(empty($orderCodes)) {
             return [];
         }
         $orderData = $this->orderData->getOrderItemInfo($orderCodes);
