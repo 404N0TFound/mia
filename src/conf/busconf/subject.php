@@ -95,7 +95,7 @@ $album = array(
      'koubei'   => 2, //口碑
      'headline' => 3, //头条
      'editor'   => 4, //编辑发布
-     'material' => 5, //PLUS素材
+     'plus'   => 5, //plus用户发布
  );
  
  /**
