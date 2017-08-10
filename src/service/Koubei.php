@@ -536,9 +536,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ();
         }
         foreach($koubeiArr as $koubei){
-            if(empty($koubei['subject_id'])) {
-                continue;
-            }            
+            if(!in_array('filter_ums', $field)) {
+                if(empty($koubei['subject_id'])) {
+                    continue;
+                }
+            }
             //收集subjectids
             $subjectId[] = $koubei['subject_id'];
             $itemKoubei[$koubei['subject_id']] = array(
@@ -588,40 +590,41 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //根据口碑中帖子id批量获取帖子信息（subject service）
         $subjectRes = $this->subjectService->getBatchSubjectInfos($subjectId, $userId , $field, $subject_status);
         foreach ($itemKoubei as $key => $value) {
-            if (!empty($subjectRes['data'][$key])) {
-                if (!empty($itemInfos[$value['item_id']])) {
-                    $value['item_info'] = $itemInfos[$value['item_id']];
-                }
-                if ($subjectRes['data'][$key]['status'] == 3) {
-                    $subjectRes['data'][$key]['text'] = \F_Ice::$ins->workApp->config->get('busconf.koubei.autoEvaluateText');
-                }
-                $subjectRes['data'][$key]['item_koubei'] = $value;
-                //把口碑的订单编号（order_code）拼到口碑信息中
-                if (in_array('order_info', $field) && intval($value['order_id']) > 0) {
-                    $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
-                }
-                $selection_label = array();
-                // 封测报告标签拼到口碑信息中
-                if(!empty($value['extr_info'])) {
-                    $extr_arr = json_decode($value['extr_info'], true);
-                    if(!empty($extr_arr['selection_label'])) {
-                        $selection_label = $extr_arr['selection_label'];
-                    }
-                }
-                $subjectRes['data'][$key]['item_koubei']['selection_label'] = $selection_label;
-                // 是否为封测报告（0：不是，1：是）
-                $subjectRes['data'][$key]['item_koubei']['closed_report'] = $value['type'];
-
-                //拼口碑官方回复信息
-                if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
-                    $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
-                    if (!empty($commentInfos[$value['comment_id']])) {
-                        $subjectRes['data'][$key]['comment_info'] = array($commentInfos[$value['comment_id']]);
-                    }
-                }
-                //口碑信息拼装到帖子
-                $koubeiInfo[$value['id']] = $subjectRes['data'][$key];
+            if(empty($subjectRes['data'][$key]) && !in_array('filter_ums', $field)) {
+                continue;
             }
+            if (!empty($itemInfos[$value['item_id']])) {
+                $value['item_info'] = $itemInfos[$value['item_id']];
+            }
+            if ($subjectRes['data'][$key]['status'] == 3) {
+                $subjectRes['data'][$key]['text'] = \F_Ice::$ins->workApp->config->get('busconf.koubei.autoEvaluateText');
+            }
+            $subjectRes['data'][$key]['item_koubei'] = $value;
+            //把口碑的订单编号（order_code）拼到口碑信息中
+            if (in_array('order_info', $field) && intval($value['order_id']) > 0) {
+                $subjectRes['data'][$key]['item_koubei']['order_code'] = $orderInfos[$value['order_id']]['order_code'];
+            }
+            $selection_label = array();
+            // 封测报告标签拼到口碑信息中
+            if(!empty($value['extr_info'])) {
+                $extr_arr = json_decode($value['extr_info'], true);
+                if(!empty($extr_arr['selection_label'])) {
+                    $selection_label = $extr_arr['selection_label'];
+                }
+            }
+            $subjectRes['data'][$key]['item_koubei']['selection_label'] = $selection_label;
+            // 是否为封测报告（0：不是，1：是）
+            $subjectRes['data'][$key]['item_koubei']['closed_report'] = $value['type'];
+
+            //拼口碑官方回复信息
+            if (in_array('koubei_reply', $field) && intval($value['comment_id']) > 0) {
+                $subjectRes['data'][$key]['koubei_reply'] = $commentInfos[$value['comment_id']];
+                if (!empty($commentInfos[$value['comment_id']])) {
+                    $subjectRes['data'][$key]['comment_info'] = array($commentInfos[$value['comment_id']]);
+                }
+            }
+            //口碑信息拼装到帖子
+            $koubeiInfo[$value['id']] = $subjectRes['data'][$key];
         }
         return $this->succ($koubeiInfo);
     }
