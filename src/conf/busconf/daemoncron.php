@@ -280,5 +280,5 @@ $cron_list['send_message'] = array(
     'engine' => 'php',
     'cli_args' => "--class=user --action=doozerrank pub_day",
     'start_time' => '2017-08-09 00:00:00',
-    'interval' => 300
+    'interval' => 1
 );
