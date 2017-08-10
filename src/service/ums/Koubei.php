@@ -498,6 +498,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $handle = [];
         $return_score = [];
+        $conditions['score'] = 5;
         $conditions['status'] = 2;
         $conditions['auto_evaluate'] = 1;
         // 默认好评
