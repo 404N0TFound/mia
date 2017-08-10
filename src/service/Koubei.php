@@ -1112,6 +1112,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         $return_Info = array();
         switch ($issue_type) {
+            case 'material':
+                # 素材
+                $item_service = new ItemService();
+                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+                $cashback_ratio = $item_info[$item_id]['cashback_ratio'];
+                // 商品佣金
+                if($cashback_ratio) {
+                    $item_info[$item_id]['cashback_ratio'] = '赚'.$cashback_ratio;
+                }
+                $return_Info['item_info'] = $item_info[$item_id];
+                break;
+
             case 'subject':
                 # 帖子
                 $issue_info = \F_Ice::$ins->workApp->config->get('busconf.subject')['subject_issue']['issue'];
@@ -2231,5 +2243,21 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         return $this->succ($couponGuide);
+    }
+
+    /*
+     * 口碑精品列表
+     * */
+    public function getRankKoubeiList($itemIds, $del_subjects = [], $page = 1, $count = 20, $userId = 0) {
+
+        $subject_ids = [];
+        if(empty($itemIds)) {
+            return $this->succ($subject_ids);
+        }
+        //通过商品id获取口碑id
+        $offset = $page > 1 ? ($page - 1) * $count : 0;
+        // 获取口碑id策略(封测报告+口碑)
+        $subject_ids = $this->koubeiModel->getRankKoubeiListByItem($itemIds, $del_subjects, $count, $offset);
+        return $this->succ($subject_ids);
     }
 }

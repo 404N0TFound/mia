@@ -89,6 +89,11 @@ class Item extends \mia\miagroup\Lib\Service {
             } else {
                 $itemList[$key]['favorable_comment_percent'] = '';
             }
+            //商品佣金
+            $cashback_ratio = floatval($item['cashback_ratio']) * 100;
+            if(!empty($cashback_ratio)) {
+                $itemList[$key]['cashback_ratio'] = $cashback_ratio .'%';
+            }
             //商品业务模式
             $business_mode = '';
             if ($item['is_single_sale'] == 1) {
@@ -135,6 +140,9 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp['favorable_comment_percent'] = $item['favorable_comment_percent'];
                 if (!empty($item['feedback_rate'])) {
                     $tmp['feedback_rate'] = $item['feedback_rate'];
+                }
+                if(isset($item['cashback_ratio']) && !empty($item['cashback_ratio'])) {
+                    $tmp['cashback_ratio'] = '分享立赚'.$item['cashback_ratio'];
                 }
                 $tmp['show_cart'] = $is_show_cart ? 1 : 0;
 

@@ -71,7 +71,7 @@ class User extends \mia\miagroup\Lib\Service {
             // 用户是否是专家
             $userInfo['is_experts'] = $userCate[$userInfo['id']] ? 1 : 0; 
             // 用户是否是供应商
-            $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0; 
+            $userInfo['is_supplier'] = $supplierInfos[$userInfo['id']]['status'] == 1 ? 1 : 0;
             // 用户是否有发视频权限
             $userInfo['is_have_permission'] = !empty($userPermissions['video'][$userInfo['id']]) ? 1 : 0; 
             // 用户是否有专栏发布权限
