@@ -1996,6 +1996,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 //甄选客服
                 $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaZhenXuanKefuUid');
             }
+        }else{
+            //蜜芽客服
+            $userId = \F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
         }
         
         //如果有回复内容，则需要入评论表
