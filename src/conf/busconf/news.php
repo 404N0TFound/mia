@@ -190,6 +190,16 @@ $template_news_type = [
 
 
 /*======消息首页标题，图标，跳转。======*/
+$news_index = [
+    "trade",
+    "plus_interact",
+    "plus_active",
+    "group_active",
+    "group_interact",
+    "activity",
+    "property"
+];
+
 $new_index_title = [
     "trade" => "交易物流",
     "plus_active" => "会员Plus",

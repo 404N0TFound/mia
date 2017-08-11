@@ -567,28 +567,59 @@ class News extends \mia\miagroup\Lib\Service
 
         //查询列表信息
         $newsIds = [];
-        foreach ($indexList as $val) {
-            list($type, $id) = explode(":", $val);
+        foreach ($indexList as $value) {
+            list($type, $id) = explode(":", $value);
             if (!isset($newsIds[$type])) {
                 $newsIds[$type] = $id;
             } else {
-                $redis->zRem($redis_key, $val);
+                $redis->zRem($redis_key, $value);
             }
         }
 
         $indexNewsList = $this->formatNews($newsIds, $userId, 1);//计数在格式化模板是查询的
+        //没有的补充空
+        $news_index = $this->config["news_index"];
+        foreach ($indexNewsList as $k=>$v) {
+            if (in_array($v['type'], $news_index)) {
+                unset($news_index[array_search($v['type'], $news_index)]);
+            }
+        }
+        foreach ($news_index as $need) {
+            $indexNewsList[] = [
+                "id" => "",
+                "template_type" => "news_sub_category_template",
+                "type" => $need,
+                "create_time" => "",
+                "news_sub_category_template" => [
+                    "news_title" => "",
+                    "news_text" => "",
+                    "news_image_url" => "https=>//img.miyabaobei.com/d1/p5/2017/08/07/97/bf/97bfe0ed2dadd261ab97390ecab08e5a727857932.png",
+                    "news_count" => 0,
+                    "redirect_url" => "miyabaobei=>//message_category?category=" . $need,
+                ]
+            ];
+        }
         //合并同类型
         //plus_interact plus_active 合并，计数相加
         //group_interact group_active 合并，计数相加
+        $userService = new userService();
+        $userInfo = $userService->getUserInfoByUids([$userId], 0, [])["data"];
+        $userType = $userInfo[$userId]["mia_user_type"];//2是plus
+
         $return = [];
         foreach ($indexNewsList as $val) {
+            //非plus会员不显示
+            if($userType != 2 && in_array($val['type'], ['plus_interact', 'plus_active'])) {
+                continue;
+            }
             if (in_array($val['type'], ['plus_interact', 'plus_active', 'group_interact', 'group_active'])) {
-                list($firstType, $secondType) = explode(",", $val['type']);
+                list($firstType, $secondType) = explode("_", $val['type']);
                 if (isset($return[$firstType])) {
-                    if ($return[$firstType]['news_sub_category_template']['news_sub_category_template'] < $val['news_sub_category_template']['news_sub_category_template']) {
-                        $return[$firstType]['news_sub_category_template']['text'] = $val['news_sub_category_template']['text'];
+                    $oldCount = $return[$firstType]['news_sub_category_template']['news_count'];
+                    if ($return[$firstType]['create_time'] < $val['create_time']) {
+                        $return[$firstType] = $val;
                     }
-                    $return[$firstType]['news_sub_category_template']['news_count'] += $val['news_sub_category_template']['news_count'];
+                    $return[$firstType]['news_sub_category_template']['news_count'] = $oldCount + $val['news_sub_category_template']['news_count'];
                 } else {
                     $return[$firstType] = $val;
                 }
@@ -605,7 +636,7 @@ class News extends \mia\miagroup\Lib\Service
      * @param $offset
      * @return mixed
      */
-    public function categoryList($category, $userId, $offset = null)
+    public function categoryList($category, $userId, $offset = 0)
     {
         if(empty($category) || empty($userId)) {
             return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
@@ -615,17 +646,20 @@ class News extends \mia\miagroup\Lib\Service
         list($redis, $redis_key, $expire_time) = $this->getRedis("cate_list", $category.":".intval($userId));
         if(empty($offset)) {
             $newsScoreArr = $redis->zRevRange($redis_key, 0, -1, true);
+        } else {
+            $newsScoreArr = $redis->zRevRangeByScore($redis_key, $offset, 0, array('withscores' => TRUE,'limit' => array(1, $pageLimit)));
+        }
+
+        if (!empty($newsScoreArr)) {
             $newsIds = array_keys($newsScoreArr);
             //获取newOffset
             $newOffset = $newsScoreArr[end($newsIds)];
         } else {
-            $newsScoreArr = $redis->zRevRangeByScore($redis_key, $offset, 0, array('withscores' => TRUE,'limit' => array(1, $pageLimit)));
-            $newsIds = array_keys($newsScoreArr);
-            //获取newOffset
-            $newOffset = $newsScoreArr[end($newsIds)];
+            $newsIds = [];
+            $newOffset = 0;
         }
 
-        if (empty($newsIds)) {
+        if (empty($newsIds) && !$redis->exists($redis_key)) {
             //查询数据库
             $news = $this->newsModel->getBatchList($this->getAllChlidren($category)['data'], $userId, $this->config['user_list_limit']);
             //存入redis
@@ -718,7 +752,7 @@ class News extends \mia\miagroup\Lib\Service
     public function formatNews($newsIds, $userId, $type, $newsList = [])
     {
         if(empty($newsIds) || empty($userId) || empty($type)) {
-            return $this->succ([]);
+            return [];
         }
 
         //查询消息基础信息
@@ -818,7 +852,7 @@ class News extends \mia\miagroup\Lib\Service
             $this->commentInfo = $commentService->getBatchComments($commentIds,[])['data'];
         }
         if (!empty($userIds)) {
-            $userService = new User();
+            $userService = new userService();
             $this->userInfo = $userService->getUserInfoByUids($userIds)['data'];
         }
         if (!empty($newsIds)) {
@@ -1151,6 +1185,20 @@ class News extends \mia\miagroup\Lib\Service
                 }
             }
             //首页列表修改
+            list($redis, $redis_key_index, $expire_time_index) = $this->getRedis("news_index", intval($userId));
+            $indexList = $redis->zRevRange($redis_key_index, 0, -1);
+
+            foreach ($indexList as $val) {
+                list($category, $id) = explode(":", $val);
+                if ($category == $type) {
+                    $redis->zRem($redis_key_index, $val);
+                }
+            }
+            $redis->expire($redis_key_index, $expire_time_index);
+            //子分类有序集合清空
+            list($redis, $redis_key_cate, $expire_time_cate) = $this->getRedis("cate_list", $type . ":" . intval($userId));
+            $redis->zRemRangeByRank($redis_key_cate, 0, -1);
+            $redis->expire($redis_key_index, $expire_time_cate);
             return $this->succ("清空列表成功");
         } else {
             return $this->succ("清空列表失败");
@@ -1169,9 +1217,18 @@ class News extends \mia\miagroup\Lib\Service
         }
         $settingList = $this->newsModel->getUserPushSetting($userId);
         $return = [];
-        foreach ($this->config["push_setting_list"] as $key=>$val) {
+
+        $userService = new userService();
+        $userInfo = $userService->getUserInfoByUids([$userId], 0, [])["data"];
+        $userType = $userInfo[$userId]["mia_user_type"];//2是plus
+
+        foreach ($this->config["push_setting_list"] as $key => $val) {
+            //非plus会员不显示
+            if ($userType != 2 && in_array($key, ['plus'])) {
+                continue;
+            }
             foreach ($settingList as $v) {
-                if($key == $v["type"]) {
+                if ($key == $v["type"]) {
                     $return[$key] = [
                         "title" => $val,
                         "type" => $key,
@@ -1179,8 +1236,7 @@ class News extends \mia\miagroup\Lib\Service
                     ];
                 }
             }
-            if(!array_key_exists($key,$return))
-            {
+            if (!array_key_exists($key, $return)) {
                 $return[$key] = [
                     "title" => $val,
                     "type" => $key,
