@@ -67,6 +67,8 @@ class User extends \mia\miagroup\Lib\Service {
 
         $labelService = new labelService();
         foreach ($userInfos as $userInfo) {
+            // 用户身份(1：蜜芽用户，2：plus用户)
+            $userInfo['mia_user_type'] = !empty($userInfo['user_type']) ? $userInfo['user_type'] : 1;
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             // 用户是否是专家
             $userInfo['is_experts'] = $userCate[$userInfo['id']] ? 1 : 0; 
