@@ -540,9 +540,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 if(empty($koubei['subject_id'])) {
                     continue;
                 }
+                $subjectId[] = $koubei['subject_id'];
+            }else {
+                // ums来源,确保subject_id 不为空值
+                if (!empty($koubei['subject_id'])) {
+                    $subjectId[] = $koubei['subject_id'];
+                }
             }
             //收集subjectids
-            $subjectId[] = $koubei['subject_id'];
             $itemKoubei[$koubei['subject_id']] = array(
                 'id' => $koubei['id'],
                 'rank' => $koubei['rank'],
