@@ -146,10 +146,13 @@ class Subject extends \DB_Query {
     /**
      * 获取用户的帖子ID
      */
-    public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
+    public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20, $conditions = []){
         
         $offsetLimit = $iPageSize * ($iPage - 1);
         $where[] = ['user_id',$userId];
+        if(!empty($conditions['source'])) {
+            $where[] = ['source', $conditions['source']];
+        }
         if ($userId == $currentId) { 
             //查看自己空间显示正在转码中的视频
             $where[] = ['status',array(1,2)];
@@ -160,7 +163,6 @@ class Subject extends \DB_Query {
             $orderBy = 'id DESC';
             $result = $this->getRows($where,'id',$iPageSize,$offsetLimit,$orderBy);
         }
-        
         $subject_id = array_column($result, 'id');
         return $subject_id;
     }
@@ -342,5 +344,37 @@ class Subject extends \DB_Query {
         $data = $this->getRows($where, 'id', $limit, $offset, $order_by);
         $data = array_column($data, 'id');
         return $data;
+    }
+
+    /*
+     * 获取plus用户素材列表
+     * */
+    public function getUserMaterialIds($item_ids, $user_id, $limit, $offset, $condition) {
+        if(empty($item_ids) || !is_array($item_ids)) {
+            return array();
+        }
+        $where = [];
+        if(!empty($condition['source'])) {
+            $where[] = ['group_subjects.source', $condition['source']];
+        }
+        if(!empty($condition['status'])) {
+            $where[] = ['group_subjects.status', $condition['status']];
+        }
+        if(!empty($condition['type'])) {
+            $where[] = ['group_subject_point_tags.type', $condition['type']];
+        }
+        if(!empty($user_id)) {
+            $where[] = ['group_subjects.user_id', $user_id];
+        }
+        if(!empty($item_ids)) {
+            $where[] = ['group_subject_point_tags.item_id', $item_ids];
+        }
+        $fields = 'group_subjects.id';
+        $orderBy = array('group_subjects.id DESC');
+        $groupBy = array('group_subjects.id');
+        $join[] = 'LEFT JOIN group_subject_point_tags ON group_subjects.id = group_subject_point_tags.subject_id';
+        $data = $this->getRows($where, $fields, $limit, $offset, $orderBy, $join, $groupBy);
+        $res = array_column($data, 'id');
+        return $res;
     }
 }
