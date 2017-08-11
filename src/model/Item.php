@@ -45,11 +45,16 @@ class Item {
         //获取商品品牌信息
         $itemBrandInfos = $this->itemBrandData->getBatchBrandInfoByIds($brandIds);
         $result = array();
-        foreach ($itemDatas as $k => $v) {
-            $itemDatas[$k]['brand_info'] = isset($itemBrandInfos[$v['brand_id']]) ? $itemBrandInfos[$v['brand_id']] : array();
-            $itemDatas[$k]['img'] = isset($itemPics[$v['id']]) ? $itemPics[$v['id']] : array();
+        foreach ($itemIds as $itemId) {
+            if (empty($itemDatas[$itemId])) {
+                continue;
+            }
+            $tmpItem = $itemDatas[$itemId];
+            $tmpItem['brand_info'] = isset($itemBrandInfos[$tmpItem['brand_id']]) ? $itemBrandInfos[$tmpItem['brand_id']] : array();
+            $tmpItem['img'] = isset($itemPics[$tmpItem['id']]) ? $itemPics[$tmpItem['id']] : array();
+            $result[$itemId] = $tmpItem;
         }
-        return $itemDatas;
+        return $result;
     }
     /**
      * 根据商品关联标识获取关联商品
