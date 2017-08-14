@@ -4,6 +4,7 @@ namespace mia\miagroup\Model;
 
 use mia\miagroup\Data\News\AppNewsInfo;
 use mia\miagroup\Data\News\AppUserNews;
+use mia\miagroup\Data\News\PushSetting;
 use mia\miagroup\Data\News\SystemNews;
 use mia\miagroup\Data\News\UserNews;
 use mia\miagroup\Lib\Redis;
@@ -23,9 +24,221 @@ class News
         $this->userNewsRelation = new AppUserNews();
         $this->systemNews = new SystemNews();
         $this->userNews = new UserNews();
+        $this->pushSetting = new PushSetting();
         $this->config = \F_Ice::$ins->workApp->config->get('busconf.news');
         $this->newsSetLimit = 1000;
     }
+
+
+    /*=============5.7新版本消息=============*/
+    /**
+     * 发送消息
+     * @param $insertData array
+     * @return mixed
+     */
+    public function postNews($insertData)
+    {
+        if (empty($insertData['user_id'])) {
+            return false;
+        }
+        if (isset($insertData['id'])) {
+            //更新
+            $setData = $insertData;
+            $where[] = ['id', $insertData['id']];
+            $res = $this->userNews->updateNews($setData, $where);
+        } else {
+            //新增
+            $res = $this->userNews->addUserNews($insertData);
+        }
+        return $res;
+    }
+
+    /**
+     * 获取最新一条消息
+     * @param $type
+     * @param $toUserId
+     * @param int $source_id
+     * @param bool $by_day 是否获取当天的最新消息
+     * @param array $status
+     * @return mixed
+     */
+    public function getLastNews($type, $toUserId, $source_id = 0, $by_day = false, $status = [0, 1])
+    {
+        $conditions["user_id"] = $toUserId;
+        $conditions["news_type"] = $type;
+        if (!empty($source_id)) {
+            $conditions["source_id"] = $source_id;
+        }
+        $conditions["status"] = $status;
+        if ($by_day) {
+            $conditions["by_day"] = $by_day;
+        }
+        $conditions["limit"] = 1;
+        $res = $this->userNews->getNewsList($conditions);
+        return $res;
+    }
+
+    /**
+     * 获取不同分类计数
+     * @param $userId
+     * @param array $type array 包括多个最低级的news类型；或者total
+     * @return int
+     */
+    public function getUserNewsCount($userId, $type = [])
+    {
+        if(empty($userId)) {
+            return 0;
+        }
+        $conditions = [];
+        if (count($type) == 1 && $type[0] == "total") {
+
+        } else {
+            $conditions["news_type"] = $type;
+        }
+        $conditions["user_id"] = $userId;
+        $newsNum = $this->userNews->getUserNewsNum($conditions);
+        return $newsNum;
+    }
+
+    /**
+     * 按分类删除用户消息
+     * @param $userId
+     * @param $type array 最低级消息分类数组
+     * @return boolean
+     */
+    public function delUserNews($userId, $type)
+    {
+        if (empty($userId) || empty($type)) {
+            return false;
+        }
+        $where = [];
+        $where["user_id"] = $userId;
+        $where["news_type"] = $type;
+        $res = $this->userNews->updateStatus($where);
+        return $res;
+    }
+
+    /**
+     * 根据id，查询用户news列表信息
+     * @param $newsIds
+     * @param $userId
+     * @return array
+     */
+    public function getNewsInfoList($newsIds, $userId)
+    {
+        if (empty($newsIds) || empty($userId)) {
+            return [];
+        }
+        $conditions["id"] = $newsIds;
+        $conditions["user_id"] = $userId;
+        $res = $this->userNews->getNewsList($conditions);
+        $return = [];
+        foreach ($res as $val) {
+            $return[$val['id']] = $val;
+        }
+        return $return;
+    }
+
+    /**
+     * 获取用户分类消息列表
+     * @param $category
+     * @param $userId
+     * @param $limit
+     * @return array
+     */
+    public function getBatchList($category, $userId, $limit)
+    {
+        if (empty($category) || empty($userId)) {
+            return [];
+        }
+        $conditions["news_type"] = $category;
+        $conditions["user_id"] = $userId;
+        $conditions['limit'] = $limit;
+        $conditions['fields'] = "id,create_time";
+        $res = $this->userNews->getNewsList($conditions);
+
+        return $res;
+    }
+
+    /**
+     * 设置已读状态
+     * @param $userId
+     * @param $allType array 最低分类数组
+     * @return bool
+     */
+    public function setReadStatus($userId, $allType)
+    {
+        if (empty($userId) || empty($allType)) {
+            return false;
+        }
+        $res = $this->userNews->changeReadStatus($userId, $allType);
+        return $res;
+    }
+
+
+    /**
+     * 获取用户push设置
+     * @param $userId
+     * @return array
+     */
+    public function getUserPushSetting($userId)
+    {
+        if (empty($userId)) {
+            return [];
+        }
+        $conditions['user_id'] = $userId;
+        $res = $this->pushSetting->getList($conditions);
+        return $res;
+    }
+
+    /**
+     * 获取单个type的设置详情
+     * @param $userId
+     * @param $type
+     * @return array
+     */
+    public function getTypeSet($userId, $type)
+    {
+        if (empty($userId) || empty($type)) {
+            return [];
+        }
+        $conditions['user_id'] = $userId;
+        $conditions['type'] = $type;
+        $res = $this->pushSetting->getList($conditions);
+        return $res;
+    }
+
+    /**
+     * 修改push设置
+     * @param $userId
+     * @param $type
+     * @param int $value
+     * @return int
+     */
+    public function pushSet($userId, $type, $value = 1)
+    {
+        if (empty($userId) || empty($type)) {
+            return 0;
+        }
+        $setData[] = ['value', $value];
+        $where[] = ['user_id', $userId];
+        $where[] = ['type', $type];
+        $res = $this->pushSetting->updateSetting($setData, $where);
+        return $res;
+    }
+
+    /**
+     * 添加push设置
+     * @param $insertData
+     * @return bool
+     */
+    public function addTypeSet($insertData)
+    {
+        $res = $this->pushSetting->addTypeSet($insertData);
+        return $res;
+    }
+
+    /*=============5.7新版本消息end=============*/
 
 
     /**
@@ -255,32 +468,31 @@ class News
 
         $res = $this->userNews->addUserNews($insertData);
         //redis list 添加数据（在列表不为空的情况下）
-        list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
-        $user_news_id_list = $redis->zRevRange($user_list_key, 0, -1);
-        if (!empty($user_news_id_list)) {
-            $redis->zAdd($user_list_key, $res, strtotime($insertData['create_time']));
-            $num = $redis->zCard($user_list_key);
-            if($num > $this->newsSetLimit) {
-                $redis->zRemRangeByRank($user_list_key, 0, $num - $this->newsSetLimit - 1);
-            }
-        }
+//        list($redis, $user_list_key, $expire_time) = $this->getRedisKey($curType, $insertData['user_id']);
+//        $user_news_id_list = $redis->zRevRange($user_list_key, 0, -1);
+//        if (!empty($user_news_id_list)) {
+//            $redis->zAdd($user_list_key, $res, strtotime($insertData['create_time']));
+//            $num = $redis->zCard($user_list_key);
+//            if($num > $this->newsSetLimit) {
+//                $redis->zRemRangeByRank($user_list_key, 0, $num - $this->newsSetLimit - 1);
+//            }
+//        }
         //消息计数增加
-
-        if (in_array("group", $curType)) {
-            list($redis, $resisKey, $expire_time) = $this->getRedisKey("group_count", $insertData['user_id']);
-            $redis->incr($resisKey);
-            $redis->expire($resisKey, $expire_time);
-        }
-        if (in_array("outlets", $curType)) {
-            list($redis, $resisKey, $expire_time) = $this->getRedisKey("outlets_count", $insertData['user_id']);
-            $redis->incr($resisKey);
-            $redis->expire($resisKey, $expire_time);
-        }
-        if (in_array("group_index", $curType)) {
-            list($redis, $resisKey, $expire_time) = $this->getRedisKey("index_group_count", $insertData['user_id']);
-            $redis->incr($resisKey);
-            $redis->expire($resisKey, $expire_time);
-        }
+//        if (in_array("group", $curType)) {
+//            list($redis, $resisKey, $expire_time) = $this->getRedisKey("group_count", $insertData['user_id']);
+//            $redis->incr($resisKey);
+//            $redis->expire($resisKey, $expire_time);
+//        }
+//        if (in_array("outlets", $curType)) {
+//            list($redis, $resisKey, $expire_time) = $this->getRedisKey("outlets_count", $insertData['user_id']);
+//            $redis->incr($resisKey);
+//            $redis->expire($resisKey, $expire_time);
+//        }
+//        if (in_array("group_index", $curType)) {
+//            list($redis, $resisKey, $expire_time) = $this->getRedisKey("index_group_count", $insertData['user_id']);
+//            $redis->incr($resisKey);
+//            $redis->expire($resisKey, $expire_time);
+//        }
         return $res;
     }
 
@@ -462,4 +674,5 @@ class News
         }
         return $return;
     }
+
 }

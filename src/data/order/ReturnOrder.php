@@ -25,5 +25,23 @@ class ReturnOrder extends \DB_Query {
         return $result;
     }
 
+    public function getReturnInfo($returnNums)
+    {
+        if (empty($returnNums)) {
+            return array();
+        }
+        $where[] = ['returns.id',$returnNums];
+        $join = 'LEFT JOIN returns ON return_items.return_id = returns.id';
+        $data = $this->getRows($where, 'return_items.item_id,returns.id', FALSE, 0, FALSE, $join);
+
+        $result = array();
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result[$v['id']][] = $v["item_id"];
+            }
+        }
+        return $result;
+    }
+
 
 }

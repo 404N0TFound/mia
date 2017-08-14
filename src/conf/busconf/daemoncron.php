@@ -269,3 +269,16 @@ $cron_list['user_doozer_day_rank_update'] = array(
     'start_time' => '2017-06-09 01:05:00',
     'interval' => 600
 );
+
+/**************
+ * 消息相关配置 *
+ *************/
+
+//发送消息
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=user --action=doozerrank pub_day",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1
+);
