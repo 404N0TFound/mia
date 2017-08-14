@@ -109,7 +109,7 @@ class Feed extends \mia\miagroup\Lib\Service {
      * @param $page 当前页
      * @param $count 每页数量
      */
-    public function getDiscoverySubjects($use_type, $currentUid = 0, $page = 1, $count = 10) {
+    public function getDiscoverySubjects($use_type, $currentUid = 0, $page = 1, $count = 10, $referId = 0) {
         if(empty($use_type)){
             return $this->succ(array());
         }
@@ -129,6 +129,10 @@ class Feed extends \mia\miagroup\Lib\Service {
         //获取plus用户的帖子列表
         $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.plus')];
         $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source);
+        if(intval($referId) > 0){
+            array_unshift($subjectIds,$referId);
+        }
+        
         //获取帖子详细信息
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid)['data'];
         $data = [];
