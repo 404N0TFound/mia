@@ -132,7 +132,9 @@ class Praise extends \mia\miagroup\Lib\Service {
     
         if($userId != $subjectInfo['user_info']['user_id']) {
             $news = new \mia\miagroup\Service\News();
+            //TODO 完全切换后关掉旧的
             $news->addNews('single', 'group', 'img_like', $userId, $subjectInfo['user_info']['user_id'], $praiseId)['data'];
+            $news->postMessage('img_like', $subjectInfo['user_info']['user_id'], $userId, $praiseId);
         }
         $praiseInfo['fancied_by_me'] = $subjectInfo['fancied_by_me'];
         $praiseInfo['fancied_count'] = $subjectInfo['fancied_count'];

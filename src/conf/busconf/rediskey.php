@@ -49,6 +49,40 @@ $newsKey = [
         'key' => $newsServicePrefix . 'user:groupindexnum:%d',
         'expire_time' => 86400,
     ],
+    /*==========消息5.7相关==========*/
+    //待写入消息，redis链表
+    "to_write_news" => [
+        'key' => $newsServicePrefix . 'towritenews',
+        'expire_time' => 86400 * 30
+    ],
+    /**
+     * 消息计数 Hash
+     * key如下：
+     * "total"
+     * getAncestor()获取到的
+     * "trade",
+     * "plus_active",
+     * "plus_interact",
+     * "group_active",
+     * "group_interact",
+     * "activity",
+     * "coupon"
+     */
+    "news_count" => [
+        'key' => $newsServicePrefix . 'newscount:%d',
+        'expire_time' => 86400
+    ],
+    //消息首页列表，有序集合
+    "news_index" => [
+        'key' => $newsServicePrefix . 'newsindex:%d',
+        'expire_time' => 86400
+    ],
+    //子分类列表，%s为类型和uid的组合
+    "cate_list" => [
+        'key' => $newsServicePrefix . 'catelist:%s',
+        'expire_time' => 86400
+    ]
+    /*==========消息5.7相关end==========*/
 ];
 
 /**

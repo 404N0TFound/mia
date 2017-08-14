@@ -127,7 +127,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         }
     
         //获取plus用户的帖子列表
-        $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.plus')];
+        $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.material')];
         $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source);
         if(intval($referId) > 0){
             array_unshift($subjectIds,$referId);

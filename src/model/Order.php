@@ -2,6 +2,7 @@
 namespace mia\miagroup\Model;
 use \F_Ice;
 use mia\miagroup\Data\Order\Order as OrderData;
+use mia\miagroup\Data\Order\Refund;
 use mia\miagroup\Data\Order\ReturnOrder as ReturnOrderData;
 class Order {
     
@@ -10,6 +11,7 @@ class Order {
     public function __construct() {
         $this->orderData = new OrderData();
         $this->returnData = new ReturnOrderData();
+        $this->refundData = new Refund();
     }
     
     /**
@@ -19,7 +21,16 @@ class Order {
         $orderData = $this->orderData->getOrderInfoByOrderCode($orderCodes);
         return $orderData;
     }
-    
+
+    public function getOrderItemInfo($orderCodes)
+    {
+        if(empty($orderCodes)) {
+            return [];
+        }
+        $orderData = $this->orderData->getOrderItemInfo($orderCodes);
+        return $orderData;
+    }
+
     /**
      * 根据订单ID获取订单信息
      */
@@ -34,5 +45,27 @@ class Order {
     public function getReturnOrderInfo($order_code, $item_id) {
         $returnData = $this->returnData->returnInfo($order_code, $item_id);
         return $returnData;
+    }
+
+    /**
+     * 获取退货申请单信息
+     * @param $returnNums
+     * @return array
+     */
+    public function getReturnInfo($returnNums)
+    {
+        $returnData = $this->returnData->getReturnInfo($returnNums);
+        return $returnData;
+    }
+
+    /**
+     * 获取退款单信息
+     * @param $RefundNums
+     * @return array
+     */
+    public function getRefundInfo($RefundNums)
+    {
+        $refundData = $this->refundData->getRefundInfo($RefundNums);
+        return $refundData;
     }
 }
