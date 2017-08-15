@@ -136,7 +136,7 @@ class Feed extends \mia\miagroup\Lib\Service {
         }
         
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid,array('item'))['data'];
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid,array('user_info', 'count', 'content_format', 'album','item'))['data'];
         $data = [];
         $data['subject_lists'] = array_values($subjectsList);
         return $this->succ($data);
