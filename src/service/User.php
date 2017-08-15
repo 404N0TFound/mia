@@ -24,7 +24,7 @@ class User extends \mia\miagroup\Lib\Service {
      *
      * @param array $userIds     
      * @param array $fields,
-     * 包括count、relation、cell_phone等
+     * 包括count、relation、cell_phone、user_group等
      * @return array
      */
     public function getUserInfoByUids(array $userIds, $currentUid = 0, array $fields = array()) {
@@ -54,6 +54,9 @@ class User extends \mia\miagroup\Lib\Service {
             $userSubjectsCount = $subjectService->getBatchUserSubjectCounts($userIds)['data']; // 用户发布数
             $userArticleCount = $albumService->getArticleNum($userIds)['data'];//用户文章数
         }
+        if (in_array('user_group', $fields)) {
+            $userGroupInfos = $this->userModel->getUserGroupInfos($userIds);
+        }
         // 批量获取用户分类信息
         $userCate = $this->getBatchCategoryUserInfo($userIds)['data'];
         // 批量获取是否是供应商
@@ -66,7 +69,11 @@ class User extends \mia\miagroup\Lib\Service {
         $userPermissions = $this->getBatchPermissionUserInfo($userIds)['data'];
 
         $labelService = new labelService();
-        foreach ($userInfos as $userInfo) {
+        foreach ($userIds as $userId) {
+            if (empty($userInfos[$userId])) {
+                continue;
+            }
+            $userInfo = $userInfos[$userId];
             $userInfo['is_have_live_permission'] = $liveAuths[$userInfo['id']];
             // 用户是否是专家
             $userInfo['is_experts'] = $userCate[$userInfo['id']] ? 1 : 0; 
@@ -97,7 +104,9 @@ class User extends \mia\miagroup\Lib\Service {
                     $userInfo['relation_with_him'] = 0;
                 }
             }
-            
+            if (in_array('user_group', $fields)) {
+                $userInfo['user_group'] = !empty($userGroupInfos[$userInfo['id']]) ? $userGroupInfos[$userInfo['id']] : array();
+            }
             if (in_array('count', $fields)) {
                 $userInfo['fans_count'] = intval($userFansCount[$userInfo['id']]); // 用户粉丝数
                 $userInfo['focus_count'] = intval($userAttenCount[$userInfo['id']]); // 用户关注数
