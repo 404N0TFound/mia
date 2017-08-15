@@ -1116,11 +1116,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 # 素材
                 $item_service = new ItemService();
                 $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
-                $cashback_ratio = $item_info[$item_id]['cashback_ratio'];
-                // 商品佣金
-                if($cashback_ratio) {
-                    $item_info[$item_id]['cashback_ratio'] = '赚'.$cashback_ratio;
-                }
                 $return_Info['item_info'] = $item_info[$item_id];
                 break;
 
