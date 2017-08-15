@@ -814,7 +814,13 @@ class Subject extends \mia\miagroup\Lib\Service
         if ($subjectInfo['is_fine'] == 1) {
             $mibeanNum = 60;
         }
-        $subjectInfo['delete_text'] = "确认删除吗？将扣减掉该帖奖励的" . $mibeanNum . "蜜豆";
+        // 5.7素材删除区分文案
+        $material_source = $this->config['source']['material'];
+        if($subjectInfo['source'] == $material_source) {
+            $subjectInfo['delete_text'] = "确定删除素材吗？请再想想";
+        }else {
+            $subjectInfo['delete_text'] = "确认删除吗？将扣减掉该帖奖励的" . $mibeanNum . "蜜豆";
+        }
         $subjectInfo['delete_enable'] = 1;
         //付费用户删帖处理
         //判断是否是付费用户

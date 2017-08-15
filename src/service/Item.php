@@ -144,6 +144,11 @@ class Item extends \mia\miagroup\Lib\Service {
                 if(isset($item['cashback_ratio']) && !empty($item['cashback_ratio'])) {
                     $tmp['cashback_ratio'] = '分享立赚'.$item['cashback_ratio'];
                 }
+                // 商品详情地址(v5.7新增)
+                if(!empty($item['id'])) {
+                    $item_url = \F_Ice::$ins->workApp->config->get('busconf.item.miagroup_item_url');
+                    $tmp['item_url'] = $item_url['prefix_url'].trim($item['id']).$item_url['suffix_url'];
+                }
                 $tmp['show_cart'] = $is_show_cart ? 1 : 0;
 
                 // 甄选商品标识（v5.3） 0:普通 1:甄选
