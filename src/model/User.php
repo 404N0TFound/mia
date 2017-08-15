@@ -390,6 +390,27 @@ class User
         $data = $userGroup->getUserGroup($conditions);
         return $data;
     }
+    
+    /**
+     * 批量获取用户的所有角色
+     */
+    public function getUserGroupInfos($user_ids) {
+        if(empty($user_ids)) {
+            return array();
+        }
+        $userGroup = new UserGroupData();
+        $conditions['user_id'] = $user_ids;
+        $conditions['status'] = 1;
+        
+        $data = $userGroup->getUserGroupInfo($conditions);
+        $result = array();
+        if(!empty($data)) {
+            foreach ($data as $v) {
+                $result[$v['user_id']][] = ['role_id' => $v['role_id'], 'role_name' => $v['role_name']];
+            }
+        }
+        return $result;
+    }
 
     public function checkUserGroupByUserId($userId,$groupId)
     {

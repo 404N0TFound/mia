@@ -47,7 +47,9 @@ class Doozerrank extends \FD_Daemon {
         //更新用户热门帖子
         foreach ($rank_list as $user_id => $pub_count) {
             $hot_num = 10;
-            $subject_ids = $this->subjectPraiseData->getUserMostPraisedSubjects($user_id, $start_time, $end_time, [], 0, $hot_num);
+            $condition = ['user_id' => $user_id, 'start_time' => $start_time, 'end_time' => $end_time, 'is_fine' => 1];
+            $subject_ids = $this->subjectData->getSubjectList($condition, 0, $hot_num);
+            //$subject_ids = $this->subjectPraiseData->getUserMostPraisedSubjects($user_id, $start_time, $end_time, [], 0, $hot_num);
             //如果被赞过的帖子不足10条，补充带图的
             if ($hot_num - count($subject_ids) > 0) {
                 //获取我发布的帖子列表

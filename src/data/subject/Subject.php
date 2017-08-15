@@ -335,6 +335,12 @@ class Subject extends \DB_Query {
                     $where[] = ['gt', 'id', $v];
                     $order_by = 'id asc';
                     break;
+                case 'start_time':
+                    $where[] = ['gt', 'created', $v];
+                    break;
+                case 'end_time';
+                    $where[] = ['le', 'created', $v];
+                    break;
                 default:
                     $where[] = [$k, $v];
             }
