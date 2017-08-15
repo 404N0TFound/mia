@@ -113,9 +113,11 @@ class Feed extends \mia\miagroup\Lib\Service {
         if(empty($use_type)){
             return $this->succ(array());
         }
+        $filter = array();
         if ($use_type == 'carousel') {
             $page = 1;
             $count = 5;
+            $filter['title_status'] = 1; //取轮播素材的时候需要过滤掉title为空的
         }
         $userIds = array('7509553','13789824');
         $auditService = new \mia\miagroup\Service\Audit();
@@ -128,7 +130,7 @@ class Feed extends \mia\miagroup\Lib\Service {
     
         //获取plus用户的帖子列表
         $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.material')];
-        $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source);
+        $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source,$filter);
         if(intval($referId) > 0){
             array_unshift($subjectIds,$referId);
         }
