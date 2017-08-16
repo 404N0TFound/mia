@@ -332,14 +332,14 @@ class Subject extends \DB_Query {
         foreach ($condition as $k => $v) {
             switch ($k) {
                 case 'id_begin':
-                    $where[] = ['gt', 'id', $v];
+                    $where[] = [':gt', 'id', $v];
                     $order_by = 'id asc';
                     break;
                 case 'start_time':
-                    $where[] = ['gt', 'created', $v];
+                    $where[] = [':gt', 'created', $v];
                     break;
                 case 'end_time';
-                    $where[] = ['le', 'created', $v];
+                    $where[] = [':le', 'created', $v];
                     break;
                 default:
                     $where[] = [$k, $v];

@@ -47,10 +47,8 @@ class Doozerrank extends \FD_Daemon {
         //更新用户热门帖子
         foreach ($rank_list as $user_id => $pub_count) {
             $hot_num = 10;
-            $condition = ['user_id' => $user_id, 'start_time' => $start_time, 'end_time' => $end_time, 'is_fine' => 1];
+            $condition = ['user_id' => $user_id, 'is_fine' => 1];
             $subject_ids = $this->subjectData->getSubjectList($condition, 0, $hot_num);
-            //$subject_ids = $this->subjectPraiseData->getUserMostPraisedSubjects($user_id, $start_time, $end_time, [], 0, $hot_num);
-            //如果被赞过的帖子不足10条，补充带图的
             if ($hot_num - count($subject_ids) > 0) {
                 //获取我发布的帖子列表
                 $subjectIds = $this->feedModel->getSubjectListByUids([$user_id], 1, 50);
@@ -59,12 +57,33 @@ class Doozerrank extends \FD_Daemon {
                 $j = $hot_num - count($subject_ids);
                 while ($i <= $j && !empty($data)) {
                     $subject_info = array_shift($data);
-                    if (!isset($subject_ids[$subject_info['id']]) && !empty($subject_info['image_infos'])) {
-                        $subject_ids[$subject_info['id']] = 0;
+                    if (!in_array($subject_info['id'], $subject_ids) && !empty($subject_info['image_infos'])) {
+                        $subject_ids[] = $subject_info['id'];
                         $i ++;
                     }
                 }
             }
+            $data = [];
+            foreach ($subject_ids as $id) {
+                $data[$id] = 0;
+            }
+            $subject_ids = $data;
+//             $subject_ids = $this->subjectPraiseData->getUserMostPraisedSubjects($user_id, $start_time, $end_time, [], 0, $hot_num);
+//             //如果被赞过的帖子不足10条，补充带图的
+//             if ($hot_num - count($subject_ids) > 0) {
+//                 //获取我发布的帖子列表
+//                 $subjectIds = $this->feedModel->getSubjectListByUids([$user_id], 1, 50);
+//                 $data = $this->subjectService->getBatchSubjectInfos($subjectIds, 0, array())['data'];
+//                 $i = 0;
+//                 $j = $hot_num - count($subject_ids);
+//                 while ($i <= $j && !empty($data)) {
+//                     $subject_info = array_shift($data);
+//                     if (!isset($subject_ids[$subject_info['id']]) && !empty($subject_info['image_infos'])) {
+//                         $subject_ids[$subject_info['id']] = 0;
+//                         $i ++;
+//                     }
+//                 }
+//             }
             $this->userModel->updateUserHotSubject($user_id, $subject_ids);
         }
     }
