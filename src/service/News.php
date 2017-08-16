@@ -627,7 +627,7 @@ class News extends \mia\miagroup\Lib\Service
                 $return[$val['type']] = $val;
             }
         }
-        return $this->succ(array_values($return));
+        return $this->succ(["news_list" => array_values($return)]);
     }
 
     /**
