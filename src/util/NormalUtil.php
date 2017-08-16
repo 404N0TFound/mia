@@ -383,4 +383,60 @@ class NormalUtil {
         }
         return json_decode('["'.$str.'"]',true)[0];
     }
+
+
+    /**
+     * 格式化消息时间，根据当前时间
+     * 1. 当天发的消息显示“时:分”，时按24小时制，如“23:59”；
+     * 2. 昨日（T-1）发的消息显示“昨日  时:分”，如“昨日  23:59”；
+     * 3. 一个自然周内发的消息且超过昨日的时间则显示“星期几  时:分”，如“星期一  23:59”；
+     * 4. 超过一个自然周发的消息显示“年-月-日  时:分”，如“2017-07-10  23:59”
+     *
+     * @param $timeStr string 时间 "2017-08-16 11:33:27"
+     * @return string
+     */
+    public function formatNewsDate($timeStr)
+    {
+        $unixTime = strtotime($timeStr);
+        //当天0点时间
+        $today = strtotime(date('Y-m-d',time()));
+        //检查是否是当天
+        if($unixTime >= $today) {
+            return date("H:i",$unixTime);
+        }
+        //当周
+        $monday = strtotime("last Monday");
+        if($unixTime > $monday) {
+            $w = date("N",$unixTime);
+            switch ($w) {
+                case 1:
+                    $return_time = "星期一";
+                    break;
+                case 2:
+                    $return_time = "星期二";
+                    break;
+                case 3:
+                    $return_time = "星期三";
+                    break;
+                case 4:
+                    $return_time = "星期四";
+                    break;
+                case 5:
+                    $return_time = "星期五";
+                    break;
+                case 6:
+                    $return_time = "星期六";
+                    break;
+                case 7:
+                    $return_time = "星期日";
+                    break;
+                default:
+                    $return_time = "未知";
+                    break;
+            }
+            return $return_time;
+        }
+        return date("Y-m-d",$unixTime);
+    }
+
 }
