@@ -19,7 +19,4 @@ $promote_end_time = '2017-03-04 00:00:00';    //大促结束时间
 /*
  * 商品详情地址
  */
-$miagroup_item_url = array(
-    'prefix_url' => "https://m.mia.com/item-",
-    'suffix_url' => ".html"
-);
+$miagroup_item_url = 'https://m.mia.com/item-%d.html';

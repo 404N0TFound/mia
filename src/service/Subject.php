@@ -2569,7 +2569,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $where[] = ['user_id', $userId];
         $where[] = ['source_id', $source_id];
         $where[] = ['source_type', $source_type];
-        $result = $this->subjectModel->insertSubjectDownload($userId, $source_id, $source_type);
+        $result = $this->subjectModel->insertSubjectDownload($source_id, $source_type, $userId);
         if(!empty($result)) {
             $res["status"] = true;
         }
