@@ -9,6 +9,7 @@ use mia\miagroup\Service\Praise as praiseService;
 use mia\miagroup\Service\Subject as subjectService;
 use mia\miagroup\Service\UserRelation as userRelationService;
 use mia\miagroup\Lib\Redis;
+use mia\miagroup\Util\NormalUtil;
 
 class News extends \mia\miagroup\Lib\Service
 {
@@ -627,7 +628,7 @@ class News extends \mia\miagroup\Lib\Service
                 $return[$val['type']] = $val;
             }
         }
-        return $this->succ(array_values($return));
+        return $this->succ(["news_list" => array_values($return)]);
     }
 
     /**
@@ -871,7 +872,7 @@ class News extends \mia\miagroup\Lib\Service
             }
             $tmp['template_type'] = $this->getTemplate($newShowType)['data'];//模板读配置
             $tmp['type'] = $newShowType;//展示分类
-            $tmp['create_time'] = $newsInfo['create_time'];//展示分类
+            $tmp['create_time'] = NormalUtil::formatNewsDate($newsInfo['create_time']);//展示分类
             $tmp[$tmp['template_type']] = $this->singleTemplate($tmp['template_type'], $newsInfo, $newShowType,$userId);
             $formatList[] = $tmp;
         }
@@ -1078,7 +1079,7 @@ class News extends \mia\miagroup\Lib\Service
                 break;
             case "img_like"://点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
-                $text = "赞了你";
+                $text = preg_replace("#\\\u([0-9a-f]+)#ie","iconv('UCS-2','UTF-8', pack('H4', '\\1'))","\ue022赞了你");
                 $url = sprintf($app_mapping_config['subject'], $newsInfo["ext_info"]['subject_id']);
                 $refer_text = $this->subjectInfo[$newsInfo["ext_info"]['subject_id']]["text"];
                 $image = $this->subjectInfo[$newsInfo["ext_info"]['subject_id']]["cover_image"]["url"];
@@ -1134,6 +1135,7 @@ class News extends \mia\miagroup\Lib\Service
         }
         return ["text" => $text, "title" => $title, "image" => $image, "icon" => $icon, "url" => $url, 'user_info' => $userInfo, 'refer_text' => $refer_text, 'refer_img' => $refer_img];
     }
+
 
     /**
      * 根据id，查询用户news列表

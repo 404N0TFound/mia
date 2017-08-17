@@ -109,13 +109,15 @@ class Feed extends \mia\miagroup\Lib\Service {
      * @param $page 当前页
      * @param $count 每页数量
      */
-    public function getDiscoverySubjects($use_type, $currentUid = 0, $page = 1, $count = 10) {
+    public function getDiscoverySubjects($use_type, $currentUid = 0, $page = 1, $count = 10, $referId = 0) {
         if(empty($use_type)){
             return $this->succ(array());
         }
+        $filter = array();
         if ($use_type == 'carousel') {
             $page = 1;
             $count = 5;
+            $filter['title_status'] = 1; //取轮播素材的时候需要过滤掉title为空的
         }
         $userIds = array('7509553','13789824');
         $auditService = new \mia\miagroup\Service\Audit();
@@ -128,9 +130,13 @@ class Feed extends \mia\miagroup\Lib\Service {
     
         //获取plus用户的帖子列表
         $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.material')];
-        $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source);
+        $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source,$filter);
+        if(intval($referId) > 0){
+            array_unshift($subjectIds,$referId);
+        }
+        
         //获取帖子详细信息
-        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid)['data'];
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid,array('user_info', 'count', 'content_format', 'album','item','share_info'))['data'];
         $data = [];
         $data['subject_lists'] = array_values($subjectsList);
         return $this->succ($data);
