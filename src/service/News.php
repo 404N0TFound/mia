@@ -720,8 +720,8 @@ class News extends \mia\miagroup\Lib\Service
             $subArr[] = [
                 "tab_title" => "",
                 "category" => "",
-                "is_current" => "",
-                "news_count" => "",
+                "is_current" => 1,
+                "news_count" => 0,
             ];
         } else {
             $subArr[] = [
