@@ -872,7 +872,7 @@ class News extends \mia\miagroup\Lib\Service
             }
             $tmp['template_type'] = $this->getTemplate($newShowType)['data'];//模板读配置
             $tmp['type'] = $newShowType;//展示分类
-            $tmp['create_time'] = NormalUtil::formatNewsDate($newsInfo['create_time']);//展示分类
+            $tmp['create_time'] = NormalUtil::formatNewsDate($newsInfo['create_time'], $tmp['template_type']);//展示分类
             $tmp[$tmp['template_type']] = $this->singleTemplate($tmp['template_type'], $newsInfo, $newShowType,$userId);
             $formatList[] = $tmp;
         }
