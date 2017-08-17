@@ -897,7 +897,7 @@ class News extends \mia\miagroup\Lib\Service
                 $resArr = [
                     "news_title" => $newsInfoRes["title"],
                     "news_text" => $newsInfoRes["text"],
-                    "news_image" => $newsInfoRes["image"],
+                    "news_image" => ["url" => $newsInfoRes["image"]],
                     "mark_icon_type" => $newsInfoRes["icon"],
                     "redirect_url" => $newsInfoRes["url"],
                 ];
@@ -914,7 +914,7 @@ class News extends \mia\miagroup\Lib\Service
                 $newsInfoRes = $this->getNewsContent($newsInfo);
                 $resArr = [
                     "news_text" => $newsInfoRes["text"],
-                    "news_image" => $newsInfoRes["image"],
+                    "news_image" => ["url" => $newsInfoRes["image"]],
                     "news_title" => $newsInfoRes["title"],
                     "redirect_url" => $newsInfoRes["url"],
                 ];
