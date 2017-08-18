@@ -594,9 +594,9 @@ class News extends \mia\miagroup\Lib\Service
                 "news_sub_category_template" => [
                     "news_title" => "",
                     "news_text" => "",
-                    "news_image_url" => "https=>//img.miyabaobei.com/d1/p5/2017/08/07/97/bf/97bfe0ed2dadd261ab97390ecab08e5a727857932.png",
+                    "news_image_url" => $this->config["new_index_img"][$need],
                     "news_count" => 0,
-                    "redirect_url" => "miyabaobei=>//message_category?category=" . $need,
+                    "redirect_url" => $this->config["new_index_url"][$need],
                 ]
             ];
         }
@@ -720,8 +720,8 @@ class News extends \mia\miagroup\Lib\Service
             $subArr[] = [
                 "tab_title" => "",
                 "category" => "",
-                "is_current" => "",
-                "news_count" => "",
+                "is_current" => 1,
+                "news_count" => 0,
             ];
         } else {
             $subArr[] = [
@@ -872,7 +872,7 @@ class News extends \mia\miagroup\Lib\Service
             }
             $tmp['template_type'] = $this->getTemplate($newShowType)['data'];//模板读配置
             $tmp['type'] = $newShowType;//展示分类
-            $tmp['create_time'] = NormalUtil::formatNewsDate($newsInfo['create_time']);//展示分类
+            $tmp['create_time'] = NormalUtil::formatNewsDate($newsInfo['create_time'], $tmp['template_type']);//展示分类
             $tmp[$tmp['template_type']] = $this->singleTemplate($tmp['template_type'], $newsInfo, $newShowType,$userId);
             $formatList[] = $tmp;
         }
@@ -897,7 +897,7 @@ class News extends \mia\miagroup\Lib\Service
                 $resArr = [
                     "news_title" => $newsInfoRes["title"],
                     "news_text" => $newsInfoRes["text"],
-                    "news_image" => $newsInfoRes["image"],
+                    "news_image" => ["url" => $newsInfoRes["image"]],
                     "mark_icon_type" => $newsInfoRes["icon"],
                     "redirect_url" => $newsInfoRes["url"],
                 ];
@@ -914,7 +914,7 @@ class News extends \mia\miagroup\Lib\Service
                 $newsInfoRes = $this->getNewsContent($newsInfo);
                 $resArr = [
                     "news_text" => $newsInfoRes["text"],
-                    "news_image" => $newsInfoRes["image"],
+                    "news_image" => ["url" => $newsInfoRes["image"]],
                     "news_title" => $newsInfoRes["title"],
                     "redirect_url" => $newsInfoRes["url"],
                 ];

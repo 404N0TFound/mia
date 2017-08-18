@@ -395,19 +395,83 @@ class NormalUtil {
      * @param $timeStr string 时间 "2017-08-16 11:33:27"
      * @return string
      */
-    public function formatNewsDate($timeStr)
+    public static function formatNewsDate($timeStr, $type)
+    {
+        if (empty($timeStr)) {
+            return "";
+        }
+
+        if($type == "news_sub_category_template") {
+            return self::getIndexTimeFormat($timeStr);
+        }
+
+        $unixTime = strtotime($timeStr);
+        //当天0点时间
+        $today = strtotime(date('Y-m-d', time()));
+        //检查是否是当天
+        if ($unixTime >= $today) {
+            return date("H:i", $unixTime);
+        }
+
+        //检查是否是昨天
+        if ($today > $unixTime && $today - 86400 <= $unixTime) {
+            return "昨天 ".date("H:i", $unixTime);
+        }
+
+        //当周
+        $monday = strtotime("last Monday");
+        if ($unixTime > $monday) {
+            $w = date("N", $unixTime);
+            switch ($w) {
+                case 1:
+                    $return_time = "星期一";
+                    break;
+                case 2:
+                    $return_time = "星期二";
+                    break;
+                case 3:
+                    $return_time = "星期三";
+                    break;
+                case 4:
+                    $return_time = "星期四";
+                    break;
+                case 5:
+                    $return_time = "星期五";
+                    break;
+                case 6:
+                    $return_time = "星期六";
+                    break;
+                case 7:
+                    $return_time = "星期日";
+                    break;
+                default:
+                    $return_time = "未知";
+                    break;
+            }
+            return $return_time . " " . date("H:i", $unixTime);
+        }
+        return date("Y-m-d H:i", $unixTime);
+    }
+
+    protected function getIndexTimeFormat($timeStr)
     {
         $unixTime = strtotime($timeStr);
         //当天0点时间
-        $today = strtotime(date('Y-m-d',time()));
+        $today = strtotime(date('Y-m-d', time()));
         //检查是否是当天
-        if($unixTime >= $today) {
-            return date("H:i",$unixTime);
+        if ($unixTime >= $today) {
+            return date("H:i", $unixTime);
         }
+
+        //检查是否是昨天
+        if ($today > $unixTime && $today - 86400 <= $unixTime) {
+            return "昨天";
+        }
+
         //当周
         $monday = strtotime("last Monday");
-        if($unixTime > $monday) {
-            $w = date("N",$unixTime);
+        if ($unixTime > $monday) {
+            $w = date("N", $unixTime);
             switch ($w) {
                 case 1:
                     $return_time = "星期一";
@@ -436,7 +500,7 @@ class NormalUtil {
             }
             return $return_time;
         }
-        return date("Y-m-d",$unixTime);
+        return date("Y-m-d", $unixTime);
     }
 
 }
