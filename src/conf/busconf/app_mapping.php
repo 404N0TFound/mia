@@ -52,3 +52,6 @@ $order_detail = "miyabaobei://order_detail?sub_order_id=%d";
  * focus { 0, 全部 1,已消费 2,退款 }
 */
 $order_list = "miyabaobei://order_list?tab=%d&focus=%d";
+
+
+$news_cate_list = "miyabaobei://message_category?category=%s&category_title=%s";

@@ -463,38 +463,16 @@ class News extends \mia\miagroup\Lib\Service
      */
     public function noReadCounts($userId)
     {
-        //total_count,group_count
-        list($redis, $redis_key, $expire_time) = $this->getRedis("news_count", intval($userId));
-
-        $total_check = 0;
-        $group_check = 0;
-        if ($redis->exists($redis_key)) {
-            if ($redis->hExists($redis_key, "total")) {
-                //取redis的total
-                $total_check = 1;
-                $total_count = $redis->hGet($redis_key, "total");
-            }
-            if ($redis->hExists($redis_key, "group_interact")) {
-                //取redis的group_interact
-                $group_check = 1;
-                $group_count = $redis->hGet($redis_key, "group_interact");
-            }
-        }
-        if ($total_check == 0) {
-            $total_count = $this->newsModel->getUserNewsCount($userId, ["total"]);
-            $redis->hSet($redis_key, "total", $total_count);
-            $redis->expire($redis_key, $expire_time);
+        $cateNum = [];
+        $showCate = $this->getShowCate()['data'];
+        foreach ($showCate as $cate) {
+            $cateNum[$cate] = $this->getCateNewsNum($cate, $userId);
         }
 
-        if ($group_check == 0) {
-            $group_count = $this->newsModel->getUserNewsCount($userId, $this->getAllChlidren("group_interact")['data']);
-            $redis->hSet($redis_key, "group_interact", $group_count);
-            $redis->expire($redis_key, $expire_time);
-        }
         //计算总数
         $return = [
-            "total_count" => $total_count,
-            "group_count" => $group_count,
+            "total_count" => array_sum($cateNum),
+            "group_count" => $cateNum['group_active'] + $cateNum['group_interact'],
         ];
         return $this->succ($return);
     }
@@ -514,26 +492,83 @@ class News extends \mia\miagroup\Lib\Service
             if ($redis->hExists($redis_key, $cate)) {
                 //取redis
                 if(in_array($cate,["group_active","plus_active","activity"])) {
-                    $expire_time = $redis->hGet($redis_key, $cate . "_time");
-                    if(time() < $expire_time) {
+                    $limitTime = $redis->hGet($redis_key, $cate . "_time");
+                    if(time() < $limitTime) {
                         //未到过期时间，可取
                         $num = $redis->hGet($redis_key, $cate);
                         return $num;
                     }
+                } else {
+                    $num = $redis->hGet($redis_key, $cate);
+                    return $num;
                 }
             }
         }
+
         $num = $this->newsModel->getUserNewsCount($userId, $this->getAllChlidren($cate)['data']);
         if (in_array($cate, ["group_active", "plus_active", "activity"])) {
             $redis->hSet($redis_key, $cate, $num);
             //当前时间之后的整10分钟时间
-            $expireTime = strtotime((date("Y-m-d H:") . (ceil(date("i") / 10) * 10) . ":00"));
-            $redis->hSet($redis_key, $cate . "_time", $expireTime);
+            $limitTime = strtotime((date("Y-m-d H:") . (ceil(date("i") / 10) * 10) . ":00"));
+            $redis->hSet($redis_key, $cate . "_time", $limitTime);
         } else {
             $redis->hSet($redis_key, $cate, $num);
         }
         $redis->expire($redis_key, $expire_time);
         return $num;
+    }
+
+    /**
+     * 蜜芽圈首页，消息框
+     */
+    public function groupNews($userId)
+    {
+        $groupNews = [
+            "count" => 0,
+            "text" => "",
+            "img" => "",
+            "url" => "",
+        ];
+        if (empty($userId)) {
+            return $this->succ($groupNews);
+        }
+        //先查询蜜芽圈消息计数，计数为空则不显示
+        $group_active_num = $this->getCateNewsNum("group_active", $userId);
+        $group_interact_num = $this->getCateNewsNum("group_interact", $userId);
+        $count = $group_active_num + $group_interact_num;
+
+        if ($count == 0) {
+            return $this->succ($groupNews);
+        }
+
+        //第一条
+        $res = $this->newsModel->getLastNews(array_merge($this->getAllChlidren("group_active")['data'], $this->getAllChlidren("group_interact")['data']), $userId, 0, false, [1]);
+        if(empty($res)){
+            return $this->succ($groupNews);
+        }
+        $newsId = $res[0]["id"];
+        $newsInfo = array_pop($this->formatNews([$newsId], $userId, 2));//计数在格式化模板是查询的
+
+        $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
+        if(isset($newsInfo['news_miagroup_template'])) {
+            $showCate = $this->getAncestor($newsInfo['type'])['data'];
+            //蜜芽圈动态
+            return $this->succ([
+                "count" => $count,
+                "text" => $newsInfo['news_miagroup_template']['news_text'],
+                "img" => $newsInfo['news_miagroup_template']['user_info']['icon'],
+                "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
+            ]);
+        } else {
+            //蜜芽兔
+            $showCate = $this->getAncestor($newsInfo['type'])['data'];
+            return $this->succ([
+                "count" => $count,
+                "text" => "蜜芽兔@了你",
+                "img" => \F_Ice::$ins->workApp->config->get('busconf.user.miaTuIcon'),
+                "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
+            ]);
+        }
     }
 
     /**
