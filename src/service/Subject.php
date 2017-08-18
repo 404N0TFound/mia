@@ -2499,7 +2499,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($user_material_infos)) {
             return $this->succ($user_materials);
         }
-        $user_materials['lists'] = $user_material_infos['subject_lists'];
+        $user_materials['subject_lists'] = $user_material_infos['subject_lists'];
         return $this->succ($user_materials);
     }
 
