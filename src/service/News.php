@@ -594,9 +594,9 @@ class News extends \mia\miagroup\Lib\Service
                 "news_sub_category_template" => [
                     "news_title" => "",
                     "news_text" => "",
-                    "news_image_url" => "https=>//img.miyabaobei.com/d1/p5/2017/08/07/97/bf/97bfe0ed2dadd261ab97390ecab08e5a727857932.png",
+                    "news_image_url" => $this->config["new_index_img"][$need],
                     "news_count" => 0,
-                    "redirect_url" => "miyabaobei=>//message_category?category=" . $need,
+                    "redirect_url" => $this->config["new_index_url"][$need],
                 ]
             ];
         }
