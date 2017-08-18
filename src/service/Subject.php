@@ -2489,7 +2489,7 @@ class Subject extends \mia\miagroup\Lib\Service
     public function getUserMaterialList($userId, $page = 1, $count = 20)
     {
 
-        $user_materials = array("lists" => array());
+        $user_materials = array("subject_lists" => array());
         if (empty($userId)) {
             return $this->succ($user_materials);
         }
