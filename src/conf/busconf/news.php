@@ -221,13 +221,13 @@ $new_index_img = [
 ];
 
 $new_index_url = [
-    "trade" => "miyabaobei://message_category?category=trade",
-    "plus_active" => "miyabaobei://message_category?category=plus_active",
-    "plus_interact" => "miyabaobei://message_category?category=plus_interact",
-    "group_active" => "miyabaobei://message_category?category=group_active",
-    "group_interact" => "miyabaobei://message_category?category=group_interact",
-    "activity" => "miyabaobei://message_category?category=activity",
-    "property" => "miyabaobei://message_category?category=property"
+    "trade" => "miyabaobei://message_category?category=trade&category_title=交易物流",
+    "plus_active" => "miyabaobei://message_category?category=plus_active&category_title=会员Plus",
+    "plus_interact" => "miyabaobei://message_category?category=plus_interact&category_title=会员Plus",
+    "group_active" => "miyabaobei://message_category?category=group_active&category_title=蜜芽圈",
+    "group_interact" => "miyabaobei://message_category?category=group_interact&category_title=蜜芽圈",
+    "activity" => "miyabaobei://message_category?category=activity&category_title=蜜芽活动",
+    "property" => "miyabaobei://message_category?category=property&category_title=我的资产"
 ];
 /*======消息首页标题，图标，跳转。END======*/
 
