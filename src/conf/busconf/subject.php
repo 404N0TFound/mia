@@ -121,6 +121,7 @@ $album = array(
      'user_period',
      'is_blog',
      'index_cover',
+     'is_material',
  );
  
  /**
