@@ -258,13 +258,18 @@ class News extends \mia\miagroup\Lib\Service
                 break;
             case "order_unpay":
             case "order_cancel":
+                $orderService = new Order();
+                $orderInfo = $orderService->getOrderSuperiorInfo([$source_id])['data'];
+                $ext_info["item_ids"] = $orderInfo[$source_id];
             case "order_send_out":
             case "order_delivery":
             case "order_auto_confirm":
                 //item_id
-                $orderService = new Order();
-                $orderInfo = $orderService->getOrderItemInfo([$source_id])['data'];
-                $ext_info["item_ids"] = $orderInfo[$source_id];
+                if (empty($orderInfo)) {
+                    $orderService = new Order();
+                    $orderInfo = $orderService->getOrderItemInfo([$source_id])['data'];
+                    $ext_info["item_ids"] = $orderInfo[$source_id];
+                }
             case "return_audit_pass":
             case "return_audit_refuse":
             case "return_overdue":
@@ -284,6 +289,7 @@ class News extends \mia\miagroup\Lib\Service
                 }
                 //每个订单只有最新的一条信息，不需要按天合并
                 $lastNewsInfo = $this->newsModel->getLastNews($this->config["layer"]["trade"], $toUserId, $source_id, false)[0];
+
                 if (!empty($lastNewsInfo)) {
                     //更新
                     $insert_data['id'] = $lastNewsInfo['id'];

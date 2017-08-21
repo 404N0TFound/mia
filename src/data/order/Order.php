@@ -29,20 +29,34 @@ class Order extends \DB_Query {
         return $result;
     }
 
-    public function getOrderItemInfo($orderCodes)
+    public function getOrderItemInfo($conditions)
     {
-        if (empty($orderCodes)) {
+        if (empty($conditions)) {
             return [];
         }
-        $where[] = ['order_code', $orderCodes];
+        if (isset($conditions["order_code"])) {
+            $where[] = ['order_code', $conditions["order_code"]];
+        }
+        if (isset($conditions["superior_order_code"])) {
+            $where[] = ['superior_order_code', $conditions["superior_order_code"]];
+        }
+
+        if(empty($where)) {
+            return [];
+        }
+
         $join = 'LEFT JOIN order_item ON orders.id = order_item.order_id';
 
-        $data = $this->getRows($where, 'orders.order_code,orders.id,order_item.item_id', FALSE, 0, FALSE, $join);
+        $data = $this->getRows($where, 'orders.superior_order_code,orders.order_code,orders.id,order_item.item_id', FALSE, 0, FALSE, $join);
 
         $result = array();
         if (!empty($data)) {
             foreach ($data as $v) {
-                $result[$v['order_code']][] = $v["item_id"];
+                if ($conditions["gather"] == "superior_order_code") {
+                    $result[$v['superior_order_code']][] = $v["item_id"];
+                } else {
+                    $result[$v['order_code']][] = $v["item_id"];
+                }
             }
         }
         return $result;

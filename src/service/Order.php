@@ -29,6 +29,11 @@ class Order extends \mia\miagroup\Lib\Service {
         return $this->succ($orderData);
     }
 
+    public function getOrderSuperiorInfo($superiorCodes)
+    {
+        $orderData = $this->orderModel->getOrderSuperiorInfo($superiorCodes);
+        return $this->succ($orderData);
+    }
 
     /**
      * 根据订单ID获取订单信息
