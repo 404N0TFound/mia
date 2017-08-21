@@ -686,10 +686,12 @@ class News extends \mia\miagroup\Lib\Service
         $pageLimit = $this->config['page_limit'];
 
         list($redis, $redis_key, $expire_time) = $this->getRedis("cate_list", $category.":".intval($userId));
-        if(empty($offset)) {
-            $newsScoreArr = $redis->zRevRange($redis_key, 0, -1, true);
+
+        if (empty($offset)) {
+            $newsScoreArr = $redis->zRevRange($redis_key, 0, $pageLimit - 1, true);
         } else {
-            $newsScoreArr = $redis->zRevRangeByScore($redis_key, $offset, 0, array('withscores' => TRUE,'limit' => array(1, $pageLimit)));
+            //key max min [WITHSCORES] [LIMIT offset count]
+            $newsScoreArr = $redis->zRevRangeByScore($redis_key, $offset, 0, array('withscores' => TRUE, 'limit' => array(1, $pageLimit)));
         }
 
         if (!empty($newsScoreArr)) {
@@ -710,7 +712,7 @@ class News extends \mia\miagroup\Lib\Service
                 $redis->zAdd($redis_key, $score, $val['id']);
                 $newsScoreArr[$val['id']] = $score;
             }
-            //后台缓存的消息列表，缓存时间20分钟，此时列表有，但是计数没增加
+            //下一个整10分钟过期
             if (in_array($category, ["activity", "group_active", "plus_active"])) {
                 $expireTime = strtotime((date("Y-m-d H:") . (ceil(date("i") / 10) * 10) . ":00"));
                 $redis->expireAt($redis_key, $expireTime);
@@ -822,13 +824,17 @@ class News extends \mia\miagroup\Lib\Service
                 case "order_delivery":
                 case "order_auto_confirm":
                     //收集item_id
-                    $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
+                    if(!empty($val["ext_info"]["item_ids"])) {
+                        $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
+                    }
                     break;
                 case "return_audit_pass":
                 case "return_audit_refuse":
                 case "return_overdue":
                     //收集item_id
-                    $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
+                    if(!empty($val["ext_info"]["item_ids"])) {
+                        $itemIds = array_merge($itemIds, $val["ext_info"]["item_ids"]);
+                    }
                     break;
                 case "refund_success":
                 case "refund_fail":
@@ -997,31 +1003,31 @@ class News extends \mia\miagroup\Lib\Service
                 $url = sprintf($app_mapping_config['order_list'], 0, 3);
                 break;
             case "order_unpay":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品付款后会尽快为您发货";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品付款后会尽快为您发货";
                 $title = "订单".$newsInfo["source_id"]."未付款";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_list'], 0, 1);
                 break;
             case "order_cancel":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品未能及时付款被取消啦";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品未能及时付款被取消啦";
                 $title = "订单".$newsInfo["source_id"]."已取消";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
                 break;
             case "order_send_out":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品发货啦";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品发货啦";
                 $title = "订单".$newsInfo["source_id"]."已发货";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
                 break;
             case "order_delivery":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品开始派送";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品开始派送";
                 $title = "订单".$newsInfo["source_id"]."开始派送";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
                 break;
             case "order_received":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品已到，评价晒单得蜜豆哟~";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品已到，评价晒单得蜜豆哟~";
                 $title = "订单".$newsInfo["source_id"]."已签收";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
