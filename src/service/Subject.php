@@ -2479,7 +2479,7 @@ class Subject extends \mia\miagroup\Lib\Service
 
         // 批量获取素材信息
         $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item'])['data'];
-        $koubei_res['koubei_info'] = $material_infos;
+        $koubei_res['koubei_info'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
 
@@ -2538,7 +2538,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
         $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
-        $koubei_res['koubei_info'] = $material_infos;
+        $koubei_res['subject_lists'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
 
