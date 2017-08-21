@@ -627,8 +627,8 @@ class News extends \mia\miagroup\Lib\Service
                 "type" => $need,
                 "create_time" => "",
                 "news_sub_category_template" => [
-                    "news_title" => "",
-                    "news_text" => "",
+                    "news_title" => $this->config["new_index_title"][$need],
+                    "news_text" => "暂无消息",
                     "news_image_url" => $this->config["new_index_img"][$need],
                     "news_count" => 0,
                     "redirect_url" => $this->config["new_index_url"][$need],
