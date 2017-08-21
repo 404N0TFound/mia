@@ -1108,6 +1108,7 @@ class News extends \mia\miagroup\Lib\Service
                     "width" => 320,
                     "height" => 320
                 ];
+                $userInfo = $this->userInfo[$newsInfo['send_user']];
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
                 $title = "您的帖子被加精，奉上50蜜豆";
