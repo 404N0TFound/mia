@@ -57,16 +57,14 @@ class InitMaterialSubject extends \FD_Daemon{
             //1、帖子id大于0且口碑为精品
             //2、蜜芽贴同步过来的（帖子id大于0且是蜜芽贴同步过来的，特征为score为0且蜜芽贴为精品）
             if($value['subject_id'] > 0 && ($value['rank'] == 1 || ($value['score'] == 0 && $value['is_fine'] == 1))){
-                fwrite($fpAllIdFile, $value['subject_id']);
-                $subjectIds[] = $value['subject_id'];
+                //更新帖子表中扩展字段（扩展字段中新增素材标识）
+                $setData = [];
+                $setData['ext_info']['is_material'] = 1;
+                $this->subjectService->updateSubject($value['subject_id'],$setData);
             }else{
                 continue;
             }
         }
-        //更新帖子表中扩展字段（扩展字段中新增素材标识）
-        $setData = [];
-        $setData['ext_info']['is_material'] = 1;
-        $this->subjectService->updateSubjectByIds($subjectIds,$setData);
         
         //写入本次处理的最大event_id
         if (isset($maxId)) {

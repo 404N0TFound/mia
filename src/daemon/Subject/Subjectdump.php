@@ -307,9 +307,9 @@ class Subjectdump extends \FD_Daemon {
             
             //帖子是否是素材
             if (isset($extInfo['is_material']) && !empty($extInfo['is_material'])) {
-                $dumpdata['is_material'] = $extInfo['is_material'];
+                $dumpdata['is_material'] = 1;
             }else{
-                $dumpdata['is_material'] = null;
+                $dumpdata['is_material'] = 0;
             }
             
             //写入文本

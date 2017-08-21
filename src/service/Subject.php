@@ -2439,42 +2439,4 @@ class Subject extends \mia\miagroup\Lib\Service
         return $this->succ($res);
     }
     
-    /**
-     * 批量更新帖子信息
-     */
-    public function updateSubjectByIds($subjectId, $subjectInfo) {
-        if(!empty($subjectId) && !is_array($subjectId)){
-            $subjectId = array($subjectId);
-        }
-        $subjects = $this->subjectModel->getSubjectByIds($subjectId, array());
-        $subjectArr = array();
-        foreach($subjects as $subject){
-            if (empty($subject)) {
-                return $this->error('1107');
-            }
-            if (!empty($subjectInfo['ext_info'])) { //处理ext_info
-                $extinfoField = \F_Ice::$ins->workApp->config->get('busconf.subject.extinfo_field');
-                if (is_array($subjectInfo['ext_info'])) {
-                    $extinfo = $subject['ext_info'];
-                    foreach ($subjectInfo['ext_info'] as $k => $v) {
-                        if (in_array($k, $extinfoField)) {
-                            $extinfo[$k] = $v;
-                        }
-                    }
-                    $subjectArr = $subjectInfo;
-                    $subjectArr['ext_info'] = json_encode($extinfo);
-                }
-            }
-            $setData = array();
-            if (is_array($subjectArr)) {
-                foreach ($subjectArr as $k => $v) {
-                    $setData[] = [$k, $v];
-                }
-            }
-            $this->subjectModel->updateSubject($setData, $subject['id']);
-        }
-    
-        return $this->succ(true);
-    }
-
 }
