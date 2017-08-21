@@ -2438,5 +2438,5 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         return $this->succ($res);
     }
-
+    
 }

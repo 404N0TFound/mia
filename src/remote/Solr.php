@@ -490,6 +490,11 @@ class Solr
         if (!empty($conditon['siyuan_son_supplier_id'])) {
             $solr_info['fq'][] = 'siyuan_son_supplier_id:'. $conditon['siyuan_son_supplier_id'];
         }
+        
+        //如果获取大于某个id的话，就取该id后的信息
+        if(isset($conditon['after_id']) && !empty($conditon['after_id'])){
+            $solr_info['fq'][] = 'id:['.$conditon['after_id'].' TO *]';
+        }
 
         // solr select
         $res = $this->select($solr_info);
