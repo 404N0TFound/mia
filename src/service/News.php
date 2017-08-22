@@ -995,7 +995,11 @@ class News extends \mia\miagroup\Lib\Service
         $url = "";
         $userInfo = [];
         $refer_text = "";
-        $refer_img = [];
+        $refer_img = [
+            "url" => "",
+            "width" => 0,
+            "height" => 0
+        ];
         $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
         switch ($newsInfo['news_type']) {
             case "order":
@@ -1101,13 +1105,15 @@ class News extends \mia\miagroup\Lib\Service
                 $refer_text = $this->subjectInfo[$newsInfo["ext_info"]["subject_id"]]["text"];
                 $image = $this->subjectInfo[$newsInfo["ext_info"]["subject_id"]]["cover_image"]["url"];
                 //cover替换koubeilist样式
-                $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
-                preg_match($pattern, $image, $match);
-                $refer_img = [
-                    "url" => $match[1] . "@style@koubeilist",
-                    "width" => 320,
-                    "height" => 320
-                ];
+                if(!empty($image)) {
+                    $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
+                    preg_match($pattern, $image, $match);
+                    $refer_img = [
+                        "url" => $match[1] . "@style@koubeilist",
+                        "width" => 320,
+                        "height" => 320
+                    ];
+                }
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
@@ -1116,13 +1122,15 @@ class News extends \mia\miagroup\Lib\Service
                 $text = $this->subjectInfo[$newsInfo["source_id"]]["text"];
                 $image = $this->subjectInfo[$newsInfo["source_id"]]["cover_image"]["url"];
                 //cover替换koubeilist样式
-                $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
-                preg_match($pattern, $image, $match);
-                $image = [
-                    "url" => $match[1] . "@style@koubeilist",
-                    "width" => 320,
-                    "height" => 320
-                ];
+                if(!empty($image)) {
+                    $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
+                    preg_match($pattern, $image, $match);
+                    $image = [
+                        "url" => $match[1] . "@style@koubeilist",
+                        "width" => 320,
+                        "height" => 320
+                    ];
+                }
                 $icon = "essence";
                 break;
             case "img_like"://点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
