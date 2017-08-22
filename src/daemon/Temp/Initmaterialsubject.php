@@ -45,13 +45,9 @@ class Initmaterialsubject extends \FD_Daemon{
             $lastId .= fread($fpLastIdFile, 1024);
             $lastId = intval($lastId);
         }
-        //拉取新的口碑
-        $where = [];
-        $where['after_id'] = $lastId;
-        $where['status'] = 2;
 
         $this->koubeiData = new KoubeiData();
-        $sql = "select id, subject_id,item_id,rank,score from koubei where status=2 and subject_id>0 and (score=0 || rank=1) order by id desc limit 5000";
+        $sql = "select id, subject_id,item_id,rank,score from koubei where id > " . $lastId. " and status=2 and subject_id>0 and (score=0 || rank=1) order by id asc limit 5000";
         $koubeiRes  = $this->koubeiData->query($sql);
         foreach ($koubeiRes as $value) {
             if (isset($maxId)) { //获取最大event_id
