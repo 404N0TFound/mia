@@ -158,6 +158,15 @@ $cron_list['subject_data_incremental_sync'] = array(
     'start_time' => '2017-02-10 00:15:00',
     'interval' => 600
 );
+
+//帖子素材标识更新
+$cron_list['subject_data_material_sync'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=temp --action=initmaterialsubject",
+    'start_time' => '2017-08-23 01:00:00',
+    'interval' => 600
+);
 /*************
  * 帖子相关结束
  *************/
@@ -269,3 +278,5 @@ $cron_list['user_doozer_day_rank_update'] = array(
     'start_time' => '2017-06-09 01:05:00',
     'interval' => 600
 );
+
+
