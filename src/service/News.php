@@ -824,6 +824,7 @@ class News extends \mia\miagroup\Lib\Service
                 case "order_send_out":
                 case "order_delivery":
                 case "order_auto_confirm":
+                case "order_received":
                     //收集item_id
                     if(!empty($val["ext_info"]["item_ids"])) {
                         $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
