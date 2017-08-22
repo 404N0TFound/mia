@@ -29,7 +29,7 @@ class Order {
         }
         $conditions["order_code"] = $orderCodes;
         $conditions["gather"] = "order_code";
-        $orderData = $this->orderData->getOrderItemInfo($orderCodes);
+        $orderData = $this->orderData->getOrderItemInfo($conditions);
         return $orderData;
     }
 
