@@ -1501,12 +1501,13 @@ class Subject extends \mia\miagroup\Lib\Service
 
         //删除帖子
         $result = $this->subjectModel->delete($subjectId, $userId);
-        
+
         //如果是口碑，同时删除口碑
         if(!empty($subjectInfo['ext_info']['koubei']['id'])){
             $koubei = new \mia\miagroup\Service\Koubei();
             $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $userId);
         }
+
         //检验帖子是否参加了活动，如果参加了活动，删除活动帖子关联表记录
         $activeService = new ActiveService();
         $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId));

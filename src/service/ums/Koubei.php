@@ -184,6 +184,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         if($isRealtime == false){
             $solr = new \mia\miagroup\Remote\Solr('koubei');
+            if(empty($limit)) {
+                // 导出数据
+                $solrCountData = $solr->getKoubeiList($solrCond, 'id', $params['page'], 1, $orderBy);
+                if(!empty($solrCountData['count'])) {
+                    $limit = $solrCountData['count'];
+                }
+            }
+            // 查询列表
             $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);
             if(!empty($solrData['list'])){
                 foreach ($solrData['list'] as $v) {
