@@ -1,15 +1,16 @@
 <?php
-namespace mia\miagroup\Daemon\Subject;
+namespace mia\miagroup\Daemon\Temp;
 use mia\miagroup\Service\Subject as SubjectService;
-use \mia\miagroup\Remote\Solr;
 use mia\miagroup\Data\Subject\Subject as SubjectData;
+use mia\miagroup\Data\Koubei\Koubei as KoubeiData;
 /*
  * 定时任务：初始化素材数据，
  * 将符合条件的蜜芽圈和口碑贴设置为素材类型（更新到帖子表的扩展字段中）
  */
-class InitMaterialSubject extends \FD_Daemon{
+class Initmaterialsubject extends \FD_Daemon{
     private $subjectService;
     private $subjectData;
+    private $koubeiData;
     private $lastIdFile;
     private $allIdFile;
     
@@ -49,9 +50,10 @@ class InitMaterialSubject extends \FD_Daemon{
         $where['after_id'] = $lastId;
         $where['status'] = 2;
 
-        $solr = new Solr('koubei');
-        $solrData = $solr->getKoubeiList($where, array(), 1, 1000,'')['list'];
-        foreach ($solrData as $value) {
+        $this->koubeiData = new KoubeiData();
+        $sql = "select id, subject_id,item_id,rank,score from koubei where status=2 and subject_id>0 and (score=0 || rank=1) order by id desc limit 5000";
+        $koubeiRes  = $this->koubeiData->query($sql);
+        foreach ($koubeiRes as $value) {
             if (isset($maxId)) { //获取最大event_id
                 $maxId = $value['id'] > $maxId ? $value['id'] : $maxId;
             } else {
@@ -65,10 +67,12 @@ class InitMaterialSubject extends \FD_Daemon{
             //1、帖子id大于0且口碑为精品
             //2、蜜芽贴同步过来的（帖子id大于0且是蜜芽贴同步过来的，特征为score为0且蜜芽贴为精品）
             //3、帖子同时满足帖子文字数量大于等于20且图片数量大于等于3张
-            if($value['rank'] == 1 || ($value['score'] == 0 && $value['is_fine'] == 1)){
+            if($value['rank'] == 1 || $value['score'] == 0){
                 //获取帖子的文字和图片信息
                 $this->subjectData = new SubjectData();
-                $newSubject = $this->subjectData->getBatchSubjects($value['subject_id'])[$value['subject_id']];
+                $sql = "select id,text,image_url from group_subjects where id = " . $value['subject_id'] . " and status = 1";
+                $newSubject = $this->subjectData->query($sql);
+                $newSubject = $newSubject[0];
                 //如果该帖子不存在过滤掉
                 if(empty($newSubject)){
                     continue;
