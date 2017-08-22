@@ -18,12 +18,12 @@ class InitMaterialSubject extends \FD_Daemon{
         set_time_limit(3600);
         ini_set('memory_limit','128M');
         //加载定时脚本临时文件存放地址
-//         $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
-//         $tempFilePath = $runFilePath . '/subject/';
-//         $this->lastIdFile = $tempFilePath . 'initmaterial_last_id';
-//         $this->allIdFile = $tempFilePath . 'initmaterial_all_id';
-        $this->lastIdFile = "D:/htdocs/repos/groupservice/var/daemonlogs/initmaterial_last_id";
-        $this->allIdFile = "D:/htdocs/repos/groupservice/var/daemonlogs/initmaterial_all_id";
+        $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
+        $tempFilePath = $runFilePath . '/subject/';
+        $this->lastIdFile = $tempFilePath . 'initmaterial_last_id';
+        $this->allIdFile = $tempFilePath . 'initmaterial_all_id';
+//         $this->lastIdFile = "D:/htdocs/repos/groupservice/var/daemonlogs/initmaterial_last_id";
+//         $this->allIdFile = "D:/htdocs/repos/groupservice/var/daemonlogs/initmaterial_all_id";
         $this->subjectService = new SubjectService();
     }
     
