@@ -264,6 +264,7 @@ class News extends \mia\miagroup\Lib\Service
             case "order_send_out":
             case "order_delivery":
             case "order_auto_confirm":
+            case "order_received":
                 //item_id
                 if (empty($orderInfo)) {
                     $orderService = new Order();
