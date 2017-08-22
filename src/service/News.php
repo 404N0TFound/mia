@@ -1006,13 +1006,13 @@ class News extends \mia\miagroup\Lib\Service
                 $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品付款后会尽快为您发货";
                 $title = "订单".$newsInfo["source_id"]."未付款";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
-                $url = sprintf($app_mapping_config['order_list'], 0, 1);
+                $url = sprintf($app_mapping_config['order_list'], 0, 0);
                 break;
             case "order_cancel":
                 $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品未能及时付款被取消啦";
                 $title = "订单".$newsInfo["source_id"]."已取消";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
-                $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
+                $url = sprintf($app_mapping_config['order_list'], 0, 0);
                 break;
             case "order_send_out":
                 $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品发货啦";
