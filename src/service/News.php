@@ -1135,7 +1135,7 @@ class News extends \mia\miagroup\Lib\Service
                 break;
             case "img_like"://点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
-                $text = preg_replace("#\\\u([0-9a-f]+)#ie","iconv('UCS-2','UTF-8', pack('H4', '\\1'))","\ue022赞了你");
+                $text = "赞了你";
                 $url = sprintf($app_mapping_config['subject'], $newsInfo["ext_info"]['subject_id']);
                 $refer_text = $this->subjectInfo[$newsInfo["ext_info"]['subject_id']]["text"];
                 $image = $this->subjectInfo[$newsInfo["ext_info"]['subject_id']]["cover_image"]["url"];
