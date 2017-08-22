@@ -96,7 +96,6 @@ class InitMaterialSubject extends \FD_Daemon{
             }else{
                 continue;
             }
-            fclose($fpAllIdFile);
         }
         
         //写入本次处理的最大event_id
