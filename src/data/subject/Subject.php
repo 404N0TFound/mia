@@ -166,18 +166,6 @@ class Subject extends \DB_Query {
     }
     
     /**
-     * 删除帖子
-     */
-    public function delete($subjectId,$userId){
-        //删除帖子
-        $setData[] = ['status', \F_Ice::$ins->workApp->config->get('busconf.subject.status.user_delete')];
-        $where[] = ['id',$subjectId];
-        $where[] = ['user_id',$userId];
-        $affect = $this->update($setData,$where);
-        return $affect;
-    }
-    
-    /**
      * 精选帖子的ids
      * @param int $iPage 页码
      * @param int $iPageSize 一页多少个
