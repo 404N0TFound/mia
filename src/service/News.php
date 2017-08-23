@@ -943,10 +943,15 @@ class News extends \mia\miagroup\Lib\Service
                 break;
             case "news_text_pic_template"://站内信图文模板
                 $newsInfoRes = $this->getNewsContent($newsInfo);
+                if (is_array($newsInfoRes["image"])) {
+                    $image_res = $newsInfoRes["image"];
+                } else {
+                    $image_res["url"] = $newsInfoRes["image"];
+                }
                 $resArr = [
                     "news_title" => $newsInfoRes["title"],
                     "news_text" => $newsInfoRes["text"],
-                    "news_image" => ["url" => $newsInfoRes["image"]],
+                    "news_image" => $image_res,
                     "mark_icon_type" => $newsInfoRes["icon"],
                     "redirect_url" => $newsInfoRes["url"],
                 ];
@@ -961,9 +966,14 @@ class News extends \mia\miagroup\Lib\Service
                 break;
             case "news_banner_template"://站内信banner模板
                 $newsInfoRes = $this->getNewsContent($newsInfo);
+                if (is_array($newsInfoRes["image"])) {
+                    $image_res = $newsInfoRes["image"];
+                } else {
+                    $image_res["url"] = $newsInfoRes["image"];
+                }
                 $resArr = [
                     "news_text" => $newsInfoRes["text"],
-                    "news_image" => ["url" => $newsInfoRes["image"]],
+                    "news_image" => $image_res,
                     "news_title" => $newsInfoRes["title"],
                     "redirect_url" => $newsInfoRes["url"],
                 ];
