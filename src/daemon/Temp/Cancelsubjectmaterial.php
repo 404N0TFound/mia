@@ -83,7 +83,7 @@ class Cancelsubjectmaterial extends \FD_Daemon{
                         continue;
                     }
                     $extInfo = json_decode($newSubject['ext_info'],true);
-                    if(!isset($extInfo['is_material']) && $extInfo['is_material'] != 1){
+                    if(!isset($extInfo['is_material']) || $extInfo['is_material'] != 1){
                         continue;
                     }
                     //更新帖子表中扩展字段（扩展字段中封测报告帖子有素材标识的置为取消素材状态）
