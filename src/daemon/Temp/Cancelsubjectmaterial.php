@@ -50,7 +50,7 @@ class Cancelsubjectmaterial extends \FD_Daemon{
 
         //获取封测报告的口碑
         $this->koubeiData = new KoubeiData();
-        $sql = "select id, subject_id,item_id,rank,score from koubei where id > " . $lastId. " and status=2 and type=1 and subject_id>0 and (score=0 || rank=1) order by id asc limit 5000";
+        $sql = "select id, subject_id,item_id,rank,score from koubei where id > " . $lastId. " and status=2 and type=1 and subject_id>0 and rank=0 order by id asc limit 5000";
         $koubeiRes  = $this->koubeiData->query($sql);
         
         if(!empty($koubeiRes)){
@@ -68,7 +68,7 @@ class Cancelsubjectmaterial extends \FD_Daemon{
                 //1、帖子id大于0且口碑为精品
                 //2、蜜芽贴同步过来的（帖子id大于0且是蜜芽贴同步过来的，特征为score为0且蜜芽贴为精品）
                 //3、帖子同时满足帖子文字数量大于等于20且图片数量大于等于3张
-                if($value['rank'] == 1 || $value['score'] == 0){
+                if($value['score'] == 0){
                     //获取帖子的文字和图片信息
                     $this->subjectData = new SubjectData();
                     $sql = "select id,ext_info from group_subjects where id = " . $value['subject_id'] . " and status = 1";
