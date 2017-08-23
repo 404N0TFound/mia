@@ -1480,7 +1480,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ(true);
         }
         //长文贴不能删除
-        if ($subjectInfo['ext_info']['is_blog'] == 1 && !in_array($subjectInfo["user_id"], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+        if ($subjectInfo['ext_info']['is_blog'] == 1 && !in_array($subjectInfo["user_id"], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list')) && $subjectInfo['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal')) {
             return $this->error(1134);
         }
         //付费用户删帖处理
@@ -1499,7 +1499,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 //只能删当前自然月的
                 $pubTime = strtotime($subjectInfo["created"]);
                 $cancelTime = strtotime(date("Y-m"));//月初时间
-                if ($pubTime < $cancelTime) {
+                if ($pubTime < $cancelTime && $subjectInfo['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal')) {
                     //无法删除
                     return $this->error(1130);
                 }
