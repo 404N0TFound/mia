@@ -47,7 +47,7 @@ class Initmaterialsubject extends \FD_Daemon{
         }
 
         $this->koubeiData = new KoubeiData();
-        $sql = "select id, subject_id,item_id,rank,score from koubei where id > " . $lastId. " and status=2 and subject_id>0 and (score=0 || rank=1) order by id asc limit 5000";
+        $sql = "select id, subject_id,item_id,rank,score from koubei where id > " . $lastId. " and status=2 and type=0 and subject_id>0 and (score=0 || rank=1) order by id asc limit 5000";
         $koubeiRes  = $this->koubeiData->query($sql);
         
         if(!empty($koubeiRes)){
