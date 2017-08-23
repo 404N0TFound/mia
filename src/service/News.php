@@ -438,7 +438,8 @@ class News extends \mia\miagroup\Lib\Service
         switch ($showType) {
             case "trade":
                 //标题+正文，逗号间隔
-                $text = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"] . "，" . $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
+                $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"] . "，" . $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
+                $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
                 break;
             case "group_active":
             case "group_interact":
