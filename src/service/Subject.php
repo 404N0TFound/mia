@@ -2069,7 +2069,8 @@ class Subject extends \mia\miagroup\Lib\Service
         if(!empty($res) && is_array($res)) {
             $subjectIds = array_column($res, 'source_id');
         }
-        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
+        $fields = ['user_info', 'count', 'content_format', 'album', 'item'];
+        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId, $fields)['data'];
         $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
         return $this->succ($data);
     }
