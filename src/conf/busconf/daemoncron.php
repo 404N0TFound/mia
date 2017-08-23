@@ -159,14 +159,6 @@ $cron_list['subject_data_incremental_sync'] = array(
     'interval' => 600
 );
 
-//帖子素材标识更新
-$cron_list['subject_data_material_sync'] = array(
-    'enable' => true,
-    'engine' => 'php',
-    'cli_args' => "--class=temp --action=initmaterialsubject",
-    'start_time' => '2017-08-23 01:00:00',
-    'interval' => 600
-);
 /*************
  * 帖子相关结束
  *************/
