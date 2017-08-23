@@ -263,7 +263,8 @@ $sub_type = [
         "equal_level" => [
             [
                 "type" => "group_interact",
-                "name" => "动态"
+                "name" => "动态",
+                "position" => 1//后
             ],
         ],
 
@@ -273,7 +274,8 @@ $sub_type = [
         "equal_level" => [
             [
                 "type" => "group_active",
-                "name" => "活动"
+                "name" => "活动",
+                "position" => 0//前
             ],
         ],
     ],
