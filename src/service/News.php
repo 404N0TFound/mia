@@ -784,12 +784,18 @@ class News extends \mia\miagroup\Lib\Service
                 "news_count" => $this->getCateNewsNum($type, $userId),
             ];
             foreach ($this->config["sub_type"][$type]["equal_level"] as $val) {
-                $subArr[] = [
+                $sub = [
                     "tab_title" => $val["name"],
                     "category" => $val["type"],
                     "is_current" => 0,
                     "news_count" => $this->getCateNewsNum($val["type"], $userId),
                 ];
+                if($val["position"]) {
+                    //后
+                    array_push($subArr, $sub);
+                } else {
+                    $subArr = array_merge([$sub],$subArr);
+                }
             }
         }
         return $subArr;
