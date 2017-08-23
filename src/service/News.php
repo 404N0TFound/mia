@@ -949,8 +949,6 @@ class News extends \mia\miagroup\Lib\Service
                         $text = $newsInfoRes["title"] . "，" . $newsInfoRes["text"];
                         break;
                     case "group_active":
-                        $text = $newsInfoRes["title"] . " " . $newsInfoRes["text"];
-                        break;
                     case "group_interact":
                         //标题+正文，空格间隔
                         if(!empty($newsInfoRes["user_info"])) {
