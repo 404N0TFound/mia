@@ -435,12 +435,20 @@ class News extends \mia\miagroup\Lib\Service
         $newsInfoRes = $this->formatNews($newsInfo["id"], $newsInfo["user_id"], 2, [$newsInfo]);
         $newsInfoRes = array_pop($newsInfoRes);
         $showType = $this->getAncestor($newsInfo['news_type'])["data"];
-
         switch ($showType) {
             case "trade":
+                //标题+正文，逗号间隔
+                $text = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"] . "，" . $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
+                break;
             case "group_active":
             case "group_interact":
-                $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"].$newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
+                //标题+正文，空格间隔
+                if (!empty($newsInfoRes[$newsInfoRes["template_type"]]["user_info"])) {
+                    $group_title = $newsInfoRes[$newsInfoRes["template_type"]]["user_info"]["nickname"] ? $newsInfoRes[$newsInfoRes["template_type"]]["user_info"]["nickname"] : $newsInfoRes[$newsInfoRes["template_type"]]["user_info"]["username"];
+                } else {
+                    $group_title = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"];
+                }
+                $content = $group_title . " " . $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
                 $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
                 //标题+正文
                 break;
@@ -454,7 +462,7 @@ class News extends \mia\miagroup\Lib\Service
             case "plus_active":
                 //只取消息正文
                 $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
-            $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
+                $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
                 break;
         }
         $pushService = new Push();
@@ -933,9 +941,38 @@ class News extends \mia\miagroup\Lib\Service
     {
         switch ($templateType) {
             case "news_sub_category_template"://站内信子分类模板
+                $newsInfoRes = $this->getNewsContent($newsInfo);
+                switch ($showType) {
+                    case "trade":
+                        //标题+正文，逗号间隔
+                        $text = $newsInfoRes["title"] . "，" . $newsInfoRes["text"];
+                        break;
+                    case "group_active":
+                        $text = $newsInfoRes["title"] . " " . $newsInfoRes["text"];
+                        break;
+                    case "group_interact":
+                        //标题+正文，空格间隔
+                        if(!empty($newsInfoRes["user_info"])) {
+                            $group_title = $newsInfoRes["user_info"]["nickname"]?$newsInfoRes["user_info"]["nickname"]:$newsInfoRes["user_info"]["username"];
+                        } else {
+                            $group_title = $newsInfoRes["title"];
+                        }
+                        $text = $group_title . " " . $newsInfoRes["text"];
+                        break;
+                    case "plus_interact":
+                        //只取消息标题
+                        $text = $newsInfoRes["title"];
+                        break;
+                    case "activity":
+                    case "property":
+                    case "plus_active":
+                        //只取消息正文
+                        $text = $newsInfoRes["text"];
+                        break;
+                }
                 $resArr = [
                     "news_title" => $this->config['new_index_title'][$showType],
-                    "news_text" => $this->getNewsContent($newsInfo)["text"],
+                    "news_text" => $text,
                     "news_image_url" => $this->config['new_index_img'][$showType],
                     "news_count" => $this->getCateNewsNum($showType, $userId),
                     "redirect_url" => $this->config['new_index_url'][$showType],
