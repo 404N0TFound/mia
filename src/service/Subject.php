@@ -1479,6 +1479,10 @@ class Subject extends \mia\miagroup\Lib\Service
         if($subjectInfo['status'] == 0) {
             return $this->succ(true);
         }
+        //长文贴不能删除
+        if ($subjectInfo['ext_info']['is_blog'] == 1 && !in_array($subjectInfo["user_id"], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+            return $this->error(1134);
+        }
         //付费用户删帖处理
         //判断是否是付费用户
         $groupId = \F_Ice::$ins->workApp->config->get('busconf.user.paidUserGroup');//站内付费达人分组
@@ -1504,13 +1508,12 @@ class Subject extends \mia\miagroup\Lib\Service
 
         //删除帖子
         $result = $this->subjectModel->delete($subjectId, $userId);
-
+        
         //如果是口碑，同时删除口碑
         if(!empty($subjectInfo['ext_info']['koubei']['id'])){
             $koubei = new \mia\miagroup\Service\Koubei();
             $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $userId);
         }
-
         //检验帖子是否参加了活动，如果参加了活动，删除活动帖子关联表记录
         $activeService = new ActiveService();
         $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId));
@@ -1655,8 +1658,7 @@ class Subject extends \mia\miagroup\Lib\Service
     }
     
     /**
-     * 删除，屏蔽帖子
-     * 取消帖子屏蔽，删除
+     * 管理员操作帖子状态（屏蔽、恢复正常、审核不通过）
      */
     public function delSubjects($subjectIds, $status, $shieldText = '')
     {
@@ -2072,7 +2074,6 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['user_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
             return $this->error(500);
         }
-
         //解析参数
         $parsed_param = $this->_parseBlogParam($param);
         //发布长文贴子
@@ -2087,6 +2088,9 @@ class Subject extends \mia\miagroup\Lib\Service
         $blog_info['status'] = $parsed_param['subject_info']['status'];
         $blog_info['create_time'] = $result['data']['created'];
         $this->subjectModel->addBlog($blog_info);
+        if ($parsed_param['subject_info']['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit')) {
+            return $this->error(1132, '', $result['data']);
+        }
         return $this->succ($result['data']);
     }
     
@@ -2101,6 +2105,10 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($subject_info) || $subject_info['type'] != 'blog') {
             return $this->error(1131);
         }
+        if ($subject_info['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal') && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+            return $this->error(1133);
+        }
+        $param['user_id'] = $subject_info['user_id'];
         $parsed_param = $this->_parseBlogParam($param);
         //处理修改过的商品
         $exist_items = [];
@@ -2299,13 +2307,6 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         
-        //标题
-        if (!empty($param['title'])) {
-            $subject_info['title'] = $param['title'];
-        }
-        if (!empty($param['title']) && $param['title_hidden'] != 1) {
-            $blog_meta[] = ['blog_title' => $param['title']];
-        }
         //其他元素
         if (!empty($param['blog_meta'])) {
             $subject_info['text'] = '';
@@ -2315,6 +2316,12 @@ class Subject extends \mia\miagroup\Lib\Service
                     continue;
                 }
                 switch ($v['type']) {
+                    case 'blog_title':
+                        $subject_info['title'] = $v['blog_title'];
+                        if (!isset($v['title_hidden']) || $v['title_hidden'] != 1) {
+                            $blog_meta[] = ['blog_title' => $v['blog_title']];
+                        }
+                        break;
                     case 'blog_text':
                         if (empty($v['blog_text']['text'])) {
                             continue;
@@ -2396,7 +2403,11 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         if (!empty($param['status'])) {
-            $subject_info['status']= $param['status'];
+            $subject_info['status'] = $param['status'];
+            //非官方直属账号，发布需审核
+            if ($param['status'] == 1 && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+                $subject_info['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit');
+            }
         }
         return ['subject_info' => $subject_info, 'blog_meta' => $blog_meta, 'labels' => $labels, 'items' => $items];
     }
