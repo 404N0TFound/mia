@@ -56,7 +56,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (!empty($params['uid_list']) && is_array($params['uid_list']) && intval($condition['user_id']) <= 0 && empty($condition['id'])) {
             $condition['user_id'] = $params['uid_list'];
         }
-        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && empty($condition['id'])) {
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1, 4))) && empty($condition['id'])) {
             //帖子状态
             $condition['status'] = $params['status'];
         }
@@ -216,7 +216,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //内容搜索
             $solrParams['text_like'] = trim($data['content']);
         }
-        if (is_array($data['status']) || (!is_array($data['status']) && $data['status'] !== null && $data['status'] !== '' && in_array($data['status'], array(0, 1, -1))) && intval($data['id']) <= 0) {
+        if (is_array($data['status']) || (!is_array($data['status']) && $data['status'] !== null && $data['status'] !== '' && in_array($data['status'], array(0, 1, -1, 4))) && intval($data['id']) <= 0) {
             //帖子状态
             $solrParams['status'] = $data['status'];
         }

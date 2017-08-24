@@ -2396,7 +2396,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (!empty($param['status'])) {
             $subject_info['status'] = $param['status'];
             //非官方直属账号，发布需审核
-            if ($param['status'] == 1 && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+            if ($param['status'] == 1 && !in_array($param['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
                 $subject_info['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit');
             }
         }
