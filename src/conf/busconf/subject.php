@@ -106,7 +106,8 @@ $album = array(
      'normal'        => 1,   //正常状态
      'transcoding'   => 2,   //视频转码中
      'koubei_hidden' => 3,   //口碑默认好评不展示
-     'suspicious'    => 4,   //可疑帖子，暂不展示
+     'to_audit'      => 4,   //待审核帖子
+     'audit_failed'  => 5,   //审核不通过帖子
  );
  
  /**
