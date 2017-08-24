@@ -615,7 +615,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 //不走订单表查询逻辑
                 $subjectRes[$subjectInfo['id']]['item_koubei']['closed_report'] = "1";
             }
-
+            
             if (!empty($subjectInfo['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['video_info'] = $subjectInfo['video_info'];
             }
@@ -1264,6 +1264,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($subject)) {
             return $this->error('1107');
         }
+
         if (!empty($subjectInfo['ext_info'])) { //处理ext_info
             $extinfoField = \F_Ice::$ins->workApp->config->get('busconf.subject.extinfo_field');
             if (is_array($subjectInfo['ext_info'])) {

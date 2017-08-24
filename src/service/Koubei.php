@@ -716,8 +716,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         //口碑ID回写到蜜芽帖
         if ($koubeiInsertId > 0 && $subjectData['id'] > 0) {
-            $subjectService = new SubjectService();
             $subjectInfo['ext_info']['koubei']['id'] = $koubeiInsertId;
+            $subjectInfo['ext_info']['is_material'] = 1;
             $subjectService->updateSubject($subjectData['id'], $subjectInfo);
         }
 
@@ -1992,6 +1992,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
         
         if(in_array($setData['rank'],array(0,1))){
             $arrParams['rank'] = $setData['rank'];
+            $subjectSetData = [];
+            if($arrParams['rank'] == 1){
+                $subjectSetData['ext_info']['is_material'] = 1;
+            }else{
+                $subjectSetData['ext_info']['is_material'] = 0;
+            }
+            $this->subjectService->updateSubject($setData['subject_id'], $subjectSetData);
         }
         if(in_array($setData['is_bottom'],array(0,1))){
             $arrParams['is_bottom'] = $setData['is_bottom'];
