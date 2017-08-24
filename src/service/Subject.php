@@ -735,7 +735,7 @@ class Subject extends \mia\miagroup\Lib\Service
         /*蜜芽帖、口碑贴相关逻辑开始*/
         if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
             if ($subjectInfo['type'] == 'blog') {
-                $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId])[$subjectId];
+                $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId], $status)[$subjectId];
                 if (!empty($blog_info)) {
                     $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
                 }
@@ -1479,6 +1479,10 @@ class Subject extends \mia\miagroup\Lib\Service
         if($subjectInfo['status'] == 0) {
             return $this->succ(true);
         }
+        //长文贴不能删除
+        if ($subjectInfo['ext_info']['is_blog'] == 1 && !in_array($subjectInfo["user_id"], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list')) && $subjectInfo['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal')) {
+            return $this->error(1134);
+        }
         //付费用户删帖处理
         //判断是否是付费用户
         $groupId = \F_Ice::$ins->workApp->config->get('busconf.user.paidUserGroup');//站内付费达人分组
@@ -1495,7 +1499,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 //只能删当前自然月的
                 $pubTime = strtotime($subjectInfo["created"]);
                 $cancelTime = strtotime(date("Y-m"));//月初时间
-                if ($pubTime < $cancelTime) {
+                if ($pubTime < $cancelTime && $subjectInfo['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal')) {
                     //无法删除
                     return $this->error(1130);
                 }
@@ -1503,27 +1507,8 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         //删除帖子
-        $result = $this->subjectModel->delete($subjectId, $userId);
-
-        //如果是口碑，同时删除口碑
-        if(!empty($subjectInfo['ext_info']['koubei']['id'])){
-            $koubei = new \mia\miagroup\Service\Koubei();
-            $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $userId);
-        }
-
-        //检验帖子是否参加了活动，如果参加了活动，删除活动帖子关联表记录
-        $activeService = new ActiveService();
-        $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId));
-        if (!empty($activeSubject['data'][$subjectId])) {
-            $activeService->upActiveSubject(array('status' => 0), $activeSubject['data'][$subjectId]['id']);
-        }
-        //删除帖子标签关系
-        $labelService = new Label();
-        $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
-        if (!empty($labelInfo)) {
-            $labelService->setLabelSubjectStatus([$subjectId], ["status" => 0]);
-        }
-
+        $result = $this->delSubjects($subjectId, \F_Ice::$ins->workApp->config->get('busconf.subject.status.user_delete'));
+        
         //扣除蜜豆
         $mibean = new \mia\miagroup\Remote\MiBean();
         $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');//蜜芽兔
@@ -1655,8 +1640,7 @@ class Subject extends \mia\miagroup\Lib\Service
     }
     
     /**
-     * 删除，屏蔽帖子
-     * 取消帖子屏蔽，删除
+     * 管理员操作帖子状态（屏蔽、恢复正常、审核不通过）
      */
     public function delSubjects($subjectIds, $status, $shieldText = '')
     {
@@ -1678,21 +1662,27 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             //屏蔽或者删除帖子
             $result = $this->subjectModel->deleteSubjects(array($subjectId), $status, $shieldText);
-            if (!empty($subjectInfo['ext_info']['koubei']['id']) && in_array($status, array(0, -1))) {
-                //删除口碑
-                $koubei = new \mia\miagroup\Service\Koubei();
-                $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $subjectInfo['user_id']);
+            if (in_array($status, array(0, -1))) {
+                if (!empty($subjectInfo['ext_info']['koubei']['id'])) {
+                    //删除口碑
+                    $koubei = new \mia\miagroup\Service\Koubei();
+                    $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $subjectInfo['user_id']);
+                }
             }
-            //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
-            $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), [0, 1, -1]);
-            if (!empty($activeSubject['data'][$subjectId])) {
-                $activeService->upActiveSubject(array('status' => $status), $activeSubject['data'][$subjectId]['id']);
+            //同步帖子状态到索引表
+            if (in_array($status, array(0, -1, 1))) {
+                //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
+                $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), array());
+                if (!empty($activeSubject['data'][$subjectId]) && in_array($status, array(0, -1, 1))) {
+                    $activeService->upActiveSubject(array('status' => $status), $activeSubject['data'][$subjectId]['id']);
+                }
+                //修改帖子标签关系表status
+                $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
+                if (!empty($labelInfo)) {
+                    $labelService->setLabelSubjectStatus([$subjectId], ["status" => $status]);
+                }
             }
-            //修改帖子标签关系表status
-            $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
-            if (!empty($labelInfo)) {
-                $labelService->setLabelSubjectStatus([$subjectId], ["status" => $status]);
-            }
+            
             //修改上文表status
             if (isset($subjectInfo['ext_info']['is_blog']) && $subjectInfo['ext_info']['is_blog'] == 1) {
                 $this->subjectModel->editBlog($subjectId, ['status' => $status]);
@@ -2072,7 +2062,6 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['user_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
             return $this->error(500);
         }
-
         //解析参数
         $parsed_param = $this->_parseBlogParam($param);
         //发布长文贴子
@@ -2087,6 +2076,9 @@ class Subject extends \mia\miagroup\Lib\Service
         $blog_info['status'] = $parsed_param['subject_info']['status'];
         $blog_info['create_time'] = $result['data']['created'];
         $this->subjectModel->addBlog($blog_info);
+        if ($parsed_param['subject_info']['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit')) {
+            return $this->error(1132, '', $result['data']);
+        }
         return $this->succ($result['data']);
     }
     
@@ -2097,10 +2089,14 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['subject_id'])) {
             return $this->error(500);
         }
-        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[1,3])['data'];
+        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[])['data'];
         if (empty($subject_info) || $subject_info['type'] != 'blog') {
             return $this->error(1131);
         }
+        if ($subject_info['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal') && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+            return $this->error(1133);
+        }
+        $param['user_id'] = $subject_info['user_id'];
         $parsed_param = $this->_parseBlogParam($param);
         //处理修改过的商品
         $exist_items = [];
@@ -2160,6 +2156,9 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
             }
             $this->updateSubject($param['subject_id'], $subject_set_data);
+        }
+        if ($parsed_param['subject_info']['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit')) {
+            return $this->error(1132);
         }
         return $this->succ(true);
     }
@@ -2299,13 +2298,6 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         
-        //标题
-        if (!empty($param['title'])) {
-            $subject_info['title'] = $param['title'];
-        }
-        if (!empty($param['title']) && $param['title_hidden'] != 1) {
-            $blog_meta[] = ['blog_title' => $param['title']];
-        }
         //其他元素
         if (!empty($param['blog_meta'])) {
             $subject_info['text'] = '';
@@ -2315,6 +2307,12 @@ class Subject extends \mia\miagroup\Lib\Service
                     continue;
                 }
                 switch ($v['type']) {
+                    case 'blog_title':
+                        $subject_info['title'] = $v['blog_title'];
+                        if (!isset($v['title_hidden']) || $v['title_hidden'] != 1) {
+                            $blog_meta[] = ['blog_title' => $v['blog_title']];
+                        }
+                        break;
                     case 'blog_text':
                         if (empty($v['blog_text']['text'])) {
                             continue;
@@ -2396,7 +2394,11 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         if (!empty($param['status'])) {
-            $subject_info['status']= $param['status'];
+            $subject_info['status'] = $param['status'];
+            //非官方直属账号，发布需审核
+            if ($param['status'] == 1 && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+                $subject_info['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit');
+            }
         }
         return ['subject_info' => $subject_info, 'blog_meta' => $blog_meta, 'labels' => $labels, 'items' => $items];
     }

@@ -170,6 +170,14 @@ class Subject extends \mia\miagroup\Lib\Service {
         foreach ($data['list'] as $subject_id => $v) {
             if (!empty($subjectInfos[$subject_id])) {
                 $subject = $subjectInfos[$subject_id];
+                //非官方账号发布的长文，仅在审核状态下可编辑、删除
+                if ($subject['type'] == 'blog') {
+                    if (in_array($subject["user_id"], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list')) || in_array($subject['status'], [\F_Ice::$ins->workApp->config->get('busconf.subject.status.koubei_hidden'), \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit'), \F_Ice::$ins->workApp->config->get('busconf.subject.status.audit_failed')])) {
+                        $subject['allow_operate'] = 1;
+                    } else {
+                        $subject['allow_operate'] = 0;
+                    }
+                }
                 if (!empty($v['index_cover_image'])) {
                     $subject['cover_image'] = \mia\miagroup\Util\NormalUtil::buildImgUrl($v['index_cover_image']['url'], 'normal', $v['index_cover_image']['width'], $v['index_cover_image']['height']);
                 }
