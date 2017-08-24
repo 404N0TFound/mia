@@ -1264,21 +1264,10 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($subject)) {
             return $this->error('1107');
         }
-        //获取图片数量、内容文字字数、是否是素材标识
-        $imageArr = explode('#',$subject['image_url']);
-        $subject['image_count'] = count($imageArr);
-        $subject['text_length'] = mb_strlen($subject['text'],'utf-8');
 
         if (!empty($subjectInfo['ext_info'])) { //处理ext_info
             $extinfoField = \F_Ice::$ins->workApp->config->get('busconf.subject.extinfo_field');
             if (is_array($subjectInfo['ext_info'])) {
-                //根据图片，文字和标识来设置素材标识
-                if($subject['image_count'] >= 3 && $subject['text_length'] && $subjectInfo['ext_info']['is_material'] == 1){
-                    $subjectInfo['ext_info']['is_material'] = 1;
-                }elseif($subjectInfo['ext_info']['is_material'] == 0){
-                    $subjectInfo['ext_info']['is_material'] = 0;
-                }
-                
                 $extinfo = $subject['ext_info'];
                 foreach ($subjectInfo['ext_info'] as $k => $v) {
                     if (in_array($k, $extinfoField)) {
