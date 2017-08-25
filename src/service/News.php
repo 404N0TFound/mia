@@ -789,7 +789,7 @@ class News extends \mia\miagroup\Lib\Service
         if (!in_array($type, $this->config["sub_type"]["all"])) {
             $subArr[] = [
                 "tab_title" => "",
-                "category" => "",
+                "category" => $type,
                 "is_current" => 1,
                 "news_count" => 0,
             ];
