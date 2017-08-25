@@ -2448,7 +2448,10 @@ class Subject extends \mia\miagroup\Lib\Service
         $condition['source'] = $this->config['source']['material'];
 
         // 获取用户发布素材总数
-        $user_material_ids = $this->subjectModel->getUserMaterialIds($item_ids, $userId, 0, 0, $condition);
+        $user_material_ids = [];
+        if(!empty($userId)) {
+            $user_material_ids = $this->subjectModel->getUserMaterialIds($item_ids, $userId, 0, 0, $condition);
+        }
         if(empty($user_material_ids)) {
             // 获取精选推荐列表
             $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $page, $count, $userId)['data'];
