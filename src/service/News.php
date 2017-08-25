@@ -390,16 +390,20 @@ class News extends \mia\miagroup\Lib\Service
         list($redis, $redis_key, $expire_time) = $this->getRedis("cate_list", $showType . ":" . intval($insert_data["user_id"]));
         list($redis, $redis_key_index, $expire_time_index) = $this->getRedis("news_index", intval($insert_data["user_id"]));
         if (isset($insert_data["id"])) {
-            //分类redis
-            $score = strtotime($insert_data["create_time"]) . str_pad($insert_data['id'] % 100, 3, 0, STR_PAD_LEFT);
-            $redis->zAdd($redis_key, $score, $insert_data['id']);
-            //首页redis
+            //分类redis，cate列表存在才插入
+            if ($redis->exists($redis_key)) {
+                $score = strtotime($insert_data["create_time"]) . str_pad($insert_data['id'] % 100, 3, 0, STR_PAD_LEFT);
+                $redis->zAdd($redis_key, $score, $insert_data['id']);
+            }
+            //首页redis，可以单插
             $redis->zAdd($redis_key_index, strtotime($insert_data["create_time"]), $showType . ":" . $insert_data['id']);
         } else {
-            //分类redis
-            $score = strtotime($insert_data["create_time"]) . str_pad($insertRes % 100, 3, 0, STR_PAD_LEFT);
-            $redis->zAdd($redis_key, $score, $insertRes);
-            //首页redis
+            //分类redis，cate列表存在才插入
+            if ($redis->exists($redis_key)) {
+                $score = strtotime($insert_data["create_time"]) . str_pad($insertRes % 100, 3, 0, STR_PAD_LEFT);
+                $redis->zAdd($redis_key, $score, $insertRes);
+            }
+            //首页redis，可以单插
             $redis->zAdd($redis_key_index, strtotime($insert_data["create_time"]), $showType . ":" . $insertRes);
         }
         return $this->succ("发送成功");
@@ -598,37 +602,49 @@ class News extends \mia\miagroup\Lib\Service
         }
         //redis取列表
         list($redis, $redis_key, $expire_time) = $this->getRedis("news_index", intval($userId));
-        $indexList = $redis->zRevRange($redis_key, 0, -1);
+        $indexList = $redis->zRevRange($redis_key, 0, -1,true);
 
-        if (empty($indexList)) {
-            //数据库查询，查询最新的分类下最新一条记录
-            $cateList = $this->getShowCate()['data'];
-            $tmp = [];
-            foreach ($cateList as $showCate) {
+        $existType = [];
+        $newIndexList = [];
+        if(!empty($indexList)) {
+            foreach ($indexList as $k=>$v) {
+                list($nType, $newsId) = explode(":", $k);
+                $existType[] = $nType;
+                $newIndexList[$v] = $k;
+            }
+        }
+
+        //数据库查询，查询分类下最新一条记录
+        $cateList = $this->getShowCate()['data'];
+        $tmp = [];
+        foreach ($cateList as $showCate) {
+            if (!in_array($showCate, $existType)) {
                 $res = $this->newsModel->getLastNews($this->getAllChlidren($showCate)['data'], $userId, 0, false, [1]);
-                if(!empty($res)) {
-                    $tmp[strtotime($res[0]["create_time"])] = $showCate.":".$res[0]["id"];
-                    $redis->zAdd($redis_key, strtotime($res[0]["create_time"]), $showCate.":".$res[0]["id"]);
+                if (!empty($res)) {
+                    $tmp[strtotime($res[0]["create_time"])] = $showCate . ":" . $res[0]["id"];
+                    $redis->zAdd($redis_key, strtotime($res[0]["create_time"]), $showCate . ":" . $res[0]["id"]);
                 }
             }
-            $redis->expire($redis_key, $expire_time);
-            //需要对查出的数据排序
-            krsort($tmp);
-            $indexList = array_values($tmp);
         }
+        $redis->expire($redis_key, $expire_time);
+        //需要对查出的数据排序
+        $newIndexList = $tmp + $newIndexList;
+        krsort($newIndexList);
+        $newIndexList = array_values($newIndexList);
+
 
         //查询列表信息
         $newsIds = [];
-        foreach ($indexList as $value) {
+        foreach ($newIndexList as $value) {
             list($type, $id) = explode(":", $value);
             if (!isset($newsIds[$type])) {
                 $newsIds[$type] = $id;
             } else {
-                $redis->zRem($redis_key, $value);
+                $redis->zRem($redis_key, $value);//因为发消息插入首页时，不检查是否攒在同类消息，类型会有重复type
             }
         }
 
-        $indexNewsList = $this->formatNews($newsIds, $userId, 1);//计数在格式化模板是查询的
+        $indexNewsList = $this->formatNews(array_values($newsIds), $userId, 1);//计数在格式化模板是查询的
         //没有的补充空
         $news_index = $this->config["news_index"];
         foreach ($indexNewsList as $k=>$v) {
@@ -636,6 +652,7 @@ class News extends \mia\miagroup\Lib\Service
                 unset($news_index[array_search($v['type'], $news_index)]);
             }
         }
+
         foreach ($news_index as $need) {
             $indexNewsList[] = [
                 "id" => "",
