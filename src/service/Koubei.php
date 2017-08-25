@@ -156,18 +156,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $subjectInfo['text'] = $koubeiSetData['content'];
         $subjectInfo['created'] = $koubeiSetData['created_time'];
         $subjectInfo['source'] = \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'); //帖子数据来自口碑标识
-        $imageInfos = array();
-        $i=0;
-        if(!empty($koubeiData['image_infos'])) {
-            foreach($koubeiData['image_infos'] as $image){
-                $imageInfos[$i]['url'] = $image['url'];
-                $size= getimagesize("http://img.miyabaobei.com/".$image['url']);
-                $imageInfos[$i]['width'] = $size[0];
-                $imageInfos[$i]['height'] = $size[1];
-                $i++;
-            }
-        }
-        $subjectInfo['image_infos'] = $imageInfos;
+        $subjectInfo['image_infos'] = $koubeiData['image_infos'];
         if (!empty($koubeiData['cover_image'])) {
             $subjectInfo['cover_image'] = $koubeiData['cover_image'];
         }
