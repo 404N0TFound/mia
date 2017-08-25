@@ -1386,7 +1386,7 @@ class News extends \mia\miagroup\Lib\Service
      */
     public function pushSet($userId, $type, $value)
     {
-        if (empty($userId) || empty($userId) || empty($userId)) {
+        if (!in_array(intval($value), [0, 1]) || !array_key_exists($type, $this->config["push_setting_list"]) || empty($userId)) {
             return $this->error("500", "参数不合法");
         }
         //查找是否存在
