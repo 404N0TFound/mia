@@ -2473,8 +2473,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }else {
                 // 获取精选推荐列表
-                $reco_page = $page - $user_page;
-                $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $reco_page, $count, $userId)['data'];
+                $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $page, $count, $userId)['data'];
             }
         }
         if(empty($subjectIds)) {
