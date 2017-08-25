@@ -27,9 +27,11 @@ class Service extends \FS_Service {
         if (self::$entranceClass == get_class($this)) {
             self::$count--;
         }
-        if (empty($this->ext_params)) {
-            $temp = rand(1, 100);
-            if ($temp <= 99) {
+        $requestAction = \F_Ice::$ins->runner->request->class . "/" . \F_Ice::$ins->runner->request->action;
+        $interceptLog = \F_Ice::$ins->workApp->config->get('busconf.log.interceptLog');
+        if (array_key_exists($requestAction, $interceptLog)) {
+            $temp = rand(1, 10000);
+            if ($temp / 10000 > $interceptLog[$requestAction]) {
                 self::$needLog = 0;
             }
         }
