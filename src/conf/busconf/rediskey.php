@@ -222,6 +222,10 @@ $activeKey = [
         'key' => $activeServicePrefix . 'active_subject_read_session_%s_%s_%s',
         'expire_time' => 1800,
     ],
+    'active_subject_user' => [//闯关活动用户id和设备号
+        'key' => $activeServicePrefix . 'subject_user_%s_%s_%s',
+        'expire_time' => 10800,
+    ],
 ];
 
 //笔记推荐服务相关，string格式，用空格分隔
