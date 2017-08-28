@@ -1034,41 +1034,23 @@ class Subject extends \mia\miagroup\Lib\Service
             if (intval($subjectInfo['active_id']) > 0) {
                 //获取活动信息
                 $activeInfo = $activeService->getSingleActiveById($subjectInfo['active_id'])['data'];
-                if (!empty($activeInfo['label_titles'])) {
-                    $labelInfos[] = ['title' => $activeInfo['label_titles']];
+                if (!empty($activeInfo['labels'])) {
+                    $labelInfos = array_merge($labelInfos,$activeInfo['labels']);
                 }
                 $currentTime = date("Y-m-d H:i:s",time());
                 if(!empty($activeInfo) && $currentTime >= $activeInfo['start_time'] && $currentTime <= $activeInfo['end_time']){
                     $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
                     $relationSetInfo['active_id'] = $subjectInfo['active_id'];
                 }
-            }
-        
-            //如果为普通发帖，检查标签中是否有参加在线活动的
-            if(!empty($labelInfos) && intval($subjectInfo['active_id']) == 0){
-                //获取在线的蜜芽圈活动
-                $activeInfos = $activeService->getCurrentActive()['data'];
-                foreach($activeInfos as $key=>$activeInfo){
-                    //取帖子标签中参加活动的标签
-                    if(!empty($activeInfo['ext_info'])){
-                        $activeExtInfos = json_decode($activeInfo['ext_info'],true);
-                        if(!empty($activeExtInfos['labels'])){
-                            $activeLabelTitles = array_column($activeExtInfos['labels'], 'title');
-                            $labelTitles = array_column($labelInfos, 'title');
-                            $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
-                            //活动id为在线活动的索引(key)，如果标签中有参加活动的，则保存活动id
-                            if(!empty($attendLabels)){
-                                if (intval($activeInfo['text_lenth_limit']) > 0 && mb_strlen($subjectSetInfo['text'], 'utf8') < $activeInfo['text_lenth_limit']) {
-                                    continue;
-                                }
-                                if (intval($activeInfo['image_count_limit']) > 0 && count($imageInfo) < $activeInfo['image_count_limit']) {
-                                    continue;
-                                }
-                                $subjectSetInfo['active_id'] = $key;
-                                $relationSetInfo['active_id'] = $key;
-                                break;
-                            }
-                        }
+                //判断登录用户是否参加过活动
+                $activeUserKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_user.key'), $subjectInfo['active_id'],$subjectInfo['user_info']['user_id'],$this->ext_params['dvc_id']);
+                $redis = new Redis();
+                if($subjectInfo['active_id'] == 558){
+                    $activeUserRes = $redis->exists($activeUserKey);
+                    if($activeUserRes){
+                        return $this->error(1135);
+                    }else{
+                        $redis->set($activeUserKey,1);
                     }
                 }
             }
