@@ -1042,15 +1042,22 @@ class Subject extends \mia\miagroup\Lib\Service
                     $subjectSetInfo['active_id'] = $subjectInfo['active_id'];
                     $relationSetInfo['active_id'] = $subjectInfo['active_id'];
                 }
-                //判断登录用户是否参加过活动
-                $activeUserKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_user.key'), $subjectInfo['active_id'],$subjectInfo['user_info']['user_id'],$this->ext_params['dvc_id']);
-                $redis = new Redis();
-                if($subjectInfo['active_id'] == 558){
-                    $activeUserRes = $redis->exists($activeUserKey);
-                    if($activeUserRes){
-                        return $this->error(1135);
+               
+                if($subjectInfo['active_id'] == 22){
+                    $activeUserKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_user.key'), $subjectInfo['active_id'],$subjectInfo['user_info']['user_id']);
+                    $redis = new Redis();
+                    //判断用户是否参加了活动
+                    $activeUserExistKey = $redis->exists($activeUserKey);
+                    //如果用户参加了活动
+                    if($activeUserExistKey){
+                        //获取用户参加活动的设备号
+                        $activeUserDvcId = $redis->get($activeUserExistKey);
+                        //如果该用户用多台设备发帖，就给出提示
+                        if($activeUserDvcId != $this->ext_params['dvc_id']){
+                            return $this->error(1135);
+                        }
                     }else{
-                        $redis->setex($activeUserKey,1,\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_user.expire_time'));
+                        $redis->setex($activeUserKey,$this->ext_params['dvc_id'],\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_user.expire_time'));
                     }
                 }
             }
