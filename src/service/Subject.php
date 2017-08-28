@@ -2076,7 +2076,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($subject_info) || $subject_info['type'] != 'blog') {
             return $this->error(1131);
         }
-        if ($subject_info['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal') && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+        if (isset($param['status']) && $subject_info['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal') && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
             return $this->error(1133);
         }
         $param['user_id'] = $subject_info['user_id'];
@@ -2132,11 +2132,12 @@ class Subject extends \mia\miagroup\Lib\Service
             if (!empty($parsed_param['subject_info']['text'])) {
                 $subject_set_data['text'] = $parsed_param['subject_info']['text'];
             }
-            if (!empty($parsed_param['subject_info']['image_url'])) {
-                $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
-            }
             if (!empty($parsed_param['subject_info']['ext_info'])) {
                 $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
+            }
+            if (!empty($parsed_param['subject_info']['image_url'])) {
+                $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
+                $subject_set_data['ext_info']['image'] = $parsed_param['subject_info']['image_infos'];
             }
             $this->updateSubject($param['subject_id'], $subject_set_data);
         }
@@ -2259,29 +2260,8 @@ class Subject extends \mia\miagroup\Lib\Service
         $blog_meta = []; //长文信息
         $items = []; //关联商品
         $labels = []; //关联标签
-        //封面图
-        if (!empty($param['cover_image'])) {
-            if (!empty($param['cover_image']['redirect_url'])) {
-                $param['cover_image']['redirect_url'] = str_replace('http://', 'https://', $param['cover_image']['redirect_url']);
-            }
-            if (strpos($param['cover_image']['url'], '@') !== false) {
-                $param['cover_image']['url'] = substr($param['cover_image']['url'], 0, strpos($param['cover_image']['url'], '@'));
-            }
-            $subject_info['ext_info']['cover_image'] = $param['cover_image'];
-        }
-        if (!empty($param['cover_image']) && $param['cover_image_hidden'] != 1) {
-            $param['cover_image']['is_cover'] = 1;
-            $blog_meta[] = ['blog_image' => $param['cover_image']];
-        }
-        //作者
-        if (intval($param['user_id']) > 0) {
-            $subject_info['user_info']['user_id'] = $param['user_id'];
-            if ($param['author_hidden'] != 1) {
-                $blog_meta[] = ['blog_user' => $param['user_id']];
-            }
-        }
         
-        //其他元素
+        //meta元素
         if (!empty($param['blog_meta'])) {
             $subject_info['text'] = '';
             $subject_info['ext_info']['is_blog'] = 1;
@@ -2374,6 +2354,30 @@ class Subject extends \mia\miagroup\Lib\Service
                         $blog_meta[] = ['blog_relate_user' => $v['blog_relate_user']];
                         break;
                 }
+            }
+        }
+        
+        if (!empty($blog_meta)) {
+            //作者
+            if (intval($param['user_id']) > 0) {
+                $subject_info['user_info']['user_id'] = $param['user_id'];
+                if ($param['author_hidden'] != 1) {
+                    array_unshift($blog_meta, ['blog_user' => $param['user_id']]);
+                }
+            }
+            //封面图
+            if (!empty($param['cover_image'])) {
+                if (!empty($param['cover_image']['redirect_url'])) {
+                    $param['cover_image']['redirect_url'] = str_replace('http://', 'https://', $param['cover_image']['redirect_url']);
+                }
+                if (strpos($param['cover_image']['url'], '@') !== false) {
+                    $param['cover_image']['url'] = substr($param['cover_image']['url'], 0, strpos($param['cover_image']['url'], '@'));
+                }
+                $subject_info['ext_info']['cover_image'] = $param['cover_image'];
+            }
+            if (!empty($param['cover_image']) && $param['cover_image_hidden'] != 1) {
+                $param['cover_image']['is_cover'] = 1;
+                array_unshift($blog_meta, ['blog_image' => $param['cover_image']]);
             }
         }
         if (!empty($param['status'])) {
