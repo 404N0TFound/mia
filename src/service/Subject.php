@@ -1050,7 +1050,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     if($activeUserRes){
                         return $this->error(1135);
                     }else{
-                        $redis->set($activeUserKey,1);
+                        $redis->setex($activeUserKey,1,\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_user.expire_time'));
                     }
                 }
             }
