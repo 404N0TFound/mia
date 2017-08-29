@@ -148,6 +148,9 @@ class UserNews extends DB_Query
         if (isset($conditions['source_id'])) {
             $where[] = ['source_id', $conditions['source_id']];
         }
+        if (isset($conditions['send_user'])) {
+            $where[] = ['send_user', $conditions['send_user']];
+        }
         if (isset($conditions['status'])) {
             $where[] = ['status', $conditions['status']];
         } else {

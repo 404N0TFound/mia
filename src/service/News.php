@@ -2036,6 +2036,33 @@ class News extends \mia\miagroup\Lib\Service
                 $ext_info['content'] = $content_info['content'];
                 break;
         }
+        //蜜芽圈防止重复导入，同人，同source_id，跳过
+        if (in_array($type, ['img_comment', 'img_like', 'follow', 'add_fine'])) {
+            switch ($type) {
+                case "img_comment"://img_comment  source_id 评论ID
+                case "img_like": //img_like source_id 点赞ID
+                case "add_fine"://add_fine  source_id 帖子ID
+                    $uniqueCondition = [
+                        'user_id' => $toUserId,
+                        'source_id' => $resourceId,
+                        'news_type' => $type
+                    ];
+                    break;
+                case "follow"://follow 无source_id  通过发送人去重
+                    $uniqueCondition = [
+                        'user_id' => $toUserId,
+                        'send_user' => $sendFromUserId,
+                        'news_type' => $type
+                    ];
+                    break;
+            }
+            //查询user_news_%d表
+            $uniqueRes = $this->newsModel->checkUnique($uniqueCondition);
+            if(!empty($uniqueRes)) {
+                return $this->error(500, '已经添加数据，无需重复添加！');
+            }
+        }
+
         if (isset($content_info['create_time'])) {
             $insert_data['create_time'] = $content_info['create_time'];
         } else {

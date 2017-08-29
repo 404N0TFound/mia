@@ -148,7 +148,7 @@ class ImportNews extends \FD_Daemon
                 if (!in_array($type, ['single'])) {
                     $content_info["news_id"] = $userNews["news_id"];//系统消息(批量消息)才有，单发的消息没有
                 }
-                //个人消息的自定义内容记录在ext_info里面，系统小心在系统消息表里面
+                //个人消息的自定义内容记录在ext_info里面，系统消息在系统消息表里面
                 if (in_array($type, ['single'])) {
                     if (!empty($newsArr[$userNews["news_id"]]['custom_title'])) {
                         $content_info["title"] = $newsArr[$userNews["news_id"]]['custom_title'];
