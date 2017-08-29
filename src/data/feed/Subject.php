@@ -23,7 +23,7 @@ class Subject extends \DB_Query
             $where[] = [':!=','title',' '];
         }
         if(isset($filter['subject_id']) && $filter['subject_id'] > 0){
-            $where[] = [':!=','subject_id',$filter['subject_id']];
+            $where[] = [':!=','id',$filter['subject_id']];
         }
         $data = $this->getRows($where, '*', $limit, $offset, 'created desc,id desc');
         $result = [];
