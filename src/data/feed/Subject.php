@@ -22,6 +22,9 @@ class Subject extends \DB_Query
         if(isset($filter['title_status']) && $filter['title_status'] == 1){
             $where[] = [':!=','title',' '];
         }
+        if(isset($filter['subject_id']) && $filter['subject_id'] > 0){
+            $where[] = [':!=','subject_id',$filter['subject_id']];
+        }
         $data = $this->getRows($where, '*', $limit, $offset, 'created desc,id desc');
         $result = [];
         foreach ($data as $key => $value) {

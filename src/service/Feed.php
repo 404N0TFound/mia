@@ -119,6 +119,12 @@ class Feed extends \mia\miagroup\Lib\Service {
             $count = 5;
             $filter['title_status'] = 1; //取轮播素材的时候需要过滤掉title为空的
         }
+        
+        //如果从频道页传入帖子id，取数据时将这个id过滤掉
+        if($referId > 0){
+            $filter['subject_id'] = $referId;
+        }
+        
         $userIds = array('7509553','13789824');
         $auditService = new \mia\miagroup\Service\Audit();
         foreach ($userIds as $key => $userId) {
@@ -130,8 +136,11 @@ class Feed extends \mia\miagroup\Lib\Service {
     
         //获取plus用户的帖子列表
         $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.material')];
+        if($page == 1  && intval($referId) > 0){
+            $count = $count - 1;
+        }
         $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source,$filter);
-        if(intval($referId) > 0){
+        if($page == 1 && intval($referId) > 0){
             array_unshift($subjectIds,$referId);
         }
         
