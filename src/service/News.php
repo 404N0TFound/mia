@@ -394,17 +394,21 @@ class News extends \mia\miagroup\Lib\Service
             if ($redis->exists($redis_key)) {
                 $score = strtotime($insert_data["create_time"]) . str_pad($insert_data['id'] % 100, 3, 0, STR_PAD_LEFT);
                 $redis->zAdd($redis_key, $score, $insert_data['id']);
+                $redis->expire($redis_key, $expire_time);
             }
             //首页redis，可以单插
             $redis->zAdd($redis_key_index, strtotime($insert_data["create_time"]), $showType . ":" . $insert_data['id']);
+            $redis->expire($redis_key_index, $expire_time_index);
         } else {
             //分类redis，cate列表存在才插入
             if ($redis->exists($redis_key)) {
                 $score = strtotime($insert_data["create_time"]) . str_pad($insertRes % 100, 3, 0, STR_PAD_LEFT);
                 $redis->zAdd($redis_key, $score, $insertRes);
+                $redis->expire($redis_key, $expire_time);
             }
             //首页redis，可以单插
             $redis->zAdd($redis_key_index, strtotime($insert_data["create_time"]), $showType . ":" . $insertRes);
+            $redis->expire($redis_key_index, $expire_time_index);
         }
         return $this->succ("发送成功");
     }
@@ -602,7 +606,7 @@ class News extends \mia\miagroup\Lib\Service
         }
         //redis取列表
         list($redis, $redis_key, $expire_time) = $this->getRedis("news_index", intval($userId));
-        $indexList = $redis->zRevRange($redis_key, 0, -1,true);
+        $indexList = $redis->zRevRange($redis_key, 0, -1, true);
 
         $existType = [];
         $newIndexList = [];
@@ -645,6 +649,7 @@ class News extends \mia\miagroup\Lib\Service
         }
 
         $indexNewsList = $this->formatNews(array_values($newsIds), $userId, 1);//计数在格式化模板是查询的
+
         //没有的补充空
         $news_index = $this->config["news_index"];
         foreach ($indexNewsList as $k=>$v) {
@@ -668,6 +673,8 @@ class News extends \mia\miagroup\Lib\Service
                 ]
             ];
         }
+
+
         //合并同类型
         //plus_interact plus_active 合并，计数相加
         //group_interact group_active 合并，计数相加
@@ -676,6 +683,7 @@ class News extends \mia\miagroup\Lib\Service
         $userType = $userInfo[$userId]["mia_user_type"];//2是plus
 
         $return = [];
+        //已经排好序了
         foreach ($indexNewsList as $val) {
             //非plus会员不显示
             if($userType != 2 && in_array($val['type'], ['plus_interact', 'plus_active'])) {
@@ -685,9 +693,6 @@ class News extends \mia\miagroup\Lib\Service
                 list($firstType, $secondType) = explode("_", $val['type']);
                 if (isset($return[$firstType])) {
                     $oldCount = $return[$firstType]['news_sub_category_template']['news_count'];
-                    if ($return[$firstType]['create_time'] < $val['create_time']) {
-                        $return[$firstType] = $val;
-                    }
                     $return[$firstType]['news_sub_category_template']['news_count'] = $oldCount + $val['news_sub_category_template']['news_count'];
                 } else {
                     $return[$firstType] = $val;
