@@ -27,7 +27,20 @@ class Order {
         if(empty($orderCodes)) {
             return [];
         }
-        $orderData = $this->orderData->getOrderItemInfo($orderCodes);
+        $conditions["order_code"] = $orderCodes;
+        $conditions["gather"] = "order_code";
+        $orderData = $this->orderData->getOrderItemInfo($conditions);
+        return $orderData;
+    }
+
+    public function getOrderSuperiorInfo($superiorCodes)
+    {
+        if(empty($superiorCodes)) {
+            return [];
+        }
+        $conditions["superior_order_code"] = $superiorCodes;
+        $conditions["gather"] = "superior_order_code";
+        $orderData = $this->orderData->getOrderItemInfo($conditions);
         return $orderData;
     }
 

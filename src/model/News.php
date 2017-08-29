@@ -238,6 +238,14 @@ class News
         return $res;
     }
 
+    /**
+     * 检查消息重复
+     */
+    public function checkUnique($uniqueCondition)
+    {
+        $res = $this->userNews->getNewsList($uniqueCondition);
+        return $res;
+    }
     /*=============5.7新版本消息end=============*/
 
 

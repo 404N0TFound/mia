@@ -9,6 +9,7 @@ use mia\miagroup\Service\Praise as praiseService;
 use mia\miagroup\Service\Subject as subjectService;
 use mia\miagroup\Service\UserRelation as userRelationService;
 use mia\miagroup\Lib\Redis;
+use mia\miagroup\Util\NormalUtil;
 
 class News extends \mia\miagroup\Lib\Service
 {
@@ -257,13 +258,19 @@ class News extends \mia\miagroup\Lib\Service
                 break;
             case "order_unpay":
             case "order_cancel":
+                $orderService = new Order();
+                $orderInfo = $orderService->getOrderSuperiorInfo([$source_id])['data'];
+                $ext_info["item_ids"] = $orderInfo[$source_id];
             case "order_send_out":
             case "order_delivery":
             case "order_auto_confirm":
+            case "order_received":
                 //item_id
-                $orderService = new Order();
-                $orderInfo = $orderService->getOrderItemInfo([$source_id])['data'];
-                $ext_info["item_ids"] = $orderInfo[$source_id];
+                if (empty($orderInfo)) {
+                    $orderService = new Order();
+                    $orderInfo = $orderService->getOrderItemInfo([$source_id])['data'];
+                    $ext_info["item_ids"] = $orderInfo[$source_id];
+                }
             case "return_audit_pass":
             case "return_audit_refuse":
             case "return_overdue":
@@ -283,6 +290,7 @@ class News extends \mia\miagroup\Lib\Service
                 }
                 //每个订单只有最新的一条信息，不需要按天合并
                 $lastNewsInfo = $this->newsModel->getLastNews($this->config["layer"]["trade"], $toUserId, $source_id, false)[0];
+
                 if (!empty($lastNewsInfo)) {
                     //更新
                     $insert_data['id'] = $lastNewsInfo['id'];
@@ -382,17 +390,25 @@ class News extends \mia\miagroup\Lib\Service
         list($redis, $redis_key, $expire_time) = $this->getRedis("cate_list", $showType . ":" . intval($insert_data["user_id"]));
         list($redis, $redis_key_index, $expire_time_index) = $this->getRedis("news_index", intval($insert_data["user_id"]));
         if (isset($insert_data["id"])) {
-            //分类redis
-            $score = strtotime($insert_data["create_time"]) . str_pad($insert_data['id'] % 100, 3, 0, STR_PAD_LEFT);
-            $redis->zAdd($redis_key, $score, $insert_data['id']);
-            //首页redis
+            //分类redis，cate列表存在才插入
+            if ($redis->exists($redis_key)) {
+                $score = strtotime($insert_data["create_time"]) . str_pad($insert_data['id'] % 100, 3, 0, STR_PAD_LEFT);
+                $redis->zAdd($redis_key, $score, $insert_data['id']);
+                $redis->expire($redis_key, $expire_time);
+            }
+            //首页redis，可以单插
             $redis->zAdd($redis_key_index, strtotime($insert_data["create_time"]), $showType . ":" . $insert_data['id']);
+            $redis->expire($redis_key_index, $expire_time_index);
         } else {
-            //分类redis
-            $score = strtotime($insert_data["create_time"]) . str_pad($insertRes % 100, 3, 0, STR_PAD_LEFT);
-            $redis->zAdd($redis_key, $score, $insertRes);
-            //首页redis
+            //分类redis，cate列表存在才插入
+            if ($redis->exists($redis_key)) {
+                $score = strtotime($insert_data["create_time"]) . str_pad($insertRes % 100, 3, 0, STR_PAD_LEFT);
+                $redis->zAdd($redis_key, $score, $insertRes);
+                $redis->expire($redis_key, $expire_time);
+            }
+            //首页redis，可以单插
             $redis->zAdd($redis_key_index, strtotime($insert_data["create_time"]), $showType . ":" . $insertRes);
+            $redis->expire($redis_key_index, $expire_time_index);
         }
         return $this->succ("发送成功");
     }
@@ -427,12 +443,21 @@ class News extends \mia\miagroup\Lib\Service
         $newsInfoRes = $this->formatNews($newsInfo["id"], $newsInfo["user_id"], 2, [$newsInfo]);
         $newsInfoRes = array_pop($newsInfoRes);
         $showType = $this->getAncestor($newsInfo['news_type'])["data"];
-
         switch ($showType) {
             case "trade":
+                //标题+正文，逗号间隔
+                $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"] . "，" . $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
+                $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
+                break;
             case "group_active":
             case "group_interact":
-                $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"].$newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
+                //标题+正文，空格间隔
+                if (!empty($newsInfoRes[$newsInfoRes["template_type"]]["user_info"])) {
+                    $group_title = $newsInfoRes[$newsInfoRes["template_type"]]["user_info"]["nickname"] ? $newsInfoRes[$newsInfoRes["template_type"]]["user_info"]["nickname"] : $newsInfoRes[$newsInfoRes["template_type"]]["user_info"]["username"];
+                } else {
+                    $group_title = $newsInfoRes[$newsInfoRes["template_type"]]["news_title"];
+                }
+                $content = $group_title . " " . $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
                 $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
                 //标题+正文
                 break;
@@ -446,7 +471,7 @@ class News extends \mia\miagroup\Lib\Service
             case "plus_active":
                 //只取消息正文
                 $content = $newsInfoRes[$newsInfoRes["template_type"]]["news_text"];
-            $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
+                $url = $newsInfoRes[$newsInfoRes["template_type"]]["redirect_url"];
                 break;
         }
         $pushService = new Push();
@@ -462,38 +487,16 @@ class News extends \mia\miagroup\Lib\Service
      */
     public function noReadCounts($userId)
     {
-        //total_count,group_count
-        list($redis, $redis_key, $expire_time) = $this->getRedis("news_count", intval($userId));
-
-        $total_check = 0;
-        $group_check = 0;
-        if ($redis->exists($redis_key)) {
-            if ($redis->hExists($redis_key, "total")) {
-                //取redis的total
-                $total_check = 1;
-                $total_count = $redis->hGet($redis_key, "total");
-            }
-            if ($redis->hExists($redis_key, "group_interact")) {
-                //取redis的group_interact
-                $group_check = 1;
-                $group_count = $redis->hGet($redis_key, "group_interact");
-            }
-        }
-        if ($total_check == 0) {
-            $total_count = $this->newsModel->getUserNewsCount($userId, ["total"]);
-            $redis->hSet($redis_key, "total", $total_count);
-            $redis->expire($redis_key, $expire_time);
+        $cateNum = [];
+        $showCate = $this->getShowCate()['data'];
+        foreach ($showCate as $cate) {
+            $cateNum[$cate] = $this->getCateNewsNum($cate, $userId);
         }
 
-        if ($group_check == 0) {
-            $group_count = $this->newsModel->getUserNewsCount($userId, $this->getAllChlidren("group_interact")['data']);
-            $redis->hSet($redis_key, "group_interact", $group_count);
-            $redis->expire($redis_key, $expire_time);
-        }
         //计算总数
         $return = [
-            "total_count" => $total_count,
-            "group_count" => $group_count,
+            "total_count" => array_sum($cateNum),
+            "group_count" => $cateNum['group_active'] + $cateNum['group_interact'],
         ];
         return $this->succ($return);
     }
@@ -513,26 +516,83 @@ class News extends \mia\miagroup\Lib\Service
             if ($redis->hExists($redis_key, $cate)) {
                 //取redis
                 if(in_array($cate,["group_active","plus_active","activity"])) {
-                    $expire_time = $redis->hGet($redis_key, $cate . "_time");
-                    if(time() < $expire_time) {
+                    $limitTime = $redis->hGet($redis_key, $cate . "_time");
+                    if(time() < $limitTime) {
                         //未到过期时间，可取
                         $num = $redis->hGet($redis_key, $cate);
                         return $num;
                     }
+                } else {
+                    $num = $redis->hGet($redis_key, $cate);
+                    return $num;
                 }
             }
         }
+
         $num = $this->newsModel->getUserNewsCount($userId, $this->getAllChlidren($cate)['data']);
         if (in_array($cate, ["group_active", "plus_active", "activity"])) {
             $redis->hSet($redis_key, $cate, $num);
             //当前时间之后的整10分钟时间
-            $expireTime = strtotime((date("Y-m-d H:") . (ceil(date("i") / 10) * 10) . ":00"));
-            $redis->hSet($redis_key, $cate . "_time", $expireTime);
+            $limitTime = strtotime((date("Y-m-d H:") . (ceil(date("i") / 10) * 10) . ":00"));
+            $redis->hSet($redis_key, $cate . "_time", $limitTime);
         } else {
             $redis->hSet($redis_key, $cate, $num);
         }
         $redis->expire($redis_key, $expire_time);
         return $num;
+    }
+
+    /**
+     * 蜜芽圈首页，消息框
+     */
+    public function groupNews($userId)
+    {
+        $groupNews = [
+            "count" => 0,
+            "text" => "",
+            "img" => "",
+            "url" => "",
+        ];
+        if (empty($userId)) {
+            return $this->succ($groupNews);
+        }
+        //先查询蜜芽圈消息计数，计数为空则不显示
+        $group_active_num = $this->getCateNewsNum("group_active", $userId);
+        $group_interact_num = $this->getCateNewsNum("group_interact", $userId);
+        $count = $group_active_num + $group_interact_num;
+
+        if ($count == 0) {
+            return $this->succ($groupNews);
+        }
+
+        //第一条
+        $res = $this->newsModel->getLastNews(array_merge($this->getAllChlidren("group_active")['data'], $this->getAllChlidren("group_interact")['data']), $userId, 0, false, [1]);
+        if(empty($res)){
+            return $this->succ($groupNews);
+        }
+        $newsId = $res[0]["id"];
+        $newsInfo = array_pop($this->formatNews([$newsId], $userId, 2));//计数在格式化模板是查询的
+
+        $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
+        if(isset($newsInfo['news_miagroup_template'])) {
+            $showCate = $this->getAncestor($newsInfo['type'])['data'];
+            //蜜芽圈动态
+            return $this->succ([
+                "count" => $count,
+                "text" => $newsInfo['news_miagroup_template']['news_text'],
+                "img" => $newsInfo['news_miagroup_template']['user_info']['icon'],
+                "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
+            ]);
+        } else {
+            //蜜芽兔
+            $showCate = $this->getAncestor($newsInfo['type'])['data'];
+            return $this->succ([
+                "count" => $count,
+                "text" => "蜜芽兔@了你",
+                "img" => \F_Ice::$ins->workApp->config->get('busconf.user.miaTuIcon'),
+                "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
+            ]);
+        }
     }
 
     /**
@@ -546,37 +606,50 @@ class News extends \mia\miagroup\Lib\Service
         }
         //redis取列表
         list($redis, $redis_key, $expire_time) = $this->getRedis("news_index", intval($userId));
-        $indexList = $redis->zRevRange($redis_key, 0, -1);
+        $indexList = $redis->zRevRange($redis_key, 0, -1, true);
 
-        if (empty($indexList)) {
-            //数据库查询，查询最新的分类下最新一条记录
-            $cateList = $this->getShowCate()['data'];
-            $tmp = [];
-            foreach ($cateList as $showCate) {
+        $existType = [];
+        $newIndexList = [];
+        if(!empty($indexList)) {
+            foreach ($indexList as $k=>$v) {
+                list($nType, $newsId) = explode(":", $k);
+                $existType[] = $nType;
+                $newIndexList[$v] = $k;
+            }
+        }
+
+        //数据库查询，查询分类下最新一条记录
+        $cateList = $this->getShowCate()['data'];
+        $tmp = [];
+        foreach ($cateList as $showCate) {
+            if (!in_array($showCate, $existType)) {
                 $res = $this->newsModel->getLastNews($this->getAllChlidren($showCate)['data'], $userId, 0, false, [1]);
-                if(!empty($res)) {
-                    $tmp[strtotime($res[0]["create_time"])] = $showCate.":".$res[0]["id"];
-                    $redis->zAdd($redis_key, strtotime($res[0]["create_time"]), $showCate.":".$res[0]["id"]);
+                if (!empty($res)) {
+                    $tmp[strtotime($res[0]["create_time"])] = $showCate . ":" . $res[0]["id"];
+                    $redis->zAdd($redis_key, strtotime($res[0]["create_time"]), $showCate . ":" . $res[0]["id"]);
                 }
             }
-            $redis->expire($redis_key, $expire_time);
-            //需要对查出的数据排序
-            krsort($tmp);
-            $indexList = array_values($tmp);
         }
+        $redis->expire($redis_key, $expire_time);
+        //需要对查出的数据排序
+        $newIndexList = $tmp + $newIndexList;
+        krsort($newIndexList);
+        $newIndexList = array_values($newIndexList);
+
 
         //查询列表信息
         $newsIds = [];
-        foreach ($indexList as $value) {
+        foreach ($newIndexList as $value) {
             list($type, $id) = explode(":", $value);
             if (!isset($newsIds[$type])) {
                 $newsIds[$type] = $id;
             } else {
-                $redis->zRem($redis_key, $value);
+                $redis->zRem($redis_key, $value);//因为发消息插入首页时，不检查是否攒在同类消息，类型会有重复type
             }
         }
 
-        $indexNewsList = $this->formatNews($newsIds, $userId, 1);//计数在格式化模板是查询的
+        $indexNewsList = $this->formatNews(array_values($newsIds), $userId, 1);//计数在格式化模板是查询的
+
         //没有的补充空
         $news_index = $this->config["news_index"];
         foreach ($indexNewsList as $k=>$v) {
@@ -584,6 +657,7 @@ class News extends \mia\miagroup\Lib\Service
                 unset($news_index[array_search($v['type'], $news_index)]);
             }
         }
+
         foreach ($news_index as $need) {
             $indexNewsList[] = [
                 "id" => "",
@@ -591,14 +665,16 @@ class News extends \mia\miagroup\Lib\Service
                 "type" => $need,
                 "create_time" => "",
                 "news_sub_category_template" => [
-                    "news_title" => "",
-                    "news_text" => "",
-                    "news_image_url" => "https=>//img.miyabaobei.com/d1/p5/2017/08/07/97/bf/97bfe0ed2dadd261ab97390ecab08e5a727857932.png",
+                    "news_title" => $this->config["new_index_title"][$need],
+                    "news_text" => "暂无消息",
+                    "news_image_url" => $this->config["new_index_img"][$need],
                     "news_count" => 0,
-                    "redirect_url" => "miyabaobei=>//message_category?category=" . $need,
+                    "redirect_url" => $this->config["new_index_url"][$need],
                 ]
             ];
         }
+
+
         //合并同类型
         //plus_interact plus_active 合并，计数相加
         //group_interact group_active 合并，计数相加
@@ -607,6 +683,7 @@ class News extends \mia\miagroup\Lib\Service
         $userType = $userInfo[$userId]["mia_user_type"];//2是plus
 
         $return = [];
+        //已经排好序了
         foreach ($indexNewsList as $val) {
             //非plus会员不显示
             if($userType != 2 && in_array($val['type'], ['plus_interact', 'plus_active'])) {
@@ -616,9 +693,6 @@ class News extends \mia\miagroup\Lib\Service
                 list($firstType, $secondType) = explode("_", $val['type']);
                 if (isset($return[$firstType])) {
                     $oldCount = $return[$firstType]['news_sub_category_template']['news_count'];
-                    if ($return[$firstType]['create_time'] < $val['create_time']) {
-                        $return[$firstType] = $val;
-                    }
                     $return[$firstType]['news_sub_category_template']['news_count'] = $oldCount + $val['news_sub_category_template']['news_count'];
                 } else {
                     $return[$firstType] = $val;
@@ -627,7 +701,7 @@ class News extends \mia\miagroup\Lib\Service
                 $return[$val['type']] = $val;
             }
         }
-        return $this->succ(array_values($return));
+        return $this->succ(["news_list" => array_values($return)]);
     }
 
     /**
@@ -644,10 +718,12 @@ class News extends \mia\miagroup\Lib\Service
         $pageLimit = $this->config['page_limit'];
 
         list($redis, $redis_key, $expire_time) = $this->getRedis("cate_list", $category.":".intval($userId));
-        if(empty($offset)) {
-            $newsScoreArr = $redis->zRevRange($redis_key, 0, -1, true);
+
+        if (empty($offset)) {
+            $newsScoreArr = $redis->zRevRange($redis_key, 0, $pageLimit - 1, true);
         } else {
-            $newsScoreArr = $redis->zRevRangeByScore($redis_key, $offset, 0, array('withscores' => TRUE,'limit' => array(1, $pageLimit)));
+            //key max min [WITHSCORES] [LIMIT offset count]
+            $newsScoreArr = $redis->zRevRangeByScore($redis_key, $offset, 0, array('withscores' => TRUE, 'limit' => array(1, $pageLimit)));
         }
 
         if (!empty($newsScoreArr)) {
@@ -668,7 +744,7 @@ class News extends \mia\miagroup\Lib\Service
                 $redis->zAdd($redis_key, $score, $val['id']);
                 $newsScoreArr[$val['id']] = $score;
             }
-            //后台缓存的消息列表，缓存时间20分钟，此时列表有，但是计数没增加
+            //下一个整10分钟过期
             if (in_array($category, ["activity", "group_active", "plus_active"])) {
                 $expireTime = strtotime((date("Y-m-d H:") . (ceil(date("i") / 10) * 10) . ":00"));
                 $redis->expireAt($redis_key, $expireTime);
@@ -718,9 +794,9 @@ class News extends \mia\miagroup\Lib\Service
         if (!in_array($type, $this->config["sub_type"]["all"])) {
             $subArr[] = [
                 "tab_title" => "",
-                "category" => "",
-                "is_current" => "",
-                "news_count" => "",
+                "category" => $type,
+                "is_current" => 1,
+                "news_count" => 0,
             ];
         } else {
             $subArr[] = [
@@ -730,12 +806,18 @@ class News extends \mia\miagroup\Lib\Service
                 "news_count" => $this->getCateNewsNum($type, $userId),
             ];
             foreach ($this->config["sub_type"][$type]["equal_level"] as $val) {
-                $subArr[] = [
+                $sub = [
                     "tab_title" => $val["name"],
                     "category" => $val["type"],
                     "is_current" => 0,
                     "news_count" => $this->getCateNewsNum($val["type"], $userId),
                 ];
+                if($val["position"]) {
+                    //后
+                    array_push($subArr, $sub);
+                } else {
+                    $subArr = array_merge([$sub],$subArr);
+                }
             }
         }
         return $subArr;
@@ -779,14 +861,19 @@ class News extends \mia\miagroup\Lib\Service
                 case "order_send_out":
                 case "order_delivery":
                 case "order_auto_confirm":
+                case "order_received":
                     //收集item_id
-                    $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
+                    if(!empty($val["ext_info"]["item_ids"])) {
+                        $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
+                    }
                     break;
                 case "return_audit_pass":
                 case "return_audit_refuse":
                 case "return_overdue":
                     //收集item_id
-                    $itemIds = array_merge($itemIds,$val["ext_info"]["item_ids"]);
+                    if(!empty($val["ext_info"]["item_ids"])) {
+                        $itemIds = array_merge($itemIds, $val["ext_info"]["item_ids"]);
+                    }
                     break;
                 case "refund_success":
                 case "refund_fail":
@@ -871,7 +958,7 @@ class News extends \mia\miagroup\Lib\Service
             }
             $tmp['template_type'] = $this->getTemplate($newShowType)['data'];//模板读配置
             $tmp['type'] = $newShowType;//展示分类
-            $tmp['create_time'] = $newsInfo['create_time'];//展示分类
+            $tmp['create_time'] = NormalUtil::formatNewsDate($newsInfo['create_time'], $tmp['template_type']);//展示分类
             $tmp[$tmp['template_type']] = $this->singleTemplate($tmp['template_type'], $newsInfo, $newShowType,$userId);
             $formatList[] = $tmp;
         }
@@ -883,9 +970,36 @@ class News extends \mia\miagroup\Lib\Service
     {
         switch ($templateType) {
             case "news_sub_category_template"://站内信子分类模板
+                $newsInfoRes = $this->getNewsContent($newsInfo);
+                switch ($showType) {
+                    case "trade":
+                        //标题+正文，逗号间隔
+                        $text = $newsInfoRes["title"] . "，" . $newsInfoRes["text"];
+                        break;
+                    case "group_active":
+                    case "group_interact":
+                        //标题+正文，空格间隔
+                        if(!empty($newsInfoRes["user_info"])) {
+                            $group_title = $newsInfoRes["user_info"]["nickname"]?$newsInfoRes["user_info"]["nickname"]:$newsInfoRes["user_info"]["username"];
+                        } else {
+                            $group_title = $newsInfoRes["title"];
+                        }
+                        $text = $group_title . " " . $newsInfoRes["text"];
+                        break;
+                    case "plus_interact":
+                        //只取消息标题
+                        $text = $newsInfoRes["title"];
+                        break;
+                    case "activity":
+                    case "property":
+                    case "plus_active":
+                        //只取消息正文
+                        $text = $newsInfoRes["text"];
+                        break;
+                }
                 $resArr = [
                     "news_title" => $this->config['new_index_title'][$showType],
-                    "news_text" => $this->getNewsContent($newsInfo)["text"],
+                    "news_text" => $text,
                     "news_image_url" => $this->config['new_index_img'][$showType],
                     "news_count" => $this->getCateNewsNum($showType, $userId),
                     "redirect_url" => $this->config['new_index_url'][$showType],
@@ -893,10 +1007,15 @@ class News extends \mia\miagroup\Lib\Service
                 break;
             case "news_text_pic_template"://站内信图文模板
                 $newsInfoRes = $this->getNewsContent($newsInfo);
+                if (is_array($newsInfoRes["image"])) {
+                    $image_res = $newsInfoRes["image"];
+                } else {
+                    $image_res["url"] = $newsInfoRes["image"];
+                }
                 $resArr = [
                     "news_title" => $newsInfoRes["title"],
                     "news_text" => $newsInfoRes["text"],
-                    "news_image" => $newsInfoRes["image"],
+                    "news_image" => $image_res,
                     "mark_icon_type" => $newsInfoRes["icon"],
                     "redirect_url" => $newsInfoRes["url"],
                 ];
@@ -911,9 +1030,14 @@ class News extends \mia\miagroup\Lib\Service
                 break;
             case "news_banner_template"://站内信banner模板
                 $newsInfoRes = $this->getNewsContent($newsInfo);
+                if (is_array($newsInfoRes["image"])) {
+                    $image_res = $newsInfoRes["image"];
+                } else {
+                    $image_res["url"] = $newsInfoRes["image"];
+                }
                 $resArr = [
                     "news_text" => $newsInfoRes["text"],
-                    "news_image" => $newsInfoRes["image"],
+                    "news_image" => $image_res,
                     "news_title" => $newsInfoRes["title"],
                     "redirect_url" => $newsInfoRes["url"],
                 ];
@@ -947,7 +1071,11 @@ class News extends \mia\miagroup\Lib\Service
         $url = "";
         $userInfo = [];
         $refer_text = "";
-        $refer_img = [];
+        $refer_img = [
+            "url" => "",
+            "width" => 0,
+            "height" => 0
+        ];
         $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
         switch ($newsInfo['news_type']) {
             case "order":
@@ -955,31 +1083,31 @@ class News extends \mia\miagroup\Lib\Service
                 $url = sprintf($app_mapping_config['order_list'], 0, 3);
                 break;
             case "order_unpay":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品付款后会尽快为您发货";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品付款后会尽快为您发货";
                 $title = "订单".$newsInfo["source_id"]."未付款";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_list'], 0, 1);
                 break;
             case "order_cancel":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品未能及时付款被取消啦";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品未能及时付款被取消啦";
                 $title = "订单".$newsInfo["source_id"]."已取消";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
-                $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
+                $url = sprintf($app_mapping_config['order_list'], 0, 0);
                 break;
             case "order_send_out":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品发货啦";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品发货啦";
                 $title = "订单".$newsInfo["source_id"]."已发货";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
                 break;
             case "order_delivery":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品开始派送";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品开始派送";
                 $title = "订单".$newsInfo["source_id"]."开始派送";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
                 break;
             case "order_received":
-                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($this->orderInfo[$newsInfo["source_id"]])."件商品已到，评价晒单得蜜豆哟~";
+                $text = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_name"]."共".count($newsInfo["ext_info"]["item_ids"])."件商品已到，评价晒单得蜜豆哟~";
                 $title = "订单".$newsInfo["source_id"]."已签收";
                 $image = $this->itemInfo[$newsInfo["ext_info"]["item_ids"][0]]["item_img"];
                 $url = sprintf($app_mapping_config['order_detail'], $newsInfo["source_id"]);
@@ -1053,13 +1181,16 @@ class News extends \mia\miagroup\Lib\Service
                 $refer_text = $this->subjectInfo[$newsInfo["ext_info"]["subject_id"]]["text"];
                 $image = $this->subjectInfo[$newsInfo["ext_info"]["subject_id"]]["cover_image"]["url"];
                 //cover替换koubeilist样式
-                $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
-                preg_match($pattern, $image, $match);
-                $refer_img = [
-                    "url" => $match[1] . "@style@koubeilist",
-                    "width" => 320,
-                    "height" => 320
-                ];
+                if(!empty($image)) {
+                    $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
+                    preg_match($pattern, $image, $match);
+                    $refer_img = [
+                        "url" => $match[1] . "@style@koubeilist",
+                        "width" => 320,
+                        "height" => 320
+                    ];
+                }
+                $userInfo = $this->userInfo[$newsInfo['send_user']];
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
                 $title = "您的帖子被加精，奉上50蜜豆";
@@ -1067,13 +1198,15 @@ class News extends \mia\miagroup\Lib\Service
                 $text = $this->subjectInfo[$newsInfo["source_id"]]["text"];
                 $image = $this->subjectInfo[$newsInfo["source_id"]]["cover_image"]["url"];
                 //cover替换koubeilist样式
-                $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
-                preg_match($pattern, $image, $match);
-                $image = [
-                    "url" => $match[1] . "@style@koubeilist",
-                    "width" => 320,
-                    "height" => 320
-                ];
+                if(!empty($image)) {
+                    $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
+                    preg_match($pattern, $image, $match);
+                    $image = [
+                        "url" => $match[1] . "@style@koubeilist",
+                        "width" => 320,
+                        "height" => 320
+                    ];
+                }
                 $icon = "essence";
                 break;
             case "img_like"://点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
@@ -1134,6 +1267,7 @@ class News extends \mia\miagroup\Lib\Service
         }
         return ["text" => $text, "title" => $title, "image" => $image, "icon" => $icon, "url" => $url, 'user_info' => $userInfo, 'refer_text' => $refer_text, 'refer_img' => $refer_img];
     }
+
 
     /**
      * 根据id，查询用户news列表
@@ -1257,7 +1391,7 @@ class News extends \mia\miagroup\Lib\Service
      */
     public function pushSet($userId, $type, $value)
     {
-        if (empty($userId) || empty($userId) || empty($userId)) {
+        if (!in_array(intval($value), [0, 1]) || !array_key_exists($type, $this->config["push_setting_list"]) || empty($userId)) {
             return $this->error("500", "参数不合法");
         }
         //查找是否存在
@@ -1902,6 +2036,33 @@ class News extends \mia\miagroup\Lib\Service
                 $ext_info['content'] = $content_info['content'];
                 break;
         }
+        //蜜芽圈防止重复导入，同人，同source_id，跳过
+        if (in_array($type, ['img_comment', 'img_like', 'follow', 'add_fine'])) {
+            switch ($type) {
+                case "img_comment"://img_comment  source_id 评论ID
+                case "img_like": //img_like source_id 点赞ID
+                case "add_fine"://add_fine  source_id 帖子ID
+                    $uniqueCondition = [
+                        'user_id' => $toUserId,
+                        'source_id' => $resourceId,
+                        'news_type' => $type
+                    ];
+                    break;
+                case "follow"://follow 无source_id  通过发送人去重
+                    $uniqueCondition = [
+                        'user_id' => $toUserId,
+                        'send_user' => $sendFromUserId,
+                        'news_type' => $type
+                    ];
+                    break;
+            }
+            //查询user_news_%d表
+            $uniqueRes = $this->newsModel->checkUnique($uniqueCondition);
+            if(!empty($uniqueRes)) {
+                return $this->error(500, '已经添加数据，无需重复添加！');
+            }
+        }
+
         if (isset($content_info['create_time'])) {
             $insert_data['create_time'] = $content_info['create_time'];
         } else {

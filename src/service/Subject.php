@@ -2069,7 +2069,8 @@ class Subject extends \mia\miagroup\Lib\Service
         if(!empty($res) && is_array($res)) {
             $subjectIds = array_column($res, 'source_id');
         }
-        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
+        $fields = ['user_info', 'count', 'content_format', 'album', 'item'];
+        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId, $fields)['data'];
         $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
         return $this->succ($data);
     }
@@ -2447,7 +2448,10 @@ class Subject extends \mia\miagroup\Lib\Service
         $condition['source'] = $this->config['source']['material'];
 
         // 获取用户发布素材总数
-        $user_material_ids = $this->subjectModel->getUserMaterialIds($item_ids, $userId, 0, 0, $condition);
+        $user_material_ids = [];
+        if(!empty($userId)) {
+            $user_material_ids = $this->subjectModel->getUserMaterialIds($item_ids, $userId, 0, 0, $condition);
+        }
         if(empty($user_material_ids)) {
             // 获取精选推荐列表
             $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $page, $count, $userId)['data'];
@@ -2469,8 +2473,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }else {
                 // 获取精选推荐列表
-                $reco_page = $page - $user_page;
-                $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $reco_page, $count, $userId)['data'];
+                $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $page, $count, $userId)['data'];
             }
         }
         if(empty($subjectIds)) {
@@ -2479,7 +2482,7 @@ class Subject extends \mia\miagroup\Lib\Service
 
         // 批量获取素材信息
         $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item'])['data'];
-        $koubei_res['koubei_info'] = $material_infos;
+        $koubei_res['koubei_info'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
 
@@ -2489,7 +2492,7 @@ class Subject extends \mia\miagroup\Lib\Service
     public function getUserMaterialList($userId, $page = 1, $count = 20)
     {
 
-        $user_materials = array("lists" => array());
+        $user_materials = array("subject_lists" => array());
         if (empty($userId)) {
             return $this->succ($user_materials);
         }
@@ -2499,7 +2502,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($user_material_infos)) {
             return $this->succ($user_materials);
         }
-        $user_materials['lists'] = $user_material_infos['subject_lists'];
+        $user_materials['subject_lists'] = $user_material_infos['subject_lists'];
         return $this->succ($user_materials);
     }
 
@@ -2538,7 +2541,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
         $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
-        $koubei_res['koubei_info'] = $material_infos;
+        $koubei_res['subject_lists'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
 
@@ -2569,7 +2572,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $where[] = ['user_id', $userId];
         $where[] = ['source_id', $source_id];
         $where[] = ['source_type', $source_type];
-        $result = $this->subjectModel->insertSubjectDownload($userId, $source_id, $source_type);
+        $result = $this->subjectModel->insertSubjectDownload($source_id, $source_type, $userId);
         if(!empty($result)) {
             $res["status"] = true;
         }
