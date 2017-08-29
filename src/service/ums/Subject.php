@@ -326,6 +326,10 @@ class Subject extends \mia\miagroup\Lib\Service {
         $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'praise_num'])['data'];
         $total_praise_num = $solrData['facets']['sum'];
 
+        // 总浏览数
+        $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'view_num'])['data'];
+        $total_view_num = $solrData['facets']['sum'];
+
         // 总数据查询
         $solrData = $solr->getSeniorSolrSearch($solrParams, 'id', $page, $limit)['data'];
         $success = $solrData['responseHeader']['status'];
@@ -340,6 +344,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         $result['total_users'] = !empty($total_users) ? $total_users: 0;
         $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
         $result['total_praise_num'] = !empty($total_praise_num) ? $total_praise_num: 0;
+        $result['total_view_num'] = !empty($total_view_num) ? $total_view_num: 0;
         return $this->succ($result);
     }
     
