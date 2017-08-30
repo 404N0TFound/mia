@@ -206,6 +206,10 @@ $userKey = [
         'key' => $userServicePrefix . 'user_hot_subjects_%s',
         'expire_time' => 86400 * 30,
     ],
+    'user_attention_dubious' => [//可疑用户关注限制，使用String数据结构
+        'key' => $userServicePrefix . 'attention_dubious_%s',
+        'expire_time' => 60,
+    ],
 ];
 
 //标签相关rediskey
