@@ -2036,32 +2036,6 @@ class News extends \mia\miagroup\Lib\Service
                 $ext_info['content'] = $content_info['content'];
                 break;
         }
-        //蜜芽圈防止重复导入，同人，同source_id，跳过
-        if (in_array($type, ['img_comment', 'img_like', 'follow', 'add_fine'])) {
-            switch ($type) {
-                case "img_comment"://img_comment  source_id 评论ID
-                case "img_like": //img_like source_id 点赞ID
-                case "add_fine"://add_fine  source_id 帖子ID
-                    $uniqueCondition = [
-                        'user_id' => $toUserId,
-                        'source_id' => $resourceId,
-                        'news_type' => $type
-                    ];
-                    break;
-                case "follow"://follow 无source_id  通过发送人去重
-                    $uniqueCondition = [
-                        'user_id' => $toUserId,
-                        'send_user' => $sendFromUserId,
-                        'news_type' => $type
-                    ];
-                    break;
-            }
-            //查询user_news_%d表
-            $uniqueRes = $this->newsModel->checkUnique($uniqueCondition);
-            if(!empty($uniqueRes)) {
-                return $this->error(500, '已经添加数据，无需重复添加！');
-            }
-        }
 
         if (isset($content_info['create_time'])) {
             $insert_data['create_time'] = $content_info['create_time'];
@@ -2080,9 +2054,42 @@ class News extends \mia\miagroup\Lib\Service
         if (isset($content_info['status'])) {
             $insert_data['status'] = $content_info['status'];
         }
-
         if (!empty($ext_info)) {
             $insert_data['ext_info'] = json_encode($ext_info);
+        }
+        //蜜芽圈防止重复导入 || 系统消息防止重复
+        if (in_array($type, ['custom','group_custom','img_comment', 'img_like', 'follow', 'add_fine'])) {
+            switch ($type) {
+                case "img_comment"://img_comment  source_id 评论ID
+                case "img_like": //img_like source_id 点赞ID
+                case "add_fine"://add_fine  source_id 帖子ID
+                    $uniqueCondition = [
+                        'user_id' => $toUserId,
+                        'source_id' => $resourceId,
+                        'news_type' => $type
+                    ];
+                    break;
+                case "follow"://follow 无source_id  通过发送人去重
+                    $uniqueCondition = [
+                        'user_id' => $toUserId,
+                        'send_user' => $sendFromUserId,
+                        'news_type' => $type
+                    ];
+                    break;
+                case "custom":
+                case "group_custom":
+                    $uniqueCondition = [
+                        'user_id' => $toUserId,
+                        'news_id' => $insert_data['news_id'],
+                        'news_type' => $type
+                    ];
+                    break;
+            }
+            //查询user_news_%d表
+            $uniqueRes = $this->newsModel->checkUnique($uniqueCondition);
+            if(!empty($uniqueRes)) {
+                return $this->error(500, '已经添加数据，无需重复添加！');
+            }
         }
         //添加消息
         $insertRes = $this->newsModel->addUserNews($insert_data, $type);
