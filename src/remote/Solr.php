@@ -1021,6 +1021,12 @@ class Solr
                         // 存在负值，单独处理
                         $where['fq'][]   = 'status:"'.$v.'"';
                         break;
+                    case 'item_id':
+                        $where['fq'][] = 'goods:'.$v;
+                        break;
+                    case 'brand_id':
+                        $where['fq'][] = 'brand:'.$v;
+                        break;
                     default:
                         if(is_array($v)) {
                             $where['fq'][]   = $k.":(". implode(' OR ', $v) . ")";
