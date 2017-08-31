@@ -67,8 +67,10 @@ class UserRelation extends \mia\miagroup\Lib\Service {
     
     /**
      * 关注用户
-     * @param 关注人 $userId
-     * @param 被关注人 $toUserId
+     * @param  $userId int 关注人
+     * @param  $relationUserId int 被关注人
+     * @param $source int 1是用户关注 2是注册程序关注
+     * @return
      */
     public function addRelation($userId, $relationUserId, $source = 1)
     {
@@ -133,10 +135,27 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             $news = new \mia\miagroup\Service\News();
             $sendMsgRes = $news->addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId)['data'];
         }
-        
         return $this->succ($userRelation);
     }
-    
+
+    /**
+     * 自动关注
+     * @param $userId
+     * @return mixed
+     */
+    public function addAutoFollow($userId)
+    {
+        if (empty(intval($userId))) {
+            return $this->succ([]);
+        }
+        $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.user.register_auto_follow');
+        foreach ($autoFollow as $relationUid) {
+            $this->userRelationModel->addRelation($userId, $relationUid, 2);
+        }
+        return $this->succ([]);
+    }
+
+
     /**
      * 取消关注
      */
