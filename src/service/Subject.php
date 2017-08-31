@@ -2449,5 +2449,45 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         return $this->succ($res);
     }
+
+
+
+    /*
+     * 批量标记素材
+     * */
+    public function batchMarkMaterial($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return $this->error(500);
+        }
+        $result = ['flag' => false];
+        // 获取帖子信息
+        $subjectInfos = $this->getBatchSubjectInfos($subjectIds, 0, ['item'])['data'];
+        if(empty($subjectInfos)) {
+            return $this->succ($result);
+        }
+        // 素材类型标识
+        foreach($subjectInfos as $subject_id => $info) {
+            $imageCount = $textCount = 0;
+            if(!empty($info['image_url'])){
+                $imageCount = count($info['image_url']);
+            }
+            if(!empty($info['text'])) {
+                $textCount = mb_strlen(trim($info['text']), 'utf-8');
+            }
+            // 条件过滤
+            if($textCount < 20 || $imageCount < 3 || empty($info['items'])) {
+                continue;
+            }
+            //更新帖子扩展字段
+            $setData = [];
+            $setData['ext_info']['is_material'] = 1;
+            $res = $this->updateSubject($subject_id, $setData)['data'];
+        }
+        if(!empty($res)) {
+            $result['flag'] = true;
+        }
+        return $this->succ($result);
+    }
     
 }

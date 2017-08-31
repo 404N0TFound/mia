@@ -112,10 +112,23 @@ class Subject extends \mia\miagroup\Lib\Service {
         }
         $subjectService = new SubjectService();
         $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('item', 'album','group_labels','count', 'share_info'), array())['data'];
-        $userIds = array();
+        $userIds = $koubeiIds = array();
         foreach ($subjectInfos as $v) {
             if (intval($v['user_id']) > 0) {
                 $userIds[] = $v['user_id'];
+            }
+            if(intval($v['koubei_id'] > 0)) {
+                $koubeiIds[] = $v['koubei_id'];
+            }
+        }
+        $koubeiInfo = $handleKoubei = [];
+        if(!empty($params['source']) && $params['source'] == 2) {
+            // 获取口碑加精信息
+            $koubeiInfo = $this->koubeiModel->getKoubeiData(['status'=>2,'id'=>$koubeiIds])['list'];
+        }
+        if(!empty($koubeiInfo)) {
+            foreach($koubeiInfo as $koubei) {
+                $handleKoubei[$koubei['id']] = $koubei;
             }
         }
         $userService = new UserService();
@@ -124,6 +137,13 @@ class Subject extends \mia\miagroup\Lib\Service {
             $tmp = $v;
             $tmp['subject'] = $subjectInfos[$v['subject_id']];
             $tmp['subject']['user_info'] = $userInfos[$v['user_id']];
+            if($v['source'] == 2) {
+                $ext_info = json_decode($v['ext_info'], true);
+                if(!empty($ext_info)) {
+                    $koubei_id = $ext_info['koubei']['id'];
+                    $tmp['rank'] = $handleKoubei[$koubei_id]['rank'];
+                }
+            }
             $result['list'][] = $tmp;
         }
         $result['count'] = $data['count'];
@@ -220,7 +240,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //帖子状态
             $solrParams['status'] = $data['status'];
         }
-        if ($data['source'] !== null && $data['source'] !== '' && in_array($data['source'], array(0, 1, 2, 4)) && intval($data['id']) <= 0) {
+        if ($data['source'] !== null && $data['source'] !== '' && in_array($data['source'], array(0, 1, 2, 4))) {
             //帖子来源
             if($data['source'] == 0){
                 $data['source'] = array(1, 2, 4);
@@ -234,6 +254,10 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (intval($data['item_id']) > 0 && intval($data['id']) <= 0) {
             //商品ID
             $solrParams['item_id'] = $data['item_id'];
+        }
+        if (intval($data['brand_id']) > 0 && intval($data['id']) <= 0) {
+            //品牌ID
+            $solrParams['brand_id'] = $data['brand_id'];
         }
         if (strtotime($data['start_time']) > 0 && intval($data['id']) <= 0) {
             //起始时间
@@ -339,7 +363,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             return $this->succ($subjectInfos);
         }
         $subject_ids = array_column($success_data, 'id');
-        $result['list'] = $this->getSubjectList(['id' => $subject_ids, 'limit' => $limit])['data']['list'];
+        $result['list'] = $this->getSubjectList(['id' => $subject_ids, 'source' => $solrParams['source'], 'limit' => $limit])['data']['list'];
         $result['count'] = !empty($total_count) ? $total_count : 0;
         $result['total_users'] = !empty($total_users) ? $total_users: 0;
         $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
