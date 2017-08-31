@@ -366,9 +366,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         $result['list'] = $this->getSubjectList(['id' => $subject_ids, 'source' => $solrParams['source'], 'limit' => $limit])['data']['list'];
         $result['count'] = !empty($total_count) ? $total_count : 0;
         $result['total_users'] = !empty($total_users) ? $total_users: 0;
-        $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
-        $result['total_praise_num'] = !empty($total_praise_num) ? $total_praise_num: 0;
-        $result['total_view_num'] = !empty($total_view_num) ? $total_view_num: 0;
+        $result['total_comment_num'] = !empty($total_comment_num) ? (string)$total_comment_num: '';
+        $result['total_praise_num'] = !empty($total_praise_num) ? (string)$total_praise_num: '';
+        $result['total_view_num'] = !empty($total_view_num) ? (string)$total_view_num: '';
         return $this->succ($result);
     }
     
