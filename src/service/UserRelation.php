@@ -1,8 +1,11 @@
 <?php
 namespace mia\miagroup\Service;
 
+use \F_Ice;
 use mia\miagroup\Model\UserRelation as UserRelationModel;
 use mia\miagroup\Service\User as UserService;
+use mia\miagroup\Lib\Redis;
+use mia\miagroup\Util\NormalUtil;
 
 class UserRelation extends \mia\miagroup\Lib\Service {
 
@@ -64,8 +67,10 @@ class UserRelation extends \mia\miagroup\Lib\Service {
     
     /**
      * 关注用户
-     * @param 关注人 $userId
-     * @param 被关注人 $toUserId
+     * @param  $userId int 关注人
+     * @param  $relationUserId int 被关注人
+     * @param $source int 1是用户关注 2是注册程序关注
+     * @return
      */
     public function addRelation($userId, $relationUserId, $source = 1)
     {
@@ -86,9 +91,31 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             $isFirst = false;
         }
         //$isFirst = $data === false ? true : false;
-        
-        //加关注
-        $userRelation = $this->userRelationModel->addRelation($userId,$relationUserId, $source);
+        //用户每分钟只能关注5次
+        $userRelationKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_attention_dubious.key'),$userId);
+        $redis = new Redis();
+        //判断是否加过关注
+        $checkAttention = $redis->exists($userRelationKey);
+        if($checkAttention){
+            //获取关注次数
+            $count = $redis->get($userRelationKey);
+            //如果关注计数超过5，则报错提示
+            if($count >= 5){
+                return $this->error(1303);
+            }else{
+                //加关注
+                $userRelation = $this->userRelationModel->addRelation($userId,$relationUserId, $source);
+                //计数
+                $redis->incr($userRelationKey);
+            }
+        }else{
+            //加关注
+            $userRelation = $this->userRelationModel->addRelation($userId,$relationUserId, $source);
+            //计数
+            $redis->incr($userRelationKey);
+            //限制时间为60秒
+            $redis->expire($userRelationKey,60);
+        }
 
         if ($relationUserId != 1026069 && $source == 1 && $isFirst) { //蜜芽小天使账号不赠送蜜豆，不接收消息
             //送蜜豆
@@ -110,10 +137,27 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             $news->addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId)['data'];
             $news->postMessage("follow", $toUserId, $sendFromUserId);
         }
-        
         return $this->succ($userRelation);
     }
-    
+
+    /**
+     * 自动关注
+     * @param $userId
+     * @return mixed
+     */
+    public function addAutoFollow($userId)
+    {
+        if (empty(intval($userId))) {
+            return $this->succ([]);
+        }
+        $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.user.register_auto_follow');
+        foreach ($autoFollow as $relationUid) {
+            $this->userRelationModel->addRelation($userId, $relationUid, 2);
+        }
+        return $this->succ([]);
+    }
+
+
     /**
      * 取消关注
      */

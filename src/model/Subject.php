@@ -308,16 +308,6 @@ class Subject {
      }
      
      /**
-      * 删除帖子
-      * @param unknown $subjectId
-      * @param unknown $userId
-      */
-     public function delete($subjectId, $userId){
-         $affect = $this->subjectData->delete($subjectId, $userId);
-         return $affect;
-     }
-     
-     /**
       * 精选帖子的ids
       * @param int $iPage 页码
       * @param int $iPageSize 一页多少个

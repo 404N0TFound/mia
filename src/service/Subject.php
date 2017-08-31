@@ -406,7 +406,6 @@ class Subject extends \mia\miagroup\Lib\Service
             $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
             $viewCounts = $this->getBatchSubjectViewCount($subjectIds)['data'];
             $collectCounts = $this->getBatchSubjectCollectCount($subjectIds)['data'];
-            $downloadCounts = $this->getBatchSubjectDownloadCount($subjectIds)['data'];
         }
         // 获取赞用户
         if (in_array('praise_info', $field)) {
@@ -634,7 +633,6 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['fancied_count'] = intval($praiseCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['view_count'] = intval($viewCounts[$subjectInfo['id']]);
                 $subjectRes[$subjectInfo['id']]['collect_count'] = intval($collectCounts[$subjectInfo['id']]);
-                $subjectRes[$subjectInfo['id']]['download_count'] = intval($downloadCounts[$subjectInfo['id']]);
             }
             if (in_array('praise_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['praise_user_info'] = is_array($praiseInfos[$subjectInfo['id']]) ? array_values($praiseInfos[$subjectInfo['id']]) : array();
@@ -683,6 +681,9 @@ class Subject extends \mia\miagroup\Lib\Service
                     $shareDefault = $shareConfig['defaultShareInfo']['subject'];
                     $shareTitle = !empty($subjectInfo['title']) ? "【{$subjectInfo['title']}】 " : $shareDefault['title'];
                     $shareDesc = !empty($subjectInfo['text']) ? $subjectInfo['text'] : $shareDefault['desc'];
+                    if (mb_strlen($shareDesc, 'utf8') > 100) {
+                        $shareDesc = mb_substr($shareDesc, 0, 100, 'utf8');
+                    }
                     if(!empty($subjectInfo['ext_info']["cover_image"])) {
                         $shareImage = NormalUtil::buildImgUrl($subjectInfo["ext_info"]["cover_image"]["url"],"small")["url"];
                     } elseif (!empty($subjectInfo['ext_info']["image"][0]["url"])) {
@@ -734,11 +735,10 @@ class Subject extends \mia\miagroup\Lib\Service
         /*蜜芽帖、口碑贴相关逻辑开始*/
         if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
             if ($subjectInfo['type'] == 'blog') {
-                $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId])[$subjectId];
+                $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId], $status)[$subjectId];
                 if (!empty($blog_info)) {
                     $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
                 }
-                unset($subjectInfo['share_info']);
             }
             //获取商品推荐
             if (in_array('item', $field)) {
@@ -814,13 +814,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if ($subjectInfo['is_fine'] == 1) {
             $mibeanNum = 60;
         }
-        // 5.7素材删除区分文案
-        $material_source = $this->config['source']['material'];
-        if($subjectInfo['source'] == $material_source) {
-            $subjectInfo['delete_text'] = "确定删除素材吗？请再想想";
-        }else {
-            $subjectInfo['delete_text'] = "确认删除吗？将扣减掉该帖奖励的" . $mibeanNum . "蜜豆";
-        }
+        $subjectInfo['delete_text'] = "确认删除吗？将扣减掉该帖奖励的" . $mibeanNum . "蜜豆";
         $subjectInfo['delete_enable'] = 1;
         //付费用户删帖处理
         //判断是否是付费用户
@@ -1064,6 +1058,12 @@ class Subject extends \mia\miagroup\Lib\Service
                             $attendLabels = array_intersect($activeLabelTitles,$labelTitles);
                             //活动id为在线活动的索引(key)，如果标签中有参加活动的，则保存活动id
                             if(!empty($attendLabels)){
+                                if (intval($activeInfo['text_lenth_limit']) > 0 && mb_strlen($subjectSetInfo['text'], 'utf8') < $activeInfo['text_lenth_limit']) {
+                                    continue;
+                                }
+                                if (intval($activeInfo['image_count_limit']) > 0 && count($imageInfo) < $activeInfo['image_count_limit']) {
+                                    continue;
+                                }
                                 $subjectSetInfo['active_id'] = $key;
                                 $relationSetInfo['active_id'] = $key;
                                 break;
@@ -1102,8 +1102,7 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         $subjectSetInfo['cover_image'] = NormalUtil::buildImgUrl($subjectInfo['cover_image']['url'], 'watermark', $subjectInfo['cover_image']['width'], $subjectInfo['cover_image']['height']);
-        $material_source = $this->config['source']['material'];
-        if ($koubeiId <= 0 && $subjectInfo['source'] != $material_source) { //口碑不再发蜜豆(5.7素材不发蜜豆)
+        if ($koubeiId <= 0) { //口碑不再发蜜豆
             // 赠送用户蜜豆
             $mibean = new \mia\miagroup\Remote\MiBean();
             $param['user_id'] = $subjectSetInfo['user_id'];
@@ -1137,16 +1136,13 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         //发布帖子同时，保存一份未同步到口碑的相关帖子信息，用于后台同步到口碑贴用
-        // 5.7 素材不进入后台同步池
-        if($subjectInfo['source'] != $material_source) {
-            $koubeiSubject = array();
-            $koubeiSubject['subject_id'] = $subjectId;
-            $koubeiSubject['user_id'] = $subjectSetInfo['user_id'];
-            $koubeiSubject['is_audited'] = 0;
-            $koubeiSubject['create_time'] = $subjectSetInfo['created'];
-            $koubeiService = new KoubeiService();
-            $koubeiService->addKoubeiSubject($koubeiSubject);
-        }
+        $koubeiSubject = array();
+        $koubeiSubject['subject_id'] = $subjectId;
+        $koubeiSubject['user_id'] = $subjectSetInfo['user_id'];
+        $koubeiSubject['is_audited'] = 0;
+        $koubeiSubject['create_time'] = $subjectSetInfo['created'];
+        $koubeiService = new KoubeiService();
+        $koubeiService->addKoubeiSubject($koubeiSubject);
 
         //插入帖子标记信息
         if(!empty($pointInfo)){
@@ -1376,17 +1372,15 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             
             //发送消息推送，每天发三次
-            // $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
-            // $push_num = $redis->get($push_num_key);
-            // if ($push_num < 3) {
-            //     $push->pushMsg($subject_info['user_id'], "您分享的帖子被加精华啦，帖子会有更多展示机会，再奉上50蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
-            //     $redis->incrBy($push_num_key, 1);
-            //     $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
-            // }
+            $push_num_key = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.subject_fine_push_num.key'), $subject_info['user_id']);
+            $push_num = $redis->get($push_num_key);
+            if ($push_num < 3) {
+                $push->pushMsg($subject_info['user_id'], "您分享的帖子被加精华啦，帖子会有更多展示机会，再奉上50蜜豆奖励", "miyabaobei://subject?id=" . $subject_info["id"]);
+                $redis->incrBy($push_num_key, 1);
+                $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
+            }
             //发送站内信
-            //TODO 完全切换后关掉旧的
             $news->addNews('single', 'group', 'add_fine', \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['user_id'], $subject_info['id'])['data'];
-            $news->postMessage('add_fine', $subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['id']);
         }
         //推荐更新入队列
         foreach ($subjectId as $v) {
@@ -1422,10 +1416,9 @@ class Subject extends \mia\miagroup\Lib\Service
     }
 
     /**
-     * 根据用户ID获取帖子信息 (edit by 5.7 material list)
+     * 根据用户ID获取帖子信息
      */
-    public function getSubjectsByUid($userId, $currentId = 0, $page = 1, $iPageSize = 20, $field = '', $conditions = []){
-
+    public function getSubjectsByUid($userId,$currentId = 0, $page = 1, $iPageSize = 20){
         $data = array("subject_lists" => array(), "status" => 0);
         //校验是否是屏蔽用户
         $audit = new \mia\miagroup\Service\Audit();
@@ -1435,12 +1428,13 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($data);
         }
         //获取帖子ID
-        $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId,$currentId,$page,$iPageSize, $conditions);
+        $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId,$currentId,$page,$iPageSize);
         if(empty($subject_ids)){
             return $this->succ($data);
         }
-        $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId, $field)['data']);
+        $data['subject_lists'] = array_values($this->getBatchSubjectInfos($subject_ids,$currentId)['data']);
         $data['status'] = 1;
+        
         return $this->succ($data);
     }
     
@@ -1485,6 +1479,10 @@ class Subject extends \mia\miagroup\Lib\Service
         if($subjectInfo['status'] == 0) {
             return $this->succ(true);
         }
+        //长文贴不能删除
+        if ($subjectInfo['ext_info']['is_blog'] == 1 && !in_array($subjectInfo["user_id"], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list')) && $subjectInfo['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal')) {
+            return $this->error(1134);
+        }
         //付费用户删帖处理
         //判断是否是付费用户
         $groupId = \F_Ice::$ins->workApp->config->get('busconf.user.paidUserGroup');//站内付费达人分组
@@ -1501,7 +1499,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 //只能删当前自然月的
                 $pubTime = strtotime($subjectInfo["created"]);
                 $cancelTime = strtotime(date("Y-m"));//月初时间
-                if ($pubTime < $cancelTime) {
+                if ($pubTime < $cancelTime && $subjectInfo['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal')) {
                     //无法删除
                     return $this->error(1130);
                 }
@@ -1509,43 +1507,21 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         //删除帖子
-        $result = $this->subjectModel->delete($subjectId, $userId);
+        $result = $this->delSubjects($subjectId, \F_Ice::$ins->workApp->config->get('busconf.subject.status.user_delete'));
         
-        //如果是口碑，同时删除口碑
-        if(!empty($subjectInfo['ext_info']['koubei']['id'])){
-            $koubei = new \mia\miagroup\Service\Koubei();
-            $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $userId);
+        //扣除蜜豆
+        $mibean = new \mia\miagroup\Remote\MiBean();
+        $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');//蜜芽兔
+        if($subjectInfo["is_fine"] == 1) {
+            $param['mibean'] = -60;
+        } else {
+            $param['mibean'] = -10;
         }
-        //检验帖子是否参加了活动，如果参加了活动，删除活动帖子关联表记录
-        $activeService = new ActiveService();
-        $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId));
-        if (!empty($activeSubject['data'][$subjectId])) {
-            $activeService->upActiveSubject(array('status' => 0), $activeSubject['data'][$subjectId]['id']);
-        }
-        //删除帖子标签关系
-        $labelService = new Label();
-        $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
-        if (!empty($labelInfo)) {
-            $labelService->setLabelSubjectStatus([$subjectId], ["status" => 0]);
-        }
-
-        //扣除蜜豆(5.7删除素材不扣蜜豆)
-        $source = $subjectInfo['source'];
-        $material_source = $this->config['source']['material'];
-        if($source != $material_source) {
-            $mibean = new \mia\miagroup\Remote\MiBean();
-            $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid');//蜜芽兔
-            if($subjectInfo["is_fine"] == 1) {
-                $param['mibean'] = -60;
-            } else {
-                $param['mibean'] = -10;
-            }
-            $param['relation_type'] = "delete_subject";
-            $param['relation_id'] = $subjectId;
-            $param['to_user_id'] = $userId;
-            $param['dscrp'] = "删除帖子，扣除蜜豆";
-            $mibean->sub($param);
-        }
+        $param['relation_type'] = "delete_subject";
+        $param['relation_id'] = $subjectId;
+        $param['to_user_id'] = $userId;
+        $param['dscrp'] = "删除帖子，扣除蜜豆";
+        $mibean->sub($param);
         if ($result) {
             return $this->succ(true);
         } else {
@@ -1664,8 +1640,7 @@ class Subject extends \mia\miagroup\Lib\Service
     }
     
     /**
-     * 删除，屏蔽帖子
-     * 取消帖子屏蔽，删除
+     * 管理员操作帖子状态（屏蔽、恢复正常、审核不通过）
      */
     public function delSubjects($subjectIds, $status, $shieldText = '')
     {
@@ -1687,21 +1662,27 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             //屏蔽或者删除帖子
             $result = $this->subjectModel->deleteSubjects(array($subjectId), $status, $shieldText);
-            if (!empty($subjectInfo['ext_info']['koubei']['id']) && in_array($status, array(0, -1))) {
-                //删除口碑
-                $koubei = new \mia\miagroup\Service\Koubei();
-                $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $subjectInfo['user_id']);
+            if (in_array($status, array(0, -1))) {
+                if (!empty($subjectInfo['ext_info']['koubei']['id'])) {
+                    //删除口碑
+                    $koubei = new \mia\miagroup\Service\Koubei();
+                    $res = $koubei->delete($subjectInfo['ext_info']['koubei']['id'], $subjectInfo['user_id']);
+                }
             }
-            //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
-            $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), [0, 1, -1]);
-            if (!empty($activeSubject['data'][$subjectId])) {
-                $activeService->upActiveSubject(array('status' => $status), $activeSubject['data'][$subjectId]['id']);
+            //同步帖子状态到索引表
+            if (in_array($status, array(0, -1, 1))) {
+                //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
+                $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), array());
+                if (!empty($activeSubject['data'][$subjectId]) && in_array($status, array(0, -1, 1))) {
+                    $activeService->upActiveSubject(array('status' => $status), $activeSubject['data'][$subjectId]['id']);
+                }
+                //修改帖子标签关系表status
+                $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
+                if (!empty($labelInfo)) {
+                    $labelService->setLabelSubjectStatus([$subjectId], ["status" => $status]);
+                }
             }
-            //修改帖子标签关系表status
-            $labelInfo = $labelService->getBatchSubjectLabels([$subjectId])['data'][$subjectId];
-            if (!empty($labelInfo)) {
-                $labelService->setLabelSubjectStatus([$subjectId], ["status" => $status]);
-            }
+            
             //修改上文表status
             if (isset($subjectInfo['ext_info']['is_blog']) && $subjectInfo['ext_info']['is_blog'] == 1) {
                 $this->subjectModel->editBlog($subjectId, ['status' => $status]);
@@ -2013,23 +1994,10 @@ class Subject extends \mia\miagroup\Lib\Service
 
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
-        if (empty($collectInfo)) {
+
+        if(empty($collectInfo)) {
             //插入
             $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
-            $subjectInfoData = $this->getBatchSubjectInfos([$sourceId], 0, [])['data'];
-            $subjectInfo = $subjectInfoData[$sourceId];
-            if ($type == 1 && $subjectInfo["user_id"] != $userId) {
-                if ($subjectInfo['type'] === 'blog') {
-                    $param['user_id'] = $subjectInfo["user_id"];//帖子作者
-                    $param['relation_type'] = 'add_favorite';
-                    $param['relation_id'] = $sourceId;
-                    $param['to_user_id'] = $userId;//评论者
-                    $mibean = new \mia\miagroup\Remote\MiBean();
-                    $res = $mibean->add($param);
-                    //长文奖励成功提示
-                    $blogCollect = 1;
-                }
-            }
             if ($status == 1) {
                 $collect_num++;
             } else if ($status == 0) {
@@ -2062,11 +2030,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         $res["collected_count"] = intval($collect_num);
         $res["collected_by_me"] = $success;
-        if (isset($blogCollect) && $blogCollect == 1) {
-            return $this->succ($res, "+1蜜豆");
-        } else {
-            return $this->succ($res, "操作成功");
-        }
+        return $this->succ($res);
     }
 
     /**
@@ -2086,8 +2050,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if(!empty($res) && is_array($res)) {
             $subjectIds = array_column($res, 'source_id');
         }
-        $fields = ['user_info', 'count', 'content_format', 'album', 'item'];
-        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId, $fields)['data'];
+        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
         $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
         return $this->succ($data);
     }
@@ -2099,7 +2062,6 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['user_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
             return $this->error(500);
         }
-
         //解析参数
         $parsed_param = $this->_parseBlogParam($param);
         //发布长文贴子
@@ -2114,6 +2076,9 @@ class Subject extends \mia\miagroup\Lib\Service
         $blog_info['status'] = $parsed_param['subject_info']['status'];
         $blog_info['create_time'] = $result['data']['created'];
         $this->subjectModel->addBlog($blog_info);
+        if ($parsed_param['subject_info']['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit')) {
+            return $this->error(1132, '', $result['data']);
+        }
         return $this->succ($result['data']);
     }
     
@@ -2124,10 +2089,14 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['subject_id'])) {
             return $this->error(500);
         }
-        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[1,3])['data'];
+        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[])['data'];
         if (empty($subject_info) || $subject_info['type'] != 'blog') {
             return $this->error(1131);
         }
+        if (isset($param['status']) && $subject_info['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal') && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+            return $this->error(1133);
+        }
+        $param['user_id'] = $subject_info['user_id'];
         $parsed_param = $this->_parseBlogParam($param);
         //处理修改过的商品
         $exist_items = [];
@@ -2171,14 +2140,26 @@ class Subject extends \mia\miagroup\Lib\Service
         //修改帖子表
         if (!empty($parsed_param['subject_info'])) {
             $subject_set_data = [];
-            $subject_set_data['title'] = $parsed_param['subject_info']['title'];
+            if (!empty($parsed_param['subject_info']['title'])) {
+                $subject_set_data['title'] = $parsed_param['subject_info']['title'];
+            }
             if (isset($parsed_param['subject_info']['status'])) {
                 $subject_set_data['status'] = $parsed_param['subject_info']['status'];
             }
-            $subject_set_data['text'] = $parsed_param['subject_info']['text'];
-            $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
-            $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
+            if (!empty($parsed_param['subject_info']['text'])) {
+                $subject_set_data['text'] = $parsed_param['subject_info']['text'];
+            }
+            if (!empty($parsed_param['subject_info']['ext_info'])) {
+                $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
+            }
+            if (!empty($parsed_param['subject_info']['image_url'])) {
+                $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
+                $subject_set_data['ext_info']['image'] = $parsed_param['subject_info']['image_infos'];
+            }
             $this->updateSubject($param['subject_id'], $subject_set_data);
+        }
+        if ($parsed_param['subject_info']['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit')) {
+            return $this->error(1132);
         }
         return $this->succ(true);
     }
@@ -2216,6 +2197,15 @@ class Subject extends \mia\miagroup\Lib\Service
         $items = $item_service->getBatchItemBrandByIds($item_ids)['data'];
         //拼装结果集
         foreach ($blog_meta_list as $key => $blog_meta) {
+            if (isset($blog_meta['blog_text'])) {
+                if (!empty($blog_meta['blog_text']['urls'])) {
+                    foreach ($blog_meta['blog_text']['urls'] as $url_key => $url) {
+                        if (!isset($url['color']) || empty($url['color'])) {
+                            $blog_meta_list[$key]['blog_text']['urls'][$url_key]['color'] = 'fa4b9b';
+                        }
+                    }
+                }
+            }
             if (isset($blog_meta['blog_user'])) {
                 if (!empty($users[$blog_meta['blog_user']])) {
                     $blog_meta_list[$key]['blog_user'] = $users[$blog_meta['blog_user']];
@@ -2287,121 +2277,135 @@ class Subject extends \mia\miagroup\Lib\Service
         $blog_meta = []; //长文信息
         $items = []; //关联商品
         $labels = []; //关联标签
-        //封面图
-        if (!empty($param['cover_image'])) {
-            if (!empty($param['cover_image']['redirect_url'])) {
-                $param['cover_image']['redirect_url'] = str_replace('http://', 'https://', $param['cover_image']['redirect_url']);
-            }
-            if (strpos($param['cover_image']['url'], '@') !== false) {
-                $param['cover_image']['url'] = substr($param['cover_image']['url'], 0, strpos($param['cover_image']['url'], '@'));
-            }
-            $subject_info['ext_info']['cover_image'] = $param['cover_image'];
-        }
-        if (!empty($param['cover_image']) && $param['cover_image_hidden'] != 1) {
-            $param['cover_image']['is_cover'] = 1;
-            $blog_meta[] = ['blog_image' => $param['cover_image']];
-        }
-        //作者
-        $subject_info['user_info']['user_id'] = $param['user_id'];
-        if ($param['author_hidden'] != 1) {
-            $blog_meta[] = ['blog_user' => $param['user_id']];
-        }
-        //标题
-        if (!empty($param['title'])) {
-            $subject_info['title'] = $param['title'];
-        }
-        if (!empty($param['title']) && $param['title_hidden'] != 1) {
-            $blog_meta[] = ['blog_title' => $param['title']];
-        }
-        $subject_info['text'] = '';
-        //其他元素
-        foreach ($param['blog_meta'] as $v) {
-            if (!isset($v[$v['type']]) || empty($v[$v['type']])) {
-                continue;
-            }
-            switch ($v['type']) {
-                case 'blog_text':
-                    if (empty($v['blog_text']['text'])) {
-                        continue;
-                    }
-                    $tmp_text = null;
-                    $tmp_text['text'] = $v['blog_text']['text'];
-                    $tmp_text['urls'] = [];
-                    if (!empty($v['blog_text']['urls'])) {
-                        foreach ($v['blog_text']['urls'] as $tmp_url) {
-                            if (isset($tmp_url['start']) && !empty($tmp_url['length']) && !empty($tmp_url['url'])) {
-                                $tmp_text['urls'][] = $tmp_url;
+        
+        //meta元素
+        if (!empty($param['blog_meta'])) {
+            $subject_info['text'] = '';
+            $subject_info['ext_info']['is_blog'] = 1;
+            foreach ($param['blog_meta'] as $v) {
+                if (!isset($v[$v['type']]) || empty($v[$v['type']])) {
+                    continue;
+                }
+                switch ($v['type']) {
+                    case 'blog_title':
+                        $subject_info['title'] = $v['blog_title'];
+                        if (!isset($v['title_hidden']) || $v['title_hidden'] != 1) {
+                            $blog_meta[] = ['blog_title' => $v['blog_title']];
+                        }
+                        break;
+                    case 'blog_text':
+                        if (empty($v['blog_text']['text'])) {
+                            continue;
+                        }
+                        $tmp_text = null;
+                        $tmp_text['text'] = $v['blog_text']['text'];
+                        $tmp_text['urls'] = [];
+                        if (!empty($v['blog_text']['urls'])) {
+                            foreach ($v['blog_text']['urls'] as $tmp_url) {
+                                if (isset($tmp_url['start']) && !empty($tmp_url['length']) && !empty($tmp_url['url'])) {
+                                    $tmp_text['urls'][] = $tmp_url;
+                                }
                             }
                         }
-                    }
-                    $subject_info['text'] .= $v['blog_text']['text'] . "\n";
-                    $parsed_result = $this->_parseBlogText($v['blog_text']['text']);
-                    if (!empty($parsed_result['labels'])) {
-                        foreach ($parsed_result['labels'] as $v) {
-                            $labels[] = ['title' => $v];
-                        }
-                    }
-                    if (!empty($parsed_result['urls']) && is_array($parsed_result['urls'])) {
-                        $tmp_text['urls'] = array_merge($tmp_text['urls'], $parsed_result['urls']);
-                        $url_unique_flag = [];
-                        //去除重复的url
-                        foreach ($tmp_text['urls'] as $k_url => $v_url) {
-                            $md5_flag = md5(json_encode($v_url));
-                            if (!in_array($md5_flag, $url_unique_flag)) {
-                                $url_unique_flag[] = $md5_flag;
-                            } else {
-                                unset($tmp_text['urls'][$k_url]);
+                        $subject_info['text'] .= $v['blog_text']['text'] . "\n";
+                        $parsed_result = $this->_parseBlogText($v['blog_text']['text']);
+                        if (!empty($parsed_result['labels'])) {
+                            foreach ($parsed_result['labels'] as $v) {
+                                $labels[] = ['title' => $v];
                             }
                         }
-                        $tmp_text['urls'] = array_values($tmp_text['urls']);
-                    }
-                    $tmp_labels = $parsed_result['labels'];
-                    $blog_meta[] = ['blog_text' => $tmp_text];
-                    break;
-                case 'blog_sub_title':
-                    if (strval($v['blog_sub_title']) == '') {
-                        continue;
-                    }
-                    $subject_info['text'] .= $v['blog_sub_title'] . "\n";
-                    $blog_meta[] = ['blog_sub_title' => $v['blog_sub_title']];
-                    break;
-                case 'blog_image':
-                    if (empty($v['blog_image']['width']) || empty($v['blog_image']['height']) || empty($v['blog_image']['url'])) {
-                        continue;
-                    }
-                    if (!empty($v['blog_image']['redirect_url'])) {
-                        $v['blog_image']['redirect_url'] = str_replace('http://', 'https://', $v['blog_image']['redirect_url']);
-                    }
-                    if (strpos($v['blog_image']['url'], '@') !== false) {
-                        $v['blog_image']['url'] = substr($v['blog_image']['url'], 0, strpos($v['blog_image']['url'], '@'));
-                    }
-                    $subject_info['image_infos'][] = $v['blog_image'];
-                    $blog_meta[] = ['blog_image' => $v['blog_image']];
-                    break;
-                case 'blog_relate_subject':
-                    if (intval($v['blog_relate_subject']) <= 0) {
-                        continue;
-                    }
-                    $blog_meta[] = ['blog_relate_subject' => $v['blog_relate_subject']];
-                    break;
-                case 'blog_relate_item':
-                    if (intval($v['blog_relate_item']) <= 0) {
-                        continue;
-                    }
-                    $items[] = ['item_id' => $v['blog_relate_item']];
-                    $blog_meta[] = ['blog_relate_item' => $v['blog_relate_item']];
-                    break;
-                case 'blog_relate_user':
-                    if (intval($v['blog_relate_user']) <= 0) {
-                        continue;
-                    }
-                    $blog_meta[] = ['blog_relate_user' => $v['blog_relate_user']];
-                    break;
+                        if (!empty($parsed_result['urls']) && is_array($parsed_result['urls'])) {
+                            $tmp_text['urls'] = array_merge($tmp_text['urls'], $parsed_result['urls']);
+                            $url_unique_flag = [];
+                            //去除重复的url
+                            foreach ($tmp_text['urls'] as $k_url => $v_url) {
+                                $md5_flag = md5(json_encode($v_url));
+                                if (!in_array($md5_flag, $url_unique_flag)) {
+                                    $url_unique_flag[] = $md5_flag;
+                                } else {
+                                    unset($tmp_text['urls'][$k_url]);
+                                }
+                            }
+                            $tmp_text['urls'] = array_values($tmp_text['urls']);
+                        }
+                        $tmp_labels = $parsed_result['labels'];
+                        $blog_meta[] = ['blog_text' => $tmp_text];
+                        break;
+                    case 'blog_sub_title':
+                        if (strval($v['blog_sub_title']) == '') {
+                            continue;
+                        }
+                        $subject_info['text'] .= $v['blog_sub_title'] . "\n";
+                        $blog_meta[] = ['blog_sub_title' => $v['blog_sub_title']];
+                        break;
+                    case 'blog_image':
+                        if (empty($v['blog_image']['width']) || empty($v['blog_image']['height']) || empty($v['blog_image']['url'])) {
+                            continue;
+                        }
+                        if (!empty($v['blog_image']['redirect_url'])) {
+                            $v['blog_image']['redirect_url'] = str_replace('http://', 'https://', $v['blog_image']['redirect_url']);
+                        }
+                        if (strpos($v['blog_image']['url'], '@') !== false) {
+                            $v['blog_image']['url'] = substr($v['blog_image']['url'], 0, strpos($v['blog_image']['url'], '@'));
+                        }
+                        $subject_info['image_infos'][] = $v['blog_image'];
+                        $blog_meta[] = ['blog_image' => $v['blog_image']];
+                        break;
+                    case 'blog_relate_subject':
+                        if (intval($v['blog_relate_subject']) <= 0) {
+                            continue;
+                        }
+                        $blog_meta[] = ['blog_relate_subject' => $v['blog_relate_subject']];
+                        break;
+                    case 'blog_relate_item':
+                        if (intval($v['blog_relate_item']) <= 0) {
+                            continue;
+                        }
+                        $items[] = ['item_id' => $v['blog_relate_item']];
+                        $blog_meta[] = ['blog_relate_item' => $v['blog_relate_item']];
+                        break;
+                    case 'blog_relate_user':
+                        if (intval($v['blog_relate_user']) <= 0) {
+                            continue;
+                        }
+                        $blog_meta[] = ['blog_relate_user' => $v['blog_relate_user']];
+                        break;
+                }
             }
         }
-        $subject_info['ext_info']['is_blog'] = 1;
+        
+        if (!empty($blog_meta)) {
+            //作者
+            if (intval($param['user_id']) > 0) {
+                $subject_info['user_info']['user_id'] = $param['user_id'];
+                if ($param['author_hidden'] != 1) {
+                    array_unshift($blog_meta, ['blog_user' => $param['user_id']]);
+                }
+            }
+            //封面图
+            if (!empty($param['cover_image'])) {
+                if (!empty($param['cover_image']['redirect_url'])) {
+                    $param['cover_image']['redirect_url'] = str_replace('http://', 'https://', $param['cover_image']['redirect_url']);
+                }
+                if (strpos($param['cover_image']['url'], '@') !== false) {
+                    $param['cover_image']['url'] = substr($param['cover_image']['url'], 0, strpos($param['cover_image']['url'], '@'));
+                }
+                $subject_info['ext_info']['cover_image'] = $param['cover_image'];
+            }
+            if (!empty($param['cover_image']) && $param['cover_image_hidden'] != 1) {
+                $param['cover_image']['is_cover'] = 1;
+                array_unshift($blog_meta, ['blog_image' => $param['cover_image']]);
+            }
+        }
         if (!empty($param['status'])) {
-            $subject_info['status']= $param['status'];
+            $subject_info['status'] = $param['status'];
+            if ($param['status'] == 1) {
+                $subject_info['created'] = date('Y-m-d H:i:s');
+            }
+            //非官方直属账号，发布需审核
+            if ($param['status'] == 1 && !in_array($param['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+                $subject_info['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit');
+            }
         }
         return ['subject_info' => $subject_info, 'blog_meta' => $blog_meta, 'labels' => $labels, 'items' => $items];
     }
@@ -2410,7 +2414,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * 蜜芽圈口碑跳转数据列表
      * condition:[1：新分类]
      * */
-    public function group_cate_note_list ($item_id, $page = 1, $count = 20, $userId = 0) {
+    public function groupCateNoteList ($item_id, $page = 1, $count = 20, $userId = 0, $type = '') {
 
         if(empty($item_id)) {
             return $this->succ([]);
@@ -2436,176 +2440,16 @@ class Subject extends \mia\miagroup\Lib\Service
             $mapping_params .= "&". $key."=".$value;
         }
         $mapping_url = $mapping['skip_url'].$mapping_params;
-        // 获取分类对应的印象笔记
-        $noteRemote = new RecommendNote($this->ext_params);
-        $userNoteListIds = $noteRemote->getNoteListByCate($cate_name, $page, $count);
-
-        $res['content_lists'] = $this->formatNoteData($userNoteListIds);
-        $res['mapping_url'] = $mapping_url;
-        return $this->succ($res);
-    }
-
-
-    /*
-     * 素材精选列表
-     * */
-    public function getItemMaterialList($itemId, $page = 1, $count = 20, $userId = 0)
-    {
-
-        $koubei_res = array("koubei_info" => array());
-        $item_service = new ItemService();
-        // 关联商品
-        $item_ids = $item_service->getRelateItemById($itemId);
-        if (empty($item_ids)) {
-            return $this->succ($koubei_res);
-        }
-        $offset = $page > 1 ? ($page - 1) * $count : 0;
-        $condition['type'] = 'sku';
-        $condition['status'] = $this->config['status']['normal'];
-        $condition['source'] = $this->config['source']['material'];
-
-        // 获取用户发布素材总数
-        $user_material_ids = [];
-        if(!empty($userId)) {
-            $user_material_ids = $this->subjectModel->getUserMaterialIds($item_ids, $userId, 0, 0, $condition);
-        }
-        if(empty($user_material_ids)) {
-            // 获取精选推荐列表
-            $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $page, $count, $userId)['data'];
-        }else {
-            $user_total_count = count($user_material_ids);
-            $user_page = ceil($user_total_count / $count);
-            if ($page <= $user_page) {
-                // 获取用户素材列表
-                $user_subjectIds = $this->subjectModel->getUserMaterialIds($item_ids, $userId, $count, $offset, $condition);
-                if (count($user_subjectIds) < $count) {
-                    // 获取精选推荐列表
-                    $reco_count = $count - count($user_subjectIds);
-                    $rank_subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, 1, $reco_count, $userId)['data'];
-                }
-                if(empty($rank_subjectIds)) {
-                    $subjectIds = $user_subjectIds;
-                }else {
-                    $subjectIds = array_merge($user_subjectIds, $rank_subjectIds);
-                }
-            }else {
-                // 获取精选推荐列表
-                $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $page, $count, $userId)['data'];
-            }
-        }
-        if(empty($subjectIds)) {
-            return $this->succ($koubei_res);
-        }
-
-        // 批量获取素材信息
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item'])['data'];
-        $koubei_res['koubei_info'] = array_values($material_infos);
-        return $this->succ($koubei_res);
-    }
-
-    /*
-     * 用户素材列表
-     * */
-    public function getUserMaterialList($userId, $page = 1, $count = 20)
-    {
-
-        $user_materials = array("subject_lists" => array());
-        if (empty($userId)) {
-            return $this->succ($user_materials);
-        }
-        $condition['source'] = $this->config['source']['material'];
-        $field = ['user_info', 'content_format', 'share_info', 'item'];
-        $user_material_infos = $this->getSubjectsByUid($userId, 0, $page, $count, $field, $condition)['data'];
-        if (empty($user_material_infos)) {
-            return $this->succ($user_materials);
-        }
-        $user_materials['subject_lists'] = $user_material_infos['subject_lists'];
-        return $this->succ($user_materials);
-    }
-
-    /*
-     * 发现banner素材列表
-     * */
-    public function getBannerMaterialList($source_id, $type, $page, $count) {
-
-        $koubei_res = array("koubei_info" => array());
-        if(empty($jump_id) || empty($jump_type)) {
-            return $this->succ($koubei_res);
-        }
-        switch ($type) {
-            case 'brand':
-                //品牌
-                break;
-            case 'category':
-                //分类
-                break;
-            case 'user':
-                //用户
-                break;
-            default:
-                //商品
-                $koubei_res = array("koubei_info" => array());
-                $item_service = new ItemService();
-                // 关联商品
-                $item_ids = $item_service->getRelateItemById($source_id);
-                if (empty($item_ids)) {
-                    return $this->succ($koubei_res);
-                }
-                $subjectIds = $this->rankMaterialList($item_ids)['data'];
-                break;
-        }
-        if(empty($subjectIds)) {
-            return $this->succ($koubei_res);
-        }
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
-        $koubei_res['subject_lists'] = array_values($material_infos);
-        return $this->succ($koubei_res);
-    }
-
-    /*
-     * 临时接口
-     * 素材推荐精选列表ids
-     * */
-    public function rankMaterialList($itemIds, $del_subjects = [], $page = 1, $count = 20, $userId = 0) {
-
-        $rank_ids = [];
-        if(empty($itemIds)) {
-            return $this->succ($rank_ids);
-        }
-        $koubeiService = new KoubeiService();
-        $rank_ids = $koubeiService->getRankKoubeiList($itemIds, $del_subjects, $page, $count, $userId)['data'];
-        return $this->succ($rank_ids);
-    }
-
-    /*
-     * 素材图文下载记录
-     * */
-    public function subjectDownload($userId, $source_id, $source_type = 1) {
-
-        $res = array('status' => false);
-        if (empty($userId) || empty($source_id)) {
-            return $this->succ($res);
-        }
-        $where[] = ['user_id', $userId];
-        $where[] = ['source_id', $source_id];
-        $where[] = ['source_type', $source_type];
-        $result = $this->subjectModel->insertSubjectDownload($source_id, $source_type, $userId);
-        if(!empty($result)) {
-            $res["status"] = true;
+        if(!empty($type) && $type == 'detail') {
+            // 映射地址直接返回(用于区分蜜芽圈统计)
+            $res['mapping_url'] = $mapping_url;
+        }else{
+            // 获取分类对应的印象笔记
+            $noteRemote = new RecommendNote($this->ext_params);
+            $userNoteListIds = $noteRemote->getNoteListByCate($cate_name, $page, $count);
+            $res['content_lists'] = $this->formatNoteData($userNoteListIds);
         }
         return $this->succ($res);
     }
-
-    /**
-     * 批量查询帖子下载数
-     */
-    public function getBatchSubjectDownloadCount($subjectIds)
-    {
-        if(empty($subjectIds)) {
-            return [];
-        }
-        $downloadCount = $this->subjectModel->getDownloadNum($subjectIds);
-        return $this->succ($downloadCount);
-    }
-
+    
 }

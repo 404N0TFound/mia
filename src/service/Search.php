@@ -131,7 +131,7 @@ class Search extends Service
             }, $userIds);
             //$userIds = [220103494, 1508587, 7509605, 7509576, 7509596, 7509608, 7509603, 7509614, 7509571, 7509569];
             $userService = new UserService();
-            $userList = $userService->getUserInfoByUids($userIds)['data'];
+            $userList = $userService->getUserInfoByUids($userIds, intval($this->ext_params['current_uid']))['data'];
             foreach ($userIds as $v) {
                 if (empty($userList[$v])) {
                     continue;

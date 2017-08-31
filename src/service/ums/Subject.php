@@ -56,7 +56,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (!empty($params['uid_list']) && is_array($params['uid_list']) && intval($condition['user_id']) <= 0 && empty($condition['id'])) {
             $condition['user_id'] = $params['uid_list'];
         }
-        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1))) && empty($condition['id'])) {
+        if (is_array($params['status']) || (!is_array($params['status']) && $params['status'] !== null && $params['status'] !== '' && in_array($params['status'], array(0, 1, -1, 4))) && empty($condition['id'])) {
             //帖子状态
             $condition['status'] = $params['status'];
         }
@@ -111,10 +111,39 @@ class Subject extends \mia\miagroup\Lib\Service {
             $subjectIds[] = $v['subject_id'];
         }
         $subjectService = new SubjectService();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('item', 'album','group_labels','count', 'share_info'), array())['data'];
+        $userIds = $koubeiIds = array();
+        foreach ($subjectInfos as $v) {
+            if (intval($v['user_id']) > 0) {
+                $userIds[] = $v['user_id'];
+            }
+            if(intval($v['koubei_id'] > 0)) {
+                $koubeiIds[] = $v['koubei_id'];
+            }
+        }
+        $koubeiInfo = $handleKoubei = [];
+        if(!empty($params['source']) && $params['source'] == 2) {
+            // 获取口碑加精信息
+            $koubeiInfo = $this->koubeiModel->getKoubeiData(['status'=>2,'id'=>$koubeiIds])['list'];
+        }
+        if(!empty($koubeiInfo)) {
+            foreach($koubeiInfo as $koubei) {
+                $handleKoubei[$koubei['id']] = $koubei;
+            }
+        }
+        $userService = new UserService();
+        $userInfos = $userService->getUserInfoByUids($userIds, 0, ['count', 'cell_phone', 'user_group'])['data'];
         foreach ($data['list'] as $v) {
             $tmp = $v;
             $tmp['subject'] = $subjectInfos[$v['subject_id']];
+            $tmp['subject']['user_info'] = $userInfos[$v['user_id']];
+            if($v['source'] == 2) {
+                $ext_info = json_decode($v['ext_info'], true);
+                if(!empty($ext_info)) {
+                    $koubei_id = $ext_info['koubei']['id'];
+                    $tmp['rank'] = $handleKoubei[$koubei_id]['rank'];
+                }
+            }
             $result['list'][] = $tmp;
         }
         $result['count'] = $data['count'];
@@ -161,6 +190,14 @@ class Subject extends \mia\miagroup\Lib\Service {
         foreach ($data['list'] as $subject_id => $v) {
             if (!empty($subjectInfos[$subject_id])) {
                 $subject = $subjectInfos[$subject_id];
+                //非官方账号发布的长文，仅在审核状态下可编辑、删除
+                if ($subject['type'] == 'blog') {
+                    if (in_array($subject["user_id"], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list')) || in_array($subject['status'], [\F_Ice::$ins->workApp->config->get('busconf.subject.status.koubei_hidden'), \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit'), \F_Ice::$ins->workApp->config->get('busconf.subject.status.audit_failed')])) {
+                        $subject['allow_operate'] = 1;
+                    } else {
+                        $subject['allow_operate'] = 0;
+                    }
+                }
                 if (!empty($v['index_cover_image'])) {
                     $subject['cover_image'] = \mia\miagroup\Util\NormalUtil::buildImgUrl($v['index_cover_image']['url'], 'normal', $v['index_cover_image']['width'], $v['index_cover_image']['height']);
                 }
@@ -199,11 +236,11 @@ class Subject extends \mia\miagroup\Lib\Service {
             //内容搜索
             $solrParams['text_like'] = trim($data['content']);
         }
-        if (is_array($data['status']) || (!is_array($data['status']) && $data['status'] !== null && $data['status'] !== '' && in_array($data['status'], array(0, 1, -1))) && intval($data['id']) <= 0) {
+        if (is_array($data['status']) || (!is_array($data['status']) && $data['status'] !== null && $data['status'] !== '' && in_array($data['status'], array(0, 1, -1, 4))) && intval($data['id']) <= 0) {
             //帖子状态
             $solrParams['status'] = $data['status'];
         }
-        if ($data['source'] !== null && $data['source'] !== '' && in_array($data['source'], array(0, 1, 2, 4)) && intval($data['id']) <= 0) {
+        if ($data['source'] !== null && $data['source'] !== '' && in_array($data['source'], array(0, 1, 2, 4))) {
             //帖子来源
             if($data['source'] == 0){
                 $data['source'] = array(1, 2, 4);
@@ -217,6 +254,10 @@ class Subject extends \mia\miagroup\Lib\Service {
         if (intval($data['item_id']) > 0 && intval($data['id']) <= 0) {
             //商品ID
             $solrParams['item_id'] = $data['item_id'];
+        }
+        if (intval($data['brand_id']) > 0 && intval($data['id']) <= 0) {
+            //品牌ID
+            $solrParams['brand_id'] = $data['brand_id'];
         }
         if (strtotime($data['start_time']) > 0 && intval($data['id']) <= 0) {
             //起始时间
@@ -309,6 +350,10 @@ class Subject extends \mia\miagroup\Lib\Service {
         $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'praise_num'])['data'];
         $total_praise_num = $solrData['facets']['sum'];
 
+        // 总浏览数
+        $solrData = $solr->getSeniorSolrSearch($solrParams, '', '', '',  [], ['sum' =>'view_num'])['data'];
+        $total_view_num = $solrData['facets']['sum'];
+
         // 总数据查询
         $solrData = $solr->getSeniorSolrSearch($solrParams, 'id', $page, $limit)['data'];
         $success = $solrData['responseHeader']['status'];
@@ -318,11 +363,12 @@ class Subject extends \mia\miagroup\Lib\Service {
             return $this->succ($subjectInfos);
         }
         $subject_ids = array_column($success_data, 'id');
-        $result['list'] = $this->getSubjectList(['id' => $subject_ids])['data']['list'];
+        $result['list'] = $this->getSubjectList(['id' => $subject_ids, 'source' => $solrParams['source'], 'limit' => $limit])['data']['list'];
         $result['count'] = !empty($total_count) ? $total_count : 0;
         $result['total_users'] = !empty($total_users) ? $total_users: 0;
-        $result['total_comment_num'] = !empty($total_comment_num) ? $total_comment_num: 0;
-        $result['total_praise_num'] = !empty($total_praise_num) ? $total_praise_num: 0;
+        $result['total_comment_num'] = !empty($total_comment_num) ? (string)$total_comment_num: '';
+        $result['total_praise_num'] = !empty($total_praise_num) ? (string)$total_praise_num: '';
+        $result['total_view_num'] = !empty($total_view_num) ? (string)$total_view_num: '';
         return $this->succ($result);
     }
     

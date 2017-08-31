@@ -8,9 +8,8 @@ use mia\miagroup\Data\Active\ActiveSubjectRelation as RelationData;
 class ActiveSubject extends \FD_Daemon {
 
     public function execute() {
-        $this->setActiveSubjects();
-        //$this->fixImgData();
-        //$this->pushNews();
+        $function_name = $this->request->argv[0];
+        $this->$function_name();
     }
 
     /**
@@ -119,5 +118,26 @@ class ActiveSubject extends \FD_Daemon {
             }
         }
         return true;
+    }
+    
+    /**
+     * 导入活动数据
+     */
+    public function importActiveData() {
+        $relationData = new RelationData();
+        $data = file('/home/hanxiang/label_subjects_daiyan');
+        foreach ($data as $v) {
+            $v = trim($v);
+            list($user_id, $subject_id, $is_recommend, $create_time) = explode("\t", $v);
+            
+            //将帖子信息存入活动帖子关联表中
+            $setData = array();
+            $setData['active_id'] = 557;
+            $setData['subject_id'] = $subject_id;
+            $setData['user_id'] = $user_id;
+            $setData['create_time'] = $create_time;
+            $setData['is_recommend'] = $is_recommend;
+            $relationData->addActiveSubjectRelation($setData);
+        }
     }
 }

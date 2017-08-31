@@ -301,6 +301,17 @@ class Subjectdump extends \FD_Daemon {
             }
             //帖子类型
             $dumpdata['subject_type'] = $subject['type'];
+            if ($subject['type'] == 'blog' && !empty($extInfo['index_cover'])) {
+                $dumpdata['subject_type'] = 'index_blog';
+            }
+            
+            //帖子是否是素材
+            if (isset($extInfo['is_material']) && $extInfo['is_material'] == 1) {
+                $dumpdata['is_material'] = 1;
+            }else{
+                $dumpdata['is_material'] = 0;
+            }
+            
             //写入文本
             $put_content = implode("\t", $dumpdata);
             file_put_contents($this->dumpSubjectFile, $put_content . "\n", FILE_APPEND);

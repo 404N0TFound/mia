@@ -44,6 +44,7 @@ class RecommendItem
         }
         $post_params['device'] = $os;
         $post_params['nums'] = $count;
+        $post_params['source'] = 'miagroup';
         $post_params['click'] = !empty($viewed_items) ? implode(',', $viewed_items) : '';
         $post_params['sku'] = !empty($item_ids) ? implode(',', $item_ids) : '';;
         if ($this->session_info['current_uid'] > 0) {

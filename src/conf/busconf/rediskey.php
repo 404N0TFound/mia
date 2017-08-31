@@ -240,6 +240,10 @@ $userKey = [
         'key' => $userServicePrefix . 'user_hot_subjects_%s',
         'expire_time' => 86400 * 30,
     ],
+    'user_attention_dubious' => [//可疑用户关注限制，使用String数据结构
+        'key' => $userServicePrefix . 'attention_dubious_%s',
+        'expire_time' => 60,
+    ],
 ];
 
 //标签相关rediskey
@@ -255,6 +259,10 @@ $activeKey = [
     'active_subject_read_session' => [//活动页已读标记，使用List数据结构
         'key' => $activeServicePrefix . 'active_subject_read_session_%s_%s_%s',
         'expire_time' => 1800,
+    ],
+    'active_subject_user' => [//闯关活动用户id和设备号
+        'key' => $activeServicePrefix . 'subject_user_%s_%s_%s',
+        'expire_time' => 10800,
     ],
 ];
 

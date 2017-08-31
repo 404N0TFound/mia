@@ -156,7 +156,7 @@ class Label extends \mia\miagroup\Lib\Service {
     /**
      * 获取全部推荐标签
      */
-    public function getRecommendLabels($page=1,$count=10,$type) {
+    public function getRecommendLabels($page=1,$count=10,$type = '') {
         $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
         $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
         if(!empty($type) && $type == 'koubei') {
