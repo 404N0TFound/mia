@@ -2013,10 +2013,23 @@ class Subject extends \mia\miagroup\Lib\Service
 
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
-
-        if(empty($collectInfo)) {
+        if (empty($collectInfo)) {
             //插入
             $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
+            if ($type == 1) {
+                $subjectInfoData = $this->getBatchSubjectInfos([$sourceId], 0, [])['data'];
+                $subjectInfo = $subjectInfoData[$sourceId];
+                if ($subjectInfo['type'] === 'blog') {
+                    $param['user_id'] = $subjectInfo["user_id"];//帖子作者
+                    $param['relation_type'] = 'add_favorite';
+                    $param['relation_id'] = $sourceId;
+                    $param['to_user_id'] = $userId;//评论者
+                    $mibean = new \mia\miagroup\Remote\MiBean();
+                    $res = $mibean->add($param);
+                    //长文奖励成功提示
+                    $blogCollect = 1;
+                }
+            }
             if ($status == 1) {
                 $collect_num++;
             } else if ($status == 0) {
@@ -2049,7 +2062,11 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         $res["collected_count"] = intval($collect_num);
         $res["collected_by_me"] = $success;
-        return $this->succ($res);
+        if (isset($blogCollect) && $blogCollect == 1) {
+            return $this->succ($res, "+1蜜豆");
+        } else {
+            return $this->succ($res, "操作成功");
+        }
     }
 
     /**

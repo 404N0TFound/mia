@@ -114,4 +114,18 @@ class Comment {
         }
         return $result;
     }
+
+    /**
+     * 检查用户是否互动过当前帖子
+     */
+    public function checkComment($subjectId, $userId)
+    {
+        if (empty($subjectId) || empty($userId)) {
+            return [];
+        }
+        $conditions['subject_id'] = [':eq', 'subject_id', $subjectId];
+        $conditions['user_id'] = [':eq', 'user_id', $userId];
+        $res = $this->subjectCommentData->getCommentListByCond($conditions);
+        return $res;
+    }
 }
