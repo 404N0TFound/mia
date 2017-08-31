@@ -2016,9 +2016,9 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($collectInfo)) {
             //插入
             $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
-            if ($type == 1) {
-                $subjectInfoData = $this->getBatchSubjectInfos([$sourceId], 0, [])['data'];
-                $subjectInfo = $subjectInfoData[$sourceId];
+            $subjectInfoData = $this->getBatchSubjectInfos([$sourceId], 0, [])['data'];
+            $subjectInfo = $subjectInfoData[$sourceId];
+            if ($type == 1 && $subjectInfo["user_id"] != $userId) {
                 if ($subjectInfo['type'] === 'blog') {
                     $param['user_id'] = $subjectInfo["user_id"];//帖子作者
                     $param['relation_type'] = 'add_favorite';
