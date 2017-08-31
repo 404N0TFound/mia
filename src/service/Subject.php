@@ -735,6 +735,7 @@ class Subject extends \mia\miagroup\Lib\Service
         /*蜜芽帖、口碑贴相关逻辑开始*/
         if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
             if ($subjectInfo['type'] == 'blog') {
+                $subjectInfo['comment_tip'] = '奉上3个蜜豆，留个评论就拿走！';
                 $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId], $status)[$subjectId];
                 if (!empty($blog_info)) {
                     $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
