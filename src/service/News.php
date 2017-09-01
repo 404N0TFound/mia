@@ -1285,7 +1285,9 @@ class News extends \mia\miagroup\Lib\Service
         $newsList = $this->newsModel->getNewsInfoList($newsIds, $userId);
         $return = [];
         foreach ($newsIds as $val) {
-            $return[$val] = $newsList[$val];
+            if(!empty($newsList[$val])) {
+                $return[$val] = $newsList[$val];
+            }
         }
         return $this->succ($return);
     }
