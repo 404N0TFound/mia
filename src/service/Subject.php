@@ -19,6 +19,7 @@ use mia\miagroup\Service\Active as ActiveService;
 use mia\miagroup\Service\Feed as FeedServer;
 use mia\miagroup\Service as Service;
 use mia\miagroup\Lib\Redis;
+use mia\miagroup\Lib\RemoteCurl;
 
 class Subject extends \mia\miagroup\Lib\Service
 {
@@ -502,6 +503,8 @@ class Subject extends \mia\miagroup\Lib\Service
                         continue;
                     }
                 }
+            }else if($subjectInfos[$subjectId]['ext_info']['is_material'] == 1) {
+                $subjectRes[$subjectInfo['id']]['type'] = 'material';
             } else {
                 $subjectRes[$subjectInfo['id']]['type'] = 'normal';
             }
@@ -1976,7 +1979,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * @param int $userId 用户ID
      * @param int $status 修改的状态值
      * @param int $sourceId 收藏资源ID
-     * @param int $type 1：帖子；
+     * @param int $type 1：帖子, 2:素材；
      * @return mixed
      */
     public function subjectCollect($userId, $sourceId, $status = 1, $type = 1)
@@ -1991,9 +1994,16 @@ class Subject extends \mia\miagroup\Lib\Service
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
         if (empty($collectInfo)) {
             //插入
-            $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
             $subjectInfoData = $this->getBatchSubjectInfos([$sourceId], 0, [])['data'];
             $subjectInfo = $subjectInfoData[$sourceId];
+            // 素材相关标识
+            $configMaterial = $this->config['source']['material'];
+            $subjectSource = $subjectInfo['source'];
+            $is_material = $subjectInfo['type'];
+            if($is_material == 'material' || $configMaterial == $subjectSource) {
+                $type = $this->config['subject_collect']['material'];
+            }
+            $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
             if ($type == 1 && $subjectInfo["user_id"] != $userId) {
                 if ($subjectInfo['type'] === 'blog') {
                     $param['user_id'] = $subjectInfo["user_id"];//帖子作者
@@ -2049,7 +2059,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * 用户收藏帖子列表
      * @param int $userId
      * @param int $page
-     * @param int $type
+     * @param int $type(1:帖子,2：素材)
      * @return mixed
      */
     public function userCollectList($userId, $type = 1, $page = 1, $count = 20)
@@ -2473,45 +2483,57 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($item_ids)) {
             return $this->succ($koubei_res);
         }
-        $offset = $page > 1 ? ($page - 1) * $count : 0;
         $condition['type'] = 'sku';
         $condition['status'] = $this->config['status']['normal'];
         $condition['source'] = $this->config['source']['material'];
+        $remote_curl = new RemoteCurl('material_high_optimize');
+        $remote_data = $subjectIds = [];
+        $remote_data['type'] = 'sku';
+        $remote_data['page'] = $page - 1;
+        $remote_data['pagesize'] = $count;
+        $remote_data['ids'] = implode(',', $item_ids);
 
         // 获取用户发布素材总数
-        $user_material_ids = $this->subjectModel->getUserMaterialIds($item_ids, $userId, 0, 0, $condition);
+        $user_material_ids = [];
+        if(!empty($userId)) {
+            $user_material_ids = $this->subjectModel->getUserMaterialIds($item_ids, $userId, 0, 0, $condition);
+        }
         if(empty($user_material_ids)) {
             // 获取精选推荐列表
-            $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $page, $count, $userId)['data'];
+            $subjectIds = $remote_curl->curl_remote('', $remote_data)['data'];
         }else {
+            // 用户发布素材展示
             $user_total_count = count($user_material_ids);
             $user_page = ceil($user_total_count / $count);
             if ($page <= $user_page) {
                 // 获取用户素材列表
+                $offset = $page > 1 ? ($page - 1) * $count : 0;
                 $user_subjectIds = $this->subjectModel->getUserMaterialIds($item_ids, $userId, $count, $offset, $condition);
                 if (count($user_subjectIds) < $count) {
                     // 获取精选推荐列表
-                    $reco_count = $count - count($user_subjectIds);
-                    $rank_subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, 1, $reco_count, $userId)['data'];
-                }
-                if(empty($rank_subjectIds)) {
-                    $subjectIds = $user_subjectIds;
-                }else {
-                    $subjectIds = array_merge($user_subjectIds, $rank_subjectIds);
+                    $remote_data['page'] = 0;
+                    $rank_subjectIds = $remote_curl->curl_remote('', $remote_data)['data'];
+                    if(empty($rank_subjectIds)) {
+                        $subjectIds = $user_subjectIds;
+                    }else {
+                        $subjectIds = array_merge($user_subjectIds, $rank_subjectIds);
+                    }
                 }
             }else {
-                // 获取精选推荐列表
-                $reco_page = $page - $user_page;
-                $subjectIds = $this->rankMaterialList($item_ids, $user_material_ids, $reco_page, $count, $userId)['data'];
+                if($user_total_count % $count != 0) {
+                    $remote_data['page'] = $page - 2;
+                }
+                $subjectIds = $remote_curl->curl_remote('', $remote_data)['data'];
             }
         }
+
         if(empty($subjectIds)) {
             return $this->succ($koubei_res);
         }
 
         // 批量获取素材信息
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item'])['data'];
-        $koubei_res['koubei_info'] = $material_infos;
+        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
+        $koubei_res['koubei_info'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
 
@@ -2537,57 +2559,48 @@ class Subject extends \mia\miagroup\Lib\Service
 
     /*
      * 发现banner素材列表
+     * type:item,category,user,brand
      * */
-    public function getBannerMaterialList($source_id, $type, $page, $count) {
+    public function getBannerMaterialList($source_id, $type = 'sku', $page = 1, $count = 20) {
 
         $koubei_res = array("koubei_info" => array());
-        if(empty($jump_id) || empty($jump_type)) {
+        if(empty($source_id) || empty($type)) {
             return $this->succ($koubei_res);
         }
+        $remote_data = [];
+        $remote_data['type'] = $type;
+        $remote_data['page'] = $page - 1;
+        $remote_data['pagesize'] = $count;
+        $remote_curl = new RemoteCurl('material_high_optimize');
         switch ($type) {
             case 'brand':
                 //品牌
-                break;
             case 'category':
                 //分类
-                break;
             case 'user':
                 //用户
+                $remote_data['ids'] = $source_id;
                 break;
             default:
                 //商品
-                $koubei_res = array("koubei_info" => array());
                 $item_service = new ItemService();
-                // 关联商品
                 $item_ids = $item_service->getRelateItemById($source_id);
                 if (empty($item_ids)) {
                     return $this->succ($koubei_res);
                 }
-                $subjectIds = $this->rankMaterialList($item_ids)['data'];
+                $remote_data['ids'] = implode(',', $item_ids);
                 break;
         }
-        if(empty($subjectIds)) {
+        $res = $remote_curl->curl_remote('', $remote_data);
+        if(empty($res) || $res['code'] !== 0) {
             return $this->succ($koubei_res);
         }
+        $subjectIds = $res['data'];
         $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
-        $koubei_res['koubei_info'] = $material_infos;
+        $koubei_res['subject_lists'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
 
-    /*
-     * 临时接口
-     * 素材推荐精选列表ids
-     * */
-    public function rankMaterialList($itemIds, $del_subjects = [], $page = 1, $count = 20, $userId = 0) {
-
-        $rank_ids = [];
-        if(empty($itemIds)) {
-            return $this->succ($rank_ids);
-        }
-        $koubeiService = new KoubeiService();
-        $rank_ids = $koubeiService->getRankKoubeiList($itemIds, $del_subjects, $page, $count, $userId)['data'];
-        return $this->succ($rank_ids);
-    }
 
     /*
      * 素材图文下载记录
