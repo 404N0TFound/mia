@@ -627,6 +627,8 @@ class News extends \mia\miagroup\Lib\Service
                 if (!empty($res)) {
                     $tmp[strtotime($res[0]["create_time"])] = $showCate . ":" . $res[0]["id"];
                     $redis->zAdd($redis_key, strtotime($res[0]["create_time"]), $showCate . ":" . $res[0]["id"]);
+                } else {
+                    $redis->zAdd($redis_key, time(), $showCate . ":" . 0);//防止不存在的下次再查
                 }
             }
         }
