@@ -134,10 +134,51 @@ class UserNews extends DB_Query
         if (isset($conditions['id'])) {
             $where[] = ['id', $conditions['id']];
         }
-        $where[] = ['status', 1];
 
-        $fields = "id,news_type,user_id,send_user,news_id,is_read,source_id,ext_info,create_time";
-        $data = $this->getRows($where, $fields);
+        if (isset($conditions['by_day'])) {
+            $timeBegin = date("Y-m-d");
+            $timeEnd = date("Y-m-d H:i:s", strtotime($timeBegin) + 86399);
+            $where[] = [':gt', 'create_time', $timeBegin];
+            $where[] = [':lt', 'create_time', $timeEnd];
+        }
+
+        if (isset($conditions['news_type'])) {
+            $where[] = ['news_type', $conditions['news_type']];
+        }
+        if (isset($conditions['source_id'])) {
+            $where[] = ['source_id', $conditions['source_id']];
+        }
+        if (isset($conditions['send_user'])) {
+            $where[] = ['send_user', $conditions['send_user']];
+        }
+        if (isset($conditions['news_id'])) {
+            $where[] = ['news_id', $conditions['news_id']];
+        }
+        if (isset($conditions['status'])) {
+            $where[] = ['status', $conditions['status']];
+        } else {
+            $where[] = ['status', 1];
+        }
+
+        if (isset($conditions['limit'])) {
+            $limit = $conditions['limit'];
+        } else {
+            $limit = false;
+        }
+
+        $order = "create_time desc";
+
+        if (isset($conditions['fields'])) {
+            $fields = $conditions['fields'];
+        } else {
+            $fields = "id,news_type,user_id,send_user,news_id,is_read,source_id,ext_info,create_time";
+        }
+        $data = $this->getRows($where, $fields, $limit, 0, $order);
+        foreach ($data as &$val) {
+            if (isset($val["ext_info"])) {
+                $val["ext_info"] = json_decode($val["ext_info"], true);
+            }
+        }
         return $data;
     }
 
@@ -147,7 +188,7 @@ class UserNews extends DB_Query
      * @param $userId
      * @return bool
      */
-    public function changeReadStatus($userId)
+    public function changeReadStatus($userId, $type = [])
     {
         $isShardExists = $this->doShard(["user_id" => $userId]);
         if (!$isShardExists) {
@@ -155,6 +196,9 @@ class UserNews extends DB_Query
         }
         $setData[] = ['is_read', 1];
         $where[] = ['user_id', $userId];
+        if(!empty($type)) {
+            $where[] = ['news_type', $type];
+        }
         $res = $this->update($setData, $where);
         return $res;
     }
@@ -181,5 +225,44 @@ class UserNews extends DB_Query
         $fields = "count(id) as num";
         $data = $this->getRow($where, $fields);
         return intval($data["num"]);
+    }
+
+
+    /**
+     * 更新
+     * @param $setData
+     * @param $where
+     * @return mixed
+     */
+    public function updateNews($setData, $where)
+    {
+        $isShardExists = $this->doShard($setData);
+        foreach ($setData as $key => $val) {
+            $changeData[] = [$key, $val];
+        }
+        if (!$isShardExists) {
+            return false;
+        }
+        $res = $this->update($changeData, $where);
+        return $res;
+    }
+
+    /**
+     * 更新状态
+     * @param $where
+     * @return mixed
+     */
+    public function updateStatus($where)
+    {
+        $isShardExists = $this->doShard($where);
+        if (!$isShardExists) {
+            return false;
+        }
+        foreach ($where as $key => $val) {
+            $conditions[] = [$key, $val];
+        }
+        $setData[] = ["status", 0];
+        $res = $this->update($setData, $conditions);
+        return $res;
     }
 }

@@ -204,55 +204,81 @@ class Comment extends \mia\miagroup\Lib\Service {
         // 获取入库的评论,查主库
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $comment = $this->getBatchComments(array($commentInfo['id']), array('user_info', 'parent_comment'), array(1, 2))['data'];
-        \DB_Query::switchCluster($preNode);
+
 
         if (!empty($comment[$commentInfo['id']])) {
-            $commentInfo = $comment[$commentInfo['id']];
+            $commentInfo = $comment[$commentInfo['id']];//$commentInfo 值覆盖
         }
         if ($commentInfo['status'] == 2) {
             return $this->succ($commentInfo);
         }
         $sendFromUserId = $user_id; // 当前登录人id
         $toUserId = $subjectInfo['user_id'];
-        // 如果直接评论图片，自己评论自己的图片，不发送消息/push
+
+
+        //回复帖子或评论：回复人非帖子作者，发消息给帖子作者
         if ($sendFromUserId != $toUserId) {
-            // 发消息
+            // 发消息 TODO 完全切换后关掉旧的
             $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
-            //赠送用户蜜豆
+            $this->newService->postMessage('img_comment', $toUserId, $sendFromUserId, $commentInfo['id']);
+            //赠送用户蜜豆（帖子作者）
             $mibean = new \mia\miagroup\Remote\MiBean();
-            $param['user_id'] = $sendFromUserId;
+            $param['user_id'] = $sendFromUserId;//评论者
             $param['relation_type'] = 'receive_comment';
             $param['relation_id'] = $commentInfo['id'];
-            $param['to_user_id'] = $toUserId;
-            $mibean->add($param);
+            $param['to_user_id'] = $toUserId;//帖子作者
+            $res = $mibean->add($param);
+
+            //如果是长文：赠送用户蜜豆（评论人）
+            if ($subjectInfo['type'] === 'blog') {
+                //检查是否互动过
+                $isCommented = $this->commentModel->checkComment($subjectId, $sendFromUserId);
+                if (count($isCommented) <= 1) {
+                    $param_2['user_id'] = $toUserId;//帖子作者
+                    $param_2['relation_type'] = 'receive_comment';
+                    $param_2['relation_id'] = $commentInfo['id'];
+                    $param_2['to_user_id'] = $sendFromUserId;//评论者
+                    $param_2['mibean'] = 3;//评论长文，奖励3蜜豆
+                    $res = $mibean->add($param_2);
+                    //长文奖励成功提示
+                    $blogComment = 1;
+                }
+            }
 
             //8：00-23：00发送评论，发push
-            $timeZero = strtotime(date("Y-m-d"));
-            $timeNow = time();
-            $period = $timeNow - $timeZero;
-            if (28800 < $period && $period < 82800) {
-                $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
-                $push = new Service\Push();
-                $push->pushMsg($toUserId, $nickName . "评论了你的帖子", "miyabaobei://subject?id=" . $subjectId);
-            }
+            // $timeZero = strtotime(date("Y-m-d"));
+            // $timeNow = time();
+            // $period = $timeNow - $timeZero;
+            // if (28800 < $period && $period < 82800) {
+            //     $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
+            //     $push = new Service\Push();
+            //     $push->pushMsg($toUserId, $nickName . "评论了你的帖子", "miyabaobei://subject?id=" . $subjectId);
+            // }
         }
-        // 如果是回复图片的评论，被评论人和图片发布人或者自己回复自己的评论，不发消息/push
+
+        \DB_Query::switchCluster($preNode);
+        // 回复评论：被评论人不是帖子作者，被评论人不是评论人自己
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
             $toUserId = $commentInfo['parent_user']['user_id'];
+            // 发消息，发给被评论人 TODO 完全切换后关掉旧的
             $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id'])['data'];
-            
+            $this->newService->postMessage('img_comment', $toUserId, $sendFromUserId, $commentInfo['id']);
+
             //8：00-23：00发送评论，发push
-            $timeZero = strtotime(date("Y-m-d"));
-            $timeNow = time();
-            $period = $timeNow - $timeZero;
-            if (28800 < $period && $period < 82800) {
-                $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
-                $push = new Service\Push();
-                $push->pushMsg($toUserId, $nickName . "回复了你的评论", "miyabaobei://subject?id=" . $subjectId);
-            }
+            // $timeZero = strtotime(date("Y-m-d"));
+            // $timeNow = time();
+            // $period = $timeNow - $timeZero;
+            // if (28800 < $period && $period < 82800) {
+            //     $nickName = $commentInfo["comment_user"]["nickname"] ? $commentInfo["comment_user"]["nickname"] : $commentInfo["comment_user"]["username"];
+            //     $push = new Service\Push();
+            //     $push->pushMsg($toUserId, $nickName . "回复了你的评论", "miyabaobei://subject?id=" . $subjectId);
+            // }
         }
-        
-        return $this->succ($commentInfo);
+        if (isset($blogComment) && $blogComment == 1) {
+            return $this->succ($commentInfo, "+3蜜豆");
+        } else {
+            return $this->succ($commentInfo, "操作成功");
+        }
     }
     
     /**

@@ -7,6 +7,7 @@ class Service extends \FS_Service {
     private $endTime;
     static private $count = 0;
     static private $entranceClass;
+    static private $needLog = 1;
     
     function __construct() {
         parent::__construct();
@@ -24,9 +25,17 @@ class Service extends \FS_Service {
     
     function __destruct() {
         if (self::$entranceClass == get_class($this)) {
-            self::$count --;
+            self::$count--;
         }
-        if (self::$entranceClass == get_class($this) && self::$count == 0 && !empty($this->params)) {
+        $requestAction = \F_Ice::$ins->runner->request->class . "/" . \F_Ice::$ins->runner->request->action;
+        $interceptLog = \F_Ice::$ins->workApp->config->get('busconf.log.interceptLog');
+        if (array_key_exists($requestAction, $interceptLog)) {
+            $temp = rand(1, 10000);
+            if ($temp / 10000 > $interceptLog[$requestAction]) {
+                self::$needLog = 0;
+            }
+        }
+        if (self::$needLog == 1 && self::$entranceClass == get_class($this) && self::$count == 0 && !empty($this->params)) {
             $this->endTime = gettimeofday(true);
             $respTime = number_format(($this->endTime - $this->startTime), 4, '.', '');
             \F_Ice::$ins->mainApp->logger_access->info(array(

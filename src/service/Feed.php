@@ -101,4 +101,54 @@ class Feed extends \mia\miagroup\Lib\Service {
         $data['label_lists'] = $lableIdInfo;
         return $this->succ($data);
     }
+    
+    /**
+     * 获取发现页的帖子
+     * @param $currentUid 当前登录用户id
+     * @param $use_type （all为发现页，carousel为轮播）
+     * @param $page 当前页
+     * @param $count 每页数量
+     */
+    public function getDiscoverySubjects($use_type, $currentUid = 0, $page = 1, $count = 10, $referId = 0) {
+        if(empty($use_type)){
+            return $this->succ(array());
+        }
+        $filter = array();
+        if ($use_type == 'carousel') {
+            $page = 1;
+            $count = 5;
+            $filter['title_status'] = 1; //取轮播素材的时候需要过滤掉title为空的
+        }
+        
+        //如果从频道页传入帖子id，取数据时将这个id过滤掉
+        if($referId > 0){
+            $filter['subject_id'] = $referId;
+        }
+        
+        $userIds = array('7509553','13789824','1129705');
+        $auditService = new \mia\miagroup\Service\Audit();
+        foreach ($userIds as $key => $userId) {
+            //验证用户是否已屏蔽
+            if($auditService->checkUserIsShield($userId)['data']['is_shield']){
+                unset($userIds[$key]);
+            }
+        }
+    
+        //获取plus用户的帖子列表
+        $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.material')];
+        if($page == 1  && intval($referId) > 0){
+            $count = $count - 1;
+        }
+        $subjectIds = $this->feedModel->getSubjectListByUids($userIds,$page,$count,$source,$filter);
+        if($page == 1 && intval($referId) > 0){
+            array_unshift($subjectIds,$referId);
+        }
+        
+        //获取帖子详细信息
+        $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid,array('user_info', 'count', 'content_format', 'album','item','share_info'))['data'];
+        $data = [];
+        $data['subject_lists'] = array_values($subjectsList);
+        return $this->succ($data);
+    }
+    
 }

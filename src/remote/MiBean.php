@@ -29,6 +29,11 @@ class MiBean extends Thrift{
             case 'receive_praise': //赞奖励
             case 'follow_me': //关注奖励
             case 'receive_comment': //评论奖励
+                if(empty($param['mibean'])) {
+                    $param['mibean'] = 1;
+                }
+                break;
+            case 'add_favorite': //收藏奖励
                 $param['mibean'] = 1;
                 break;
             case 'publish_pic': //发布奖励

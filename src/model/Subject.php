@@ -3,6 +3,7 @@ namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Subject\Subject as SubjectData;
 use mia\miagroup\Data\Subject\SubjectCollect;
+use mia\miagroup\Data\Subject\SubjectDownload;
 use mia\miagroup\Data\Subject\TabNoteOperation;
 use mia\miagroup\Data\Subject\Video as VideoData;
 use mia\miagroup\Data\Subject\Tab as TabData;
@@ -16,6 +17,7 @@ class Subject {
     protected $tabData = null;
     protected $tabOpeationData = null;
     protected $subjectCollectData = null;
+    protected $subjectDownloadData = null;
     protected $subjectBlogData = null;
     
     public function __construct() {
@@ -24,6 +26,7 @@ class Subject {
         $this->tabData = new TabData();
         $this->tabOpeationData = new TabNoteOperation();
         $this->subjectCollectData = new SubjectCollect();
+        $this->subjectDownloadData = new SubjectDownload();
         $this->subjectBlogData = new \mia\miagroup\Data\Subject\SubjectBlog();
     }
 
@@ -299,8 +302,8 @@ class Subject {
       * @param number $iPage
       * @param number $iPageSize
       */
-     public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20){
-         $subject_id = $this->subjectData->getSubjectInfoByUserId($userId, $currentId, $iPage, $iPageSize);
+     public function getSubjectInfoByUserId($userId, $currentId = 0, $iPage = 1, $iPageSize = 20, $conditions = []){
+         $subject_id = $this->subjectData->getSubjectInfoByUserId($userId, $currentId, $iPage, $iPageSize, $conditions);
          return $subject_id;
      }
      
@@ -610,5 +613,43 @@ class Subject {
     {
         $result = $this->subjectBlogData->getBlogBySubjectIds($subject_ids, $status);
         return $result;
+    }
+
+    /*
+     * 获取plus用户素材列表
+     * */
+    public function getUserMaterialIds($item_ids, $user_id = 0, $count = 0, $offset = 0, $conditions = [])
+    {
+        $result = $this->subjectData->getUserMaterialIds($item_ids, $user_id, $count, $offset, $conditions);
+        return $result;
+    }
+
+    /*
+     * 添加素材下载
+     * */
+    public function insertSubjectDownload($userId, $sourceId, $source_type)
+    {
+        if(empty($userId) || empty($sourceId) || empty($source_type)) {
+            return 0;
+        }
+        $insertData["user_id"] = $userId;
+        $insertData["source_id"] = $sourceId;
+        $insertData["source_type"] = $source_type;
+        $now = date("Y-m-d H:i:s");
+        $insertData["create_time"] = $now;
+        $res = $this->subjectDownloadData->insertSubjectDownload($insertData);
+        return $res;
+    }
+
+    /**
+     * 获取帖子下载数
+     */
+    public function getDownloadNum($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return [];
+        }
+        $res = $this->subjectDownloadData->getDownloadNum($subjectIds);
+        return $res;
     }
 }

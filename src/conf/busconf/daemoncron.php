@@ -271,4 +271,15 @@ $cron_list['user_doozer_day_rank_update'] = array(
     'interval' => 600
 );
 
+/**************
+ * 消息相关配置 *
+ *************/
 
+//发送消息
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1
+);

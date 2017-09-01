@@ -19,7 +19,22 @@ class Order extends \mia\miagroup\Lib\Service {
         $orderData = $this->orderModel->getOrderInfoByOrderCode($orderCodes);
         return $this->succ($orderData);
     }
-    
+
+    /**
+     * 获取订单商品信息
+     */
+    public function getOrderItemInfo($orderCodes)
+    {
+        $orderData = $this->orderModel->getOrderItemInfo($orderCodes);
+        return $this->succ($orderData);
+    }
+
+    public function getOrderSuperiorInfo($superiorCodes)
+    {
+        $orderData = $this->orderModel->getOrderSuperiorInfo($superiorCodes);
+        return $this->succ($orderData);
+    }
+
     /**
      * 根据订单ID获取订单信息
      */
@@ -35,4 +50,27 @@ class Order extends \mia\miagroup\Lib\Service {
         $orderData = $this->orderModel->getReturnOrderInfo($order_code, $item_id);
         return $this->succ($orderData);
     }
+
+    /**
+     * 获取退货申请单信息
+     * @param $returnNums
+     * @return array
+     */
+    public function getReturnInfo($returnNums)
+    {
+        $returnData = $this->orderModel->getReturnInfo($returnNums);
+        return $this->succ($returnData);
+    }
+
+    /**
+     * 获取退款单信息
+     * @param $RefundNums
+     * @return array
+     */
+    public function getRefundInfo($RefundNums)
+    {
+        $refundData = $this->orderModel->getRefundInfo($RefundNums);
+        return $this->succ($refundData);
+    }
+
 }

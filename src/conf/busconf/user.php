@@ -20,6 +20,8 @@ $miaZhenXuanKefuUid = '19080286';
  */
 $miaAngelUid = '1026069';
 
+$miaTuIcon = 'https://img03.miyabaobei.com/d1/p5/2016/11/11/b7/8a/b78a0759965feae977bfa1f6da0cf2d5594917861.png';
+
 /**
  * 新用户注册自动关注
  */

@@ -18,3 +18,8 @@ $config['filter_rank_extend_list'] = array(
 
 $promote_start_time = '2017-02-28 20:00:00';  //大促开始时间
 $promote_end_time = '2017-03-04 00:00:00';    //大促结束时间
+
+/*
+ * 商品详情地址
+ */
+$miagroup_item_url = 'https://m.mia.com/item-%d.html';

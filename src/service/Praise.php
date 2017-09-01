@@ -75,7 +75,6 @@ class Praise extends \mia\miagroup\Lib\Service {
      */
     public function dotPraise($iSubjectId, $userId)
     {
-        
         if (!is_numeric($iSubjectId) || intval($iSubjectId) <= 0 || !is_numeric($userId) || intval($userId) <= 0) {
             return $this->error(500);
         }
@@ -114,7 +113,7 @@ class Praise extends \mia\miagroup\Lib\Service {
             $praiseId = $this->praiseModel->insertPraise($setData);
             #start赠送用户蜜豆
             //自己给自己点赞不送蜜豆
-            if($subjectInfo['user_id'] != $userId){
+            if ($subjectInfo['user_id'] != $userId) {
                 // 收到赞+1        （以天为周期，每天收到N个赞，最多可得3次蜜豆奖励）
                 $mibean = new \mia\miagroup\Remote\MiBean();
                 $param['relation_type'] = 'receive_praise';
@@ -122,6 +121,18 @@ class Praise extends \mia\miagroup\Lib\Service {
                 $param['relation_id'] = $iSubjectId;
                 $param['to_user_id'] = $subjectInfo['user_info']['user_id'];
                 $mibean->add($param);
+
+                //长文点赞，给点赞人送1蜜豆
+                if ($subjectInfo['type'] === 'blog') {
+                    //检查是否互动过
+                    $param_2['user_id'] = $subjectInfo['user_info']['user_id'];//帖子作者
+                    $param_2['relation_type'] = 'receive_praise';
+                    $param_2['relation_id'] = $iSubjectId;
+                    $param_2['to_user_id'] = $userId;//评论者
+                    $res = $mibean->add($param_2);
+                    //长文奖励成功提示
+                    $blogPrise = 1;
+                }
             }
             #end赠送用户蜜豆
         }
@@ -132,11 +143,17 @@ class Praise extends \mia\miagroup\Lib\Service {
     
         if($userId != $subjectInfo['user_info']['user_id']) {
             $news = new \mia\miagroup\Service\News();
+            //TODO 完全切换后关掉旧的
             $news->addNews('single', 'group', 'img_like', $userId, $subjectInfo['user_info']['user_id'], $praiseId)['data'];
+            $news->postMessage('img_like', $subjectInfo['user_info']['user_id'], $userId, $praiseId);
         }
         $praiseInfo['fancied_by_me'] = $subjectInfo['fancied_by_me'];
         $praiseInfo['fancied_count'] = $subjectInfo['fancied_count'];
-        return $this->succ($praiseInfo);
+        if (isset($blogPrise) && $blogPrise == 1) {
+            return $this->succ($praiseInfo, "+1蜜豆");
+        } else {
+            return $this->succ($praiseInfo, "操作成功");
+        }
     }
     
     /**
