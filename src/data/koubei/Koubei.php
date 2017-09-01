@@ -415,28 +415,4 @@ class Koubei extends \DB_Query {
         return $ids;
     }
 
-    /*
-     * 临时接口（待删除）
-     * 获取精品口碑
-     * */
-    public function getRankKoubeiIdsByItemIds($itemIds, $del_subjects, $limit = 20, $offset = 0, $orderBy = false) {
-        $result = array();
-        if (empty($itemIds)) {
-            return $result;
-        }
-        $where = array();
-        $where[] = ['item_id', $itemIds];
-        $where[] = ['rank', 1];
-        $where[] = ['status', 2];
-        $where[] = [":ge",'score', '4'];
-        $where[] = [':gt','subject_id',0];
-        if(!empty($del_subjects)) {
-            $where[] = [':notin','subject_id',$del_subjects];
-        }
-        $fields = 'subject_id';
-        $data = $this->getRows($where,$fields,$limit,$offset,$orderBy);
-        $result = array_column($data, 'subject_id');
-        return $result;
-    }
-
 }

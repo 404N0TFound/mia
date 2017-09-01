@@ -358,3 +358,11 @@ $miagroup_cate_mapping = array(
     'skip_url' => 'miyabaobei://group_channel?',
     'source' => 'from_url'
 );
+
+/*
+ * 帖子收藏状态
+ */
+$subject_collect = array(
+    'subject'  => 1,
+    'material' => 2,
+);

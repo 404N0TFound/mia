@@ -765,17 +765,4 @@ class Koubei {
         return $res;
     }
 
-    /*
-     * 获取精品口碑贴
-     * */
-    public function getRankKoubeiListByItem($itemIds = array(), $del_subjects = array(), $limit = 0, $offset = 0) {
-
-        if (empty($itemIds)) {
-            return array();
-        }
-        $orderBy = 'is_bottom asc, auto_evaluate asc, rank_score desc, score desc, created_time desc';
-        $koubeiData = $this->koubeiData->getRankKoubeiIdsByItemIds($itemIds, $del_subjects, $limit, $offset,$orderBy);
-        return $koubeiData;
-    }
-
 }

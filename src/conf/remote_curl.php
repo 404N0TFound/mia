@@ -75,3 +75,11 @@ $koubei_high_optimize = array(
     'method' => 'get',
     'result_format' => false
 );
+
+// 素材排序策略
+$material_high_optimize = array(
+    //'url' => 'http://10.1.15.14:5500/material/get_material',
+    'url' => 'http://kbrank.rec.mia.com/material/get_material',
+    'method' => 'get',
+    'result_format' => false
+);
