@@ -407,7 +407,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $praiseCounts = $this->praiseService->getBatchSubjectPraises($subjectIds)['data'];
             $viewCounts = $this->getBatchSubjectViewCount($subjectIds)['data'];
             $collectCounts = $this->getBatchSubjectCollectCount($subjectIds)['data'];
-            $downloadCounts = $this->getBatchSubjectDownloadCount($subjectIds)['data'];
+            //$downloadCounts = $this->getBatchSubjectDownloadCount($subjectIds)['data'];
         }
         // 获取赞用户
         if (in_array('praise_info', $field)) {
