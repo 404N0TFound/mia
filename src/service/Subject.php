@@ -1416,7 +1416,7 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 根据用户ID获取帖子信息 (edit by 5.7 material list)
      */
-    public function getSubjectsByUid($userId, $currentId = 0, $page = 1, $iPageSize = 20, $field = '', $conditions = []){
+    public function getSubjectsByUid($userId, $currentId = 0, $page = 1, $iPageSize = 20, $field = [], $conditions = []){
 
         $data = array("subject_lists" => array(), "status" => 0);
         //校验是否是屏蔽用户

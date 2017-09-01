@@ -27,13 +27,13 @@ class SubjectDownload extends \DB_Query
         }
         $where[] = ['source_id', $subjectIds];
         $where[] = ['source_type', 1];
-        $data = $this->getRows($where, 'source_id,count', FALSE, 0, FALSE, FALSE, "source_id");
+        $data = $this->getRows($where, 'source_id,count(id) as num', FALSE, 0, FALSE, FALSE, "source_id");
         if(empty($data)) {
             return [];
         }
         $res = [];
         foreach ($data as $val) {
-            $res[$val["source_id"]] = $val["count"];
+            $res[$val["source_id"]] = $val["num"];
         }
         return $res;
     }
