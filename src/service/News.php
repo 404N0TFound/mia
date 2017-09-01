@@ -714,7 +714,11 @@ class News extends \mia\miagroup\Lib\Service
      */
     public function categoryList($category, $userId, $offset = 0)
     {
-        if(empty($category) || empty($userId)) {
+        if (empty($category) || empty($userId)) {
+            return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
+        }
+        $newsNum = $this->getCateNewsNum($category, $userId);
+        if (empty($newsNum)) {
             return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
         }
         $pageLimit = $this->config['page_limit'];
