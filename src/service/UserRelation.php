@@ -6,6 +6,7 @@ use mia\miagroup\Model\UserRelation as UserRelationModel;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Service\Audit as AuditService;
 
 class UserRelation extends \mia\miagroup\Lib\Service {
 
@@ -91,30 +92,35 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             $isFirst = false;
         }
         //$isFirst = $data === false ? true : false;
-        //用户每分钟只能关注5次
-        $userRelationKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_attention_dubious.key'),$userId);
-        $redis = new Redis();
-        //判断是否加过关注
-        $checkAttention = $redis->exists($userRelationKey);
-        if($checkAttention){
-            //获取关注次数
-            $count = $redis->get($userRelationKey);
-            //如果关注计数超过5，则报错提示
-            if($count >= 5){
-                return $this->error(1303);
+        //获取用户信息
+        $auditService = new AuditService();
+        $userDubiousStatus = $auditService->checkUserIsDubious($userId)['data'];
+        //可疑用户每分钟只能关注5次
+        if($userDubiousStatus['is_dubious'] == 1){
+            $userRelationKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_attention_dubious.key'),$userId);
+            $redis = new Redis();
+            //判断是否加过关注
+            $checkAttention = $redis->exists($userRelationKey);
+            if($checkAttention){
+                //获取关注次数
+                $count = $redis->get($userRelationKey);
+                //如果关注计数超过5，则报错提示
+                if($count >= 5){
+                    return $this->error(1303);
+                }else{
+                    //加关注
+                    $userRelation = $this->userRelationModel->addRelation($userId,$relationUserId, $source);
+                    //计数
+                    $redis->incr($userRelationKey);
+                }
             }else{
                 //加关注
                 $userRelation = $this->userRelationModel->addRelation($userId,$relationUserId, $source);
                 //计数
                 $redis->incr($userRelationKey);
+                //限制时间为60秒
+                $redis->expire($userRelationKey,60);
             }
-        }else{
-            //加关注
-            $userRelation = $this->userRelationModel->addRelation($userId,$relationUserId, $source);
-            //计数
-            $redis->incr($userRelationKey);
-            //限制时间为60秒
-            $redis->expire($userRelationKey,60);
         }
 
         if ($relationUserId != 1026069 && $source == 1 && $isFirst) { //蜜芽小天使账号不赠送蜜豆，不接收消息
