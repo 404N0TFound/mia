@@ -1035,7 +1035,7 @@ class Subject extends \mia\miagroup\Lib\Service
         // 帖子标记素材扩展字段
         $material_source = $this->config['source']['material'];
         if($material_source == $subjectSetInfo['source']) {
-            $subjectSetInfo['ext_info']['type'] = 'material';
+            $subjectSetInfo['ext_info']['is_material'] = 1;
         }
 
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
