@@ -717,10 +717,7 @@ class News extends \mia\miagroup\Lib\Service
         if (empty($category) || empty($userId)) {
             return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
         }
-        $newsNum = $this->getCateNewsNum($category, $userId);
-        if (empty($newsNum)) {
-            return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
-        }
+
         $pageLimit = $this->config['page_limit'];
 
         list($redis, $redis_key, $expire_time) = $this->getRedis("cate_list", $category.":".intval($userId));
@@ -744,6 +741,10 @@ class News extends \mia\miagroup\Lib\Service
         if (empty($newsIds) && !$redis->exists($redis_key)) {
             //查询数据库
             $news = $this->newsModel->getBatchList($this->getAllChlidren($category)['data'], $userId, $this->config['user_list_limit']);
+            if(empty($news)) {
+                //TODO 优化
+                return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
+            }
             //存入redis
             foreach ($news as $val) {
                 $score = strtotime($val["create_time"]) . str_pad($val['id'] % 100, 3, 0, STR_PAD_LEFT);
