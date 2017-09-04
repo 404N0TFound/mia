@@ -6,6 +6,7 @@ use mia\miagroup\Model\UserRelation as UserRelationModel;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Lib\Redis;
 use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Service\Audit as AuditService;
 
 class UserRelation extends \mia\miagroup\Lib\Service {
 
@@ -92,11 +93,10 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         }
         //$isFirst = $data === false ? true : false;
         //获取用户信息
-        $userService = new UserService();
-        $userInfo = $userService->getUserInfoByUserId($userId)['data'];
-
+        $auditService = new AuditService();
+        $userDubiousStatus = $auditService->checkUserIsDubious($userId)['data'];
         //可疑用户每分钟只能关注5次
-        if($userInfo['status'] == 2){
+        if($userDubiousStatus['is_dubious'] == 1){
             $userRelationKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.userKey.user_attention_dubious.key'),$userId);
             $redis = new Redis();
             //判断是否加过关注
