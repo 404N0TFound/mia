@@ -966,6 +966,11 @@ class Subject extends \mia\miagroup\Lib\Service
         }else{
             $subjectSetInfo['source'] = 1;
         }
+        
+        if (in_array($subjectInfo['user_info']['user_id'],array('19972687','19468587','6524138'))) {
+            $subjectSetInfo['source'] = 5;
+        }
+        
         if (!empty($subjectInfo['ext_info'])) {
             $subjectSetInfo['ext_info'] = $subjectInfo['ext_info'];
         }
