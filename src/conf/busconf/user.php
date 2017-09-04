@@ -53,14 +53,12 @@ $miaTuIcon = 'https://img03.miyabaobei.com/d1/p5/2016/11/11/b7/8a/b78a0759965fea
  ];
  
  /**
-  * 发帖用户来源，material是素材来源
+  * 蜜芽圈plus用户
   */
-$source = array(
-    'material' =>array(
-         19972687,
-         19468587,
-         6524138
-    ),
+$plus_user_list = array(
+     19972687,
+     19468587,
+     6524138
 );
 
 /**
