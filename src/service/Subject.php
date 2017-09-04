@@ -1031,7 +1031,13 @@ class Subject extends \mia\miagroup\Lib\Service
         if (!empty($selection)) {
             $subjectSetInfo['ext_info']['selection'] = $selection;
         }
-        
+
+        // 帖子标记素材扩展字段
+        $material_source = $this->config['source']['material'];
+        if($material_source == $subjectSetInfo['source']) {
+            $subjectSetInfo['ext_info']['type'] = 'material';
+        }
+
         $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         
         //只有当帖子带图的时候才能参加活动
@@ -1099,7 +1105,6 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         $subjectSetInfo['cover_image'] = NormalUtil::buildImgUrl($subjectInfo['cover_image']['url'], 'watermark', $subjectInfo['cover_image']['width'], $subjectInfo['cover_image']['height']);
-        $material_source = $this->config['source']['material'];
         if ($koubeiId <= 0 && $subjectInfo['source'] != $material_source) { //口碑不再发蜜豆(5.7素材不发蜜豆)
             // 赠送用户蜜豆
             $mibean = new \mia\miagroup\Remote\MiBean();
@@ -1995,16 +2000,17 @@ class Subject extends \mia\miagroup\Lib\Service
         //查询贴子收藏数，线上有主从同步，必须先查
         $collect_num = $this->getBatchSubjectCollectCount(intval($sourceId))["data"][intval($sourceId)];
 
+        $subjectInfoData = $this->getBatchSubjectInfos([$sourceId], 0, [])['data'];
+        $subjectInfo = $subjectInfoData[$sourceId];
+        // 素材相关标识
+        $configMaterial = $this->config['source']['material'];
+        $subjectSource = $subjectInfo['source'];
+        $is_material = $subjectInfo['type'];
+
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
         if (empty($collectInfo)) {
             //插入
-            $subjectInfoData = $this->getBatchSubjectInfos([$sourceId], 0, [])['data'];
-            $subjectInfo = $subjectInfoData[$sourceId];
-            // 素材相关标识
-            $configMaterial = $this->config['source']['material'];
-            $subjectSource = $subjectInfo['source'];
-            $is_material = $subjectInfo['type'];
             if($is_material == 'material' || $configMaterial == $subjectSource) {
                 $type = $this->config['subject_collect']['material'];
             }
@@ -2035,6 +2041,9 @@ class Subject extends \mia\miagroup\Lib\Service
                 $setData[] = ['update_time', date("Y-m-d H:i:s")];
                 $where[] = ['user_id', $userId];
                 $where[] = ['source_id', $sourceId];
+                if($is_material == 'material' || $configMaterial == $subjectSource) {
+                    $type = $this->config['subject_collect']['material'];
+                }
                 $where[] = ['source_type', $type];
                 $result = $this->subjectModel->updateCollect($setData, $where);
                 if ($status == 1) {
@@ -2497,6 +2506,10 @@ class Subject extends \mia\miagroup\Lib\Service
         $remote_data['page'] = $page - 1;
         $remote_data['pagesize'] = $count;
         $remote_data['ids'] = implode(',', $item_ids);
+        if(!empty($userId)) {
+            // 增加用户发帖过滤
+            $remote_data['uid'] = $userId;
+        }
 
         // 获取用户发布素材总数
         $user_material_ids = [];
@@ -2573,7 +2586,11 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
         $remote_data = [];
-        $remote_data['type'] = $type;
+        if($remote_data['type'] == 'item') {
+            $remote_data['type'] = 'sku';
+        }else{
+            $remote_data['type'] = $type;
+        }
         $remote_data['page'] = $page - 1;
         $remote_data['pagesize'] = $count;
         $remote_curl = new RemoteCurl('material_high_optimize');
