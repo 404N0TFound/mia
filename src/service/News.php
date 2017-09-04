@@ -627,6 +627,8 @@ class News extends \mia\miagroup\Lib\Service
                 if (!empty($res)) {
                     $tmp[strtotime($res[0]["create_time"])] = $showCate . ":" . $res[0]["id"];
                     $redis->zAdd($redis_key, strtotime($res[0]["create_time"]), $showCate . ":" . $res[0]["id"]);
+                } else {
+                    $redis->zAdd($redis_key, time(), $showCate . ":" . 0);//防止不存在的下次再查
                 }
             }
         }
@@ -712,9 +714,10 @@ class News extends \mia\miagroup\Lib\Service
      */
     public function categoryList($category, $userId, $offset = 0)
     {
-        if(empty($category) || empty($userId)) {
+        if (empty($category) || empty($userId)) {
             return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
         }
+
         $pageLimit = $this->config['page_limit'];
 
         list($redis, $redis_key, $expire_time) = $this->getRedis("cate_list", $category.":".intval($userId));
@@ -738,6 +741,10 @@ class News extends \mia\miagroup\Lib\Service
         if (empty($newsIds) && !$redis->exists($redis_key)) {
             //查询数据库
             $news = $this->newsModel->getBatchList($this->getAllChlidren($category)['data'], $userId, $this->config['user_list_limit']);
+            if(empty($news)) {
+                //TODO 优化
+                return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
+            }
             //存入redis
             foreach ($news as $val) {
                 $score = strtotime($val["create_time"]) . str_pad($val['id'] % 100, 3, 0, STR_PAD_LEFT);
@@ -1079,6 +1086,7 @@ class News extends \mia\miagroup\Lib\Service
         $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
         switch ($newsInfo['news_type']) {
             case "order":
+                $title = "订单消息";
                 $text = $newsInfo["ext_info"]["content"];
                 $url = sprintf($app_mapping_config['order_list'], 0, 3);
                 break;
@@ -1241,6 +1249,7 @@ class News extends \mia\miagroup\Lib\Service
                 $title = $ext_info["title"];
                 break;
             case "coupon":
+                $title = "优惠券消息";
                 $text = $newsInfo['ext_info']['content'];
                 $url = $app_mapping_config['userCoupon'];
                 break;
@@ -1283,7 +1292,9 @@ class News extends \mia\miagroup\Lib\Service
         $newsList = $this->newsModel->getNewsInfoList($newsIds, $userId);
         $return = [];
         foreach ($newsIds as $val) {
-            $return[$val] = $newsList[$val];
+            if(!empty($newsList[$val])) {
+                $return[$val] = $newsList[$val];
+            }
         }
         return $this->succ($return);
     }

@@ -373,4 +373,17 @@ class Audit extends \mia\miagroup\Lib\Service {
         }
         return $this->succ([]);
     }
+    
+    /**
+     * 验证用户是否是可以用户
+     */
+    public function checkUserIsDubious($userId) {
+        $userInfo = $this->auditModel->checkIsShieldUserByUid($userId);
+        if(isset($userInfo) && $userInfo['status'] == 2){
+            $isDubious = 1;
+        }else{
+            $isDubious = 0;
+        }
+        return $this->succ(array('is_dubious' => $isDubious));
+    }
 }
