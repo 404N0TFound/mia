@@ -125,7 +125,7 @@ class Feed extends \mia\miagroup\Lib\Service {
             $filter['subject_id'] = $referId;
         }
         
-        $userIds = array('19972687','19468587','6524138');
+        $userIds = $this->config['source']['material'];
         $auditService = new \mia\miagroup\Service\Audit();
         foreach ($userIds as $key => $userId) {
             //验证用户是否已屏蔽
