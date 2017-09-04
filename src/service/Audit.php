@@ -213,11 +213,11 @@ class Audit extends \mia\miagroup\Lib\Service {
         if (in_array($this->ext_params['current_uid'], $passUid)) {
             return $this->succ(array('sensitive_words' => []));
         }
-        //达人过滤
+        //达人敏感词检查不过数美
         $userService = new UserService();
         $res = $userService->isDoozer($this->ext_params['current_uid']);
         if ($res['data'] === true) {
-            return $this->succ(array('sensitive_words' => []));
+            $shumei = 0;
         }
         //数美检测
         if ($shumei == 1 && !empty($this->ext_params)) {
