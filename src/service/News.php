@@ -1085,6 +1085,7 @@ class News extends \mia\miagroup\Lib\Service
         $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
         switch ($newsInfo['news_type']) {
             case "order":
+                $title = "订单消息";
                 $text = $newsInfo["ext_info"]["content"];
                 $url = sprintf($app_mapping_config['order_list'], 0, 3);
                 break;
@@ -1247,6 +1248,7 @@ class News extends \mia\miagroup\Lib\Service
                 $title = $ext_info["title"];
                 break;
             case "coupon":
+                $title = "优惠券消息";
                 $text = $newsInfo['ext_info']['content'];
                 $url = $app_mapping_config['userCoupon'];
                 break;
