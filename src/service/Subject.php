@@ -966,6 +966,11 @@ class Subject extends \mia\miagroup\Lib\Service
         }else{
             $subjectSetInfo['source'] = 1;
         }
+        $materialUsers = \F_Ice::$ins->workApp->config->get('busconf.user.plus_user_list');
+        if (in_array($subjectInfo['user_info']['user_id'],$materialUsers)) {
+            $subjectSetInfo['source'] = $this->config['source']['material'];
+        }
+        
         if (!empty($subjectInfo['ext_info'])) {
             $subjectSetInfo['ext_info'] = $subjectInfo['ext_info'];
         }
