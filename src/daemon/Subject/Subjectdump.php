@@ -262,7 +262,9 @@ class Subjectdump extends \FD_Daemon {
                 $dumpdata['labels'] = 'NULL';
             }
             //帖子关联sku
-            if (!empty($subjectItemIds[$subject['id']])) {
+            if ($subject['source'] == 2 || !empty($extInfo['koubei'])) {
+                $dumpdata['items'] = $koubeiInfos[$value['id']]['item_id'];
+            } else if (!empty($subjectItemIds[$subject['id']])) {
                 $dumpdata['items'] = implode(',', $subjectItemIds[$subject['id']]);
             } else {
                 $dumpdata['items'] = 'NULL';
