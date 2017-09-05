@@ -1223,14 +1223,16 @@ class News extends \mia\miagroup\Lib\Service
                 $url = sprintf($app_mapping_config['subject'], $newsInfo["ext_info"]['subject_id']);
                 $refer_text = $this->subjectInfo[$newsInfo["ext_info"]['subject_id']]["text"];
                 $image = $this->subjectInfo[$newsInfo["ext_info"]['subject_id']]["cover_image"]["url"];
-                //cover替换koubeilist样式
-                $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
-                preg_match($pattern, $image, $match);
-                $refer_img = [
-                    "url" => $match[1] . "@style@koubeilist",
-                    "width" => 320,
-                    "height" => 320
-                ];
+                if(!empty($image)) {
+                    //cover替换koubeilist样式
+                    $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
+                    preg_match($pattern, $image, $match);
+                    $refer_img = [
+                        "url" => $match[1] . "@style@koubeilist",
+                        "width" => 320,
+                        "height" => 320
+                    ];
+                }
                 break;
             case "follow":
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
