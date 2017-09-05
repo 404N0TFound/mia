@@ -1027,6 +1027,11 @@ class Solr
                     case 'brand_id':
                         $where['fq'][] = 'brand:'.$v;
                         break;
+                    case 'subject_type':
+                        if($v == 'material') {
+                            $where['fq'][] = 'is_material:1';
+                        }
+                        break;
                     default:
                         if(is_array($v)) {
                             $where['fq'][]   = $k.":(". implode(' OR ', $v) . ")";

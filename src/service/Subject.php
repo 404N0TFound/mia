@@ -2086,7 +2086,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if(!empty($res) && is_array($res)) {
             $subjectIds = array_column($res, 'source_id');
         }
-        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
+        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
         $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
         return $this->succ($data);
     }
@@ -2538,7 +2538,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }else {
-                if($user_total_count % $count != 0) {
+                if($user_total_count % $count == 0) {
                     $remote_data['page'] = $page - 2;
                 }
                 $subjectIds = $remote_curl->curl_remote('', $remote_data)['data'];
@@ -2658,7 +2658,7 @@ class Subject extends \mia\miagroup\Lib\Service
     /*
      * 批量标记素材
      * */
-    public function batchMarkMaterial($subjectIds)
+    public function batchMarkMaterial($subjectIds, $status = 1)
     {
         if (empty($subjectIds)) {
             return $this->error(500);
@@ -2684,7 +2684,11 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             //更新帖子扩展字段
             $setData = [];
-            $setData['ext_info']['is_material'] = 1;
+            if(empty($status)) {
+                $setData['ext_info']['is_material'] = 0;
+            }else{
+                $setData['ext_info']['is_material'] = 1;
+            }
             $res = $this->updateSubject($subject_id, $setData)['data'];
         }
         if(!empty($res)) {
