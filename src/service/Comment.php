@@ -275,9 +275,9 @@ class Comment extends \mia\miagroup\Lib\Service {
             // }
         }
         if (isset($blogComment) && $blogComment == 1) {
-            return $this->succ($commentInfo, "+3蜜豆");
+            return $this->succ($commentInfo, "评论成功+3蜜豆");
         } else {
-            return $this->succ($commentInfo, "操作成功");
+            return $this->succ($commentInfo, "评论成功");
         }
     }
     

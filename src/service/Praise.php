@@ -150,9 +150,9 @@ class Praise extends \mia\miagroup\Lib\Service {
         $praiseInfo['fancied_by_me'] = $subjectInfo['fancied_by_me'];
         $praiseInfo['fancied_count'] = $subjectInfo['fancied_count'];
         if (isset($blogPrise) && $blogPrise == 1) {
-            return $this->succ($praiseInfo, "+1蜜豆");
+            return $this->succ($praiseInfo, "点赞成功+1蜜豆");
         } else {
-            return $this->succ($praiseInfo, "操作成功");
+            return $this->succ($praiseInfo, "点赞成功");
         }
     }
     
