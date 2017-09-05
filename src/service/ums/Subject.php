@@ -240,12 +240,16 @@ class Subject extends \mia\miagroup\Lib\Service {
             //帖子状态
             $solrParams['status'] = $data['status'];
         }
-        if ($data['source'] !== null && $data['source'] !== '' && in_array($data['source'], array(0, 1, 2, 4))) {
+        if ($data['source'] !== null && $data['source'] !== '') {
             //帖子来源
             if($data['source'] == 0){
                 $data['source'] = array(1, 2, 4, 5);
             }
             $solrParams['source'] = $data['source'];
+        }
+        if (!empty($data['is_audited']) && in_array($data['is_audited'], array(0, 1))) {
+            //是否已同步口碑
+            $solrParams['sync_koubei'] = $data['is_audited'];
         }
         if ($data['is_fine'] !== null && $data['is_fine'] !== '' && in_array($data['is_fine'], array(0, 1)) && intval($data['id']) <= 0) {
             //是否是推荐

@@ -2660,7 +2660,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * */
     public function batchMarkMaterial($subjectIds, $status = 1)
     {
-        if (empty($subjectIds)) {
+        if (empty($subjectIds) || !in_array($status, [0,1])) {
             return $this->error(500);
         }
         $result = ['flag' => false];
@@ -2684,11 +2684,8 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             //更新帖子扩展字段
             $setData = [];
-            if(empty($status)) {
-                $setData['ext_info']['is_material'] = 0;
-            }else{
-                $setData['ext_info']['is_material'] = 1;
-            }
+            $setData['ext_info']['is_material'] = $status;
+
             $res = $this->updateSubject($subject_id, $setData)['data'];
         }
         if(!empty($res)) {
