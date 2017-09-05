@@ -60,7 +60,7 @@ class SystemNews extends DB_Query
             $where[] = ['send_type', $conditions['send_type']];
         }
         //查询字段
-        $fields = 'id,news_type,send_user,send_time,ext_info';
+        $fields = 'id,news_type,send_user,send_time,ext_info,status';
         $data = $this->getRows($where, $fields);
         return $data;
     }
