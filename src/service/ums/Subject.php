@@ -64,9 +64,11 @@ class Subject extends \mia\miagroup\Lib\Service {
         if ($params['source'] !== null && $params['source'] !== '' && in_array($params['source'], array(0, 1, 2, 4)) && empty($condition['id'])) {
             //帖子来源
             if($params['source'] == 0){
-                $params['source'] = array(1, 2, 4);
+                $params['source'] = array(1, 2, 4, 5);
             }
             $condition['source'] = $params['source'];
+        } else {
+            $condition['source'] = array(1, 2, 4, 5);
         }
         
         if ($params['is_fine'] !== null && $params['is_fine'] !== '' && in_array($params['is_fine'], array(0, 1)) && empty($condition['id'])) {
