@@ -243,7 +243,7 @@ class Subject extends \mia\miagroup\Lib\Service {
         if ($data['source'] !== null && $data['source'] !== '' && in_array($data['source'], array(0, 1, 2, 4))) {
             //帖子来源
             if($data['source'] == 0){
-                $data['source'] = array(1, 2, 4);
+                $data['source'] = array(1, 2, 4, 5);
             }
             $solrParams['source'] = $data['source'];
         }
