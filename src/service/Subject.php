@@ -2063,9 +2063,9 @@ class Subject extends \mia\miagroup\Lib\Service
         $res["collected_count"] = intval($collect_num);
         $res["collected_by_me"] = $success;
         if (isset($blogCollect) && $blogCollect == 1) {
-            return $this->succ($res, "+1蜜豆");
+            return $this->succ($res, "收藏成功+1蜜豆");
         } else {
-            return $this->succ($res, "操作成功");
+            return $this->succ($res, "收藏成功");
         }
     }
 
