@@ -5,6 +5,7 @@ use mia\miagroup\Model\Ums\Koubei as KoubeiModel;
 use mia\miagroup\Model\Ums\User as UserModel;
 use mia\miagroup\Model\Ums\Subject as SubjectModel;
 use mia\miagroup\Service\Subject as SubjectService;
+use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Service\User as UserService;
 use \mia\miagroup\Remote\Solr;
 
@@ -247,7 +248,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             }
             $solrParams['source'] = $data['source'];
         }
-        if (!empty($data['is_audited']) && in_array($data['is_audited'], array(0, 1))) {
+        if (isset($data['is_audited']) && in_array($data['is_audited'], array(0, 1))) {
             //是否已同步口碑
             $solrParams['sync_koubei'] = $data['is_audited'];
         }
@@ -256,8 +257,12 @@ class Subject extends \mia\miagroup\Lib\Service {
             $solrParams['is_fine'] = $data['is_fine'];
         }
         if (intval($data['item_id']) > 0 && intval($data['id']) <= 0) {
-            //商品ID
-            $solrParams['item_id'] = $data['item_id'];
+            //商品ID(增加关联商品)
+            $item_service = new ItemService();
+            $item_ids = $item_service->getRelateItemById($data['item_id']);
+            if(!empty($item_ids)) {
+                $solrParams['item_id'] = $item_ids;
+            }
         }
         if (intval($data['brand_id']) > 0 && intval($data['id']) <= 0) {
             //品牌ID

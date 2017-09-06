@@ -2679,7 +2679,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $textCount = mb_strlen(trim($info['text']), 'utf-8');
             }
             // 条件过滤
-            if($textCount < 20 || $imageCount < 3 || empty($info['items'])) {
+            if($textCount < 20 || $imageCount < 1 || empty($info['items'])) {
                 continue;
             }
             //更新帖子扩展字段
