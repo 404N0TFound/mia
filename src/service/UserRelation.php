@@ -121,6 +121,9 @@ class UserRelation extends \mia\miagroup\Lib\Service {
                 //限制时间为60秒
                 $redis->expire($userRelationKey,60);
             }
+        }else{
+            //加关注
+            $userRelation = $this->userRelationModel->addRelation($userId,$relationUserId, $source);
         }
 
         if ($relationUserId != 1026069 && $source == 1 && $isFirst) { //蜜芽小天使账号不赠送蜜豆，不接收消息

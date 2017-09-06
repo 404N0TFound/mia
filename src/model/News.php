@@ -530,6 +530,7 @@ class News
         $conditions["lt"]["send_time"] = date("Y-m-d H:i:s");
         $conditions["gt"]["abandon_time"] = date("Y-m-d H:i:s");
         $conditions["status"] = 1;
+        $conditions["send_type"] = 2;//2为要拉取的消息
 
         $res = $this->systemNews->getSystemNewsList($conditions);
         if (empty($res)) {

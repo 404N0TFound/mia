@@ -1022,10 +1022,15 @@ class Solr
                         $where['fq'][]   = 'status:"'.$v.'"';
                         break;
                     case 'item_id':
-                        $where['fq'][] = 'goods:'.$v;
+                        $where['fq'][]   = "goods:(". implode(' OR ', $v) . ")";
                         break;
                     case 'brand_id':
                         $where['fq'][] = 'brand:'.$v;
+                        break;
+                    case 'subject_type':
+                        if($v == 'material') {
+                            $where['fq'][] = 'is_material:1';
+                        }
                         break;
                     default:
                         if(is_array($v)) {

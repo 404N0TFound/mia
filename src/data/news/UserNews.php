@@ -63,7 +63,7 @@ class UserNews extends DB_Query
         if (isset($conditions['user_id'])) {
             $where[] = ['user_id', $conditions['user_id']];
         }
-        $where[] = ['status', 1];
+        //$where[] = ['status', 1];
 
         if (isset($conditions["gt"]['news_id'])) {
             //new_id大于0的是系统消息

@@ -56,9 +56,11 @@ class SystemNews extends DB_Query
             //过期时间大于当前时间
             $where[] = [':gt', 'abandon_time', $conditions["gt"]['abandon_time']];
         }
-
+        if (isset($conditions['send_type'])) {
+            $where[] = ['send_type', $conditions['send_type']];
+        }
         //查询字段
-        $fields = 'id,news_type,send_user,send_time,ext_info';
+        $fields = 'id,news_type,send_user,send_time,ext_info,status';
         $data = $this->getRows($where, $fields);
         return $data;
     }
