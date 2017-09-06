@@ -261,7 +261,7 @@ $activeKey = [
         'expire_time' => 1800,
     ],
     'active_subject_user' => [//闯关活动用户id和设备号
-        'key' => $activeServicePrefix . 'subject_user_%s_%s_%s',
+        'key' => $activeServicePrefix . 'subject_user_%s_%s',
         'expire_time' => 10800,
     ],
 ];
