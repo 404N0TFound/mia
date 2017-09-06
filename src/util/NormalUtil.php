@@ -503,4 +503,29 @@ class NormalUtil {
         return date("Y-m-d", $unixTime);
     }
 
+    /**
+     * utf-8 转unicode
+     *
+     * @param string $name
+     * @return string
+     */
+    public static function utf8_unicode($name){
+        $name = iconv('UTF-8', 'UCS-2', $name);
+        $len  = strlen($name);
+        $str  = '';
+        for ($i = 0; $i < $len - 1; $i = $i + 2){
+            $c  = $name[$i];
+            $c2 = $name[$i + 1];
+            if (ord($c) > 0){   //两个字节的文字
+                $str .= '\u'.base_convert(ord($c), 10, 16).str_pad(base_convert(ord($c2), 10, 16), 2, 0, STR_PAD_LEFT);
+                //$str .= base_convert(ord($c), 10, 16).str_pad(base_convert(ord($c2), 10, 16), 2, 0, STR_PAD_LEFT);
+            } else {
+                $str .= '\u'.str_pad(base_convert(ord($c2), 10, 16), 4, 0, STR_PAD_LEFT);
+                //$str .= str_pad(base_convert(ord($c2), 10, 16), 4, 0, STR_PAD_LEFT);
+            }
+        }
+        //$str = strtoupper($str);//转换为大写
+        return $str;
+    }
+
 }

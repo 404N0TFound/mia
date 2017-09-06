@@ -246,6 +246,84 @@ class News
         $res = $this->userNews->getNewsList($uniqueCondition);
         return $res;
     }
+
+    /**
+     * 获取系统消息
+     */
+    public function getUmsSystemNews($params)
+    {
+        $conditions = [];
+        if (isset($params['resource_type'])) {
+            if ($params['resource_type'] == "group") {
+                $conditions['news_type'] = "group_custom";
+            } else if ($params['resource_type'] == "outlets") {
+                $conditions['news_type'] = "custom";
+            }
+        }
+
+        if (isset($params['is_send'])) {
+            $now = date("Y-m-d H:i:s");
+            if ($params['is_send'] == 0) {
+                //全部
+            } elseif ($params['is_send'] == 1) {
+                //已发送
+                $conditions["lt"]['send_time'] = $now;
+            } elseif ($params['is_send'] == 2) {
+                //未发送
+                $conditions["gt"]['send_time'] = $now;
+            }
+        }
+
+
+        if(isset($params['content']) && !empty($params['content'])) {
+            $conditions["content"] = $params['content'];
+        }
+
+        if(isset($params['offset'])) {
+            $conditions["offset"] = $params['offset'];
+        }
+
+        if(isset($params['pagesize'])) {
+            $conditions["pagesize"] = $params['pagesize'];
+        }
+
+        if (isset($params['start_time']) && !empty($params['start_time'])) {
+            $conditions["gt"]['create_time'] = $params['start_time'];
+        }
+
+        if(isset($params['end_time']) && !empty($params['end_time'])) {
+            $conditions["lt"]['create_time'] = $params['end_time'];
+        }
+
+        if (isset($params['id']) && !empty(intval($params['id']))) {
+            $conditions["id"] = $params['id'];
+        }
+
+        $conditions["send_type"] = [2, 3];//2拉取类消息，单发类消息
+        $conditions['orderBy'] = "id desc";
+        $res = $this->systemNews->getSystemNewsList($conditions);
+        if(!empty($res)) {
+            array_walk($res, function (&$n) {
+                $n["ext_info"] = json_decode($n["ext_info"], true);
+            });
+        }
+        return $res;
+    }
+
+    /**
+     * 删除系统消息
+     * @param $systemId
+     * @return array|bool
+     */
+    public function delSystemNews($systemId)
+    {
+        if (empty($systemId)) {
+            return FALSE;
+        }
+        $res = $this->systemNews->getSystemNewsList(["status" => 0], ["id" => $systemId]);
+        return $res;
+    }
+
     /*=============5.7新版本消息end=============*/
 
 
@@ -517,7 +595,6 @@ class News
 
     /**
      * 获取用户未拉取的系统消息列表
-     * @todo 用户分组 $userId 处理
      */
     public function getPullList($userId, $maxSystemId, $create_date)
     {
@@ -527,8 +604,8 @@ class News
         } else {
             $conditions["gt"]["id"] = intval($maxSystemId);
         }
-        $conditions["lt"]["send_time"] = date("Y-m-d H:i:s");
-        $conditions["gt"]["abandon_time"] = date("Y-m-d H:i:s");
+        $conditions["lt"]["send_time"] = date("Y-m-d H:i:s");//发送时间在当前时间之前
+        $conditions["gt"]["abandon_time"] = date("Y-m-d H:i:s");//过期时间在当前时间之后
         $conditions["status"] = 1;
         $conditions["send_type"] = 2;//2为要拉取的消息
 

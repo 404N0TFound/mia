@@ -487,12 +487,12 @@ class News extends \mia\miagroup\Lib\Service
 
 
     /**
-     * 添加蜜芽圈系统消息
+     * 添加系统消息
      * @param $data array ums后台设置参数
-     * resource_type  'group'
+     * resource_type  'group','outlets'
      * content 消息正文
-     * resource_sub_type 'custom','group'
-     * resource_id 对应resource_sub_type为group
+     * resource_sub_type 'custom'
+     *
      * custom_title 自定义标题
      * custom_photo 自定义图片
      * custom_url 自定义链接
@@ -513,28 +513,36 @@ class News extends \mia\miagroup\Lib\Service
             return $this->error(500, '类型错误！');
         }
         //批量发送
-        if ($data['type'] == "all") {
-            if ($data['resource_type'] == "group") {
-                $type = "group_custom";
-            } else if ($data['resource_type'] == "outlets") {
-                $type = "custom";
-            }
-            $content_info = [
-                "title" => $data['custom_title'],
-                "content" => $data['content'],
-                "photo" => $data['custom_photo'],
-                "url" => $data['custom_url'],
-            ];
-            $send_time = $data['valid_time'] . ':00:00';
-            $abandon_time = date("Y-m-d H:i:s", strtotime($send_time) + 30 * 24 * 3600);//有效期30天
 
-            $res = $this->addSystemNews($type, $content_info, $send_time, $abandon_time, 2);
-            if($res['code'] != 0) {
-                return $this->error(500, $res['msg']);
-            } else {
-                return $this->succ($res['data']);
-            }
-        } else if ($data['type'] == "single") {
+        if ($data['resource_type'] == "group") {
+            $type = "group_custom";
+        } else if ($data['resource_type'] == "outlets") {
+            $type = "custom";
+        }
+        $content_info = [
+            "title" => $data['custom_title'],
+            "content" => $data['content'],
+            "photo" => $data['custom_photo'],
+            "url" => $data['custom_url'],
+            "users" => $userArr
+        ];
+        $send_time = $data['valid_time'] . ':00:00';
+        $abandon_time = date("Y-m-d H:i:s", strtotime($send_time) + 30 * 24 * 3600);//有效期30天
+        if ($data['type'] == "single") {
+            $sendType = 3;
+        } else if ($data['type'] == "all") {
+            $sendType = 2;
+        }
+
+        $res = $this->addSystemNews($type, $content_info, $send_time, $abandon_time, $sendType);
+        if ($res['code'] != 0) {
+            return $this->error(500, $res['msg']);
+        } else {
+            $newsId = $res['data'];
+        }
+
+
+        if ($data['type'] == "single") {
             //单人发送
             if ($data['resource_type'] == "group") {
                 $type = "group_custom";
@@ -542,17 +550,14 @@ class News extends \mia\miagroup\Lib\Service
                 $type = "custom";
             }
             $ext_info = [
-                "title" => $data['custom_title'],
-                "content" => $data['content'],
-                "photo" => $data['custom_photo'],
-                "url" => $data['custom_url'],
                 "time" => $data['valid_time'] . ':00:00',
+                "news_id" => $newsId,
             ];
             foreach ($userArr as $toUserId) {
                 $this->postMessage($type, $toUserId, 0, 0, $ext_info);
             }
-            return $this->succ([]);
         }
+        return $this->succ([], "发送成功");
     }
 
     /**
@@ -583,13 +588,79 @@ class News extends \mia\miagroup\Lib\Service
         }
         return $this->succ([]);
     }
-    
+
+    /**
+     * 获取系统消息列表
+     * @param $params 查询参数
+     * resource_type  group,outlets
+     * is_send  0全部, 1已发送, 2未发送
+     * content
+     * offset
+     * pagesize
+     * start_time
+     * end_time
+     * id
+     */
+    public function systemNewsList($params)
+    {
+        if (!isset($params['resource_type']) || !in_array($params['resource_type'], ["group", "outlets"])) {
+            return $this->error(500, 'resource_type参数错误！');
+        }
+        if (isset($params['is_send']) && !in_array($params['is_send'], [0, 1, 2])) {
+            return $this->error(500, 'is_send参数错误！');
+        }
+        if (empty(intval($params['offset']))) {
+            $params['offset'] = 0;
+        }
+        if (empty(intval($params['pagesize']))) {
+            $params['pagesize'] = 20;
+        }
+        if ($params['content'] == "-1") {//ums默认-1
+            unset($params['content']);
+        } else {
+            $params['content'] = str_replace("\\", "_", NormalUtil::utf8_unicode($params['content']));
+        }
+        $res = $this->newsModel->getUmsSystemNews($params);
+        return $this->succ($res);
+    }
+
+    /**
+     * 获取单个系统消息详情
+     * @param $systemId
+     * @return mixed
+     */
+    public function getSingleSystemNews($systemId)
+    {
+        if(empty(intval($systemId))) {
+            return $this->succ([]);
+        }
+        $res = $this->newsModel->getUmsSystemNews(["id"=>intval($systemId)]);
+        return $this->succ($res);
+    }
+
+    /**
+     * 删除系统消息
+     * @param $systemId
+     * @return mixed
+     */
+    public function delSystemNews($systemId)
+    {
+        if (empty(intval($systemId))) {
+            return $this->error(500, 'id不为空！');
+        }
+        $res = $this->newsModel->delSystemNews($systemId);
+        if ($res) {
+            return $this->succ([], "修改成功");
+        }
+    }
+
+
     /**
      * 获取站内信未读数 total_count，group_count
      */
     public function noReadCounts($userId)
     {
-        //$this->pullMessage($userId);
+        $this->pullMessage($userId);
         $cateNum = [];
         $showCate = $this->getShowCate()['data'];
         foreach ($showCate as $cate) {
@@ -2288,6 +2359,9 @@ class News extends \mia\miagroup\Lib\Service
         }
         if (isset($content_info['url'])) {
             $ext_arr["url"] = $content_info['url'] ? $content_info['url'] : "";
+        }
+        if (isset($content_info['users']) && !empty($content_info['users'])) {
+            $ext_arr["users"] = $content_info['users'];
         }
         if (!empty($source_id)) {
             $ext_arr["source_id"] = $source_id;
