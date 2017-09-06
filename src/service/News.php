@@ -1354,7 +1354,7 @@ class News extends \mia\miagroup\Lib\Service
             case "follow":
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
                 $text = "关注了你";
-                $url = sprintf($app_mapping_config['user_fans_follow'], $newsInfo["user_id"]);
+                $url = sprintf($app_mapping_config['personal_space'], $newsInfo["user_id"]);
                 break;
             case "new_subject":
                 break;
