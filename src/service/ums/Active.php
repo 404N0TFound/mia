@@ -121,7 +121,7 @@ class Active extends \mia\miagroup\Lib\Service {
      * 获取活动中关联某些商品的帖子
      */
     public function getActiveSubjectCountByItems($params) {
-        $result = array('list' => array(), 'count' => 0);
+        $result = array();
         if (empty($params['item_id']) || empty($params['active_id'])) {
             return $this->succ($result);
         }
@@ -148,25 +148,7 @@ class Active extends \mia\miagroup\Lib\Service {
             $condition['end_time'] = $params['end_time'];
         }
         
-        $data = $this->activeModel->getActiveSubjectByItem($condition, $offset, $limit);
-        if (empty($data['list'])) {
-            return $this->succ($result);
-        }
-        $subjectIds = array();
-        foreach ($data['list'] as $v) {
-            if(empty($v['subject_id'])){
-                continue;
-            }
-            $subjectIds[] = $v['subject_id'];
-        }
-        $subjectService = new \mia\miagroup\Service\Subject();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, array('user_info', 'item', 'album','group_labels','count','content_format', 'share_info'), array())['data'];
-        foreach ($data['list'] as $v) {
-            if (!empty($subjectInfos[$v['subject_id']])) {
-                $result['list'][] = $subjectInfos[$v['subject_id']];
-            }
-        }
-        $result['count'] = $data['count'];
+        $result = $this->activeModel->getActiveSubjectByItem($condition, $offset, $limit);
         return $this->succ($result);
     }
 }
