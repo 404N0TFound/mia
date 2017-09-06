@@ -648,12 +648,39 @@ class News extends \mia\miagroup\Lib\Service
         if (empty(intval($systemId))) {
             return $this->error(500, 'id不为空！');
         }
+        $system_info = $this->getSingleSystemNews($systemId)["data"];
+        if(strtotime($system_info["status"]) == 0) {
+            return $this->error(500, '消息已被删除或不存在！');
+        }
+
         $res = $this->newsModel->delSystemNews($systemId);
         if ($res) {
             return $this->succ([], "修改成功");
+        } else {
+            return $this->error(500, '修改失败！');
         }
     }
 
+    /**
+     * 发送当前系统消息
+     */
+    public function sendSystemNow($systemId)
+    {
+        if (empty(intval($systemId))) {
+            return $this->error(500, 'id不为空！');
+        }
+        $system_info = $this->getSingleSystemNews($systemId)["data"];
+        if(strtotime($system_info["send_time"]) < time()) {
+            return $this->error(500, '消息已发送！');
+        }
+
+        $res = $this->newsModel->sendSystemNews($systemId);
+        if ($res) {
+            return $this->succ([], "发送成功");
+        } else {
+            return $this->error(500, '发送失败！');
+        }
+    }
 
     /**
      * 获取站内信未读数 total_count，group_count

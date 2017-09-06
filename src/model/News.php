@@ -302,12 +302,13 @@ class News
         $conditions["send_type"] = [2, 3];//2拉取类消息，单发类消息
         $conditions['orderBy'] = "id desc";
         $res = $this->systemNews->getSystemNewsList($conditions);
+        $count = $this->systemNews->getSystemNewsList($conditions, 1);
         if(!empty($res)) {
             array_walk($res, function (&$n) {
                 $n["ext_info"] = json_decode($n["ext_info"], true);
             });
         }
-        return $res;
+        return ["list"=>$res,"count"=>$count];
     }
 
     /**
@@ -320,7 +321,24 @@ class News
         if (empty($systemId)) {
             return FALSE;
         }
-        $res = $this->systemNews->getSystemNewsList(["status" => 0], ["id" => $systemId]);
+        $res = $this->systemNews->updateSystemNews(["status" => 0], ["id" => $systemId]);
+        return $res;
+    }
+
+    /**
+     * 发送当前消息
+     * @return array|bool
+     */
+    public function sendSystemNews($systemId)
+    {
+        if (empty($systemId)) {
+            return FALSE;
+        }
+        $now = time();
+        $setData["send_time"] = date("Y-m-d H:i:s", $now);
+        $setData["send_time"] = date("Y-m-d H:i:s", $now + 30 * 24 * 3600);
+        $where["id"] = intval($systemId);
+        $res = $this->systemNews->updateSystemNews($setData, $where);
         return $res;
     }
 

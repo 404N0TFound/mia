@@ -28,7 +28,7 @@ class SystemNews extends DB_Query
      * @param $conditions
      * @return array
      */
-    public function getSystemNewsList($conditions)
+    public function getSystemNewsList($conditions,$getCount = 0)
     {
         if (empty($conditions)) {
             return [];
@@ -91,8 +91,13 @@ class SystemNews extends DB_Query
             $orderBy = FALSE;
         }
         //查询字段
-        $fields = 'id,news_type,send_user,send_time,ext_info,status,create_time';
-        $data = $this->getRows($where, $fields, $limit, $offset,$orderBy);
+        if($getCount == 1) {
+            $fields = 'count(id) as num';
+            $data = $this->getRow($where, $fields)["num"];
+        } else {
+            $fields = 'id,news_type,send_user,send_time,ext_info,status,create_time';
+            $data = $this->getRows($where, $fields, $limit, $offset,$orderBy);
+        }
         return $data;
     }
 
@@ -108,12 +113,12 @@ class SystemNews extends DB_Query
             return FALSE;
         }
         foreach ($setData as $key => $val) {
-            $setData[] = [$key, $val];
+            $set[] = [$key, $val];
         }
         foreach ($where as $k => $v) {
-            $where[] = [$k, $v];
+            $condition[] = [$k, $v];
         }
-        $res = $this->update($setData, $where);
+        $res = $this->update($set, $condition);
         return $res;
     }
 }
