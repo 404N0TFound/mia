@@ -1065,7 +1065,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     //如果用户参加了活动
                     if($activeUserExistKey){
                         //获取用户参加活动的设备号
-                        $activeUserDvcId = $redis->get($activeUserExistKey);
+                        $activeUserDvcId = $redis->get($activeUserKey);
                         //如果该用户用多台设备发帖，就给出提示
                         if($activeUserDvcId != $this->ext_params['dvc_id']){
                             return $this->error(1135);
@@ -2550,7 +2550,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         // 批量获取素材信息
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
+        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
         $koubei_res['koubei_info'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
@@ -2618,7 +2618,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
         $subjectIds = $res['data'];
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
+        $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
         $koubei_res['subject_lists'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
