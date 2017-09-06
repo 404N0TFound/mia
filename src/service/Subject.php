@@ -2086,7 +2086,11 @@ class Subject extends \mia\miagroup\Lib\Service
         if(!empty($res) && is_array($res)) {
             $subjectIds = array_column($res, 'source_id');
         }
-        $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'content_format', 'share_info', 'item', 'count'])['data'];
+        if ($type == 2) {
+            $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId, ['user_info', 'share_info', 'item', 'count'])['data'];
+        } else {
+            $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
+        }
         $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
         return $this->succ($data);
     }
@@ -2566,7 +2570,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($user_materials);
         }
         $condition['source'] = $this->config['source']['material'];
-        $field = ['user_info', 'content_format', 'share_info', 'item'];
+        $field = ['user_info', 'share_info', 'item', 'count'];
         $user_material_infos = $this->getSubjectsByUid($userId, 0, $page, $count, $field, $condition)['data'];
         if (empty($user_material_infos)) {
             return $this->succ($user_materials);
