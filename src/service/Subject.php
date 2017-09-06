@@ -1046,7 +1046,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     $relationSetInfo['active_id'] = $subjectInfo['active_id'];
                 }
                
-                if($subjectInfo['active_id'] == 563){
+                if($subjectInfo['active_id'] == 22){
                     $activeUserKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_user.key'), $subjectInfo['active_id'],$subjectInfo['user_info']['user_id']);
                     $redis = new Redis();
                     //判断用户是否参加了活动
