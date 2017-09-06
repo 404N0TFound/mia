@@ -55,3 +55,6 @@ $order_list = "miyabaobei://order_list?tab=%d&focus=%d";
 
 
 $news_cate_list = "miyabaobei://message_category?category=%s&category_title=%s";
+
+//个人空间
+$personal_space = "miyabaobei://personalSpace?user_id=%d";
