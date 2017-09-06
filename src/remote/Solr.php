@@ -1022,7 +1022,7 @@ class Solr
                         $where['fq'][]   = 'status:"'.$v.'"';
                         break;
                     case 'item_id':
-                        $where['fq'][] = 'goods:'.$v;
+                        $where['fq'][]   = "goods:(". implode(' OR ', $v) . ")";
                         break;
                     case 'brand_id':
                         $where['fq'][] = 'brand:'.$v;
