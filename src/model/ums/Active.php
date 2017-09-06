@@ -63,7 +63,6 @@ class Active extends \DB_Query {
     public function getActiveSubjectByItem($cond, $offset = 0, $limit = 50, $orderBy = 'id desc') {
         $this->tableName = $this->tableActiveSubjectRelation;
         $orderBy = $this->tableName. '.id desc';
-        $result = array('count' => 0, 'list' => array());
         $where = array();
         if (!empty($cond)) {
             //组装where条件
@@ -84,14 +83,16 @@ class Active extends \DB_Query {
         }
         
         $join = 'left join '.$this->tableSubjectPointTags. ' as pt on ' .$this->tableName . '.subject_id=pt.subject_id ';
-        $field = 'distinct '. $this->tableName. '.subject_id';
-        $result['count'] = $this->count($where, $join, $field);
-        
-        if (intval($result['count']) <= 0) {
-            return $result;
-        }
+        $field = "pt.item_id, count(pt.item_id) as count";
+        $group_by = 'pt.item_id';
 
-        $result['list'] = $this->getRows($where, $field, $limit, $offset, $orderBy, $join);
+        $data = $this->getRows($where, $field, $limit, $offset, $orderBy, $join, $group_by);
+        if (empty($data)) {
+            return array();
+        }
+        foreach ($data as $v) {
+            $result[$v['item_id']] = $v['count'];
+        }
         return $result;
     }
 }
