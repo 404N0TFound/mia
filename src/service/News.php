@@ -620,7 +620,7 @@ class News extends \mia\miagroup\Lib\Service
         } else {
             $params['content'] = str_replace("\\", "_", NormalUtil::utf8_unicode($params['content']));
         }
-        $res = $this->newsModel->getUmsSystemNews($params);
+        $res = $this->newsModel->getUmsSystemNews($params, 1);
         return $this->succ($res);
     }
 

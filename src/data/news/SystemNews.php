@@ -28,7 +28,7 @@ class SystemNews extends DB_Query
      * @param $conditions
      * @return array
      */
-    public function getSystemNewsList($conditions,$getCount = 0)
+    public function getSystemNewsList($conditions, $getCount = 0)
     {
         if (empty($conditions)) {
             return [];

@@ -250,7 +250,7 @@ class News
     /**
      * 获取系统消息
      */
-    public function getUmsSystemNews($params)
+    public function getUmsSystemNews($params, $getCount = 0)
     {
         $conditions = [];
         if (isset($params['resource_type'])) {
@@ -275,15 +275,15 @@ class News
         }
 
 
-        if(isset($params['content']) && !empty($params['content'])) {
+        if (isset($params['content']) && !empty($params['content'])) {
             $conditions["content"] = $params['content'];
         }
 
-        if(isset($params['offset'])) {
+        if (isset($params['offset'])) {
             $conditions["offset"] = $params['offset'];
         }
 
-        if(isset($params['pagesize'])) {
+        if (isset($params['pagesize'])) {
             $conditions["pagesize"] = $params['pagesize'];
         }
 
@@ -291,7 +291,7 @@ class News
             $conditions["gt"]['create_time'] = $params['start_time'];
         }
 
-        if(isset($params['end_time']) && !empty($params['end_time'])) {
+        if (isset($params['end_time']) && !empty($params['end_time'])) {
             $conditions["lt"]['create_time'] = $params['end_time'];
         }
 
@@ -302,13 +302,20 @@ class News
         $conditions["send_type"] = [2, 3];//2拉取类消息，单发类消息
         $conditions['orderBy'] = "id desc";
         $res = $this->systemNews->getSystemNewsList($conditions);
-        $count = $this->systemNews->getSystemNewsList($conditions, 1);
-        if(!empty($res)) {
+        if ($getCount == 1) {
+            $count = $this->systemNews->getSystemNewsList($conditions, 1);
+        }
+
+        if (!empty($res)) {
             array_walk($res, function (&$n) {
                 $n["ext_info"] = json_decode($n["ext_info"], true);
             });
         }
-        return ["list"=>$res,"count"=>$count];
+        if ($getCount == 1) {
+            return ["list" => $res, "count" => $count];
+        } else {
+            return $res;
+        }
     }
 
     /**
