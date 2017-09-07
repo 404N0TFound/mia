@@ -68,6 +68,9 @@ class Item extends \mia\miagroup\Lib\Service {
      */
     public function getItemList($itemIds, $status = array(0, 1, 3))
     {
+        if(!is_array($itemIds)) {
+            $itemIds = [$itemIds];
+        }
         $itemList = $this->itemModel->getBatchItemByIds($itemIds,$status);
         if (empty($itemList)) {
             return $this->succ(array());
