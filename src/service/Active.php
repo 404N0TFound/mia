@@ -303,6 +303,18 @@ class Active extends \mia\miagroup\Lib\Service {
         $result = $this->activeModel->upActiveSubject($relationData, $relationId);
         return $this->succ($result);
     }
+
+
+    /**
+     * 删除帖子活动关联关系（用于后台帖子移出活动）
+     */
+    public function delSubjectActiveRelation($relationData){
+        if(empty($relationData)){
+            return $this->error(500);
+        }
+        $result = $this->activeModel->delSubjectActiveRelation($relationData);
+        return $this->succ($result);
+    }
     
 }
 

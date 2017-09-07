@@ -489,6 +489,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['id'] = $subjectInfo['id'];
             $subjectRes[$subjectInfo['id']]['created'] = $subjectInfo['created'];
             $subjectRes[$subjectInfo['id']]['title'] = $subjectInfo['title'];
+            $subjectRes[$subjectInfo['id']]['active_id'] = $subjectInfo['active_id'];
             if (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['type'] = 'video';
             } else if ($subjectInfos[$subjectId]['ext_info']['is_blog'] == 1) {
@@ -2691,6 +2692,47 @@ class Subject extends \mia\miagroup\Lib\Service
             $setData['ext_info']['is_material'] = $status;
 
             $res = $this->updateSubject($subject_id, $setData)['data'];
+        }
+        if(!empty($res)) {
+            $result['flag'] = true;
+        }
+        return $this->succ($result);
+    }
+
+
+    /*
+     * 帖子移出活动
+     * */
+    public function batchRemoveSubjectActive($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return $this->error(500);
+        }
+        $result = ['flag' => false];
+        // 获取帖子信息
+        $subjectInfos = $this->getBatchSubjectInfos($subjectIds)['data'];
+        if(empty($subjectInfos)) {
+            return $this->succ($result);
+        }
+        $activeService = new ActiveService();
+        foreach($subjectInfos as $info) {
+            $setData = $activeData = [];
+            $subject_id = $info['id'];
+            $user_id = $info['user_id'];
+            $active_id = $info['active_id'];
+            if(empty($subject_id) || empty($active_id) || empty($user_id)) {
+                continue;
+            }
+            $setData['active_id'] = 0;
+            // 更新帖子active_id
+            $res = $this->updateSubject($subject_id, $setData)['data'];
+            // 物理删除帖子活动关联表
+            if(!empty($res)) {
+                $activeData['user_id'] = $user_id;
+                $activeData['subject_id'] = $subject_id;
+                $activeData['active_id'] = $active_id;
+                $res = $activeService->delSubjectActiveRelation($activeData);
+            }
         }
         if(!empty($res)) {
             $result['flag'] = true;
