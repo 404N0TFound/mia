@@ -1341,6 +1341,7 @@ class News extends \mia\miagroup\Lib\Service
                     ];
                 }
                 $icon = "essence";
+                $index_title = "您帖子加精啦";
                 break;
             case "img_like"://点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
