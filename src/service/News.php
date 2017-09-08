@@ -526,7 +526,7 @@ class News extends \mia\miagroup\Lib\Service
             "url" => $data['custom_url'],
             "users" => $userArr
         ];
-        $send_time = $data['valid_time'] . ':00:00';
+        $send_time = $data['valid_time'];
         $abandon_time = date("Y-m-d H:i:s", strtotime($send_time) + 30 * 24 * 3600);//有效期30天
         if ($data['type'] == "single") {
             $sendType = 3;

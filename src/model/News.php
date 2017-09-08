@@ -343,7 +343,7 @@ class News
         }
         $now = time();
         $setData["send_time"] = date("Y-m-d H:i:s", $now);
-        $setData["send_time"] = date("Y-m-d H:i:s", $now + 30 * 24 * 3600);
+        $setData["abandon_time"] = date("Y-m-d H:i:s", $now + 30 * 24 * 3600);
         $where["id"] = intval($systemId);
         $res = $this->systemNews->updateSystemNews($setData, $where);
         return $res;
