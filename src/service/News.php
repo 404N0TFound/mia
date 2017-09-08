@@ -682,7 +682,7 @@ class News extends \mia\miagroup\Lib\Service
             //蜜芽圈动态
             return $this->succ([
                 "count" => $count,
-                "text" => $newsInfo['news_miagroup_template']['news_text'],
+                "text" => $newsInfo['news_miagroup_template']['index_title'],
                 "img" => $newsInfo['news_miagroup_template']['user_info']['icon'],
                 "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
             ]);
@@ -1173,6 +1173,7 @@ class News extends \mia\miagroup\Lib\Service
                     "news_refer_text" => $newsInfoRes["refer_text"],
                     "news_refer_image" => $newsInfoRes["refer_img"],
                     "redirect_url" => $newsInfoRes["url"],
+                    "index_title" => $newsInfoRes["index_title"]
                 ];
                 break;
         }
@@ -1193,6 +1194,7 @@ class News extends \mia\miagroup\Lib\Service
         $url = "";
         $userInfo = [];
         $refer_text = "";
+        $index_title = "";
         $refer_img = [
             "url" => "",
             "width" => 0,
@@ -1321,6 +1323,7 @@ class News extends \mia\miagroup\Lib\Service
                     ];
                 }
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
+                $index_title = "评论了你";
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
                 $title = "您的帖子被加精，奉上50蜜豆";
@@ -1338,6 +1341,7 @@ class News extends \mia\miagroup\Lib\Service
                     ];
                 }
                 $icon = "essence";
+                $index_title = "您帖子加精啦";
                 break;
             case "img_like"://点赞消息里面，source_id记得是点赞ID，ext_info补上：帖子ID
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
@@ -1355,11 +1359,13 @@ class News extends \mia\miagroup\Lib\Service
                         "height" => 320
                     ];
                 }
+                $index_title = "赞了你";
                 break;
             case "follow":
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
                 $text = "关注了你";
                 $url = sprintf($app_mapping_config['personal_space'], $newsInfo["send_user"]);
+                $index_title = "关注了你";
                 break;
             case "new_subject":
                 break;
@@ -1405,7 +1411,7 @@ class News extends \mia\miagroup\Lib\Service
                 $url = $app_mapping_config['redbag'];
                 break;
         }
-        return ["text" => $text, "title" => $title, "image" => $image, "icon" => $icon, "url" => $url, 'user_info' => $userInfo, 'refer_text' => $refer_text, 'refer_img' => $refer_img];
+        return ["index_title" => $index_title, "text" => $text, "title" => $title, "image" => $image, "icon" => $icon, "url" => $url, 'user_info' => $userInfo, 'refer_text' => $refer_text, 'refer_img' => $refer_img];
     }
 
 
