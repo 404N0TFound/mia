@@ -504,11 +504,6 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }else if($subjectInfos[$subjectId]['ext_info']['is_material'] == 1) {
-                if (empty($itemInfoById[$subjectId])) {
-                    //素材没关联商品不漏出展示（临时代码，最晚9月12日删除）
-                    unset($subjectRes[$subjectInfo['id']]);
-                    continue;
-                }
                 $subjectRes[$subjectInfo['id']]['type'] = 'material';
             } else {
                 $subjectRes[$subjectInfo['id']]['type'] = 'normal';
@@ -2560,6 +2555,11 @@ class Subject extends \mia\miagroup\Lib\Service
 
         // 批量获取素材信息
         $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
+        foreach ($material_infos as $k => $v) {
+            if ($v['type'] == 'material' && empty($v['items'])) {
+                unset($material_infos[$k]);
+            }
+        }
         $koubei_res['koubei_info'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
@@ -2569,7 +2569,6 @@ class Subject extends \mia\miagroup\Lib\Service
      * */
     public function getUserMaterialList($userId, $page = 1, $count = 20)
     {
-
         $user_materials = array("subject_lists" => array());
         if (empty($userId)) {
             return $this->succ($user_materials);
@@ -2577,10 +2576,22 @@ class Subject extends \mia\miagroup\Lib\Service
         $condition['source'] = $this->config['source']['material'];
         $field = ['user_info', 'share_info', 'item', 'count'];
         $user_material_infos = $this->getSubjectsByUid($userId, 0, $page, $count, $field, $condition)['data'];
-        if (empty($user_material_infos)) {
+        
+        //获取帖子ID
+        $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId, 0,$page, $count, $condition);
+        if(empty($subject_ids)){
             return $this->succ($user_materials);
         }
-        $user_materials['subject_lists'] = $user_material_infos['subject_lists'];
+        $material_infos = $this->getBatchSubjectInfos($subject_ids, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
+        if (empty($material_infos)) {
+            return $this->succ($user_materials);
+        }
+        foreach ($material_infos as $k => $v) {
+            if ($v['type'] == 'material' && empty($v['items'])) {
+                unset($material_infos[$k]);
+            }
+        }
+        $user_materials['subject_lists'] = array_values($material_infos);
         return $this->succ($user_materials);
     }
 
@@ -2628,6 +2639,11 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         $subjectIds = $res['data'];
         $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
+        foreach ($material_infos as $k => $v) {
+            if ($v['type'] == 'material' && empty($v['items'])) {
+                unset($material_infos[$k]);
+            }
+        }
         $koubei_res['subject_lists'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
