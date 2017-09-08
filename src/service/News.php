@@ -818,7 +818,7 @@ class News extends \mia\miagroup\Lib\Service
     public function categoryList($category, $userId, $offset = 0)
     {
         if (empty($category) || empty($userId)) {
-            return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
+            return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => $this->getSubTab($category, $userId)]);
         }
 
         $pageLimit = $this->config['page_limit'];
@@ -846,7 +846,7 @@ class News extends \mia\miagroup\Lib\Service
             $news = $this->newsModel->getBatchList($this->getAllChlidren($category)['data'], $userId, $this->config['user_list_limit']);
             if(empty($news)) {
                 //TODO 优化
-                return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => []]);
+                return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => $this->getSubTab($category, $userId)]);
             }
             //存入redis
             foreach ($news as $val) {
