@@ -689,11 +689,16 @@ class News extends \mia\miagroup\Lib\Service
         } else {
             //蜜芽兔
             $showCate = $this->getAncestor($newsInfo['type'])['data'];
+            if(empty($showCate)) {
+                $redirect_url = sprintf($app_mapping_config['news_cate_list'], "group_active", $this->config['new_index_title']["group_active"]);
+            } else {
+                $redirect_url = sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]);
+            }
             return $this->succ([
                 "count" => $count,
                 "text" => "蜜芽兔@了你",
                 "img" => \F_Ice::$ins->workApp->config->get('busconf.user.miaTuIcon'),
-                "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
+                "url" => $redirect_url,
             ]);
         }
     }
