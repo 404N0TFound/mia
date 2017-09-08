@@ -648,7 +648,7 @@ class News extends \mia\miagroup\Lib\Service
         if (empty(intval($systemId))) {
             return $this->error(500, 'id不为空！');
         }
-        $system_info = $this->getSingleSystemNews($systemId)["data"];
+        $system_info = $this->getSingleSystemNews($systemId)["data"][0];
         if(strtotime($system_info["status"]) == 0) {
             return $this->error(500, '消息已被删除或不存在！');
         }
@@ -669,7 +669,7 @@ class News extends \mia\miagroup\Lib\Service
         if (empty(intval($systemId))) {
             return $this->error(500, 'id不为空！');
         }
-        $system_info = $this->getSingleSystemNews($systemId)["data"];
+        $system_info = $this->getSingleSystemNews($systemId)["data"][0];
         if(strtotime($system_info["send_time"]) < time()) {
             return $this->error(500, '消息已发送！');
         }
