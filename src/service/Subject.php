@@ -504,6 +504,11 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
             }else if($subjectInfos[$subjectId]['ext_info']['is_material'] == 1) {
+                if (empty($itemInfoById[$subjectId])) {
+                    //素材没关联商品不漏出展示（临时代码，最晚9月12日删除）
+                    unset($subjectRes[$subjectInfo['id']]);
+                    continue;
+                }
                 $subjectRes[$subjectInfo['id']]['type'] = 'material';
             } else {
                 $subjectRes[$subjectInfo['id']]['type'] = 'normal';
