@@ -298,6 +298,10 @@ class News
         if (isset($params['id']) && !empty(intval($params['id']))) {
             $conditions["id"] = $params['id'];
         }
+        
+        if (isset($params['status']) && !empty(intval($params['status']))) {
+            $conditions["status"] = $params['status'];
+        }
 
         $conditions["send_type"] = [2, 3];//2拉取类消息，单发类消息
         $conditions['orderBy'] = "id desc";

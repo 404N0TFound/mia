@@ -550,7 +550,7 @@ class News extends \mia\miagroup\Lib\Service
                 $type = "custom";
             }
             $ext_info = [
-                "time" => $data['valid_time'] . ':00:00',
+                "time" => $data['valid_time'],
                 "news_id" => $newsId,
             ];
             foreach ($userArr as $toUserId) {
@@ -620,6 +620,9 @@ class News extends \mia\miagroup\Lib\Service
         } else {
             $params['content'] = str_replace("\\", "_", NormalUtil::utf8_unicode($params['content']));
         }
+        //消息状态
+        $params['status'] = isset($params['status']) ? $params['status'] : 1;
+        
         $res = $this->newsModel->getUmsSystemNews($params, 1);
         return $this->succ($res);
     }
@@ -649,7 +652,8 @@ class News extends \mia\miagroup\Lib\Service
             return $this->error(500, 'id不为空！');
         }
         $system_info = $this->getSingleSystemNews($systemId)["data"];
-        if(strtotime($system_info["status"]) == 0) {
+
+        if($system_info["status"] == 0) {
             return $this->error(500, '消息已被删除或不存在！');
         }
 
@@ -2395,7 +2399,7 @@ class News extends \mia\miagroup\Lib\Service
         }
         $insert_data['ext_info'] = json_encode($ext_arr);
 
-        if (strtotime($send_time) < (time() + 600)) {
+        if ($type == 'single' && strtotime($send_time) < (time() + 600)) {
             return $this->error(500, '发送时间应在未来的十分钟之外！');
         }
         $insert_data['send_time'] = $send_time;
