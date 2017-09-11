@@ -1323,7 +1323,8 @@ class News extends \mia\miagroup\Lib\Service
                     ];
                 }
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
-                $index_title = "评论了你";
+                $nick_name = $userInfo["nickname"] ? $userInfo["nickname"] : $userInfo["username"];
+                $index_title = $nick_name . "评论了你";
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
                 $title = "您的帖子被加精，奉上50蜜豆";
@@ -1359,13 +1360,15 @@ class News extends \mia\miagroup\Lib\Service
                         "height" => 320
                     ];
                 }
-                $index_title = "赞了你";
+                $nick_name = $userInfo["nickname"] ? $userInfo["nickname"] : $userInfo["username"];
+                $index_title = $nick_name . "赞了你";
                 break;
             case "follow":
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
                 $text = "关注了你";
                 $url = sprintf($app_mapping_config['personal_space'], $newsInfo["send_user"]);
-                $index_title = "关注了你";
+                $nick_name = $userInfo["nickname"] ? $userInfo["nickname"] : $userInfo["username"];
+                $index_title = $nick_name . "关注了你";
                 break;
             case "new_subject":
                 break;
