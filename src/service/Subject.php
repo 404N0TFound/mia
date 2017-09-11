@@ -2088,10 +2088,12 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectIds = array_column($res, 'source_id');
         }
         if ($type == 2) {
-            $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId, ['user_info', 'share_info', 'item', 'count'])['data'];
+            // 处理素材关联商品
+            $subjectList = $this->materialSignItemsInfo($subjectIds, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
         } else {
             $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
         }
+
         $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
         return $this->succ($data);
     }
