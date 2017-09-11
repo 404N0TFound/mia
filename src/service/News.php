@@ -523,6 +523,7 @@ class News extends \mia\miagroup\Lib\Service
             "title" => $data['custom_title'],
             "content" => $data['content'],
             "photo" => $data['custom_photo'],
+            "photo_info" => $data['custom_photo_info'],
             "url" => $data['custom_url'],
             "users" => $userArr
         ];
@@ -2387,6 +2388,10 @@ class News extends \mia\miagroup\Lib\Service
         }
         if (isset($content_info['photo'])) {
             $ext_arr["photo"] = $content_info['photo'] ? $content_info['photo'] : "";
+        }
+        
+        if (isset($content_info['photo_info'])) {
+            $ext_arr["photo_info"] = $content_info['photo_info'] ? $content_info['photo_info'] : "";
         }
         if (isset($content_info['url'])) {
             $ext_arr["url"] = $content_info['url'] ? $content_info['url'] : "";
