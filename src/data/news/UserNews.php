@@ -61,17 +61,22 @@ class UserNews extends DB_Query
         }
 
         if (isset($conditions['user_id'])) {
-            $where[] = ['user_id', $conditions['user_id']];
+            $where[] = [$this->tableName . '.user_id', $conditions['user_id']];
         }
         //$where[] = ['status', 1];
 
         if (isset($conditions["gt"]['news_id'])) {
             //new_id大于0的是系统消息
-            $where[] = [':gt', 'news_id', $conditions["gt"]['news_id']];
+            $where[] = [':gt', $this->tableName . '.news_id', $conditions["gt"]['news_id']];
         }
+        $where[] = ['system_news.send_type', 2];
         //查询字段
-        $fields = 'news_id';
-        $data = $this->getRows($where, $fields, 1, 0, "news_id DESC");
+        $fields = $this->tableName . '.news_id';
+
+        $join = 'LEFT JOIN system_news ON system_news.id = ' . $this->tableName . '.news_id';
+
+        $data = $this->getRows($where, $fields, 1, 0, "news_id DESC", $join);
+
         if (empty($data)) {
             //新用户
             return 0;

@@ -579,6 +579,9 @@ class News extends \mia\miagroup\Lib\Service
         }
         //查询用户需要拉取的系统消息列表
         $systemNewsList = $this->newsModel->getPullList($userId, $maxSystemId, $create_date);
+        if (empty($systemNewsList)) {
+            return $this->succ([]);
+        }
 
         //把系统消息写入用户消息表
         foreach ($systemNewsList as $val) {
