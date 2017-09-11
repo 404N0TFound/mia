@@ -2554,13 +2554,8 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
 
-        // 批量获取素材信息
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
-        foreach ($material_infos as $k => $v) {
-            if ($v['type'] == 'material' && empty($v['items'])) {
-                unset($material_infos[$k]);
-            }
-        }
+        // 处理素材关联商品
+        $material_infos = $this->materialSignItemsInfo($subjectIds, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
         $koubei_res['koubei_info'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
@@ -2575,22 +2570,17 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($user_materials);
         }
         $condition['source'] = $this->config['source']['material'];
-        $field = ['user_info', 'share_info', 'item', 'count'];
-        $user_material_infos = $this->getSubjectsByUid($userId, 0, $page, $count, $field, $condition)['data'];
         
         //获取帖子ID
         $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId, 0,$page, $count, $condition);
         if(empty($subject_ids)){
             return $this->succ($user_materials);
         }
-        $material_infos = $this->getBatchSubjectInfos($subject_ids, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
+
+        // 处理素材关联商品
+        $material_infos = $this->materialSignItemsInfo($subject_ids, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
         if (empty($material_infos)) {
             return $this->succ($user_materials);
-        }
-        foreach ($material_infos as $k => $v) {
-            if ($v['type'] == 'material' && empty($v['items'])) {
-                unset($material_infos[$k]);
-            }
         }
         $user_materials['subject_lists'] = array_values($material_infos);
         return $this->succ($user_materials);
@@ -2639,12 +2629,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
         $subjectIds = $res['data'];
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
-        foreach ($material_infos as $k => $v) {
-            if ($v['type'] == 'material' && empty($v['items'])) {
-                unset($material_infos[$k]);
-            }
-        }
+        $material_infos = $this->materialSignItemsInfo($subjectIds, 0, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
         $koubei_res['subject_lists'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
@@ -2697,15 +2682,18 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         // 素材类型标识
         foreach($subjectInfos as $subject_id => $info) {
-            $imageCount = $textCount = 0;
+            $imageCount = $textCount = $itemCount = 0;
             if(!empty($info['image_url'])){
                 $imageCount = count($info['image_url']);
             }
             if(!empty($info['text'])) {
                 $textCount = mb_strlen(trim($info['text']), 'utf-8');
             }
-            // 条件过滤
-            if($textCount < 20 || $imageCount < 1 || empty($info['items'])) {
+            if(!empty($info['items'])) {
+                $itemCount = count($info['items']);
+            }
+            // 条件过滤(多个商品过滤失败)
+            if($textCount < 20 || $imageCount < 1 || empty($info['items']) || $itemCount > 1) {
                 continue;
             }
             //更新帖子扩展字段
@@ -2759,6 +2747,49 @@ class Subject extends \mia\miagroup\Lib\Service
             $result['flag'] = true;
         }
         return $this->succ($result);
+    }
+
+    /*
+     * 素材关联商品过滤成唯一
+     * */
+    public function materialSignItemsInfo($subjectIds, $userId = 0, $field = [])
+    {
+        if(empty($subjectIds)) {
+            return $this->succ([]);
+        }
+        $koubeiIds = [];
+        $data = $this->getBatchSubjectInfos($subjectIds, $userId, $field)['data'];
+        if(empty($data)) {
+            return $this->succ([]);
+        }
+        foreach ($data as $k => $v) {
+            if ($v['type'] == 'material' && empty($v['items'])) {
+                unset($data[$k]);
+            }
+            if(!empty($data[$k]) && !empty($v['koubei_id'])) {
+                $koubeiIds[$v['id']] = $v['koubei_id'];
+            }
+        }
+        // 口碑素材商品处理
+        if(empty($koubeiIds)) {
+            return $this->succ($data);
+        }
+        $koubeiService = new KoubeiService();
+        $koubeiInfo = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, [])['data'];
+        foreach($koubeiIds as $subject_id => $koubei_id) {
+            $koubei = $koubeiInfo[$koubei_id];
+            $items = $data[$subject_id]['items'];
+            if (empty($koubei) || empty($items)) {
+                continue;
+            }
+            foreach($items as $k => $v) {
+                if($v['item_id'] == $koubei['item_koubei']['item_id']) {
+                    $data[$subject_id]['items'] = [$items[$k]];
+                    break;
+                }
+            }
+        }
+        return $this->succ($data);
     }
 
 }
