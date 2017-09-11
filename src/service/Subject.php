@@ -2089,7 +2089,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         if ($type == 2) {
             // 处理素材关联商品
-            $subjectList = $this->materialSignItemsInfo($subjectIds, $userId, ['user_info', 'share_info', 'item', 'count'])['data'];
+            $subjectList = $this->materialSignItemsInfo($subjectIds, $userId)['data'];
         } else {
             $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
         }
@@ -2557,7 +2557,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         // 处理素材关联商品
-        $material_infos = $this->materialSignItemsInfo($subjectIds, $userId, ['user_info', 'share_info', 'item', 'count'])['data'];
+        $material_infos = $this->materialSignItemsInfo($subjectIds, $userId)['data'];
         $koubei_res['koubei_info'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
@@ -2580,7 +2580,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         // 处理素材关联商品
-        $material_infos = $this->materialSignItemsInfo($subject_ids, $userId, ['user_info', 'share_info', 'item', 'count'])['data'];
+        $material_infos = $this->materialSignItemsInfo($subject_ids, $userId)['data'];
         if (empty($material_infos)) {
             return $this->succ($user_materials);
         }
@@ -2631,7 +2631,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
         $subjectIds = $res['data'];
-        $material_infos = $this->materialSignItemsInfo($subjectIds, 0, ['user_info', 'share_info', 'item', 'count'])['data'];
+        $material_infos = $this->materialSignItemsInfo($subjectIds)['data'];
         $koubei_res['subject_lists'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
@@ -2754,13 +2754,13 @@ class Subject extends \mia\miagroup\Lib\Service
     /*
      * 素材关联商品过滤成唯一
      * */
-    public function materialSignItemsInfo($subjectIds, $userId = 0, $field = [])
+    public function materialSignItemsInfo($subjectIds, $userId = 0)
     {
         if(empty($subjectIds)) {
             return $this->succ([]);
         }
         $koubeiIds = [];
-        $data = $this->getBatchSubjectInfos($subjectIds, $userId, $field)['data'];
+        $data = $this->getBatchSubjectInfos($subjectIds, $userId, ['user_info', 'share_info', 'item', 'count'])['data'];
         if(empty($data)) {
             return $this->succ([]);
         }
