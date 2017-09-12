@@ -54,6 +54,15 @@ class Subjectdump extends \FD_Daemon {
                 $this->dumpSubjectFile = $folderPath . 'dump_update_subject_do_not_delete';
                 $this->dump_update_data();
                 break;
+            case 'period_dump':
+                $folderName = date('YmdHi');
+                $folderPath = $tempFilePath . $folderName . '/';
+                $this->mk_dir($folderPath);
+                $this->dumpSubjectFile = $folderPath . 'dump_update_subject_do_not_delete';
+                $this->dumpUserFile = $folderPath . 'dump_user_file_do_not_delete';
+                $this->dump_period_data(date('Y-m-d', strtotime('-1 day')), date('Y-m-d'));
+                file_put_contents($folderPath . 'done', date('Y-m-d H:i:s')); //增量导出数据后，记录时间戳
+                break;
         }
     }
     
@@ -98,7 +107,7 @@ class Subjectdump extends \FD_Daemon {
         $where = [];
         $where[] = [':gt','id', $lastId];
         $source_config = \F_Ice::$ins->workApp->config->get('busconf.subject.source');
-        $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor']]];
+        $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor'], $source_config['material']]];
         $where[] = ['status', 1];
         $where[] = [':lt','created', date("Y-m-d H:i:s", strtotime("-3 minute"))];
         $data = $this->subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys', 1000);
@@ -138,7 +147,7 @@ class Subjectdump extends \FD_Daemon {
         $where = [];
         $where[] = ['id', $subject_ids];
         $source_config = \F_Ice::$ins->workApp->config->get('busconf.subject.source');
-        $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor']]];
+        $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor'], $source_config['material']]];
         $where[] = ['status', 1];
         $data = $this->subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys, created', 1000);
         if (empty($data)) {
@@ -153,6 +162,32 @@ class Subjectdump extends \FD_Daemon {
         }
         
         $this->dump_subject($data);
+    }
+    
+    private function dump_period_data($start_time, $end_time) {
+        $where = [];
+        $source_config = \F_Ice::$ins->workApp->config->get('busconf.subject.source');
+        $where[] = ['source', [$source_config['default'], $source_config['koubei'], $source_config['editor'], $source_config['material']]];
+        $where[] = ['status', 1];
+        $where[] = [':ge','created', $start_time];
+        $where[] = [':lt','created', $end_time];
+        $data = $this->subjectData->getRows($where, 'id, user_id, ext_info, semantic_analys, created');
+        if (empty($data)) {
+            return ;
+        }
+        $split_data = [];
+        foreach ($data as $k => $v) {
+            //发布不过3分钟的不处理，重新扔回队列
+            if ((time() - strtotime($v['created'])) <= 180) {
+                unset($data[$k]);
+            } else {
+                $split_data[] = array_shift($data);
+            }
+            if (count($split_data) == 1000 || (empty($data) && !empty($split_data))) {
+                $this->dump_subject($split_data);
+                $split_data = [];
+            }
+        }
     }
     
     private function dump_subject($data, $lastId = null) {

@@ -118,20 +118,20 @@ $cron_list['view_num_sync'] = array(
     'start_time' => '2016-08-11 00:00:00',
     'interval' => 10
 );
-//帖子全量数据导出
-$cron_list['subject_data_dump'] = array(
-    'enable' => true,
-    'engine' => 'php',
-    'cli_args' => "--class=subject --action=subjectdump full_dump",
-    'start_time' => '2017-02-09 00:00:00',
-    'interval' => 1
-);
 //帖子文本语义分析
 $cron_list['content_analys'] = array(
     'enable' => true,
     'engine' => 'php',
     'cli_args' => "--class=subject --action=contentanalys",
     'start_time' => '2017-03-15 00:00:00',
+    'interval' => 1
+);
+//帖子全量数据导出
+$cron_list['subject_data_dump'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=subjectdump full_dump",
+    'start_time' => '2017-02-09 00:00:00',
     'interval' => 1
 );
 //帖子增量数据导出
@@ -141,6 +141,14 @@ $cron_list['subject_data_incremental_dump'] = array(
     'cli_args' => "--class=subject --action=subjectdump incremental_dump",
     'start_time' => '2017-02-09 17:00:00',
     'interval' => 600
+);
+//帖子前一日数据导出
+$cron_list['subject_data_period_dump'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=subjectdump period_dump",
+    'start_time' => '2017-09-13 05:00:00',
+    'interval' => 86400
 );
 //帖子全量数据同步
 $cron_list['subject_data_sync'] = array(

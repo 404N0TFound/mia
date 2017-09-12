@@ -2707,7 +2707,11 @@ class Subject extends \mia\miagroup\Lib\Service
             $setData['ext_info']['is_material'] = $status;
 
             $res = $this->updateSubject($subject_id, $setData)['data'];
+            
+            //素材更新入队列
+            $this->subjectModel->addSubjectUpdateQueue($subject_id);
         }
+        
         if(!empty($res)) {
             $result['flag'] = true;
         }
