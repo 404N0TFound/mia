@@ -225,8 +225,8 @@ class Koubei {
     /**
      * 删除口碑
      */
-    public function delete($id, $userId){
-        $result = $this->koubeiData->delete($id,$userId);
+    public function delete($id, $userId, $conditions = []){
+        $result = $this->koubeiData->deleteKoubei($id,$userId, $conditions);
         return $result;
     }
     

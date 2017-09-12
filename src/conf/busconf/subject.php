@@ -124,6 +124,7 @@ $album = array(
      'is_blog',
      'index_cover',
      'is_material',
+     'koubei_id'
  );
  
  /**
