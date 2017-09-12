@@ -180,12 +180,4 @@ class Active {
         return $data;
     }
     
-    /**
-     * 根据活动id批量查活动信息
-     */
-    public function getActiveByAid($activedIds){
-        $activeRes = $this->activeData->getBatchActiveByAids($activedIds);
-        return $activeRes;
-    }
-
 }
