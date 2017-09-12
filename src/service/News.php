@@ -175,7 +175,7 @@ class News extends \mia\miagroup\Lib\Service
         );
 
         //存储redis
-        list($redis, $redis_key, $expire_time) = $this->getRedis("to_write_news");
+        list($redis, $redis_key, $expire_time) = $this->getRedis("delay_to_write_news");
         $redis->lpush($redis_key, $newsInfo);
         $redis->expire($redis_key, $expire_time);
 
