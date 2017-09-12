@@ -87,7 +87,6 @@ class SubjectCollect extends \DB_Query
         }
         $where[] = ['source_id', $subjectIds];
         $where[] = ['status', 1];
-        $where[] = ['source_type', 1];
         $data = $this->getRows($where, 'source_id,count(id) as num', FALSE, 0, FALSE, FALSE, "source_id");
         if(empty($data)) {
             return [];
