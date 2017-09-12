@@ -567,7 +567,9 @@ class Subject {
             return [];
         }
         $conditions["user_id"] = $userId;
-        $conditions["type"] = $type;
+        if(!empty($type) && $type != 1) {
+            $conditions["type"] = $type;
+        }
         $conditions['status'] = 1;
         $conditions["offset"] = ($page - 1) * $count;
         $conditions["limit"] = $count;
