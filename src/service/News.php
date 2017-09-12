@@ -1391,18 +1391,22 @@ class News extends \mia\miagroup\Lib\Service
                 $url = $app_mapping_config['plus_manage_income_share'];
                 break;
             case "group_custom":
-                if (empty($newsInfo['ext_info'])) {
-                    if($this->newsInfo[$newsInfo["news_id"]]['status'] == 0) {
+                if (!empty($newsInfo['news_id'])) {
+                    if($this->newsInfo[$newsInfo["news_id"]]['status'] == 0 || empty($this->newsInfo[$newsInfo["news_id"]])) {
                         return null;
                     }
                     $ext_info = json_decode($this->newsInfo[$newsInfo["news_id"]]["ext_info"], true);
-                } else {
-                    $ext_info = $newsInfo['ext_info'];
                 }
                 $text = $ext_info["content"];
                 $pattern = '/(http.*?\..*?\.com\/?)?(http.*?\..*?\.com\/\/?.*)/';
                 preg_match($pattern, $ext_info["photo"], $match);
                 $image = $match[2];
+                if(isset($ext_info["photo_info"])) {
+                    $tmp["url"] = $image;
+                    $tmp["width"] = $ext_info["photo_info"]["width"];
+                    $tmp["height"] = $ext_info["photo_info"]["height"];
+                    $image = $tmp;
+                }
                 $url = $ext_info["url"];
                 $title = $ext_info["title"];
                 break;
@@ -1465,18 +1469,22 @@ class News extends \mia\miagroup\Lib\Service
             case "new_subject":
                 break;
             case "custom":
-                if (empty($newsInfo['ext_info'])) {
-                    if($this->newsInfo[$newsInfo["news_id"]]['status'] == 0) {
+                if (!empty($newsInfo['news_id'])) {
+                    if ($this->newsInfo[$newsInfo["news_id"]]['status'] == 0 || empty($this->newsInfo[$newsInfo["news_id"]])) {
                         return null;
                     }
                     $ext_info = json_decode($this->newsInfo[$newsInfo["news_id"]]["ext_info"], true);
-                } else {
-                    $ext_info = $newsInfo["ext_info"];
                 }
                 $text = $ext_info["content"];
                 $pattern = '/(http.*?\..*?\.com\/?)?(http.*?\..*?\.com\/\/?.*)/';
                 preg_match($pattern, $ext_info["photo"], $match);
                 $image = $match[2];
+                if(isset($ext_info["photo_info"])) {
+                    $tmp["url"] = $image;
+                    $tmp["width"] = $ext_info["photo_info"]["width"];
+                    $tmp["height"] = $ext_info["photo_info"]["height"];
+                    $image = $tmp;
+                }
                 $url = $ext_info["url"];
                 $title = $ext_info["title"];
                 break;
