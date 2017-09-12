@@ -2838,7 +2838,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 continue;
             }
             $setData = [];
-            $setData['ext_info']['koubei_id'] = 0;
+            $setData['ext_info']['koubei']['id'] = 0;
             $res = $this->updateSubject($subject_id, $setData)['data'];
         }
         if(!empty($res)) {
