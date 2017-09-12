@@ -2802,4 +2802,40 @@ class Subject extends \mia\miagroup\Lib\Service
         return $this->succ($data);
     }
 
+    /*
+     * 帖子取消同步口碑操作
+     * */
+    public function removeSubjectSynKoubei($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return $this->error(500);
+        }
+        $result = ['flag' => false];
+        $subjectInfos = $this->getBatchSubjectInfos($subjectIds)['data'];
+        if(empty($subjectInfos)) {
+            return $this->succ($result);
+        }
+        $koubeiService = new KoubeiService();
+        $conditions['syn_del'] = 1;
+        foreach($subjectInfos as $subject_id => $info) {
+            $koubei_id = $info['koubei_id'];
+            $user_id = $info['user_id'];
+            if(empty($koubei_id)) {
+                continue;
+            }
+            // 设置口碑状态(物理删除)
+            $res = $koubeiService->delete($koubei_id, $user_id, $conditions)['data'];
+            if(empty($res)) {
+                continue;
+            }
+            $setData = [];
+            $setData['ext_info']['koubei_id'] = 0;
+            $res = $this->updateSubject($subject_id, $setData)['data'];
+        }
+        if(!empty($res)) {
+            $result['flag'] = true;
+        }
+        return $this->succ($result);
+    }
+
 }
