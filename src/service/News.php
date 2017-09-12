@@ -304,10 +304,10 @@ class News extends \mia\miagroup\Lib\Service
             /*========蜜芽圈：活动========*/
             case "group_custom"://蜜芽圈：活动，批量后台发送，单条和全站这里发送
             case "custom"://蜜芽活动：旧特卖消息，后台发送，单条和全站这里发送
-                if (isset($ext_info['news_id'])) {
-                    $insert_data['news_id'] = $ext_info['news_id'];
-                    unset($ext_info['news_id']);
-                }
+            if (isset($ext_info['news_id']) && !empty($ext_info['news_id'])) {
+                $insert_data['news_id'] = $ext_info['news_id'];
+                unset($ext_info);
+            }
                 break;
             /*========我的资产：红包优惠券========*/
             case "coupon"://旧优惠券
@@ -569,8 +569,8 @@ class News extends \mia\miagroup\Lib\Service
         if (empty(intval($userId))) {
             return $this->error(500, '用户ID不为空！');
         }
-        //获取某个用户消息里最大的系统消息ID
-        $maxSystemId = $this->newsModel->getMaxSystemId($userId);
+        //获取某个用户消息里最大的系统消息，时间
+        $maxSystemTime = $this->newsModel->getMaxSysTime($userId);
         $create_date = '';
         if (empty($maxSystemId)) {
             //新用户，获取用户的注册时间
@@ -578,7 +578,7 @@ class News extends \mia\miagroup\Lib\Service
             $create_date = $userService->getUserInfoByUids([$userId])["data"][$userId]["create_date"];
         }
         //查询用户需要拉取的系统消息列表
-        $systemNewsList = $this->newsModel->getPullList($userId, $maxSystemId, $create_date);
+        $systemNewsList = $this->newsModel->getPullList($userId, $maxSystemTime, $create_date);
         if (empty($systemNewsList)) {
             return $this->succ([]);
         }
