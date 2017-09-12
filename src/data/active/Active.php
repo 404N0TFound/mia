@@ -65,4 +65,24 @@ class Active extends \DB_Query {
         return $affect;
     }
     
+    /**
+     * 根据活动id批量查活动信息
+     */
+    public function getBatchActiveByAids($activeIds) {
+        $where = array();
+        if(!empty($activeIds)){
+            $where[] = ['id',$activeIds];
+        }
+    
+        $activeArrs = $this->getRows($where);
+        
+        $activeRes = array();
+        if(!empty($activeArrs)){
+            foreach($activeArrs as $active){
+                $activeRes[$active['id']] = $active;
+            }
+        }
+        return $activeRes;
+    }
+    
 }

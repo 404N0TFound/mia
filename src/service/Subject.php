@@ -400,6 +400,12 @@ class Subject extends \mia\miagroup\Lib\Service
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
         }
+        
+        // 获取活动信息
+        if (in_array('group_actives', $field)) {
+            $activeService = new ActiveService();
+            $subjectActives = $activeService->getBatchSubjectActives($subjectIds)['data'];
+        }
         // 获取计数信息
         if (in_array('count', $field)) {
             $this->commentService = new CommentService();
@@ -632,6 +638,9 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (in_array('group_labels', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
+            }
+            if (in_array('group_actives', $field)) {
+                $subjectRes[$subjectInfo['id']]['group_actives'] = is_array($subjectActives[$subjectInfo['id']]) ? array_values($subjectActives[$subjectInfo['id']]) : array();
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
