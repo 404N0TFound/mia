@@ -561,13 +561,13 @@ class Subject {
      * @param $count
      * @return array
      */
-    public function userCollectList($userId, $page, $type, $count)
+    public function userCollectList($userId, $page, $count, $type = 0)
     {
         if (empty($userId)) {
             return [];
         }
         $conditions["user_id"] = $userId;
-        if(!empty($type) && $type != 1) {
+        if(!empty($type)) {
             $conditions["type"] = $type;
         }
         $conditions['status'] = 1;

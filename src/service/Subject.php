@@ -2082,7 +2082,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if(empty($userId)) {
             return $this->succ([]);
         }
-        $res = $this->subjectModel->userCollectList($userId, $page, $type, $count);
+        $res = $this->subjectModel->userCollectList($userId, $page, $count);
         $subjectIds = [];
         if(!empty($res) && is_array($res)) {
             $subjectIds = array_column($res, 'source_id');
