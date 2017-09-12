@@ -143,7 +143,7 @@ $cron_list['subject_data_incremental_dump'] = array(
     'interval' => 600
 );
 //帖子前一日数据导出
-$cron_list['subject_data_incremental_dump'] = array(
+$cron_list['subject_data_period_dump'] = array(
     'enable' => true,
     'engine' => 'php',
     'cli_args' => "--class=subject --action=subjectdump period_dump",
