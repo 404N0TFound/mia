@@ -61,6 +61,7 @@ class Subjectdump extends \FD_Daemon {
                 $this->dumpSubjectFile = $folderPath . 'dump_update_subject_do_not_delete';
                 $this->dumpUserFile = $folderPath . 'dump_user_file_do_not_delete';
                 $this->dump_period_data(date('Y-m-d', strtotime('-1 day')), date('Y-m-d'));
+                file_put_contents($folderPath . 'done', date('Y-m-d H:i:s')); //增量导出数据后，记录时间戳
                 break;
         }
     }
