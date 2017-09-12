@@ -561,7 +561,7 @@ class Subject {
      * @param $count
      * @return array
      */
-    public function userCollectList($userId, $page, $count, $type = 0)
+    public function userCollectList($userId, $type = 0, $page = 1, $count = 20)
     {
         if (empty($userId)) {
             return [];
