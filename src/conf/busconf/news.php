@@ -305,10 +305,10 @@ $push_type = [
     "add_fine",
     "new_subject",
     "group_custom",
-    "coupon_receive",
-    "coupon_overdue",
-    "redbag_receive",
-    "redbag_overdue",
+    //"coupon_receive",
+    //"coupon_overdue",
+    //"redbag_receive",
+    //"redbag_overdue",
     "custom"
 ];
 
