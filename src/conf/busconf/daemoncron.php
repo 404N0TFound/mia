@@ -148,7 +148,7 @@ $cron_list['subject_data_period_dump'] = array(
     'engine' => 'php',
     'cli_args' => "--class=subject --action=subjectdump period_dump",
     'start_time' => '2017-09-13 05:00:00',
-    'interval' => 600
+    'interval' => 86400
 );
 //帖子全量数据同步
 $cron_list['subject_data_sync'] = array(
