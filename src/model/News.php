@@ -625,14 +625,14 @@ class News
     /**
      * 获取用户未拉取的系统消息列表
      */
-    public function getPullList($userId, $maxSystemId, $create_date)
+    public function getPullList($userId, $maxSystemTime, $create_date)
     {
         //查询条件
-        if (empty($maxSystemId) && !empty($create_date)) {
-            $conditions["gt"]["create_time"] = $create_date;
-        } else {
-            $conditions["gt"]["id"] = intval($maxSystemId);
+        if (!empty($create_date)) {
+            $conditions["gt"]["send_time"] = $create_date;
         }
+
+        $conditions["gt"]["send_time"] = $maxSystemTime;
         $conditions["lt"]["send_time"] = date("Y-m-d H:i:s");//发送时间在当前时间之前
         $conditions["gt"]["abandon_time"] = date("Y-m-d H:i:s");//过期时间在当前时间之后
         $conditions["status"] = 1;
@@ -661,6 +661,20 @@ class News
         $conditions["gt"]["news_id"] = 0;
 
         $res = $this->userNews->getMaxSystemId($conditions);
+        return $res;
+    }
+
+
+    public function getMaxSysTime($userId)
+    {
+        if (empty($userId)) {
+            return false;
+        }
+        //查询条件
+        $conditions["user_id"] = $userId;
+        $conditions["gt"]["news_id"] = 0;
+
+        $res = $this->userNews->getMaxSysTime($conditions);
         return $res;
     }
 
