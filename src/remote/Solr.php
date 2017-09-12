@@ -1030,6 +1030,8 @@ class Solr
                     case 'subject_type':
                         if($v == 'material') {
                             $where['fq'][] = 'is_material:1';
+                        }else{
+                            $where['fq'][] = 'subject_type:"'.$v.'"';
                         }
                         break;
                     default:
