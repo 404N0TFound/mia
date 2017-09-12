@@ -304,10 +304,10 @@ class News extends \mia\miagroup\Lib\Service
             /*========蜜芽圈：活动========*/
             case "group_custom"://蜜芽圈：活动，批量后台发送，单条和全站这里发送
             case "custom"://蜜芽活动：旧特卖消息，后台发送，单条和全站这里发送
-                if (isset($ext_info['news_id'])) {
-                    $insert_data['news_id'] = $ext_info['news_id'];
-                    unset($ext_info['news_id']);
-                }
+            if (isset($ext_info['news_id']) && !empty($ext_info['news_id'])) {
+                $insert_data['news_id'] = $ext_info['news_id'];
+                unset($ext_info);
+            }
                 break;
             /*========我的资产：红包优惠券========*/
             case "coupon"://旧优惠券
@@ -487,12 +487,12 @@ class News extends \mia\miagroup\Lib\Service
 
 
     /**
-     * 添加蜜芽圈系统消息
+     * 添加系统消息
      * @param $data array ums后台设置参数
-     * resource_type  'group'
+     * resource_type  'group','outlets'
      * content 消息正文
-     * resource_sub_type 'custom','group'
-     * resource_id 对应resource_sub_type为group
+     * resource_sub_type 'custom'
+     *
      * custom_title 自定义标题
      * custom_photo 自定义图片
      * custom_url 自定义链接
@@ -513,28 +513,37 @@ class News extends \mia\miagroup\Lib\Service
             return $this->error(500, '类型错误！');
         }
         //批量发送
-        if ($data['type'] == "all") {
-            if ($data['resource_type'] == "group") {
-                $type = "group_custom";
-            } else if ($data['resource_type'] == "outlets") {
-                $type = "custom";
-            }
-            $content_info = [
-                "title" => $data['custom_title'],
-                "content" => $data['content'],
-                "photo" => $data['custom_photo'],
-                "url" => $data['custom_url'],
-            ];
-            $send_time = $data['valid_time'] . ':00:00';
-            $abandon_time = date("Y-m-d H:i:s", strtotime($send_time) + 30 * 24 * 3600);//有效期30天
 
-            $res = $this->addSystemNews($type, $content_info, $send_time, $abandon_time, 2);
-            if($res['code'] != 0) {
-                return $this->error(500, $res['msg']);
-            } else {
-                return $this->succ($res['data']);
-            }
-        } else if ($data['type'] == "single") {
+        if ($data['resource_type'] == "group") {
+            $type = "group_custom";
+        } else if ($data['resource_type'] == "outlets") {
+            $type = "custom";
+        }
+        $content_info = [
+            "title" => $data['custom_title'],
+            "content" => $data['content'],
+            "photo" => $data['custom_photo'],
+            "photo_info" => $data['custom_photo_info'],
+            "url" => $data['custom_url'],
+            "users" => $userArr
+        ];
+        $send_time = $data['valid_time'];
+        $abandon_time = date("Y-m-d H:i:s", strtotime($send_time) + 30 * 24 * 3600);//有效期30天
+        if ($data['type'] == "single") {
+            $sendType = 3;
+        } else if ($data['type'] == "all") {
+            $sendType = 2;
+        }
+
+        $res = $this->addSystemNews($type, $content_info, $send_time, $abandon_time, $sendType);
+        if ($res['code'] != 0) {
+            return $this->error(500, $res['msg']);
+        } else {
+            $newsId = $res['data'];
+        }
+
+
+        if ($data['type'] == "single") {
             //单人发送
             if ($data['resource_type'] == "group") {
                 $type = "group_custom";
@@ -542,17 +551,14 @@ class News extends \mia\miagroup\Lib\Service
                 $type = "custom";
             }
             $ext_info = [
-                "title" => $data['custom_title'],
-                "content" => $data['content'],
-                "photo" => $data['custom_photo'],
-                "url" => $data['custom_url'],
-                "time" => $data['valid_time'] . ':00:00',
+                "time" => $data['valid_time'],
+                "news_id" => $newsId,
             ];
             foreach ($userArr as $toUserId) {
                 $this->postMessage($type, $toUserId, 0, 0, $ext_info);
             }
-            return $this->succ([]);
         }
+        return $this->succ([], "发送成功");
     }
 
     /**
@@ -563,8 +569,8 @@ class News extends \mia\miagroup\Lib\Service
         if (empty(intval($userId))) {
             return $this->error(500, '用户ID不为空！');
         }
-        //获取某个用户消息里最大的系统消息ID
-        $maxSystemId = $this->newsModel->getMaxSystemId($userId);
+        //获取某个用户消息里最大的系统消息，时间
+        $maxSystemTime = $this->newsModel->getMaxSysTime($userId);
         $create_date = '';
         if (empty($maxSystemId)) {
             //新用户，获取用户的注册时间
@@ -572,7 +578,10 @@ class News extends \mia\miagroup\Lib\Service
             $create_date = $userService->getUserInfoByUids([$userId])["data"][$userId]["create_date"];
         }
         //查询用户需要拉取的系统消息列表
-        $systemNewsList = $this->newsModel->getPullList($userId, $maxSystemId, $create_date);
+        $systemNewsList = $this->newsModel->getPullList($userId, $maxSystemTime, $create_date);
+        if (empty($systemNewsList)) {
+            return $this->succ([]);
+        }
 
         //把系统消息写入用户消息表
         foreach ($systemNewsList as $val) {
@@ -583,13 +592,110 @@ class News extends \mia\miagroup\Lib\Service
         }
         return $this->succ([]);
     }
-    
+
+    /**
+     * 获取系统消息列表
+     * @param $params 查询参数
+     * resource_type  group,outlets
+     * is_send  0全部, 1已发送, 2未发送
+     * content
+     * offset
+     * pagesize
+     * start_time
+     * end_time
+     * id
+     */
+    public function systemNewsList($params)
+    {
+        if (!isset($params['resource_type']) || !in_array($params['resource_type'], ["group", "outlets"])) {
+            return $this->error(500, 'resource_type参数错误！');
+        }
+        if (isset($params['is_send']) && !in_array($params['is_send'], [0, 1, 2])) {
+            return $this->error(500, 'is_send参数错误！');
+        }
+        if (empty(intval($params['offset']))) {
+            $params['offset'] = 0;
+        }
+        if (empty(intval($params['pagesize']))) {
+            $params['pagesize'] = 20;
+        }
+        if ($params['content'] == "-1") {//ums默认-1
+            unset($params['content']);
+        } else {
+            $params['content'] = str_replace("\\", "_", NormalUtil::utf8_unicode($params['content']));
+        }
+        //消息状态
+        $params['status'] = isset($params['status']) ? $params['status'] : 1;
+        
+        $res = $this->newsModel->getUmsSystemNews($params, 1);
+        return $this->succ($res);
+    }
+
+    /**
+     * 获取单个系统消息详情
+     * @param $systemId
+     * @return mixed
+     */
+    public function getSingleSystemNews($systemId)
+    {
+        if(empty(intval($systemId))) {
+            return $this->succ([]);
+        }
+        $res = $this->newsModel->getUmsSystemNews(["id"=>intval($systemId)])[0];
+        return $this->succ($res);
+    }
+
+    /**
+     * 删除系统消息
+     * @param $systemId
+     * @return mixed
+     */
+    public function delSystemNews($systemId)
+    {
+        if (empty(intval($systemId))) {
+            return $this->error(500, 'id不为空！');
+        }
+        $system_info = $this->getSingleSystemNews($systemId)["data"];
+
+        if($system_info["status"] == 0) {
+            return $this->error(500, '消息已被删除或不存在！');
+        }
+
+        $res = $this->newsModel->delSystemNews($systemId);
+        if ($res) {
+            return $this->succ([], "修改成功");
+        } else {
+            return $this->error(500, '修改失败！');
+        }
+    }
+
+    /**
+     * 发送当前系统消息
+     */
+    public function sendSystemNow($systemId)
+    {
+        if (empty(intval($systemId))) {
+            return $this->error(500, 'id不为空！');
+        }
+        $system_info = $this->getSingleSystemNews($systemId)["data"];
+        if(strtotime($system_info["send_time"]) < time()) {
+            return $this->error(500, '消息已发送！');
+        }
+
+        $res = $this->newsModel->sendSystemNews($systemId);
+        if ($res) {
+            return $this->succ([], "发送成功");
+        } else {
+            return $this->error(500, '发送失败！');
+        }
+    }
+
     /**
      * 获取站内信未读数 total_count，group_count
      */
     public function noReadCounts($userId)
     {
-        //$this->pullMessage($userId);
+        $this->pullMessage($userId);
         $cateNum = [];
         $showCate = $this->getShowCate()['data'];
         foreach ($showCate as $cate) {
@@ -1292,18 +1398,22 @@ class News extends \mia\miagroup\Lib\Service
                 $url = $app_mapping_config['plus_manage_income_share'];
                 break;
             case "group_custom":
-                if (empty($newsInfo['ext_info'])) {
-                    if($this->newsInfo[$newsInfo["news_id"]]['status'] == 0) {
+                if (!empty($newsInfo['news_id'])) {
+                    if($this->newsInfo[$newsInfo["news_id"]]['status'] == 0 || empty($this->newsInfo[$newsInfo["news_id"]])) {
                         return null;
                     }
                     $ext_info = json_decode($this->newsInfo[$newsInfo["news_id"]]["ext_info"], true);
-                } else {
-                    $ext_info = $newsInfo['ext_info'];
                 }
                 $text = $ext_info["content"];
                 $pattern = '/(http.*?\..*?\.com\/?)?(http.*?\..*?\.com\/\/?.*)/';
                 preg_match($pattern, $ext_info["photo"], $match);
                 $image = $match[2];
+                if(isset($ext_info["photo_info"])) {
+                    $tmp["url"] = $image;
+                    $tmp["width"] = $ext_info["photo_info"]["width"];
+                    $tmp["height"] = $ext_info["photo_info"]["height"];
+                    $image = $tmp;
+                }
                 $url = $ext_info["url"];
                 $title = $ext_info["title"];
                 break;
@@ -1373,18 +1483,22 @@ class News extends \mia\miagroup\Lib\Service
             case "new_subject":
                 break;
             case "custom":
-                if (empty($newsInfo['ext_info'])) {
-                    if($this->newsInfo[$newsInfo["news_id"]]['status'] == 0) {
+                if (!empty($newsInfo['news_id'])) {
+                    if ($this->newsInfo[$newsInfo["news_id"]]['status'] == 0 || empty($this->newsInfo[$newsInfo["news_id"]])) {
                         return null;
                     }
                     $ext_info = json_decode($this->newsInfo[$newsInfo["news_id"]]["ext_info"], true);
-                } else {
-                    $ext_info = $newsInfo["ext_info"];
                 }
                 $text = $ext_info["content"];
                 $pattern = '/(http.*?\..*?\.com\/?)?(http.*?\..*?\.com\/\/?.*)/';
                 preg_match($pattern, $ext_info["photo"], $match);
                 $image = $match[2];
+                if(isset($ext_info["photo_info"])) {
+                    $tmp["url"] = $image;
+                    $tmp["width"] = $ext_info["photo_info"]["width"];
+                    $tmp["height"] = $ext_info["photo_info"]["height"];
+                    $image = $tmp;
+                }
                 $url = $ext_info["url"];
                 $title = $ext_info["title"];
                 break;
@@ -2300,15 +2414,22 @@ class News extends \mia\miagroup\Lib\Service
         if (isset($content_info['photo'])) {
             $ext_arr["photo"] = $content_info['photo'] ? $content_info['photo'] : "";
         }
+        
+        if (isset($content_info['photo_info'])) {
+            $ext_arr["photo_info"] = $content_info['photo_info'] ? $content_info['photo_info'] : "";
+        }
         if (isset($content_info['url'])) {
             $ext_arr["url"] = $content_info['url'] ? $content_info['url'] : "";
+        }
+        if (isset($content_info['users']) && !empty($content_info['users'])) {
+            $ext_arr["users"] = $content_info['users'];
         }
         if (!empty($source_id)) {
             $ext_arr["source_id"] = $source_id;
         }
         $insert_data['ext_info'] = json_encode($ext_arr);
 
-        if (strtotime($send_time) < (time() + 600)) {
+        if ($type == 'single' && strtotime($send_time) < (time() + 600)) {
             return $this->error(500, '发送时间应在未来的十分钟之外！');
         }
         $insert_data['send_time'] = $send_time;
