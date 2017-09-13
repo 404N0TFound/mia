@@ -291,3 +291,11 @@ $cron_list['send_message'] = array(
     'start_time' => '2017-08-09 00:00:00',
     'interval' => 1
 );
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1
+);

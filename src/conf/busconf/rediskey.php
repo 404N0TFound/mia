@@ -55,6 +55,10 @@ $newsKey = [
         'key' => $newsServicePrefix . 'towritenews',
         'expire_time' => 86400 * 30
     ],
+    "delay_to_write_news" => [
+        'key' => $newsServicePrefix . 'delaytowritenews',
+        'expire_time' => 86400 * 30
+    ],
     /**
      * 消息计数 Hash
      * key如下：
