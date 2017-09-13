@@ -79,7 +79,7 @@ $layer = [
     "group" => [
         "group_active" => [
             "pull_group_custom",
-            "pull_custom"
+            "group_custom"
         ],
         "group_interact" => [
             "img_comment",
@@ -179,7 +179,9 @@ $template_news_type = [
     "news_banner_template" => [
         "custom",
         "group_custom",
-        "plus_active"
+        "plus_active",
+        "pull_custom",
+        "pull_group_custom",
 
     ],
     "news_miagroup_template" => [
@@ -306,12 +308,12 @@ $push_type = [
     "img_comment",
     "add_fine",
     "new_subject",
-    "group_custom",
+    "pull_group_custom",
     //"coupon_receive",
     //"coupon_overdue",
     //"redbag_receive",
     //"redbag_overdue",
-    "custom"
+    "pull_custom"
 ];
 
 //推送允许时间
