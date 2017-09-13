@@ -4,7 +4,7 @@
  */
 $php_cli = '/daemon/cli.php';
 
-$server_white_list = [
+$server_list = [
     "all" => [
         "Miya-XM-server",//209测试机，所有的脚本都执行
     ],
