@@ -42,7 +42,7 @@ class Subjectdump extends \FD_Daemon {
                 $this->dump_data();
                 break;
             case 'incremental_dump':
-                $folderName = date('YmdHi');
+                $folderName = date('YmdHi') - (date('YmdHi') % 10);
                 $folderPath = $tempFilePath . $folderName . '/';
                 $this->mk_dir($folderPath);
                 $this->lastIdFile = $tempFilePath . 'subject_dump_incr_id';
@@ -55,7 +55,7 @@ class Subjectdump extends \FD_Daemon {
                 $this->dump_update_data();
                 break;
             case 'period_dump':
-                $folderName = date('YmdHi');
+                $folderName = date('YmdHi') - (date('YmdHi') % 10);
                 $folderPath = $tempFilePath . $folderName . '/';
                 $this->mk_dir($folderPath);
                 $this->dumpSubjectFile = $folderPath . 'dump_update_subject_do_not_delete';
