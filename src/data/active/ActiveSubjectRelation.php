@@ -114,6 +114,23 @@ class ActiveSubjectRelation extends \DB_Query {
         }
         return $result;
     }
+
+    /**
+     * 删除活动帖子关联关系(物理删除)
+     * @param array $relationData
+     * 影响行数
+     */
+    public function delSubjectActiveRelation($relationData){
+        if (empty($relationData)) {
+            return 0;
+        }
+        $where = array();
+        foreach($relationData as $key=>$val){
+            $where[] = [$key,$val];
+        }
+        $res = $this->delete($where, FALSE, 1);
+        return $res;
+    }
 }
 
 

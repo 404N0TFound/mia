@@ -400,6 +400,12 @@ class Subject extends \mia\miagroup\Lib\Service
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
         }
+        
+        // 获取活动信息
+        if (in_array('group_actives', $field)) {
+            $activeService = new ActiveService();
+            $subjectActives = $activeService->getBatchSubjectActives($subjectIds)['data'];
+        }
         // 获取计数信息
         if (in_array('count', $field)) {
             $this->commentService = new CommentService();
@@ -489,6 +495,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['id'] = $subjectInfo['id'];
             $subjectRes[$subjectInfo['id']]['created'] = $subjectInfo['created'];
             $subjectRes[$subjectInfo['id']]['title'] = $subjectInfo['title'];
+            $subjectRes[$subjectInfo['id']]['active_id'] = $subjectInfo['active_id'];
             if (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['type'] = 'video';
             } else if ($subjectInfos[$subjectId]['ext_info']['is_blog'] == 1) {
@@ -631,6 +638,9 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (in_array('group_labels', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
+            }
+            if (in_array('group_actives', $field)) {
+                $subjectRes[$subjectInfo['id']]['group_actives'] = is_array($subjectActives[$subjectInfo['id']]) ? $subjectActives[$subjectInfo['id']] : array();
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
@@ -2081,16 +2091,22 @@ class Subject extends \mia\miagroup\Lib\Service
         if(empty($userId)) {
             return $this->succ([]);
         }
-        $res = $this->subjectModel->userCollectList($userId, $page, $type, $count);
+        if($type == 1) {
+            $res = $this->subjectModel->userCollectList($userId);
+        }else{
+            $res = $this->subjectModel->userCollectList($userId, $type);
+        }
         $subjectIds = [];
         if(!empty($res) && is_array($res)) {
             $subjectIds = array_column($res, 'source_id');
         }
         if ($type == 2) {
-            $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId, ['user_info', 'share_info', 'item', 'count'])['data'];
+            // 处理素材关联商品
+            $subjectList = $this->materialSignItemsInfo($subjectIds, $userId)['data'];
         } else {
             $subjectList = $this->getBatchSubjectInfos($subjectIds, $userId)['data'];
         }
+
         $data['subject_lists'] = !empty($subjectList) ? array_values($subjectList) : [];
         return $this->succ($data);
     }
@@ -2553,13 +2569,8 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
 
-        // 批量获取素材信息
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
-        foreach ($material_infos as $k => $v) {
-            if ($v['type'] == 'material' && empty($v['items'])) {
-                unset($material_infos[$k]);
-            }
-        }
+        // 处理素材关联商品
+        $material_infos = $this->materialSignItemsInfo($subjectIds, $userId)['data'];
         $koubei_res['koubei_info'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
@@ -2574,22 +2585,17 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($user_materials);
         }
         $condition['source'] = $this->config['source']['material'];
-        $field = ['user_info', 'share_info', 'item', 'count'];
-        $user_material_infos = $this->getSubjectsByUid($userId, 0, $page, $count, $field, $condition)['data'];
         
         //获取帖子ID
         $subject_ids = $this->subjectModel->getSubjectInfoByUserId($userId, 0,$page, $count, $condition);
         if(empty($subject_ids)){
             return $this->succ($user_materials);
         }
-        $material_infos = $this->getBatchSubjectInfos($subject_ids, $userId, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
+
+        // 处理素材关联商品
+        $material_infos = $this->materialSignItemsInfo($subject_ids, $userId)['data'];
         if (empty($material_infos)) {
             return $this->succ($user_materials);
-        }
-        foreach ($material_infos as $k => $v) {
-            if ($v['type'] == 'material' && empty($v['items'])) {
-                unset($material_infos[$k]);
-            }
         }
         $user_materials['subject_lists'] = array_values($material_infos);
         return $this->succ($user_materials);
@@ -2638,12 +2644,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($koubei_res);
         }
         $subjectIds = $res['data'];
-        $material_infos = $this->getBatchSubjectInfos($subjectIds, 0, $field = ['user_info', 'share_info', 'item', 'count'])['data'];
-        foreach ($material_infos as $k => $v) {
-            if ($v['type'] == 'material' && empty($v['items'])) {
-                unset($material_infos[$k]);
-            }
-        }
+        $material_infos = $this->materialSignItemsInfo($subjectIds)['data'];
         $koubei_res['subject_lists'] = array_values($material_infos);
         return $this->succ($koubei_res);
     }
@@ -2696,15 +2697,18 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         // 素材类型标识
         foreach($subjectInfos as $subject_id => $info) {
-            $imageCount = $textCount = 0;
+            $imageCount = $textCount = $itemCount = 0;
             if(!empty($info['image_url'])){
                 $imageCount = count($info['image_url']);
             }
             if(!empty($info['text'])) {
                 $textCount = mb_strlen(trim($info['text']), 'utf-8');
             }
-            // 条件过滤
-            if($textCount < 20 || $imageCount < 1 || empty($info['items'])) {
+            if(!empty($info['items'])) {
+                $itemCount = count($info['items']);
+            }
+            // 条件过滤(多个商品过滤失败)
+            if($textCount < 20 || $imageCount < 1 || empty($info['items']) || $itemCount > 1) {
                 continue;
             }
             //更新帖子扩展字段
@@ -2717,6 +2721,126 @@ class Subject extends \mia\miagroup\Lib\Service
             $this->subjectModel->addSubjectUpdateQueue($subject_id);
         }
         
+        if(!empty($res)) {
+            $result['flag'] = true;
+        }
+        return $this->succ($result);
+    }
+
+
+    /*
+     * 帖子移出活动
+     * */
+    public function batchRemoveSubjectActive($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return $this->error(500);
+        }
+        $result = ['flag' => false];
+        // 获取帖子信息
+        $subjectInfos = $this->getBatchSubjectInfos($subjectIds)['data'];
+        if(empty($subjectInfos)) {
+            return $this->succ($result);
+        }
+        $activeService = new ActiveService();
+        foreach($subjectInfos as $info) {
+            $setData = $activeData = [];
+            $subject_id = $info['id'];
+            $user_id = $info['user_id'];
+            $active_id = $info['active_id'];
+            if(empty($subject_id) || empty($active_id) || empty($user_id)) {
+                continue;
+            }
+            $setData['active_id'] = 0;
+            // 更新帖子active_id
+            $res = $this->updateSubject($subject_id, $setData)['data'];
+            // 物理删除帖子活动关联表
+            if(!empty($res)) {
+                $activeData['user_id'] = $user_id;
+                $activeData['subject_id'] = $subject_id;
+                $activeData['active_id'] = $active_id;
+                $res = $activeService->delSubjectActiveRelation($activeData);
+            }
+        }
+        if(!empty($res)) {
+            $result['flag'] = true;
+        }
+        return $this->succ($result);
+    }
+
+    /*
+     * 素材关联商品过滤成唯一
+     * */
+    public function materialSignItemsInfo($subjectIds, $userId = 0)
+    {
+        if(empty($subjectIds)) {
+            return $this->succ([]);
+        }
+        $koubeiIds = [];
+        $data = $this->getBatchSubjectInfos($subjectIds, $userId, ['user_info', 'share_info', 'item', 'count'])['data'];
+        if(empty($data)) {
+            return $this->succ([]);
+        }
+        foreach ($data as $k => $v) {
+            if ($v['type'] == 'material' && empty($v['items'])) {
+                unset($data[$k]);
+            }
+            if(!empty($data[$k]) && !empty($v['koubei_id'])) {
+                $koubeiIds[$v['id']] = $v['koubei_id'];
+            }
+        }
+        // 口碑素材商品处理
+        if(empty($koubeiIds)) {
+            return $this->succ($data);
+        }
+        $koubeiService = new KoubeiService();
+        $koubeiInfo = $koubeiService->getBatchKoubeiByIds($koubeiIds, 0, [])['data'];
+        foreach($koubeiIds as $subject_id => $koubei_id) {
+            $koubei = $koubeiInfo[$koubei_id];
+            $items = $data[$subject_id]['items'];
+            if (empty($koubei) || empty($items)) {
+                continue;
+            }
+            foreach($items as $k => $v) {
+                if($v['item_id'] == $koubei['item_koubei']['item_id']) {
+                    $data[$subject_id]['items'] = [$items[$k]];
+                    break;
+                }
+            }
+        }
+        return $this->succ($data);
+    }
+
+    /*
+     * 帖子取消同步口碑操作
+     * */
+    public function removeSubjectSynKoubei($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return $this->error(500);
+        }
+        $result = ['flag' => false];
+        $subjectInfos = $this->getBatchSubjectInfos($subjectIds)['data'];
+        if(empty($subjectInfos)) {
+            return $this->succ($result);
+        }
+        $koubeiService = new KoubeiService();
+        $conditions['syn_del'] = 1;
+        foreach($subjectInfos as $subject_id => $info) {
+            $koubei_id = $info['koubei_id'];
+            $user_id = $info['user_id'];
+            if(empty($koubei_id)) {
+                continue;
+            }
+            // 设置口碑状态(物理删除)
+            $res = $koubeiService->delete($koubei_id, $user_id, $conditions)['data'];
+            if(empty($res)) {
+                continue;
+            }
+            $setData = [];
+            $setData['ext_info']['koubei']['id'] = 0;
+            $res = $this->updateSubject($subject_id, $setData)['data'];
+        }
         if(!empty($res)) {
             $result['flag'] = true;
         }

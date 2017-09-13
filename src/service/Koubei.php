@@ -708,7 +708,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         //口碑ID回写到蜜芽帖
         if ($koubeiInsertId > 0 && $subjectData['id'] > 0) {
             $subjectInfo['ext_info']['koubei']['id'] = $koubeiInsertId;
-            $subjectInfo['ext_info']['is_material'] = 1;
             $subjectService->updateSubject($subjectData['id'], $subjectInfo);
         }
 
@@ -783,9 +782,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 删除口碑
      */
-    public function delete($id, $userId){
+    public function delete($id, $userId, $conditions = []){
         //删除对应口碑
-        $res = $this->koubeiModel->delete($id, $userId);
+        $res = $this->koubeiModel->delete($id, $userId, $conditions);
         return $this->succ($res);
     }
 

@@ -303,6 +303,51 @@ class Active extends \mia\miagroup\Lib\Service {
         $result = $this->activeModel->upActiveSubject($relationData, $relationId);
         return $this->succ($result);
     }
+
+
+    /**
+     * 删除帖子活动关联关系（用于后台帖子移出活动）
+     */
+    public function delSubjectActiveRelation($relationData){
+        if(empty($relationData)){
+            return $this->error(500);
+        }
+        $result = $this->activeModel->delSubjectActiveRelation($relationData);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 根据帖子ID批量分组获取帖子活动信息
+     */
+    public function getBatchSubjectActives($subjectIds) {
+        //通过帖子id获取帖子活动基本关联信息
+        $subjectActives = $this->getActiveSubjectBySids($subjectIds)['data'];
+        if (empty($subjectActives)) {
+            return $this->succ(array());
+        }
+        //从关联关系中获取活动id，且去重
+        $activeIds = array();
+        foreach ($subjectActives as $sid => $active) {
+            $activeIds[] = $active['active_id'];
+        }
+        if(!empty($activeIds)){
+            $activeIds = array_unique($activeIds);
+        }
+        
+        $condition = array('active_ids' => $activeIds);
+        $activeRes = array();
+        //通过活动id获取活动信息
+        $activeInfos = $this->activeModel->getActiveList(false, 0, array(1), $condition);
+        if (empty($activeInfos)) {
+            return $this->succ(array());
+        }
+        //将活动完整信息按帖子来分组组装入帖子活动关联关系中
+        $activesArr = array();
+        foreach($subjectActives as $key=>$subjectActive){
+            $activesArr[$key] = $activeInfos[$subjectActive['active_id']];
+        }
+        return $this->succ($activesArr);
+    }
     
 }
 

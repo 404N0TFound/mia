@@ -561,13 +561,15 @@ class Subject {
      * @param $count
      * @return array
      */
-    public function userCollectList($userId, $page, $type, $count)
+    public function userCollectList($userId, $type = 0, $page = 1, $count = 20)
     {
         if (empty($userId)) {
             return [];
         }
         $conditions["user_id"] = $userId;
-        $conditions["type"] = $type;
+        if(!empty($type)) {
+            $conditions["type"] = $type;
+        }
         $conditions['status'] = 1;
         $conditions["offset"] = ($page - 1) * $count;
         $conditions["limit"] = $count;
