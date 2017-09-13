@@ -1,8 +1,17 @@
 <?php
 /**
  * 后台cron配置
+ *
+ * 没有限定主机标识的，只能在白名单列表的机器里执行
+ * 限定了主机名的，只能在限定的server上面执行
  */
 $php_cli = '/daemon/cli.php';
+
+$server_white_list = [
+    "nfs_13_14",//脚本机
+    "Miya-XM-server",//209测试机
+];
+$host_check_open = 1;//1打开，0关闭
 
 /**************
  * 直播相关开始
@@ -289,7 +298,8 @@ $cron_list['send_message'] = array(
     'engine' => 'php',
     'cli_args' => "--class=news --action=sendmessage",
     'start_time' => '2017-08-09 00:00:00',
-    'interval' => 1
+    'interval' => 1,
+    'host' => "nfs_13_14",
 );
 
 $cron_list['delay_send_message'] = array(
@@ -297,5 +307,6 @@ $cron_list['delay_send_message'] = array(
     'engine' => 'php',
     'cli_args' => "--class=news --action=delaysendmessage",
     'start_time' => '2017-09-12 00:00:00',
-    'interval' => 1
+    'interval' => 1,
+    'host' => "nfs_13_14",
 );

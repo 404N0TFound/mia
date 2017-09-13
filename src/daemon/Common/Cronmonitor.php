@@ -5,8 +5,15 @@ class Cronmonitor extends \FD_Daemon {
     private $temp_file_path;
     private $php_bin;
     private $php_cli;
+    private $server_unique = "";
+    private $server_white_list = [];
+    private $host_check_open = 0;
     
     public function execute() {
+        //获取当前机器，唯一标识 hostname
+        $this->server_unique = gethostname();
+        $this->host_check_open = \F_Ice::$ins->workApp->config->get('busconf.daemoncron.host_check_open');
+        $this->server_white_list = \F_Ice::$ins->workApp->config->get('busconf.daemoncron.server_white_list');
         //加载定时脚本临时文件存放地址
         $runFilePath = \F_Ice::$ins->workApp->config->get('app.run_path');
         $this->temp_file_path = $runFilePath . '/cronmonitor';
@@ -26,6 +33,10 @@ class Cronmonitor extends \FD_Daemon {
             }
             //脚本是否正在运行
             if ($this->daemon_running($cron['cli_args']) == true) {
+                continue;
+            }
+            //按主机标识，判断脚本是否需要执行
+            if ($this->exec_check($cron) == false) {
                 continue;
             }
             //脚本是否到执行时间点
@@ -62,7 +73,32 @@ class Cronmonitor extends \FD_Daemon {
             return false;
         }
     }
-    
+
+    /**
+     * 按主机标识，判断脚本是否需要执行
+     */
+    private function exec_check($cron)
+    {
+        if (!$this->host_check_open) {
+            return true;
+        }
+        if (empty($this->server_unique)) {
+            return false;
+        }
+        //没有限定主机标识的，只能在白名单列表的机器里执行
+        if (isset($cron["host"])) {
+            //限定了主机名的，只能在限定的上面执行
+            if ($cron["host"] === $this->server_unique) {
+                return true;
+            }
+        } else {
+            if (in_array($this->server_unique, $this->server_white_list)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * 查看是否到执行时间点
      */
