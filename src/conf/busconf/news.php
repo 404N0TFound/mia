@@ -27,7 +27,7 @@ $group = ['img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'grou
 $group_index = ['img_comment', 'img_like', 'follow'];
 
 //所有类型
-$all_type = ['order', 'coupon', 'custom', 'img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'group_custom'];
+$all_type = ['pull_custom', 'pull_group_custom', 'order', 'coupon', 'custom', 'img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'group_custom'];
 
 
 /*==============================5.7消息==============================*/
@@ -78,7 +78,8 @@ $layer = [
     ],
     "group" => [
         "group_active" => [
-            "group_custom"
+            "pull_group_custom",
+            "pull_custom"
         ],
         "group_interact" => [
             "img_comment",
@@ -89,7 +90,8 @@ $layer = [
         ]
     ],
     "activity" => [
-        "custom"
+        "custom",
+        "pull_custom"
     ],
     "property" => [
         "coupon",//旧类型

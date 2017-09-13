@@ -515,9 +515,9 @@ class News extends \mia\miagroup\Lib\Service
         //批量发送
 
         if ($data['resource_type'] == "group") {
-            $type = "group_custom";
+            $type = "pull_group_custom";
         } else if ($data['resource_type'] == "outlets") {
-            $type = "custom";
+            $type = "pull_custom";
         }
         $content_info = [
             "title" => $data['custom_title'],
