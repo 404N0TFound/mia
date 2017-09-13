@@ -785,13 +785,25 @@ class News extends \mia\miagroup\Lib\Service
         $newsInfo = array_pop($this->formatNews([$newsId], $userId, 2));//计数在格式化模板是查询的
 
         $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
+
         if(isset($newsInfo['news_miagroup_template'])) {
+            //"img_comment","img_like","follow","new_subject" 目前类型
             $showCate = $this->getAncestor($newsInfo['type'])['data'];
             //蜜芽圈动态
             return $this->succ([
                 "count" => $count,
                 "text" => $newsInfo['news_miagroup_template']['index_title'],
                 "img" => $newsInfo['news_miagroup_template']['user_info']['icon'],
+                "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
+            ]);
+        } else if (isset($newsInfo['news_text_pic_template'])) {
+            //add_fine
+            $showCate = $this->getAncestor($newsInfo['type'])['data'];
+            //蜜芽圈动态
+            return $this->succ([
+                "count" => $count,
+                "text" => $newsInfo['news_text_pic_template']['index_title'],
+                "img" => "",
                 "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
             ]);
         } else {
@@ -957,6 +969,7 @@ class News extends \mia\miagroup\Lib\Service
         if (empty($newsIds) && !$redis->exists($redis_key)) {
             //查询数据库
             $news = $this->newsModel->getBatchList($this->getAllChlidren($category)['data'], $userId, $this->config['user_list_limit']);
+
             if(empty($news)) {
                 //TODO 优化
                 return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => $this->getSubTab($category, $userId)]);
@@ -1109,6 +1122,7 @@ class News extends \mia\miagroup\Lib\Service
                 case "plus_get_commission":
                     break;
                 case "group_custom":
+                case "pull_group_custom":
                     if(!empty($val["news_id"])) {
                         $newsIds[] = $val["news_id"];
                     }
@@ -1136,6 +1150,7 @@ class News extends \mia\miagroup\Lib\Service
                     //收集subject_id
                     break;
                 case "custom":
+                case "pull_custom":
                     if(!empty($val["news_id"])) {
                         $newsIds[] = $val["news_id"];
                     }
@@ -1245,6 +1260,7 @@ class News extends \mia\miagroup\Lib\Service
                     "news_image" => $image_res,
                     "mark_icon_type" => $newsInfoRes["icon"],
                     "redirect_url" => $newsInfoRes["url"],
+                    "index_title" => $newsInfoRes["index_title"]
                 ];
                 break;
             case "news_pic_template"://站内信图片模板（暂时没用上）
@@ -1400,6 +1416,7 @@ class News extends \mia\miagroup\Lib\Service
                 $url = $app_mapping_config['plus_manage_income_share'];
                 break;
             case "group_custom":
+            case "pull_group_custom":
                 if (!empty($newsInfo['news_id'])) {
                     if($this->newsInfo[$newsInfo["news_id"]]['status'] == 0 || empty($this->newsInfo[$newsInfo["news_id"]])) {
                         return null;
@@ -1485,6 +1502,7 @@ class News extends \mia\miagroup\Lib\Service
             case "new_subject":
                 break;
             case "custom":
+            case "pull_custom":
                 if (!empty($newsInfo['news_id'])) {
                     if ($this->newsInfo[$newsInfo["news_id"]]['status'] == 0 || empty($this->newsInfo[$newsInfo["news_id"]])) {
                         return null;
