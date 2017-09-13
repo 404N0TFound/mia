@@ -400,6 +400,12 @@ class Subject extends \mia\miagroup\Lib\Service
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
         }
+        
+        // 获取活动信息
+        if (in_array('group_actives', $field)) {
+            $activeService = new ActiveService();
+            $subjectActives = $activeService->getBatchSubjectActives($subjectIds)['data'];
+        }
         // 获取计数信息
         if (in_array('count', $field)) {
             $this->commentService = new CommentService();
@@ -632,6 +638,9 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (in_array('group_labels', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_labels'] = is_array($subjectLabels[$subjectInfo['id']]) ? array_values($subjectLabels[$subjectInfo['id']]) : array();
+            }
+            if (in_array('group_actives', $field)) {
+                $subjectRes[$subjectInfo['id']]['group_actives'] = is_array($subjectActives[$subjectInfo['id']]) ? $subjectActives[$subjectInfo['id']] : array();
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
@@ -2800,6 +2809,42 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         return $this->succ($data);
+    }
+
+    /*
+     * 帖子取消同步口碑操作
+     * */
+    public function removeSubjectSynKoubei($subjectIds)
+    {
+        if (empty($subjectIds)) {
+            return $this->error(500);
+        }
+        $result = ['flag' => false];
+        $subjectInfos = $this->getBatchSubjectInfos($subjectIds)['data'];
+        if(empty($subjectInfos)) {
+            return $this->succ($result);
+        }
+        $koubeiService = new KoubeiService();
+        $conditions['syn_del'] = 1;
+        foreach($subjectInfos as $subject_id => $info) {
+            $koubei_id = $info['koubei_id'];
+            $user_id = $info['user_id'];
+            if(empty($koubei_id)) {
+                continue;
+            }
+            // 设置口碑状态(物理删除)
+            $res = $koubeiService->delete($koubei_id, $user_id, $conditions)['data'];
+            if(empty($res)) {
+                continue;
+            }
+            $setData = [];
+            $setData['ext_info']['koubei']['id'] = 0;
+            $res = $this->updateSubject($subject_id, $setData)['data'];
+        }
+        if(!empty($res)) {
+            $result['flag'] = true;
+        }
+        return $this->succ($result);
     }
 
 }

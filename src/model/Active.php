@@ -172,12 +172,12 @@ class Active {
         return $data;
     }
 
-    /*
+    /**
      * 删除帖子活动关联关系
      * */
     public function delSubjectActiveRelation($relationData) {
         $data = $this->relationData->delSubjectActiveRelation($relationData);
         return $data;
     }
-
+    
 }
