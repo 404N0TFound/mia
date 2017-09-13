@@ -1,15 +1,16 @@
 <?php
 /**
  * 后台cron配置
- *
- * 没有限定主机标识的，只能在白名单列表的机器里执行
- * 限定了主机名的，只能在限定的server上面执行
  */
 $php_cli = '/daemon/cli.php';
 
 $server_white_list = [
-    "nfs_13_14",//脚本机
-    "Miya-XM-server",//209测试机
+    "all" => [
+        "Miya-XM-server",//209测试机，所有的脚本都执行
+    ],
+    "individual" => [
+        "nfs_13_14",//脚本机，没有限定主机标识的执行
+    ]
 ];
 $host_check_open = 0;//1打开，0关闭
 
