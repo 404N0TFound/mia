@@ -304,6 +304,8 @@ class News extends \mia\miagroup\Lib\Service
             /*========蜜芽圈：活动========*/
             case "group_custom"://蜜芽圈：活动，批量后台发送，单条和全站这里发送
             case "custom"://蜜芽活动：旧特卖消息，后台发送，单条和全站这里发送
+            case "pull_custom":
+            case "pull_group_custom":
             if (isset($ext_info['news_id']) && !empty($ext_info['news_id'])) {
                 $insert_data['news_id'] = $ext_info['news_id'];
                 unset($ext_info);
