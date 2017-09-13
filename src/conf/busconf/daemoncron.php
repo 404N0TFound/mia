@@ -11,7 +11,7 @@ $server_white_list = [
     "nfs_13_14",//脚本机
     "Miya-XM-server",//209测试机
 ];
-$host_check_open = 1;//1打开，0关闭
+$host_check_open = 0;//1打开，0关闭
 
 /**************
  * 直播相关开始
