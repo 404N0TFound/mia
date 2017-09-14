@@ -912,7 +912,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->error(500);
         }
         //判断登录用户是否是被屏蔽用户
-        if(!empty($subjectInfo['user_info']['user_id'])){
+        if(!empty($subjectInfo['user_info']['user_id']) && $subjectInfo['source'] != 2){
             $audit = new \mia\miagroup\Service\Audit();
             $is_shield = $audit->checkUserIsShield($subjectInfo['user_info']['user_id'])['data'];
             if($is_shield['is_shield']){
