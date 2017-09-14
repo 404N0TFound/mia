@@ -109,11 +109,7 @@ class Audit extends \mia\miagroup\Lib\Service {
                 $subjectsArr = $subjectService->getSubjects($userInfo['user_id']);
                 //如果有蜜芽帖子，删除
                 if(!empty($subjectsArr['data'])){
-                    $subjectIds = array();
-                    foreach($subjectsArr['data'] as $subject){
-                        $subjectIds[] = $subject['id'];
-                    }
-                    $subjectService->delSubjects($subjectIds,0);
+                    $subjectService->delSubjects($subjectsArr['data'],0);
                 }
                 //查看用户是否有口碑帖子
                 $koubeisArr = $koubeiService->getKoubeis($userInfo['user_id']);
