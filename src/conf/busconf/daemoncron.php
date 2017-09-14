@@ -4,6 +4,16 @@
  */
 $php_cli = '/daemon/cli.php';
 
+$server_list = [
+    "all" => [
+        "Miya-XM-server",//209测试机，所有的脚本都执行
+    ],
+    "individual" => [
+        "nfs_13_14",//脚本机，没有限定主机标识的执行
+    ]
+];
+$host_check_open = 0;//1打开，0关闭
+
 /**************
  * 直播相关开始
  **************/
@@ -289,7 +299,8 @@ $cron_list['send_message'] = array(
     'engine' => 'php',
     'cli_args' => "--class=news --action=sendmessage",
     'start_time' => '2017-08-09 00:00:00',
-    'interval' => 1
+    'interval' => 1,
+    'host' => "nfs_13_14",
 );
 
 $cron_list['delay_send_message'] = array(
@@ -297,5 +308,6 @@ $cron_list['delay_send_message'] = array(
     'engine' => 'php',
     'cli_args' => "--class=news --action=delaysendmessage",
     'start_time' => '2017-09-12 00:00:00',
-    'interval' => 1
+    'interval' => 1,
+    'host' => "nfs_13_14",
 );
