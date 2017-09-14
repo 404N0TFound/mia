@@ -255,9 +255,9 @@ class News
         $conditions = [];
         if (isset($params['resource_type'])) {
             if ($params['resource_type'] == "group") {
-                $conditions['news_type'] = "group_custom";
+                $conditions['news_type'] = "pull_group_custom";
             } else if ($params['resource_type'] == "outlets") {
-                $conditions['news_type'] = "custom";
+                $conditions['news_type'] = "pull_custom";
             }
         }
 
