@@ -227,6 +227,9 @@ class News extends \mia\miagroup\Lib\Service
         $addCountCheck = 0;
         switch ($type) {
             /*========蜜芽圈：动态========*/
+            case "blog_quote"://长文引用帖子，给帖子作者发信息
+                //source_id，记引用的长文帖子id；ext_info传入时加上：被引用的帖子id；
+                break;
             case "img_comment"://被回复
                 //评论消息里面，source_id记得是评论ID，ext_info补上：帖子ID
                 $commentService = new commentService();
@@ -1133,6 +1136,10 @@ class News extends \mia\miagroup\Lib\Service
                     $subjectIds[] = $val["ext_info"]["subject_id"];
                     $userIds[] = $val["send_user"];
                     break;
+                case "blog_quote":
+                    $subjectIds[] = $val["source_id"];
+                    $userIds[] = $val["send_user"];
+                    break;
                 case "add_fine"://加精消息里面，source_id记得就是帖子ID
                     //收集subject_id
                     $subjectIds[] = $val["source_id"];
@@ -1454,6 +1461,24 @@ class News extends \mia\miagroup\Lib\Service
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
                 $nick_name = $userInfo["nickname"] ? $userInfo["nickname"] : $userInfo["username"];
                 $index_title = $nick_name . "评论了你";
+                break;
+            case "blog_quote":
+                $title = "【".$this->subjectInfo[$newsInfo["source_id"]]["title"]."】中引用了你的帖子，快去看看吧~";
+                $url = sprintf($app_mapping_config['subject'], $newsInfo["source_id"]);
+                $text = $this->subjectInfo[$newsInfo["source_id"]]["text"];
+                $image = $this->subjectInfo[$newsInfo["source_id"]]["cover_image"]["url"];
+                //cover替换koubeilist样式
+                if(!empty($image)) {
+                    $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
+                    preg_match($pattern, $image, $match);
+                    $image = [
+                        "url" => $match[1] . "@style@koubeilist",
+                        "width" => 320,
+                        "height" => 320
+                    ];
+                }
+                $user_name = $this->userInfo[$newsInfo['send_user']]["nickname"]?$this->userInfo[$newsInfo['send_user']]["nickname"]:$this->userInfo[$newsInfo['send_user']]["username"];
+                $index_title = "您的帖子被".$user_name."在文章中引用啦";
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
                 $title = "您的帖子被加精，奉上50蜜豆";
