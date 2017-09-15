@@ -1115,7 +1115,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (intval($item_id) > 0) {
             $item_service = new ItemService();
             $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
-            $return_Info['item_info'] = $item_info[$item_id];
         }
         switch ($issue_type) {
             case 'material':
@@ -1188,6 +1187,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $return_Info['selection_labels'][] = $p_labels;
                 $return_Info['selection_labels'][] = $e_labels;
                 break;
+        }
+        
+        if (!empty($item_info[$item_id])) {
+            $return_Info['item_info'] = $item_info[$item_id];
         }
         
         // 容错
