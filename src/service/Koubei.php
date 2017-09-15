@@ -1112,14 +1112,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
         }
         $return_Info = array();
+        if (intval($item_id) > 0) {
+            $item_service = new ItemService();
+            $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
+            $return_Info['item_info'] = $item_info[$item_id];
+        }
         switch ($issue_type) {
             case 'material':
                 # 素材
-                $item_service = new ItemService();
-                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
-                $return_Info['item_info'] = $item_info[$item_id];
                 break;
-
             case 'subject':
                 # 帖子
                 $issue_info = \F_Ice::$ins->workApp->config->get('busconf.subject')['subject_issue']['issue'];
@@ -1145,8 +1146,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
             default:
                 # 口碑
-                $item_service = new ItemService();
-                $item_info = $item_service->getBatchItemBrandByIds([$item_id])['data'];
                 $check_res = $this->koubeiModel->getCheckFirstComment(0, $item_id, 0);
                 if(empty($check_res)) {
                     // 首评
@@ -1188,11 +1187,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $return_Info['selection_labels'][] = $q_labels;
                 $return_Info['selection_labels'][] = $p_labels;
                 $return_Info['selection_labels'][] = $e_labels;
-
-                // 展示商品信息
-                $return_Info['item_info'] = $item_info[$item_id];
                 break;
         }
+        
         // 容错
         if(empty($return_Info)) {
             $return_Info = array();
