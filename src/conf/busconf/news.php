@@ -308,12 +308,12 @@ $push_type = [
     "img_comment",
     "add_fine",
     "new_subject",
-    "pull_group_custom",
+    //"pull_group_custom",
     //"coupon_receive",
     //"coupon_overdue",
     //"redbag_receive",
     //"redbag_overdue",
-    "pull_custom"
+    //"pull_custom"
 ];
 
 //推送允许时间
