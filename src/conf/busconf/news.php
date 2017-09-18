@@ -27,7 +27,7 @@ $group = ['img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'grou
 $group_index = ['img_comment', 'img_like', 'follow'];
 
 //所有类型
-$all_type = ['order', 'coupon', 'custom', 'img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'group_custom'];
+$all_type = ['pull_custom', 'pull_group_custom', 'order', 'coupon', 'custom', 'img_comment', 'img_like', 'follow', 'add_fine', 'group_coupon', 'group_custom'];
 
 
 /*==============================5.7消息==============================*/
@@ -78,6 +78,7 @@ $layer = [
     ],
     "group" => [
         "group_active" => [
+            "pull_group_custom",
             "group_custom"
         ],
         "group_interact" => [
@@ -85,11 +86,13 @@ $layer = [
             "add_fine",
             "img_like",
             "follow",
-            "new_subject"
+            "new_subject",
+            "blog_quote"
         ]
     ],
     "activity" => [
-        "custom"
+        "custom",
+        "pull_custom"
     ],
     "property" => [
         "coupon",//旧类型
@@ -169,6 +172,7 @@ $template_news_type = [
         "redbag_receive",
         "redbag_overdue",
         "add_fine",
+        "blog_quote"
     ],
     //站内信图片模板
     "news_pic_template" => [
@@ -177,7 +181,9 @@ $template_news_type = [
     "news_banner_template" => [
         "custom",
         "group_custom",
-        "plus_active"
+        "plus_active",
+        "pull_custom",
+        "pull_group_custom",
 
     ],
     "news_miagroup_template" => [
@@ -304,12 +310,13 @@ $push_type = [
     "img_comment",
     "add_fine",
     "new_subject",
-    "group_custom",
+    //"pull_group_custom",
     //"coupon_receive",
     //"coupon_overdue",
     //"redbag_receive",
     //"redbag_overdue",
-    "custom"
+    //"pull_custom",
+    "blog_quote"
 ];
 
 //推送允许时间

@@ -482,7 +482,22 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
         }
-
+        if (in_array('share_info', $field)) {
+            //获取推荐的长文，只用于分享时
+            $blogSubjectIds = $this->subjectModel->getSubjectBlogLists([], 1, 30, [1]);
+            
+            if(!empty($blogSubjectIds)){
+                $blogSubjectIds = array_flip($blogSubjectIds);
+                $blogSubjectIds = array_rand($blogSubjectIds,3);
+                $recBlogList = $this->subjectModel->getSubjectByIds($blogSubjectIds, [1]);
+                $recBlogArr = array();
+                foreach($recBlogList as $bkey=>$blogSubjectInfo){
+                    $recBlogArr[$bkey]['id'] = $blogSubjectInfo['id'];
+                    $recBlogArr[$bkey]['title'] = $blogSubjectInfo['title'];
+                }
+            }
+        }
+        
         $subjectRes = array();
         $userService = new UserService();
         // 拼装结果集
@@ -720,6 +735,10 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
                 $subjectRes[$subjectInfo['id']]['share_info'] = array_values($share);
+                //推荐长文列表
+                if(!empty($recBlogArr)){
+                    $subjectRes[$subjectInfo['id']]['recommend_blogs'] = $recBlogArr;
+                }
             }
             if (intval($currentUid) > 0) {
                 $subjectRes[$subjectInfo['id']]['fancied_by_me'] = $isPraised[$subjectInfo['id']] ? true : false;
@@ -912,7 +931,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->error(500);
         }
         //判断登录用户是否是被屏蔽用户
-        if(!empty($subjectInfo['user_info']['user_id'])){
+        if(!empty($subjectInfo['user_info']['user_id']) && $subjectInfo['source'] != 2){
             $audit = new \mia\miagroup\Service\Audit();
             $is_shield = $audit->checkUserIsShield($subjectInfo['user_info']['user_id'])['data'];
             if($is_shield['is_shield']){
@@ -2133,6 +2152,25 @@ class Subject extends \mia\miagroup\Lib\Service
         $blog_info['status'] = $parsed_param['subject_info']['status'];
         $blog_info['create_time'] = $result['data']['created'];
         $this->subjectModel->addBlog($blog_info);
+        if ($parsed_param['subject_info']['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal')) {
+            //发消息给被引用的帖子的作者
+            if (!empty($blog_info["blog_meta"])) {
+                $relateSubjectIds = [];
+                foreach ($blog_info["blog_meta"] as $value) {
+                    if (key($value) == "blog_relate_subject") {
+                        //收集subject_id
+                        $relateSubjectIds[] = current($value);
+                    }
+                }
+                if (!empty($relateSubjectIds)) {
+                    $subjectInfos = $this->getBatchSubjectInfos($relateSubjectIds)["data"];
+                    $newsService = new News();
+                    foreach ($subjectInfos as $v) {
+                        $newsService->postMessage("blog_quote", $v["user_id"], $param['user_id'], $blog_info['subject_id'], $ext_info = ["subject_id" => $v["id"]]);
+                    }
+                }
+            }
+        }
         return $this->succ($result['data']);
     }
     
@@ -2147,6 +2185,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($subject_info) || $subject_info['type'] != 'blog') {
             return $this->error(1131);
         }
+        //发布了且作者不是白名单内的长文的不能被编辑
         if (isset($param['status']) && $subject_info['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal') && !in_array($subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
             return $this->error(1133);
         }
@@ -2214,6 +2253,27 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         if ($parsed_param['subject_info']['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit')) {
             return $this->error(1132);
+        }
+
+        if ($parsed_param['subject_info']['status'] == \F_Ice::$ins->workApp->config->get('busconf.subject.status.normal')) {
+            //发消息给被引用的帖子的作者
+            if (!empty($blog_info["blog_meta"])) {
+                $relateSubjectIds = [];
+                foreach ($blog_info["blog_meta"] as $value) {
+                    if (key($value) == "blog_relate_subject") {
+                        //收集subject_id
+                        $relateSubjectIds[] = current($value);
+                    }
+                }
+
+                if (!empty($relateSubjectIds)) {
+                    $subjectInfos = $this->getBatchSubjectInfos($relateSubjectIds)["data"];
+                    $newsService = new News();
+                    foreach ($subjectInfos as $v) {
+                        $newsService->postMessage("blog_quote", $v["user_id"], $param['user_id'], $param['subject_id'], $ext_info = ["subject_id" => $v["id"]]);
+                    }
+                }
+            }
         }
         return $this->succ(true);
     }

@@ -17,11 +17,11 @@ class Active extends \mia\miagroup\Lib\Service {
 
     /*
      * 蜜芽圈帖子综合搜索
-     * 用户活动
+     * 用户活动(1:正常上线活动，：上线+下线)
      * */
-    public function group_user_active($month = 1)
+    public function group_user_active($month = 1, $status = NULL)
     {
-        $group_active = $this->activeModel->getGroupActiveData($month);
+        $group_active = $this->activeModel->getGroupActiveData($month, $status);
         return $this->succ($group_active);
     }
     

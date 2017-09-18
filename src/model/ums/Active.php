@@ -11,12 +11,16 @@ class Active extends \DB_Query {
     protected $tableActiveSubjectRelation = 'group_subject_active_relation';
     protected $tableSubjectPointTags = 'group_subject_point_tags';
 
-    public function getGroupActiveData($month)
+    public function getGroupActiveData($month = 1, $status = NULL)
     {
         $this->tableName = $this->tableActive;
         $time = date("Y-m-d", strtotime("-".$month." month"));
-        $where[] = ['status',1];
-        $field = "id, title";
+        if(!isset($status)) {
+            $where[] = ['status',[1,-1]];
+        }else{
+            $where[] = ['status',$status];
+        }
+        $field = "id, title, status, end_time";
         $where[] = [':gt', 'created', $time];
         $res = $this->getRows($where, $field);
         return $res;

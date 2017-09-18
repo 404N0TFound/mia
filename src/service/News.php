@@ -227,6 +227,9 @@ class News extends \mia\miagroup\Lib\Service
         $addCountCheck = 0;
         switch ($type) {
             /*========蜜芽圈：动态========*/
+            case "blog_quote"://长文引用帖子，给帖子作者发信息
+                //source_id，记引用的长文帖子id；ext_info传入时加上：被引用的帖子id；
+                break;
             case "img_comment"://被回复
                 //评论消息里面，source_id记得是评论ID，ext_info补上：帖子ID
                 $commentService = new commentService();
@@ -304,6 +307,8 @@ class News extends \mia\miagroup\Lib\Service
             /*========蜜芽圈：活动========*/
             case "group_custom"://蜜芽圈：活动，批量后台发送，单条和全站这里发送
             case "custom"://蜜芽活动：旧特卖消息，后台发送，单条和全站这里发送
+            case "pull_custom":
+            case "pull_group_custom":
             if (isset($ext_info['news_id']) && !empty($ext_info['news_id'])) {
                 $insert_data['news_id'] = $ext_info['news_id'];
                 unset($ext_info);
@@ -515,9 +520,9 @@ class News extends \mia\miagroup\Lib\Service
         //批量发送
 
         if ($data['resource_type'] == "group") {
-            $type = "group_custom";
+            $type = "pull_group_custom";
         } else if ($data['resource_type'] == "outlets") {
-            $type = "custom";
+            $type = "pull_custom";
         }
         $content_info = [
             "title" => $data['custom_title'],
@@ -783,13 +788,25 @@ class News extends \mia\miagroup\Lib\Service
         $newsInfo = array_pop($this->formatNews([$newsId], $userId, 2));//计数在格式化模板是查询的
 
         $app_mapping_config = \F_Ice::$ins->workApp->config->get('busconf.app_mapping');
+
         if(isset($newsInfo['news_miagroup_template'])) {
+            //"img_comment","img_like","follow","new_subject" 目前类型
             $showCate = $this->getAncestor($newsInfo['type'])['data'];
             //蜜芽圈动态
             return $this->succ([
                 "count" => $count,
                 "text" => $newsInfo['news_miagroup_template']['index_title'],
                 "img" => $newsInfo['news_miagroup_template']['user_info']['icon'],
+                "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
+            ]);
+        } else if (isset($newsInfo['news_text_pic_template'])) {
+            //add_fine
+            $showCate = $this->getAncestor($newsInfo['type'])['data'];
+            //蜜芽圈动态
+            return $this->succ([
+                "count" => $count,
+                "text" => $newsInfo['news_text_pic_template']['index_title'],
+                "img" => "",
                 "url" => sprintf($app_mapping_config['news_cate_list'], $showCate, $this->config['new_index_title'][$showCate]),
             ]);
         } else {
@@ -955,6 +972,7 @@ class News extends \mia\miagroup\Lib\Service
         if (empty($newsIds) && !$redis->exists($redis_key)) {
             //查询数据库
             $news = $this->newsModel->getBatchList($this->getAllChlidren($category)['data'], $userId, $this->config['user_list_limit']);
+
             if(empty($news)) {
                 //TODO 优化
                 return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => $this->getSubTab($category, $userId)]);
@@ -1107,6 +1125,7 @@ class News extends \mia\miagroup\Lib\Service
                 case "plus_get_commission":
                     break;
                 case "group_custom":
+                case "pull_group_custom":
                     if(!empty($val["news_id"])) {
                         $newsIds[] = $val["news_id"];
                     }
@@ -1115,6 +1134,10 @@ class News extends \mia\miagroup\Lib\Service
                     //收集subject_id和comment_id和user_id
                     $commentIds[] = $val["source_id"];
                     $subjectIds[] = $val["ext_info"]["subject_id"];
+                    $userIds[] = $val["send_user"];
+                    break;
+                case "blog_quote":
+                    $subjectIds[] = $val["source_id"];
                     $userIds[] = $val["send_user"];
                     break;
                 case "add_fine"://加精消息里面，source_id记得就是帖子ID
@@ -1134,6 +1157,7 @@ class News extends \mia\miagroup\Lib\Service
                     //收集subject_id
                     break;
                 case "custom":
+                case "pull_custom":
                     if(!empty($val["news_id"])) {
                         $newsIds[] = $val["news_id"];
                     }
@@ -1243,6 +1267,7 @@ class News extends \mia\miagroup\Lib\Service
                     "news_image" => $image_res,
                     "mark_icon_type" => $newsInfoRes["icon"],
                     "redirect_url" => $newsInfoRes["url"],
+                    "index_title" => $newsInfoRes["index_title"]
                 ];
                 break;
             case "news_pic_template"://站内信图片模板（暂时没用上）
@@ -1398,6 +1423,7 @@ class News extends \mia\miagroup\Lib\Service
                 $url = $app_mapping_config['plus_manage_income_share'];
                 break;
             case "group_custom":
+            case "pull_group_custom":
                 if (!empty($newsInfo['news_id'])) {
                     if($this->newsInfo[$newsInfo["news_id"]]['status'] == 0 || empty($this->newsInfo[$newsInfo["news_id"]])) {
                         return null;
@@ -1435,6 +1461,24 @@ class News extends \mia\miagroup\Lib\Service
                 $userInfo = $this->userInfo[$newsInfo['send_user']];
                 $nick_name = $userInfo["nickname"] ? $userInfo["nickname"] : $userInfo["username"];
                 $index_title = $nick_name . "评论了你";
+                break;
+            case "blog_quote":
+                $title = "【".$this->subjectInfo[$newsInfo["source_id"]]["title"]."】中引用了你的帖子，快去看看吧~";
+                $url = sprintf($app_mapping_config['subject'], $newsInfo["source_id"]);
+                $text = $this->subjectInfo[$newsInfo["source_id"]]["text"];
+                $image = $this->subjectInfo[$newsInfo["source_id"]]["cover_image"]["url"];
+                //cover替换koubeilist样式
+                if(!empty($image)) {
+                    $pattern = '/([^@]*)(@.{1,20}?@.{1,20}?(?=@|$))/';
+                    preg_match($pattern, $image, $match);
+                    $image = [
+                        "url" => $match[1] . "@style@koubeilist",
+                        "width" => 320,
+                        "height" => 320
+                    ];
+                }
+                $user_name = $this->userInfo[$newsInfo['send_user']]["nickname"]?$this->userInfo[$newsInfo['send_user']]["nickname"]:$this->userInfo[$newsInfo['send_user']]["username"];
+                $index_title = "您的帖子被".$user_name."在文章中引用啦";
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
                 $title = "您的帖子被加精，奉上50蜜豆";
@@ -1483,6 +1527,7 @@ class News extends \mia\miagroup\Lib\Service
             case "new_subject":
                 break;
             case "custom":
+            case "pull_custom":
                 if (!empty($newsInfo['news_id'])) {
                     if ($this->newsInfo[$newsInfo["news_id"]]['status'] == 0 || empty($this->newsInfo[$newsInfo["news_id"]])) {
                         return null;
