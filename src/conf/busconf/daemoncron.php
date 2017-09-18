@@ -288,6 +288,14 @@ $cron_list['user_doozer_day_rank_update'] = array(
     'start_time' => '2017-06-09 01:05:00',
     'interval' => 600
 );
+//马甲年龄信息每日更新
+$cron_list['user_majia_baby_birth_incr'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=user --action=majia baby_birth_incr",
+    'start_time' => '2017-09-19 00:01:00',
+    'interval' => 86400
+);
 
 /**************
  * 消息相关配置 *
