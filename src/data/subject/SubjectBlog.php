@@ -80,9 +80,15 @@ class SubjectBlog extends \DB_Query {
     /**
      * 获取用户发布的长文列表
      */
-    public function getBlogInfoByUserId($user_id, $page = 1, $limit = 20, $status = [1]){
+    public function getSubjectBlogLists($where = [], $page = 1, $limit = 20, $status = [1]){
         $offset = $limit * ($page - 1);
-        $where[] = ['user_id', $user_id];
+        
+        if(!empty($where)){
+            if(isset($where['user_id'])){
+                $where[] = ['user_id', $user_id];
+            }
+        }
+        
         if (!empty($status)) {
             $where[] = ['status', $status];
         }

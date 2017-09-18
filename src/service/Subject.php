@@ -482,7 +482,22 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
         }
-
+        if (in_array('share_info', $field)) {
+            //获取推荐的长文，只用于分享时
+            $blogSubjectIds = $this->subjectModel->getSubjectBlogLists([], 1, 30, [1]);
+            
+            if(!empty($blogSubjectIds)){
+                $blogSubjectIds = array_flip($blogSubjectIds);
+                $blogSubjectIds = array_rand($blogSubjectIds,3);
+                $recBlogList = $this->subjectModel->getSubjectByIds($blogSubjectIds, [1]);
+                $recBlogArr = array();
+                foreach($recBlogList as $bkey=>$blogSubjectInfo){
+                    $recBlogArr[$bkey]['id'] = $blogSubjectInfo['id'];
+                    $recBlogArr[$bkey]['title'] = $blogSubjectInfo['title'];
+                }
+            }
+        }
+        
         $subjectRes = array();
         $userService = new UserService();
         // 拼装结果集
@@ -720,6 +735,10 @@ class Subject extends \mia\miagroup\Lib\Service
                     }
                 }
                 $subjectRes[$subjectInfo['id']]['share_info'] = array_values($share);
+                //推荐长文列表
+                if(!empty($recBlogArr)){
+                    $subjectRes[$subjectInfo['id']]['recommend_blogs'] = $recBlogArr;
+                }
             }
             if (intval($currentUid) > 0) {
                 $subjectRes[$subjectInfo['id']]['fancied_by_me'] = $isPraised[$subjectInfo['id']] ? true : false;
