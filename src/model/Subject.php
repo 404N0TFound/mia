@@ -654,4 +654,13 @@ class Subject {
         $res = $this->subjectDownloadData->getDownloadNum($subjectIds);
         return $res;
     }
+    
+    /**
+     * 获取长文列表
+     * */
+    public function getSubjectBlogLists($condition, $page, $limit, $status)
+    {
+        $result = $this->subjectBlogData->getSubjectBlogLists($condition, $page, $limit, $status);
+        return $result;
+    }
 }
