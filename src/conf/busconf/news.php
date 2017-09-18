@@ -86,7 +86,8 @@ $layer = [
             "add_fine",
             "img_like",
             "follow",
-            "new_subject"
+            "new_subject",
+            "blog_quote"
         ]
     ],
     "activity" => [
@@ -171,6 +172,7 @@ $template_news_type = [
         "redbag_receive",
         "redbag_overdue",
         "add_fine",
+        "blog_quote"
     ],
     //站内信图片模板
     "news_pic_template" => [
@@ -313,7 +315,8 @@ $push_type = [
     //"coupon_overdue",
     //"redbag_receive",
     //"redbag_overdue",
-    //"pull_custom"
+    //"pull_custom",
+    "blog_quote"
 ];
 
 //推送允许时间
