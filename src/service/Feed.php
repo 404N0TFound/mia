@@ -42,7 +42,7 @@ class Feed extends \mia\miagroup\Lib\Service {
             return $this->succ(array());
         }
         //默认关注一批用户
-        if ($userId == $currentUid) {
+        if ($userId == $currentUid && $page == 1) {
             $relation_service = new \mia\miagroup\Service\UserRelation();
             $relation_service->addAutoFollow($userId, 'feed');
         }
