@@ -371,6 +371,10 @@ class Solr
             //所属仓库
             $solr_info['fq'][]   = 'warehouse_type:'. $conditon['warehouse_type'];
         }
+        if (!empty($conditon['pop_type'])) {
+            //所属仓库
+            $solr_info['fq'][]   = 'pop_type:'. $conditon['pop_type'];
+        }
         if(isset($conditon['status']) && in_array($conditon['status'],array(0,1,2))){
             $solr_info['fq'][]   = 'status:'. $conditon['status'];
             if($conditon['status'] == 2){
