@@ -737,7 +737,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['share_info'] = array_values($share);
                 //推荐长文列表
                 if(!empty($recBlogArr)){
-                    $subjectRes[$subjectInfo['id']]['recommend_blogs'] = $recBlogArr;
+                    $subjectRes[$subjectInfo['id']]['recommend_blogs'] = array_values($recBlogArr);
                 }
             }
             if (intval($currentUid) > 0) {
