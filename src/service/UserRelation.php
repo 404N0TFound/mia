@@ -154,14 +154,23 @@ class UserRelation extends \mia\miagroup\Lib\Service {
      * @param $userId
      * @return mixed
      */
-    public function addAutoFollow($userId)
+    public function addAutoFollow($userId, $type = 'register')
     {
         if (empty(intval($userId))) {
             return $this->succ([]);
         }
-        $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.user.register_auto_follow');
-        foreach ($autoFollow as $relationUid) {
-            $this->userRelationModel->addRelation($userId, $relationUid, 2);
+        switch ($type) {
+            case 'register':
+                $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.userrelation.register_auto_follow');
+                break;
+            case 'feed':
+                $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.userrelation.feed_auto_follow');
+                break;
+        }
+        if (!empty($autoFollow)) {
+            foreach ($autoFollow as $relationUid) {
+                $this->userRelationModel->addRelation($userId, $relationUid, 2, 1);
+            }
         }
         return $this->succ([]);
     }

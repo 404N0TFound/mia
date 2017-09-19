@@ -41,18 +41,14 @@ class Feed extends \mia\miagroup\Lib\Service {
         if(empty($userId)){
             return $this->succ(array());
         }
+        //默认关注一批用户
+        if ($userId == $currentUid) {
+            $relation_service = new \mia\miagroup\Service\UserRelation();
+            $relation_service->addAutoFollow($userId, 'feed');
+        }
 
-        //获取我关注的标签列表
-        $lableIdInfo = $this->labelService->getAllAttentLabel($userId,1,11)['data'];
         //获取我关注的用户列表
         $userIds = $this->userRelationService->getAllAttentionUser($userId)['data'];
-        $auditService = new \mia\miagroup\Service\Audit();
-        foreach ($userIds as $key => $userId) {
-            //验证用户是否已屏蔽
-            if($auditService->checkUserIsShield($userId)['data']['is_shield']){
-                unset($userIds[$key]);
-            }
-        }
         
         //获取我关注用户的帖子列表
         $source = [\F_Ice::$ins->workApp->config->get('busconf.subject.source.default'), \F_Ice::$ins->workApp->config->get('busconf.subject.source.koubei'), \F_Ice::$ins->workApp->config->get('busconf.subject.source.editor')];
@@ -61,7 +57,6 @@ class Feed extends \mia\miagroup\Lib\Service {
         $subjectsList = $this->subjectService->getBatchSubjectInfos($subjectIds,$currentUid)['data'];
         $data = [];
         $data['subject_lists'] = array_values($subjectsList);
-        $data['label_lists'] = $lableIdInfo;
         return $this->succ($data);
     }
     
