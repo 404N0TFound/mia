@@ -297,7 +297,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //用户分组
             $solrParams['role_id'] = $data['role_id'];
         }
-        if (!empty($data['active_id'])) {
+        if (isset($data['active_id']) && $data['active_id'] >= 0) {
             //活动
             $solrParams['active_id'] = $data['active_id'];
         }
