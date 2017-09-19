@@ -737,7 +737,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['share_info'] = array_values($share);
                 //推荐长文列表
                 if(!empty($recBlogArr)){
-                    $subjectRes[$subjectInfo['id']]['recommend_blogs'] = $recBlogArr;
+                    $subjectRes[$subjectInfo['id']]['recommend_blogs'] = array_values($recBlogArr);
                 }
             }
             if (intval($currentUid) > 0) {
@@ -2789,11 +2789,15 @@ class Subject extends \mia\miagroup\Lib\Service
 
 
     /*
-     * 帖子移出活动
+     * 帖子移入/移出活动
+     * status:0：移出,1：移入活动
      * */
-    public function batchRemoveSubjectActive($subjectIds)
+    public function batchRemoveSubjectActive($subjectIds, $activeId = 0, $status = 1)
     {
-        if (empty($subjectIds)) {
+        if (empty($subjectIds) || !in_array($status, [0,1])) {
+            return $this->error(500);
+        }
+        if(empty($activeId) && $status == 1) {
             return $this->error(500);
         }
         $result = ['flag' => false];
@@ -2807,20 +2811,37 @@ class Subject extends \mia\miagroup\Lib\Service
             $setData = $activeData = [];
             $subject_id = $info['id'];
             $user_id = $info['user_id'];
-            $active_id = $info['active_id'];
-            if(empty($subject_id) || empty($active_id) || empty($user_id)) {
+            $subject_active_id = $info['active_id'];
+            $relationSetInfo['user_id'] = $user_id;
+            $relationSetInfo['subject_id'] = $subject_id;
+            if(empty($subject_id) || empty($user_id)) {
                 continue;
             }
-            $setData['active_id'] = 0;
+            if(!empty($status) && $status == 1) {
+                // 移入活动
+                if(!empty($subject_active_id)) {
+                    continue;
+                }
+                $relationSetInfo['active_id'] = $activeId;
+                $relationSetInfo['create_time'] = $info['created'];
+                $res = $activeService->addActiveSubjectRelation($relationSetInfo);
+                if(!empty($res)) {
+                    $setData['active_id'] = $activeId;
+                }
+            }else{
+                // 移出活动
+                if(empty($subject_active_id)) {
+                    continue;
+                }
+                $relationSetInfo['active_id'] = $subject_active_id;
+                // 物理删除帖子活动关联表
+                $res = $activeService->delSubjectActiveRelation($relationSetInfo);
+                if(!empty($res)) {
+                    $setData['active_id'] = 0;
+                }
+            }
             // 更新帖子active_id
             $res = $this->updateSubject($subject_id, $setData)['data'];
-            // 物理删除帖子活动关联表
-            if(!empty($res)) {
-                $activeData['user_id'] = $user_id;
-                $activeData['subject_id'] = $subject_id;
-                $activeData['active_id'] = $active_id;
-                $res = $activeService->delSubjectActiveRelation($activeData);
-            }
         }
         if(!empty($res)) {
             $result['flag'] = true;
