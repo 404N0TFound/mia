@@ -49,7 +49,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         $relationInfos = $this->userRelationModel->getCountBatchUserFanS($diffUserIds);
         if (array_intersect($userIds, $largeFansCountUser)) {
             foreach ($largeFansCountUser as $uid) {
-                $relationInfos[$uid] = 10000;
+                $relationInfos[$uid] = 100000;
             }
         }
         return $this->succ($relationInfos);
