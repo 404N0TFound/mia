@@ -120,6 +120,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //仓库类型
             $solrCond['warehouse_type'] = $params['warehouse_type'];
         }
+        if (!empty($params['pop_type']) && $isRealtime == false && in_array($params['warehouse_type'], [3])) {
+            //拼团类型
+            $solrCond['pop_type'] = $params['pop_type'];
+        }
         if (strtotime($params['start_time']) > 0 && intval($solrCond['id']) <= 0) {
             //起始时间
             $solrCond['start_time'] = $params['start_time'];

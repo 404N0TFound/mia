@@ -973,9 +973,20 @@ class News extends \mia\miagroup\Lib\Service
             //查询数据库
             $news = $this->newsModel->getBatchList($this->getAllChlidren($category)['data'], $userId, $this->config['user_list_limit']);
 
-            if(empty($news)) {
+            if (empty($news)) {
                 //TODO 优化
-                return $this->succ(["news_list" => [], "offset" => "", "sub_tab" => $this->getSubTab($category, $userId)]);
+                $return = [
+                    "news_list" => [],
+                    "offset" => "",
+                    "sub_tab" => $this->getSubTab($category, $userId)
+                ];
+                //清空消息计数
+                foreach ($return["sub_tab"] as $sub_cate) {
+                    $this->clearNewsNum($userId, $sub_cate['category']);
+                }
+                //设置已读，同级分类下都清空
+                $this->setReadStatus($userId, $category);
+                return $this->succ($return);
             }
             //存入redis
             foreach ($news as $val) {
@@ -1013,7 +1024,9 @@ class News extends \mia\miagroup\Lib\Service
         ];
 
         //清空消息计数
-        $this->clearNewsNum($userId, $category);
+        foreach ($return["sub_tab"] as $sub_cate) {
+            $this->clearNewsNum($userId, $sub_cate['category']);
+        }
         //设置已读，同级分类下都清空
         $this->setReadStatus($userId, $category);
 
