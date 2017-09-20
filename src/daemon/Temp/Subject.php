@@ -137,16 +137,40 @@ class Subject extends \FD_Daemon {
     }
     
     public function change_subject_user() {
-        $change_list = file('/home/hanxiang/zhenxuan_subject_user_ids');
+        $change_list = file('/home/hanxiang/subject_user_change');
         foreach ($change_list as $v) {
             $v = trim($v);
-            list($subject_id, $user_id) = explode("\t", $v);
+            list($origin_user_id, $new_user_id) = explode("\t", $v);
             //更新帖子表
-            $sql = "update group_subjects set user_id = $user_id where id = $subject_id limit 1";
+            $sql = "update group_subjects set user_id = $new_user_id where user_id = $origin_user_id ;";
             echo $sql . "\n";
             //$this->subjectData->query($sql);
             //更新口碑表
-            $sql = "update koubei set user_id = $user_id where subject_id = $subject_id limit 1";
+            $sql = "update koubei set user_id = $new_user_id where user_id = $origin_user_id ;";
+            echo $sql . "\n";
+            //$this->subjectData->query($sql);
+            //更新评论表
+            $sql = "update group_subject_comment set user_id = $new_user_id where user_id = $origin_user_id ;";
+            echo $sql . "\n";
+            //$this->subjectData->query($sql);
+            //更新赞表
+            $sql = "update group_subject_praises set user_id = $new_user_id where user_id = $origin_user_id ;";
+            echo $sql . "\n";
+            //$this->subjectData->query($sql);
+            //更新标签表
+            $sql = "update group_subject_label_relation set user_id = $new_user_id where user_id = $origin_user_id ;";
+            echo $sql . "\n";
+            //$this->subjectData->query($sql);
+            //更新活动表
+            $sql = "update group_subject_active_relation set user_id = $new_user_id where user_id = $origin_user_id ;";
+            echo $sql . "\n";
+            //$this->subjectData->query($sql);
+            //更新长文表
+            $sql = "update group_subject_blog_info set user_id = $new_user_id where user_id = $origin_user_id ;";
+            echo $sql . "\n";
+            //$this->subjectData->query($sql);
+            //更新视频表
+            $sql = "update group_subject_video set user_id = $new_user_id where user_id = $origin_user_id ;";
             echo $sql . "\n";
             //$this->subjectData->query($sql);
         }
