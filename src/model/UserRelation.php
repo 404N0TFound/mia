@@ -75,11 +75,14 @@ class UserRelation {
     /**
      * 加关注
      */
-    public function addRelation($userId, $relationUserId, $source) {
+    public function addRelation($userId, $relationUserId, $source, $auto_follow = 0) {
         $meRelation = $this->appUserRelation->getRelationByBothUid($userId, $relationUserId);
         if (!empty($meRelation)) {
-            //更新为关注状态
-            $this->appUserRelation->updateRelationStatus($userId, $relationUserId, array('status' => 1, 'create_time' => date('Y-m-d H:i:s')));
+            //如果是默认关注，则已关注过不再关注
+            if ($auto_follow == 0) {
+                //更新为关注状态
+                $this->appUserRelation->updateRelationStatus($userId, $relationUserId, array('status' => 1, 'create_time' => date('Y-m-d H:i:s')));
+            }
         } else {
             //新的关注关系
             $setInfo = array(
