@@ -126,7 +126,7 @@ class Active extends \mia\miagroup\Lib\Service {
             return $this->succ($result);
         }
         
-        if ($params['limit'] === false) {
+        if (!isset($params['limit'])) {
             $limit = false;
         } else {
             $limit = intval($params['limit']) > 0 && intval($params['limit']) < 100 ? $params['limit'] : 20;
