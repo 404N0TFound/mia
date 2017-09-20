@@ -1078,7 +1078,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 //获取活动信息
                 $activeInfo = $activeService->getSingleActiveById($subjectInfo['active_id'])['data'];
                 if (intval($activeInfo['image_count_limit']) > count($subjectInfo['image_infos']) || intval($activeInfo['text_lenth_limit']) > mb_strlen($subjectInfo['text'], 'utf8')) {
-                    $this->error(1129);
+                    return $this->error(1129);
                 }
                 if (!empty($activeInfo['labels'])) {
                     $labelInfos = array_merge($labelInfos,$activeInfo['labels']);
