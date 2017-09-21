@@ -1969,7 +1969,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
     /**
      * 口碑信息更新操作
      */
-    public function koubeiEditOperation($koubeiId, $setData)
+    public function koubeiEditOperation($koubeiId, $setData, $conditions = [])
     {
         if(!is_numeric($koubeiId) || empty($setData)){
             return $this->error(500);
@@ -1978,16 +1978,28 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $arrParams = array(
             'verify_time' => date("Y-m-d H:i:s", time()),
             'admin_id' => $setData['admin_id'],
-            'rank_score'=>$setData['score']['rank_score'],
-            'immutable_score'=>$setData['score']['immutable'],
-            'subject_id' => $setData['subject_id'],
             'reply_user_type' => $setData['reply_user_type'],
         );
-        if(in_array($setData['status'],array(0,2))){
+
+        // 批量回复（后台不关联口碑通过，加精，沉帖）
+        $batchFlag = false;
+        if(!empty($conditions) && $conditions['type'] == 1) {
+            $batchFlag = true;
+        }
+
+        if(isset($setData['score']) && empty($batchFlag)) {
+            $arrParams['rank_score'] = $setData['score']['rank_score'];
+            $arrParams['immutable_score'] = $setData['score']['immutable'];
+        }
+
+        if(isset($setData['subject_id']) && empty($batchFlag)) {
+            $arrParams['subject_id'] = $setData['subject_id'];
+        }
+
+        if(isset($setData['status']) && in_array($setData['status'],array(0,2)) && empty($batchFlag)){
             $arrParams['status'] = $setData['status'];
         }
-        
-        if(in_array($setData['rank'],array(0,1))){
+        if(isset($setData['rank']) && in_array($setData['rank'],array(0,1)) && empty($batchFlag)){
             $arrParams['rank'] = $setData['rank'];
             $subjectSetData = [];
             if($arrParams['rank'] == 1){
@@ -1997,7 +2009,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             $this->subjectService->updateSubject($setData['subject_id'], $subjectSetData);
         }
-        if(in_array($setData['is_bottom'],array(0,1))){
+        if(isset($setData['is_bottom']) && in_array($setData['is_bottom'],array(0,1)) && empty($batchFlag)){
             $arrParams['is_bottom'] = $setData['is_bottom'];
         }
         if(isset($setData['reply_user_type']) && in_array($setData['reply_user_type'],array(1,2))){
