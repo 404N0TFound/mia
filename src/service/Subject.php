@@ -2114,9 +2114,9 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ([]);
         }
         if($type == 1) {
-            $res = $this->subjectModel->userCollectList($userId);
+            $res = $this->subjectModel->userCollectList($userId, 0, $page);
         }else{
-            $res = $this->subjectModel->userCollectList($userId, $type);
+            $res = $this->subjectModel->userCollectList($userId, $type, $page);
         }
         $subjectIds = [];
         if(!empty($res) && is_array($res)) {
