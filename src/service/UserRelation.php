@@ -148,6 +148,15 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($userRelation);
     }
+    
+    /**
+     * 互相关注
+     */
+    public function followEachOther($userId, $relationUserId, $source = 1) {
+        $this->addRelation($userId, $relationUserId, $source);
+        $this->addRelation($relationUserId, $userId, $source);
+        return $this->succ(true);
+    }
 
     /**
      * 自动关注
