@@ -5,7 +5,6 @@ use mia\miagroup\Data\Subject\Tab as TabData;
 use mia\miagroup\Data\Subject\GroupUserRole;
 use mia\miagroup\Data\Subject\GroupActive;
 use Ice;
-use function GuzzleHttp\json_decode;
 
 class Subject extends \DB_Query {
 
