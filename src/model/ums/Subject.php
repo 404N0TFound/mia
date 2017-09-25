@@ -5,6 +5,7 @@ use mia\miagroup\Data\Subject\Tab as TabData;
 use mia\miagroup\Data\Subject\GroupUserRole;
 use mia\miagroup\Data\Subject\GroupActive;
 use Ice;
+use function GuzzleHttp\json_decode;
 
 class Subject extends \DB_Query {
 
@@ -144,6 +145,9 @@ class Subject extends \DB_Query {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
+                    case 'end_publish_time':
+                        $where[] = [':le','publish_time', $v];
+                        break;
                     default:
                         $where[] = [$k, $v];
                 }
@@ -153,7 +157,13 @@ class Subject extends \DB_Query {
         if (intval($result['count']) <= 0) {
             return $result;
         }
-        $result['list'] = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        $data = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $v['issue_info'] = json_decode($v['issue_info'], true);
+                $result['list'][] = $v;
+            }
+        }
         return $result;
     }
 }
