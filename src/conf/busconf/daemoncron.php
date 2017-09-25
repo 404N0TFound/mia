@@ -176,6 +176,14 @@ $cron_list['subject_data_incremental_sync'] = array(
     'start_time' => '2017-02-10 00:15:00',
     'interval' => 600
 );
+//帖子草稿定时发布
+$cron_list['subject_clocking_pub'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=subjectdraft subject_clocking_pub",
+    'start_time' => '2017-09-25 18:00:00',
+    'interval' => 60
+);
 
 /*************
  * 帖子相关结束

@@ -19,6 +19,7 @@ class Subject {
     protected $subjectCollectData = null;
     protected $subjectDownloadData = null;
     protected $subjectBlogData = null;
+    protected $subjectDraftData = null;
     
     public function __construct() {
         $this->subjectData = new SubjectData();
@@ -28,6 +29,7 @@ class Subject {
         $this->subjectCollectData = new SubjectCollect();
         $this->subjectDownloadData = new SubjectDownload();
         $this->subjectBlogData = new \mia\miagroup\Data\Subject\SubjectBlog();
+        $this->subjectDraftData = new \mia\miagroup\Data\Subject\SubjectDraft();
     }
 
     /**
@@ -662,5 +664,23 @@ class Subject {
     {
         $result = $this->subjectBlogData->getSubjectBlogLists($condition, $page, $limit, $status);
         return $result;
+    }
+    
+    /**
+     * 新增帖子草稿
+     */
+    public function addSubjectDraft($user_id, $issue_info, $publish_time = null) {
+        $draft_data = [];
+        $draft_data['user_id'] = $user_id;
+        $draft_data['issue_info'] = $issue_info;
+        $draft_data['create_time'] = date('Y-m-d H:i:s');
+        if (!empty($publish_time)) {
+            $draft_data['publish_time'] = $publish_time;
+            $draft_data['status'] = 1;
+        } else {
+            $draft_data['status'] = 0;
+        }
+        $res = $this->subjectDraftData->addDraft($draft_data);
+        return $res;
     }
 }

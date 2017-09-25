@@ -1067,7 +1067,9 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectSetInfo['ext_info']['is_material'] = 1;
         }
 
-        $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
+        if (!empty($subjectSetInfo['ext_info'])) {
+            $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
+        }
         
         //只有当帖子带图的时候才能参加活动
         if(!empty($imgUrl)){
@@ -1239,6 +1241,72 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         $subjectSetInfo['share_info'] = array_values($share);
         return $this->succ($subjectSetInfo);
+    }
+    
+    /**
+     * 发布帖子草稿
+     */
+    public function draftIssue($subjectInfo, $pointInfo = array(), $labelInfos = array()) {
+        if (empty($subjectInfo)) {
+            return $this->error(500);
+        }
+        //判断登录用户是否是被屏蔽用户
+        if(!empty($subjectInfo['user_info']['user_id']) && $subjectInfo['source'] != 2){
+            $audit = new \mia\miagroup\Service\Audit();
+            $is_shield = $audit->checkUserIsShield($subjectInfo['user_info']['user_id'])['data'];
+            if($is_shield['is_shield']){
+                return $this->error(1104);
+            }
+        }
+        //启用数美验证
+        if(!empty($subjectInfo['title'])){
+            //过滤敏感词
+            $sensitive_res = $audit->checkSensitiveWords($subjectInfo['title'], 1);
+            if ($sensitive_res['code'] > 0) {
+                return $this->error($sensitive_res['code'], $sensitive_res['msg']);
+            }
+            //过滤xss、过滤html标签
+            $subjectInfo['title'] = strip_tags($subjectInfo['title'], '<span><p>');
+        }
+        if(!empty($subjectInfo['text'])){
+            //过滤敏感词
+            $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'], 1)['data'];
+            if ($sensitive_res['code'] > 0) {
+                return $this->error($sensitive_res['code'], $sensitive_res['msg']);
+            }
+            //过滤脚本
+            $subjectInfo['text'] = strip_tags($subjectInfo['text'], '<span><p>');
+        }
+        //蜜芽圈标签
+        if (!empty($labelInfos)) {
+            $labelTitleArr = array_column($labelInfos, 'title');
+            $labelStr = implode(',', $labelTitleArr);
+            //过滤敏感词
+            if(!empty($labelStr)){
+                $sensitive_res = $audit->checkSensitiveWords($labelStr, 1)['data'];
+                if ($sensitive_res['code'] > 0) {
+                    return $this->error($sensitive_res['code'], $sensitive_res['msg']);
+                }
+            }
+        }
+    
+        //判断是否重复提交
+        $isReSubmit = $this->subjectModel->checkReSubmit($subjectInfo);
+        if ($isReSubmit === true) {
+            return $this->error(1128);
+        }
+    
+        $issue_info['subject_info'] = $subjectInfo;
+        $issue_info['labels'] = $labelInfos;
+        $issue_info['point_tags'] = $pointInfo;
+        if (!empty($subjectInfo['publish_time'])) {
+            $publish_time = $subjectInfo['publish_time'];
+            unset($issue_info['subject_info']['publish_time']);
+        } else {
+            $publish_time = null;
+        }
+        $this->subjectModel->addSubjectDraft($subjectInfo['user_info']['user_id'], $issue_info, $publish_time);
+        return $this->succ(true);
     }
 
     /**
