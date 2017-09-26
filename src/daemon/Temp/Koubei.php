@@ -422,4 +422,81 @@ class Koubei extends \FD_Daemon {
             }
         }
     }
+
+    /*
+     * 封测报告印象标签正负项策略调整
+     * */
+    public function adjustPickTags()
+    {
+        $fp = fopen("/home/xiekun/success_pick", "a+");
+        set_time_limit(0);
+        $forArr = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S'];
+        $tagArr = $tagHandle = [];
+        // 品质
+        foreach($forArr as $flag) {
+            $res = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_quality_labels_'.$flag);
+            $tagArr = array_merge($res['tag_info'], $tagArr);
+        }
+        // 价钱
+        $priceTag = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_price_labels')['tag_info'];
+        // 体验
+        $experTag = \F_Ice::$ins->workApp->config->get('busconf.koubei.selection_exper_labels')['tag_info'];
+        $tagArr = array_merge($tagArr, $priceTag, $experTag);
+        foreach($tagArr as $value) {
+            if(empty($value)) {
+                continue;
+            }
+            $tagHandle[md5($value['tag_name'].$value['positive'])] = $value;
+        }
+
+        $maxInfo = $this->koubeiData->getRow([], 'MAX(`id`) as id');
+        $maxId = $maxInfo['id'];
+
+        while (true) {
+            $where = [];
+            $where[] = [':lt','id', $maxId];
+            $where[] = [':gt', 'subject_id', 0];
+            $where[] = ['status', 2];
+            $where[] = ['type', 1];
+            $where[] = [':ne','extr_info', ''];
+            $data = $this->koubeiData->getRows($where, 'id', 10, 0, 'id desc');
+            if(empty($data)) {
+                break;
+            }
+            $koubei_ids = array_column($data, 'id');
+            $maxId = min($koubei_ids);
+            $koubeiInfo = $this->koubeiData->getBatchKoubeiByIds($koubei_ids);
+            if(empty($koubeiInfo || empty($subjectInfo))) {
+                continue;
+            }
+            foreach($koubeiInfo as $id => $koubei) {
+                $koubei_ext = $koubei_selection = [];
+                $koubei_ext = json_decode($koubei['extr_info'], true);
+                $koubei_selection = $koubei_ext['selection_label'];
+                $selection = $koubei_ext['selection'];
+                if(empty($koubei_ext) || empty($koubei_selection) || $selection === 0) {
+                    continue;
+                }
+                foreach($koubei_selection as $tag_name) {
+                    $arrParams = [];
+                    $md5_negative_key = md5($tag_name.'2');
+                    if(!empty($tagHandle[$md5_negative_key])) {
+                        $koubei_ext['selection'] = 0;
+                        $arrParams['extr_info'] = json_encode($koubei_ext);
+                        // 更新口碑扩展字段
+                        $res = $this->koubeiModel->setKoubeiStatus($id, $arrParams);
+                        if(!empty($res)) {
+                            // 更新帖子扩展字段
+                            $setData['ext_info']['selection'] = ['selection' => 0];
+                            $res = $this->subjectService->updateSubject($koubei['subject_id'], $setData)['data'];
+                            if(!empty($res)) {
+                                fwrite($fp, $id."\n");
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
