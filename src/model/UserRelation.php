@@ -121,14 +121,14 @@ class UserRelation {
     /**
      * 获取用户的关注列表
      */
-    public function getAttentionListByUid($userId, $page = 0, $limit = 20) {
+    public function getAttentionListByUid($userId, $page = 0, $limit = 20, $source = null, $status = 1) {
         if($limit){
             $start = ($page - 1) * $limit;
         }else{
             $limit = false;
             $start = false;
         }
-        $data = $this->appUserRelation->getAttentionListByUid($userId, $start, $limit);
+        $data = $this->appUserRelation->getAttentionListByUid($userId, $start, $limit, $source, $status);
         return $data;
     }
     

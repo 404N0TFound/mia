@@ -173,7 +173,24 @@ class UserRelation extends \mia\miagroup\Lib\Service {
                 $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.userrelation.register_auto_follow');
                 break;
             case 'feed':
+                $all_auto_follow = $this->getAllAttentionUser($userId, 2, null)['data'];
                 $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.userrelation.feed_auto_follow');
+                $auto_followed = array_intersect($all_auto_follow, $autoFollow);
+                if (!empty($auto_followed)) {
+                    //默认关注过，不再继续关注
+                    break;
+                }
+                //官方认证账号，概率性默认关注
+                $user_service = new \mia\miagroup\Service\User();
+                $offical_cert_users = $user_service->getDoozerByCategory('official_cert')['data'];
+                $other_cert_users = array_diff($offical_cert_users, $autoFollow);
+                if (!empty($other_cert_users)) {
+                    foreach ($other_cert_users as $v) {
+                        if (rand(0, 100) <= 10) {
+                            $autoFollow[] = $v;
+                        }
+                    }
+                }
                 break;
         }
         if (!empty($autoFollow)) {
@@ -249,11 +266,11 @@ class UserRelation extends \mia\miagroup\Lib\Service {
     /**
      * 获取我关注的所有用户
      */
-    public function getAllAttentionUser($userId) {
+    public function getAllAttentionUser($userId, $source = null, $status = 1) {
         if(empty($userId)){
             return $this->error(500);
         }
-        $userIds = $this->userRelationModel->getAttentionListByUid($userId, 1, false);
+        $userIds = $this->userRelationModel->getAttentionListByUid($userId, 1, false, $source, $status);
         return $this->succ($userIds);
     }
     
