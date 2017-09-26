@@ -744,9 +744,14 @@ class User extends \mia\miagroup\Lib\Service {
     /*
      * 获取达人分组列表
      * */
-    public function getDoozerByCategory($count = 0)
+    public function getDoozerByCategory($type, $page = 1, $count = false)
     {
-        $res = $this->userModel->getGroupUserIdList($count);
+        $category_config = F_Ice::$ins->workApp->config->get('busconf.user.userCategory');
+        $types = array_column($category_config, 'name');
+        if (!in_array($type, $types)) {
+            return $this->succ([]);
+        }
+        $res = $this->userModel->getGroupUserIdList($type, $page, $count);
         return $this->succ($res);
     }
     
