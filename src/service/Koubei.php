@@ -94,12 +94,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         // 5.3 口碑新增 甄选商品印象标签(三个维度)
         $no_recommend_ident = 0;
         $labels['selection_label'] = array();
-        $noRecommend_arr = \F_Ice::$ins->workApp->config->get('busconf.koubei.norecommend_flag');
         if(!empty($koubeiData['selection_labels'])) {
             foreach($koubeiData['selection_labels'] as $selection_label) {
                 $labels['selection_label'][] = $selection_label['tag_name'];
                 // 1:推荐 2:不推荐
-                if($selection_label['positive'] == 2 && in_array($selection_label['tag_name'], $noRecommend_arr)) {
+                if($selection_label['positive'] == 2) {
                     $no_recommend_ident += 1;
                 }
             }
@@ -115,7 +114,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $koubeiSetData['type']  = 1;
 
             // 封测报告是否推荐
-            if($no_recommend_ident == 3) {
+            if(!empty($no_recommend_ident) && intval($no_recommend_ident) > 0) {
                 $labels['selection'] = "0";
             }else{
                 $labels['selection'] = "1";
