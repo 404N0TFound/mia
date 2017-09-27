@@ -683,4 +683,13 @@ class Subject {
         $res = $this->subjectDraftData->addDraft($draft_data);
         return $res;
     }
+
+    public function getFirstSubject($userIds, $source = 1)
+    {
+        if(empty($userIds)) {
+            return [];
+        }
+        $result = $this->subjectData->getFirstSubject($userIds, $source);
+        return $result;
+    }
 }
