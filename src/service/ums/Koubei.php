@@ -103,7 +103,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (!empty($params['brand']) && $isRealtime == false) {
             $solrCond['brand_id'] = $params['brand'];
         }
-        if ($params['self_sale'] !== null && $params['self_sale'] !== '' && in_array($params['self_sale'], array(0, 1)) && intval($solrCond['id']) <= 0) {
+        if ($params['self_sale'] !== null && $params['self_sale'] !== '' && in_array($params['self_sale'], array(0, 1))) {
             //sku属性
             $solrCond['self_sale'] = $params['self_sale'];
         }
