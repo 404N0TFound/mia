@@ -364,6 +364,34 @@ class Subject extends \mia\miagroup\Lib\Service
         return $return;
     }
 
+    /**
+     * 检测是否首次发帖
+     */
+    public function checkFirstPub($subjectInfos)
+    {
+        $userIdArr = [];
+        foreach ($subjectInfos as $subjectId => $subjectInfo) {
+            if ($subjectInfo["source"] == 1) {
+                $userIdArr["group"][] = $subjectInfo["user_id"];
+            }
+            if ($subjectInfo["source"] == 2) {
+                $userIdArr["koubei"][] = $subjectInfo["user_id"];
+            }
+        }
+        $res = [];
+        $group_res = $this->subjectModel->getFirstSubject($userIdArr["group"], 1);
+        $koubei_res = $this->subjectModel->getFirstSubject($userIdArr["koubei"], 2);
+        foreach ($subjectInfos as $val) {
+            if ($val["source"] == 1 && in_array($val["id"], $group_res)) {
+                $res[$val["id"]] = 1;
+            } else if ($val["source"] == 2 && in_array($val["id"], $koubei_res)) {
+                $res[$val["id"]] = 2;
+            } else {
+                $res[$val["id"]] = 0;
+            }
+        }
+        return $res;
+    }
 
     /**
      * 批量获取帖子信息
@@ -386,6 +414,10 @@ class Subject extends \mia\miagroup\Lib\Service
             $userIdArr[] = $subjectInfo['user_id'];
         }
 
+        //是否是首次发帖
+        if (in_array('first_pub', $field)) {
+            $firstPubArr = $this->checkFirstPub($subjectInfos);
+        }
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
@@ -678,7 +710,10 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
                 //$subjectRes[$subjectInfo['id']]['out_items'] =  is_array($outItemsInfo[$subjectId]) ? array_values($outItemsInfo[$subjectId]) : array();
             }
-
+            //是否是首次发帖
+            if (in_array('first_pub', $field)) {
+                $subjectRes[$subjectInfo['id']]['first_pub'] = $firstPubArr[$subjectInfo['id']];
+            }
             if (in_array('koubei', $field) && intval($subjectInfos[$subjectId]['koubei_id']) > 0) {
                 $subjectRes[$subjectInfo['id']]['items'] =  is_array($itemInfoById[$subjectId]) ? array_values($itemInfoById[$subjectId]) : array();
             }

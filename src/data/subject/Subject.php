@@ -371,4 +371,21 @@ class Subject extends \DB_Query {
         $res = array_column($data, 'id');
         return $res;
     }
+
+    public function getFirstSubject($userIds, $source = 1)
+    {
+        $where = [];
+        $where[] = ['user_id', $userIds];
+        $where[] = ['source', $source];
+
+        $groupBy = array('user_id');
+        $data = $this->getRows($where, "id", FALSE, 0, "id ASC", FALSE, $groupBy);
+        $return = [];
+        foreach ($data as $val) {
+            $return[] = $val["id"];
+        }
+        return $return;
+    }
+
+
 }
