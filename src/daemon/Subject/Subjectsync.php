@@ -49,6 +49,7 @@ class Subjectsync extends \FD_Daemon {
         $cmd = "scp -r $filePath {$this->remote}do_not_delete";
         exec($cmd);
         $cmd = "ssh -t  root@{$this->recommend_14} mv /opt/article_in_mia/do_not_delete /opt/article_in_mia/$date";
+        exec($cmd);
         //删除历史数据
         $cmd = "rm {$filePath}* -rf";
         exec($cmd);
