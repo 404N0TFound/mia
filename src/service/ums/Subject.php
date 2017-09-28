@@ -301,6 +301,10 @@ class Subject extends \mia\miagroup\Lib\Service {
             //活动
             $solrParams['active_id'] = $data['active_id'];
         }
+        if (isset($data['no_active']) && !empty($data['no_active'])) {
+            //活动反查
+            $solrParams['no_active'] = $data['no_active'];
+        }
         if (in_array($data['semantic_analys'], [1,2,3])){
             //内容分析
             $solrParams['semantic_analys'] = $data['semantic_analys'];
