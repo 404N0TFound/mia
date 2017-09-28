@@ -45,6 +45,7 @@
             "mia\\miagroup\\Data\\Search\\":    "src/data/search",
             "mia\\miagroup\\Data\\Robot\\":    "src/data/robot",
 	        "mia\\miagroup\\Data\\OperationLog\\":    "src/data/operationlog",
+            "mia\\miagroup\\Data\\Data\\":    "src/data/data",
             "Wcs\\": "src/lib/Wcs"
         },
         "files": [
