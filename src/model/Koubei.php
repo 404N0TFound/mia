@@ -315,6 +315,7 @@ class Koubei {
             $koubeiSetInfo[] = ['is_bottom',$koubeiInfo['is_bottom']];
         }
         $result = $this->koubeiData->updateKoubeiInfoById($koubeiId, $koubeiSetInfo);
+        return $result;
     }
     
     /**

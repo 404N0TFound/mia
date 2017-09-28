@@ -156,9 +156,14 @@ class AppUserRelation extends DB_Query {
     /**
      * 获取用户的关注列表
      */
-    public function getAttentionListByUid($userId, $start = 0, $limit = 20) {
+    public function getAttentionListByUid($userId, $start = 0, $limit = 20, $source = null, $status = 1) {
+        if (!empty($source)) {
+            $where[] = array('source', $source);
+        }
         $where[] = array(':eq', 'user_id', $userId);
-        $where[] = array(':eq', 'status', 1);
+        if (!empty($status)) {
+            $where[] = array('status', $status);
+        }
         $data = $this->getRows($where, 'replation_user_id', $limit, $start, 'create_time desc');
         $result = array();
         if (!empty($data)) {

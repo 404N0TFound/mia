@@ -129,13 +129,13 @@ class Item extends \mia\miagroup\Lib\Service {
             foreach ($items as $item) {
                 $tmp = null;
                 $tmp['item_id'] = $item['id'];
-                $tmp['item_name'] = $item['name'];
+                $tmp['item_name'] = !empty($item['activity_short_title']) ? $item['activity_short_title'] : $item['name'];
                 $tmp['item_desc'] = $item['name_added'];
                 $tmp['item_img'] = isset($item['img'][3]) ? $item['img'][3] : '';
                 $tmp['brand_id'] = $item['brand_id'];
                 $tmp['category_id'] = $item['category_id'];
                 $tmp['category_id_ng'] = $item['category_id_ng'];
-                $tmp['brand_name'] = isset($item['brand_info']['name']) ? $item['brand_info']['name'] : '';
+                $tmp['brand_name'] = isset($item['brand_info']['chinese_name']) ? $item['brand_info']['chinese_name'] : (isset($item['brand_info']['name']) ? $item['brand_info']['name'] : '');
                 $tmp['sale_price'] = $item['sale_price'];
                 $tmp['market_price'] = $item['market_price'];
                 $tmp['is_self'] = $item['is_self'];
