@@ -1038,7 +1038,15 @@ class Solr
                             $where['fq'][] = 'subject_type:"'.$v.'"';
                         }
                         break;
+                    case 'no_active':
+                        if(!empty($cond['active_id'])) {
+                            $where['fq'][] = '-(active_id:'.$cond['active_id'].')';
+                        }
+                        break;
                     default:
+                        if(!empty($cond['no_active']) && $k == "active_id") {
+                            continue;
+                        }
                         if(is_array($v)) {
                             $where['fq'][]   = $k.":(". implode(' OR ', $v) . ")";
                         }else {
