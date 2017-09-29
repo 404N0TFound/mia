@@ -2351,7 +2351,7 @@ class Subject extends \mia\miagroup\Lib\Service
             if (!empty($parsed_param['subject_info']['ext_info'])) {
                 $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
             }
-            if (!empty($parsed_param['subject_info']['image_url'])) {
+            if (!empty($parsed_param['subject_info']['image_infos'])) {
                 $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
                 $subject_set_data['ext_info']['image'] = $parsed_param['subject_info']['image_infos'];
             }
