@@ -276,6 +276,14 @@ class Subject extends \mia\miagroup\Lib\Service {
             //结束时间
             $solrParams['end_time'] = $data['end_time'];
         }
+        if (!empty($data['user_name']) && intval($data['user_id']) <= 0 && empty($data['id'])) {
+            //用户名
+            $solrParams['user_id'] = intval($this->userModel->getUidByUserName($data['user_name']));
+        }
+        if (!empty($data['nick_name']) && intval($data['user_id']) <= 0 && empty($data['id'])) {
+            //用户昵称
+            $solrParams['user_id'] = $this->userModel->getUidByNickName($data['nick_name']);
+        }
         if (!empty($data['user_id'])) {
             //用户ID
             $solrParams['user_id'] = $data['user_id'];
