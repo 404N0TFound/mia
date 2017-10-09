@@ -337,7 +337,7 @@ class Active extends \mia\miagroup\Lib\Service {
         $condition = array('active_ids' => $activeIds);
         $activeRes = array();
         //通过活动id获取活动信息
-        $activeInfos = $this->activeModel->getActiveList(false, 0, array(1), $condition);
+        $activeInfos = $this->activeModel->getActiveList(false, 0, array(), $condition);
         if (empty($activeInfos)) {
             return $this->succ(array());
         }
