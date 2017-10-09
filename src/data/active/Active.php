@@ -13,7 +13,9 @@ class Active extends \DB_Query {
      */
     public function getBatchActiveInfos($page=1, $limit=20, $status = array(1), $condition = array()) {
         $offsetLimit = $page > 1 ? ($page - 1) * $limit : 0;
-        $where[] = ['status',$status];
+        if (!empty($status)) {
+            $where[] = ['status',$status];
+        }
         $currentTime = date('Y-m-d H:i:s',time());
         if(!empty($condition['active_ids'])){
             $where[] = ['id',$condition['active_ids']];
