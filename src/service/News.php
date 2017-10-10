@@ -576,6 +576,9 @@ class News extends \mia\miagroup\Lib\Service
         }
         //获取某个用户消息里最大的系统消息，时间
         $maxSystemTime = $this->newsModel->getMaxSysTime($userId);
+        if ($maxSystemTime === false) {
+            return $this->succ([]);
+        }
         $create_date = '';
         if (empty($maxSystemId)) {
             //新用户，获取用户的注册时间
