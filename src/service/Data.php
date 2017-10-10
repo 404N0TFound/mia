@@ -40,6 +40,37 @@ class Data extends \mia\miagroup\Lib\Service
             return $this->error(500, '时间范围必须选择！');
         }
 
+        if(!empty($settings["all_label"])){
+            $settings["all_label"] = explode(',', $settings["all_label"]);
+            array_walk($settings["all_label"], function (&$n) {
+                $n = intval($n);
+            });
+            
+        }
+        if(!empty($settings["without_label"])){
+            $settings["without_label"] = explode(',', $settings["without_label"]);
+            array_walk($settings["without_label"], function (&$n) {
+                $n = intval($n);
+            });
+        }
+        if(!empty($settings["one_label"])){
+            $settings["one_label"] = explode(',', $settings["one_label"]);
+            array_walk($settings["one_label"], function (&$n) {
+                $n = intval($n);
+            });
+        }
+        if(!empty($settings["subject_source"])){
+            $settings["subject_source"] = explode(',', $settings["subject_source"]);
+            array_walk($settings["subject_source"], function (&$n) {
+                $n = intval($n);
+            });
+        }
+        if(!empty($settings["stat_cate"])){
+            $settings["stat_cate"] = explode(',', $settings["stat_cate"]);
+            array_walk($settings["stat_cate"], function (&$n) {
+                $n = intval($n);
+            });
+        }
         $insertData = [];
         $insertData['create_time'] = date("Y-m-d H:i:s");
         $insertData['settings'] = json_encode($settings);

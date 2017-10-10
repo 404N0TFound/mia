@@ -384,4 +384,12 @@ class User extends Service{
         $group_user_role = $this->userModel->getGroupUserRole();
         return $this->succ($group_user_role);
     }
+    
+    /**
+     * 根据用户id获取用户的收获地址信息
+     */
+    public function getBatchUserAddress($userIds) {
+        $userAddress = $this->userModel->getUserAddressByUserIds($userIds);
+        return $this->succ($userAddress);
+    }
 }
