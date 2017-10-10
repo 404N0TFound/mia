@@ -411,7 +411,7 @@ class User extends \mia\miagroup\Lib\Service {
             case 'user_search_recommend': //搜索用户推荐
             case 'album_user_recommend': //专栏用户推荐
             default: //目前都统一推荐逻辑
-                $user_ids = $this->userModel->getGroupUserIdList($count, $page);
+                $user_ids = $this->userModel->getGroupUserIdList('doozer', $page, $count);
         }
         $recommend_users = $this->getUserInfoByUids($user_ids, $current_uid)['data'];
         return $this->succ(array_values($recommend_users));
