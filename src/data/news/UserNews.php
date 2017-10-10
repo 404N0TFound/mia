@@ -109,6 +109,9 @@ class UserNews extends DB_Query
         $where[] = [$this->tableName . '.news_type', ["pull_custom", "pull_group_custom"]];
         $data = $this->getRows($where, $fields, 1, 0, "create_time DESC");
 
+        if($data === false) {
+            return false;
+        }
         if (empty($data)) {
             //新用户
             return 0;
