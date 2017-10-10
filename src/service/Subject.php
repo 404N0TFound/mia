@@ -802,7 +802,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectInfo['comment_info'] = $commentInfo;
         
         /*蜜芽帖、口碑贴相关逻辑开始*/
-        if (in_array($subjectInfo['source'], array(1, 2)) && empty($subjectInfo['album_article'])) {
+        if ($subjectInfo['source'] != 3 && empty($subjectInfo['album_article'])) {
             if ($subjectInfo['type'] == 'blog') {
                 $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId], $status)[$subjectId];
                 if (!empty($blog_info)) {
