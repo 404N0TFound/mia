@@ -23,7 +23,15 @@ class GroupUserInfo extends DB_Query {
      * */
     public function addGroupUserInfo($insertData)
     {
-        $data = $this->insert($insertData);
-        return $data;
+        if (empty($insertData)) {
+            return false;
+        }
+        foreach ($insertData as $k => $v) {
+            if (in_array($k, ['ext_info'])) {
+                $insertData[$k] = json_encode($v);
+            }
+        }
+        $insert_id = $this->insert($insertData);
+        return $insert_id;
     }
 }
