@@ -149,4 +149,12 @@ class UserRelation {
         $data = $this->groupSubjectUserExperts->getBatchExpertInfoByUids($userIds);
         return $data;
     }
+
+    /*
+     * 获取用户蜜豆数
+     * */
+    public function getBatchUserBeanCounts($userIds, $conditions)
+    {
+
+    }
 }

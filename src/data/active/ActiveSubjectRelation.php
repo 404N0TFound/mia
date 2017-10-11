@@ -131,6 +131,20 @@ class ActiveSubjectRelation extends \DB_Query {
         $res = $this->delete($where, FALSE, 1);
         return $res;
     }
+
+    /*
+     * 获取活动发帖用户排行
+     * */
+    public function getActiveSubjectsRank($active_id)
+    {
+        $groupBy = 'user_id';
+        $where[] = [];
+        $where[] = ['active_id', $active_id];
+        $where[] = ['status', 1];
+        $field = 'user_id, count(subject_id) as subject_count';
+        $res = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
+        return $res;
+    }
 }
 
 

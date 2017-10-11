@@ -4,16 +4,19 @@ namespace mia\miagroup\Model;
 use \mia\miagroup\Data\Active\Active as ActiveData;
 use \mia\miagroup\Data\Active\ActiveSubject as ActiveSubjectData;
 use \mia\miagroup\Data\Active\ActiveSubjectRelation as RelationData;
+use \mia\miagroup\Data\Active\ActivePrizeRecordData as ActivePrizeData;
 
 class Active {
     protected $activeData = null;
     protected $activeSubjectData = null;
     protected $relationData = null;
+    protected $activePrizeData = null;
 
     public function __construct() {
         $this->activeData = new ActiveData();
         $this->activeSubjectData = new ActiveSubjectData();
         $this->relationData = new RelationData();
+        $this->activePrizeData = new ActivePrizeData();
     }
     
     //活动列表第一页的取所有进行中和未开始活动
@@ -57,6 +60,13 @@ class Active {
                     }
                     if(isset($extInfo['text_lenth_limit']) && !empty($extInfo['text_lenth_limit'])){
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
+                    }
+                    // 消消乐
+                    if(isset($extInfo['is_xiaoxiaole']) && !empty($extInfo['is_xiaoxiaole'])) {
+                        $activeArr[$active['id']]['is_xiaoxiaole'] = $extInfo['is_xiaoxiaole'];
+                        $activeArr[$active['id']]['prize_list'] = $extInfo['prize_list'];
+                        $activeArr[$active['id']]['xiaoxiaole_setting'] = $extInfo['xiaoxiaole_setting'];
+                        $activeArr[$active['id']]['xiaoxiaole_pre_setting'] = $extInfo['xiaoxiaole_pre_setting'];
                     }
                 }
                 //如果传入了活动的进行状态，就直接返回改状态
@@ -179,5 +189,22 @@ class Active {
         $data = $this->relationData->delSubjectActiveRelation($relationData);
         return $data;
     }
-    
+
+    /*
+     * 获取活动奖励列表
+     * */
+    public function getActiveWinPrizeRecord($active_id, $user_id, $conditions = [])
+    {
+        $data = $this->activePrizeData->getActiveWinPrizeRecord($active_id, $user_id, $conditions);
+        return $data;
+    }
+
+    /*
+     * 获取活动发帖用户排行
+     * */
+    public function getActiveSubjectsRank($active_id)
+    {
+        $data = $this->relationData->getActiveSubjectsRank($active_id);
+        return $data;
+    }
 }

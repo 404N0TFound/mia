@@ -24,7 +24,7 @@ class User extends \mia\miagroup\Lib\Service {
      *
      * @param array $userIds     
      * @param array $fields,
-     * 包括count、relation、cell_phone、user_group等
+     * 包括count、relation、cell_phone、user_group、xiaoxiaole等
      * @return array
      */
     public function getUserInfoByUids(array $userIds, $currentUid = 0, array $fields = array()) {
@@ -754,5 +754,35 @@ class User extends \mia\miagroup\Lib\Service {
         $res = $this->userModel->getGroupUserIdList($type, $page, $count);
         return $this->succ($res);
     }
-    
+
+    /*
+     * 获取蜜芽圈用户收货地址
+     * */
+    public function getGroupUserDeliAddress($user_id, $address_id)
+    {
+        $return = [];
+        if(empty($address_id)) {
+            return $this->succ([]);
+        }
+        $this->userModel->getGroupUserDeliAddress($user_id, $address_id);
+        // 组装地址结构体
+        return $this->succ($return);
+    }
+
+    /*
+     * 新增用户收货地址
+     * */
+    public function addGroupUserDeliAddress($params)
+    {
+        if(empty($params['user_id'])) {
+            return $this->succ();
+        }
+        // 调用新增收货地址接口获取地址id
+        $address_id = '';
+        // 封装ext_info 信息
+        $conditions = [];
+        $conditions['cell'] = '';
+        $conditions['address'] = '';
+        $res = $this->userModel->addGroupUserDeliAddress($address_id, $conditions);
+    }
 }

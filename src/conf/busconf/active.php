@@ -34,4 +34,10 @@ $activeShare = array(
 //参加活动的文案
 $activeTitle = '参加活动';
 
+$xiaoxiaole_init = array(
+    'active_prize_init' => '发了%d个口碑,赚了%d蜜豆',
+    'active_clock_init' => '已赚%d蜜豆，连续发帖%d天得%d蜜豆，就差%d天啦',
+    'active_create_init' => '发%d帖'
+);
+
 

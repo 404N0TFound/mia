@@ -11,6 +11,7 @@ use mia\miagroup\Data\User\GroupDoozer as GroupDoozerData;
 use mia\miagroup\Data\User\GroupUserCategory as UserCategoryData;
 use mia\miagroup\Data\User\GroupUserPermission as UserPermissionData;
 use mia\miagroup\Data\User\GroupUserRole as UserGroupData;
+use mia\miagroup\Data\User\GroupUserInfo as UserGroupInfoData;
 
 class User
 {
@@ -428,5 +429,23 @@ class User
         } else {
             return true;
         }
+    }
+
+    /*
+     * 获取用户奖品收货地址
+     * */
+    public function getGroupUserDeliAddress($user_id, $address_id)
+    {
+        $groupUserInfoData = new UserGroupInfoData();
+        $groupUserInfoData->getGroupUserDelAddress($user_id, $address_id);
+    }
+
+    /*
+     * 新增用户收货地址
+     * */
+    public function addGroupUserDeliAddress($address_id, $conditions = [])
+    {
+        $groupUserInfoData = new UserGroupInfoData();
+        $groupUserInfoData->addGroupUserDeliAddress($address_id, $conditions);
     }
 }
