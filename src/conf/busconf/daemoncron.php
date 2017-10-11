@@ -12,7 +12,7 @@ $server_list = [
         "nfs_13_14",//脚本机，没有限定主机标识的执行
     ]
 ];
-$host_check_open = 0;//1打开，0关闭
+$host_check_open = 1;//1打开，0关闭
 
 /**************
  * 直播相关开始
@@ -316,7 +316,7 @@ $cron_list['send_message'] = array(
     'cli_args' => "--class=news --action=sendmessage",
     'start_time' => '2017-08-09 00:00:00',
     'interval' => 1,
-    'host' => "nfs_13_14",
+    'host' => "miyaquan_54_70",
 );
 
 $cron_list['delay_send_message'] = array(
@@ -325,5 +325,5 @@ $cron_list['delay_send_message'] = array(
     'cli_args' => "--class=news --action=delaysendmessage",
     'start_time' => '2017-09-12 00:00:00',
     'interval' => 1,
-    'host' => "nfs_13_14",
+    'host' => "miyaquan_54_70",
 );
