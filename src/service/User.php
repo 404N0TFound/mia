@@ -756,15 +756,15 @@ class User extends \mia\miagroup\Lib\Service {
     }
 
     /*
-     * 获取蜜芽圈用户收货地址
+     * 获取蜜芽圈用户信息
      * */
-    public function getGroupUserDeliAddress($user_id, $address_id)
+    public function getGroupUserInfo($user_id)
     {
         $return = [];
-        if(empty($address_id)) {
+        if(empty($user_id)) {
             return $this->succ([]);
         }
-        $this->userModel->getGroupUserDeliAddress($user_id, $address_id);
+        $this->userModel->getGroupUserInfo($user_id);
         // 组装地址结构体
         return $this->succ($return);
     }
@@ -777,12 +777,11 @@ class User extends \mia\miagroup\Lib\Service {
         if(empty($params['user_id'])) {
             return $this->succ();
         }
-        // 调用新增收货地址接口获取地址id
-        $address_id = '';
         // 封装ext_info 信息
-        $conditions = [];
-        $conditions['cell'] = '';
-        $conditions['address'] = '';
-        $res = $this->userModel->addGroupUserDeliAddress($address_id, $conditions);
+        $insertData = [];
+        $insertData['cell'] = '';
+        $insertData['address'] = '';
+        $res = $this->userModel->addGroupUserInfo($insertData);
+        return $this->succ($res);
     }
 }

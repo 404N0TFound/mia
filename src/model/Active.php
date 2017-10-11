@@ -207,4 +207,22 @@ class Active {
         $data = $this->relationData->getActiveSubjectsRank($active_id);
         return $data;
     }
+
+    /*
+     * 获取活动用户发帖数
+     * */
+    public function getSubjectCountsByActive($active_id, $user_id = 0, $conditions = [])
+    {
+        $data = $this->relationData->getSubjectCountsByActive($active_id, $user_id, $conditions);
+        return $data;
+    }
+
+    /*
+     * 活动关联帖奖励审核
+     * */
+    public function checkActiveSubjectVerify($setData, $active_id, $subject_id, $user_id = 0)
+    {
+        $data = $this->relationData->checkActiveSubjectVerify($setData, $active_id, $subject_id, $user_id = 0);
+        return $data;
+    }
 }

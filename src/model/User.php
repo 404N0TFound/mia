@@ -432,20 +432,20 @@ class User
     }
 
     /*
-     * 获取用户奖品收货地址
+     * 批量获取蜜芽圈用户信息
      * */
-    public function getGroupUserDeliAddress($user_id, $address_id)
+    public function getGroupUserInfo($userIds)
     {
         $groupUserInfoData = new UserGroupInfoData();
-        $groupUserInfoData->getGroupUserDelAddress($user_id, $address_id);
+        $groupUserInfoData->getGroupUserInfo($userIds);
     }
 
     /*
-     * 新增用户收货地址
+     * 新增蜜芽圈用户信息
      * */
-    public function addGroupUserDeliAddress($address_id, $conditions = [])
+    public function addGroupUserInfo($insertData)
     {
         $groupUserInfoData = new UserGroupInfoData();
-        $groupUserInfoData->addGroupUserDeliAddress($address_id, $conditions);
+        $groupUserInfoData->addGroupUserInfo($insertData);
     }
 }
