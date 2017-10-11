@@ -65,25 +65,14 @@ class Subject extends \DB_Query {
      * @param type $userIds            
      * @return type
      */
-    public function getBatchUserSubjectCounts($userIds, $conditions = []) {
+    public function getBatchUserSubjectCounts($userIds) {
         $result = array();
         
         $where[] = ['user_id', $userIds];
         $where[] = ['status', 1];
         $groupBy = 'user_id';
         $field = 'user_id, count(1) as num';
-        if(!empty($conditions['s_time'])) {
-            // 开始时间
-            $where[] = [':ge', 'created', $conditions['s_time']];
-        }
-        if(!empty($conditions['e_time'])) {
-            // 结束时间
-            $where[] = [':le', 'created', $conditions['e_time']];
-        }
-        if(!empty($conditions['active_id'])) {
-            // 活动
-            $where[] = ['active_id', $conditions['active_id']];
-        }
+
         $arrRes = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
         if (!empty($arrRes)) {
             foreach ($arrRes as $res) {

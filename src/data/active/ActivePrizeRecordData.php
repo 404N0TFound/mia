@@ -18,7 +18,6 @@ class ActivePrizeRecordData extends \DB_Query {
             return false;
         }
         $where = [];
-        $where[] = ['status', 1];
         $where[] = ['active_id', $active_id];
         if(!empty($user_id)) {
             $where[] = ['user_id', $user_id];
@@ -38,14 +37,7 @@ class ActivePrizeRecordData extends \DB_Query {
         $field = 'prize_type,active_id,subject_id,user_id,prize_num';
         $orderBy = 'id desc';
         $arrRes = $this->getRows($where, $field, FALSE, 0, $orderBy);
-        $prize_num = 0;
-        if (!empty($arrRes)) {
-            foreach ($arrRes as $res) {
-                $prize_num += intval($res['prize_num']);
-            }
-        }
-        $result = ['prize_list' => $arrRes, 'prize_num' => $prize_num];
-        return $result;
+        return $arrRes;
     }
 
 }

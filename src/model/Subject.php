@@ -139,8 +139,8 @@ class Subject {
     /**
      * 批量获取用户发布的帖子数
      */
-    public function getBatchUserSubjectCounts($userIds, $conditions = []) {
-        $data = $this->subjectData->getBatchUserSubjectCounts($userIds, $conditions);
+    public function getBatchUserSubjectCounts($userIds) {
+        $data = $this->subjectData->getBatchUserSubjectCounts($userIds);
         return $data;
     }
 

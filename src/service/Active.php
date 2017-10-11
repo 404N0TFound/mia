@@ -383,29 +383,26 @@ class Active extends \mia\miagroup\Lib\Service {
         if (empty($active_id) || empty($user_id)) {
             return $this->succ([]);
         }
-        $return = $conditions = [];
+        $return = $conditions = $activeInfo = [];
         $subject_count = $bean_count = 0;
         // 获取用户信息
         $userService = new UserService();
         $res = $userService->getUserInfoByUids([$user_id])['data'];
         $return['user_info'] = $res;
 
-        $s_time = date('Y-m-01', strtotime(date("Y-m-d")));
-        $e_time = date('Y-m-d 23:59:59', strtotime("$s_time +1 month -1 day"));
-        $conditions['s_time'] = $s_time;
-        $conditions['e_time'] = $e_time;
+        // 获取活动信息
+
+        // 获取活动的起止时间
+        $conditions['s_time'] = '';
+        $conditions['e_time'] = '';
 
         // 获取用户发帖数(自然月)
-        $subjectService =new Subject();
-        $conditions['active_id'] = $active_id;
-        $userSubjectsCount = $subjectService->getBatchUserSubjectCounts([$user_id], $conditions)['data'];
+        $userSubjectsCount = $this->getActiveSubjectCounts($active_id, $user_id, $conditions);
         if(!empty($userSubjectsCount)) {
             $return['user_info'] = $userSubjectsCount;
         }
         // 获取用户蜜豆数
-        $activeService = new Active();
-        unset($conditions['active_id']);
-        $res = $activeService->getActiveWinPrizeRecord($active_id, $user_id, $conditions)['data'];
+        $res = $this->getActiveWinPrizeRecord($active_id, $user_id, $conditions)['data'];
         if(!empty($res)) {
             $bean_count = $res['prize_num'];
         }
@@ -419,6 +416,38 @@ class Active extends \mia\miagroup\Lib\Service {
     }
 
     /*
+     * 获取活动关联帖子列表及计数
+     * */
+    public function getActiveSubjectCounts($active_id, $user_id = 0, $conditions = [])
+    {
+        $result = ['subject' => [] ,'count' => 0];
+        if(empty($active_id)){
+            return $this->succ($result);
+        }
+        // 活动起止时间
+        $data = [];
+        $data['s_time'] = $conditions['s_time'];
+        $data['e_time'] = $conditions['e_time'];
+        $res = $this->activeModel->getSubjectCountsByActive($active_id, $user_id, $data);
+        // 封装数据
+        return $this->succ($result);
+    }
+
+    /*
+     * 活动关联帖奖励审核
+     * */
+    public function activeSubjectVerify($active_id, $subject_id, $status = 1, $user_id = 0)
+    {
+        $return = $setData = [];
+        if(empty($active_id) || empty($subject_id)) {
+            return $this->succ($return);
+        }
+        $setData['is_qualified'] = intval($status);
+        $res = $this->activeModel->checkActiveSubjectVerify($setData, $active_id, $subject_id, $user_id);
+        return $this->succ($res);
+    }
+
+    /*
     * 获取活动奖励蜜豆发放信息
     * */
     public function getActiveWinPrizeRecord($active_id, $user_id = 0, $conditions = [])
@@ -427,12 +456,20 @@ class Active extends \mia\miagroup\Lib\Service {
         if(empty($active_id)) {
             return $this->succ($return);
         }
+        // 获取用户蜜豆奖励列表
         $res = $this->activeModel->getActiveWinPrizeRecord($active_id, $user_id, $conditions);
         if(empty($res)) {
             return $this->succ($return);
         }
+        // 蜜豆奖励合并
+        $prize_num = 0;
+        foreach($res as $prizeInfo) {
+            $subject_id = $prizeInfo['subject_id'];
+            $active_id = $prizeInfo['active_id'];
+            // 关联relation查询帖子对应的审核状态（is_qualified）
+        }
         $return['prize_list'] = $res['prize_list'];
-        $return['prize_num'] = $res['prize_num'];
+        $return['prize_num'] = $prize_num;
         return $this->succ($return);
     }
 

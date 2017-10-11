@@ -11,18 +11,19 @@ class GroupUserInfo extends DB_Query {
 
 
     /*
-     * 获取蜜芽圈用户收货地址(获取最新一条)
+     * 获取蜜芽圈用户信息
      * */
-    public function getGroupUserDelAddress($user_id, $address_id)
+    public function getGroupUserInfo($userIds)
     {
 
     }
 
     /*
-     * 新增蜜芽圈用户收货地址
+     * 新增蜜芽圈用户信息
      * */
-    public function addGroupUserDeliAddress($address_id, $conditions = [])
+    public function addGroupUserInfo($insertData)
     {
-
+        $data = $this->insert($insertData);
+        return $data;
     }
 }
