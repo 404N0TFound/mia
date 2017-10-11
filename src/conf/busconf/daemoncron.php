@@ -306,14 +306,95 @@ $cron_list['user_majia_baby_birth_incr'] = array(
 );
 
 /**************
- * 消息相关配置 *
+ * 消息相关配置  共10+10个*
  *************/
 
 //发送消息
 $cron_list['send_message'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=news --action=sendmessage",
+    'cli_args' => "--class=news --action=sendmessage --order=1",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=2",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=3",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=4",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=5",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=6",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=7",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=8",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=9",
+    'start_time' => '2017-08-09 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=sendmessage --order=10",
     'start_time' => '2017-08-09 00:00:00',
     'interval' => 1,
     'host' => "miyaquan_54_70",
@@ -322,8 +403,93 @@ $cron_list['send_message'] = array(
 $cron_list['delay_send_message'] = array(
     'enable' => true,
     'engine' => 'php',
-    'cli_args' => "--class=news --action=delaysendmessage",
+    'cli_args' => "--class=news --action=delaysendmessage --order=1",
     'start_time' => '2017-09-12 00:00:00',
     'interval' => 1,
     'host' => "miyaquan_54_70",
 );
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage --order=2",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage --order=3",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage  --order=4",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage  --order=5",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage  --order=6",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage  --order=7",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage  --order=8",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage  --order=9",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+$cron_list['delay_send_message'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=news --action=delaysendmessage  --order=10",
+    'start_time' => '2017-09-12 00:00:00',
+    'interval' => 1,
+    'host' => "miyaquan_54_70",
+);
+
+/**************
+ * 消息相关配置  end*
+ *************/
