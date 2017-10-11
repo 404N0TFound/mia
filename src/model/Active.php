@@ -218,11 +218,20 @@ class Active {
     }
 
     /*
-     * 活动关联帖奖励审核
+     * 活动关联帖更新审核状态
      * */
-    public function checkActiveSubjectVerify($setData, $active_id, $subject_id, $user_id = 0)
+    public function updateActiveSubjectVerify($setData, $id)
     {
-        $data = $this->relationData->checkActiveSubjectVerify($setData, $active_id, $subject_id, $user_id = 0);
+        $data = $this->relationData->updateActiveSubjectVerify($setData, $id);
+        return $data;
+    }
+
+    /*
+     * 新增活动奖励发放记录
+     * */
+    public function addActivePrizeRecord($insertData)
+    {
+        $data = $this->activePrizeData->addActivePrizeRecord($insertData);
         return $data;
     }
 }

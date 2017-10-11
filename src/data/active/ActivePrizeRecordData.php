@@ -40,4 +40,16 @@ class ActivePrizeRecordData extends \DB_Query {
         return $arrRes;
     }
 
+    /*
+     * 新增活动奖励记录
+     * */
+    public function addActivePrizeRecord($insertData)
+    {
+        if (empty($insertData)) {
+            return false;
+        }
+        $insert_id = $this->insert($insertData);
+        return $insert_id;
+    }
+
 }

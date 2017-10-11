@@ -176,19 +176,15 @@ class ActiveSubjectRelation extends \DB_Query {
     }
 
     /*
-     * 活动关联帖奖励审核
+     * 活动关联帖更新审核状态
      * */
-    public function checkActiveSubjectVerify($setData, $active_id, $subject_id, $user_id = 0)
+    public function updateActiveSubjectVerify($setData, $id)
     {
         if (empty($setData)) {
             return false;
         }
         $where = [];
-        $where[] = ['active_id', $active_id];
-        $where[] = ['subject_id', $subject_id];
-        if(!empty($user_id)) {
-            $where[] = ['user_id', $user_id];
-        }
+        $where[] = ['id', $id];
         $data = $this->update($setData, $where);
         return $data;
     }

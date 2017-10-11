@@ -434,17 +434,82 @@ class Active extends \mia\miagroup\Lib\Service {
     }
 
     /*
-     * 活动关联帖奖励审核
+     * 活动关联帖奖励审核，是否中奖，蜜豆下发
      * */
-    public function activeSubjectVerify($active_id, $subject_id, $status = 1, $user_id = 0)
+    public function activeSubjectVerify($id, $status = 1)
     {
-        $return = $setData = [];
+        $return = $setData = $insertData = [];
         if(empty($active_id) || empty($subject_id)) {
             return $this->succ($return);
         }
+
+        // 更新帖子审核状态
         $setData['is_qualified'] = intval($status);
-        $res = $this->activeModel->checkActiveSubjectVerify($setData, $active_id, $subject_id, $user_id);
-        return $this->succ($res);
+        $res = $this->activeModel->updateActiveSubjectVerify($setData, $id);
+
+        // 用户是否中奖及奖励下发
+        $res = $this->checkActiveSubjectPrize($id, $status);
+    }
+
+    /*
+     * 判断活动用户是否中奖
+     * return：中奖类型（prize_type）
+     * */
+    public function checkActiveSubjectPrize($id, $status = 1)
+    {
+        // 获取活动帖子关系信息
+        $activeSubjectInfo = [];
+        $active_id = '';
+        $user_id = '';
+        $subject_id = '';
+
+        // 写入奖励发放记录表
+        $insertData = [];
+        $insertData['active_id'] = $active_id;
+        $insertData['user_id'] = $user_id;
+        $insertData['subject_id'] = $subject_id;
+
+        // 获取活动信息（奖励信息）
+        $prizeInfo = $conditions = [];
+
+        $conditions['s_time'] = '';
+        $conditions['e_time'] = '';
+        $subjectService = new SubjectService();
+        $pointTag = new \mia\miagroup\Service\PointTags();
+        $flag = false;
+
+        // 审核通过奖励
+        foreach($prizeInfo as $type_id => $info) {
+            // 判断符合奖励的类型
+            if($type_id == 1) {
+                // 0口碑奖励
+                // 查询帖子关联的sku
+                $subjectItemIds = $pointTag->getBatchSubjectItmeIds([$subject_id])['data'];
+                // 查询活动期间sku发布的第一条帖子
+                $subject_id = $subjectService->checkZeroSubjectPrize($subjectItemIds, $conditions);
+            }else{
+                // 获取活动用户发帖列表
+                $flag = $this->activeModel->getSubjectCountsByActive($active_id, $user_id, $conditions);
+            }
+            // 连续3天，发放3天打卡奖
+            // 连续7天，发放7天打卡奖
+            // 首贴，发放首贴奖
+            if(!empty($flag)) {
+                if($status == 1) {
+                    // 下发蜜豆服务
+                    $insertData['status'] = 1;
+                }
+                if($status == -1) {
+                    // 扣除蜜豆服务
+                    $insertData['status'] = 0;
+                }
+                // 更新奖励发放记录表
+                $insertData['prize_type'] = '';
+                $insertData['prize_num'] = '';
+                $insertData['create_time'] = date('Y-m-d H:i:s', time());
+                $res = $this->activeModel->addActivePrizeRecord($insertData);
+            }
+        }
     }
 
     /*

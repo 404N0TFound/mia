@@ -777,10 +777,12 @@ class User extends \mia\miagroup\Lib\Service {
         if(empty($params['user_id'])) {
             return $this->succ();
         }
-        // 封装ext_info 信息
         $insertData = [];
-        $insertData['cell'] = '';
-        $insertData['address'] = '';
+        $insertData['user_id'] = $params['user_id'];
+        $insertData['create_time'] = date('Y-m-d H:i:s', time());
+        // 封装ext_info 信息
+        $insertData['ext_info']['cell'] = '';
+        $insertData['ext_info']['address'] = '';
         $res = $this->userModel->addGroupUserInfo($insertData);
         return $this->succ($res);
     }
