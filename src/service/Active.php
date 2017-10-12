@@ -490,11 +490,8 @@ class Active extends \mia\miagroup\Lib\Service {
             $first = true;
         }
 
-        // 判断当前贴是否符合3日打卡
-        $res = $this->checkActiveThreeSubject();
-
-        // 判断当前贴是否符合7日打卡
-        $res = $this->checkActiveSevenSubject();
+        // 判断当前贴是否符合3日打卡及7日打卡
+        $res = $this->checkActiveSatisfySubject($active_id, $user_id, $subject_id);
 
         if($status == 1) {
             // 下发蜜豆奖励
