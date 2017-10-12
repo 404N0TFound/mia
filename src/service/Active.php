@@ -498,6 +498,7 @@ class Active extends \mia\miagroup\Lib\Service {
 
         if($status == 1) {
             // 下发蜜豆奖励
+            $insertData['status'] = 1;
             if(!empty($zero)) {
                 // 下发0口碑奖励
             }
@@ -532,14 +533,7 @@ class Active extends \mia\miagroup\Lib\Service {
                 不影响3日打卡，不影响7日打卡，影响当月打卡，扣除当月打卡奖励
             */
             // 新增打卡奖励记录
-            $insertData['status'] = 0;
         }
-
-        // 更新奖励发放记录表
-        $insertData['prize_type'] = '';
-        $insertData['prize_num'] = '';
-        $insertData['create_time'] = date('Y-m-d H:i:s', time());
-        $res = $this->activeModel->addActivePrizeRecord($insertData);
 
     }
 
