@@ -185,8 +185,15 @@ class ActiveSubjectRelation extends \DB_Query {
         }
         $where = [];
         $where[] = ['id', $id];
-        $data = $this->update($setData, $where);
+
+        $set_data = [];
+        foreach ($setData as $k => $v) {
+            $set_data[] = [$k, $v];
+        }
+        $data = $this->update($set_data, $where);
         return $data;
+
+
     }
 }
 

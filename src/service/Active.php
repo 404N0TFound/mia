@@ -369,6 +369,7 @@ class Active extends \mia\miagroup\Lib\Service {
             if(isset($active['is_xiaoxiaole']) && !empty($active['is_xiaoxiaole'])) {
                 // 封装相关结构体（奖品结构体等）
                 $xiaoxiaole[$id] = $active;
+                // 处理tab展示预设（判断预设时间是否符合当前展示条件）
                 break;
             }
         }
@@ -474,42 +475,81 @@ class Active extends \mia\miagroup\Lib\Service {
 
         $conditions['s_time'] = '';
         $conditions['e_time'] = '';
-        $subjectService = new SubjectService();
-        $pointTag = new \mia\miagroup\Service\PointTags();
-        $flag = false;
+        $first = $zero = $three = $seven = false;
 
-        // 审核通过奖励
-        foreach($prizeInfo as $type_id => $info) {
-            // 判断符合奖励的类型
-            if($type_id == 1) {
-                // 0口碑奖励
-                // 查询帖子关联的sku
-                $subjectItemIds = $pointTag->getBatchSubjectItmeIds([$subject_id])['data'];
-                // 查询活动期间sku发布的第一条帖子
-                $subject_id = $subjectService->checkZeroSubjectPrize($subjectItemIds, $conditions);
-            }else{
-                // 获取活动用户发帖列表
-                $flag = $this->activeModel->getSubjectCountsByActive($active_id, $user_id, $conditions);
-            }
-            // 连续3天，发放3天打卡奖
-            // 连续7天，发放7天打卡奖
-            // 首贴，发放首贴奖
-            if(!empty($flag)) {
-                if($status == 1) {
-                    // 下发蜜豆服务
-                    $insertData['status'] = 1;
-                }
-                if($status == -1) {
-                    // 扣除蜜豆服务
-                    $insertData['status'] = 0;
-                }
-                // 更新奖励发放记录表
-                $insertData['prize_type'] = '';
-                $insertData['prize_num'] = '';
-                $insertData['create_time'] = date('Y-m-d H:i:s', time());
-                $res = $this->activeModel->addActivePrizeRecord($insertData);
-            }
+        // 判断当前处理贴是否是0口碑贴
+        $res = $this->getZeroActiveSubject($active_id, $user_id);
+        if($res == $subject_id) {
+            // 0口碑帖处理
+            $zero = true;
         }
+
+        // 判断当前贴是否为用户首贴
+        $res = $this->activeModel->getSubjectCountsByActive($active_id, $user_id, $conditions);
+        if(!empty($res)) {
+            $first = true;
+        }
+
+        // 判断当前贴是否符合3日打卡及7日打卡
+        $res = $this->checkActiveSatisfySubject($active_id, $user_id, $subject_id);
+
+        if($status == 1) {
+            // 下发蜜豆奖励
+            $insertData['status'] = 1;
+            if(!empty($zero)) {
+                // 下发0口碑奖励
+            }
+            if(!empty($first)) {
+                // 下发首贴奖励
+            }
+            if(!empty($three)) {
+                // 下发三日打卡奖励
+            }
+            if(!empty($three)) {
+                // 下发七日打卡奖励
+            }
+            // 新增打卡奖励记录
+            $insertData['status'] = 1;
+        }
+
+        if($status == -1) {
+            // 扣除蜜豆奖励
+            /*  0口碑：直接扣除
+                首贴：
+                day<=3
+                首贴，影响3日打卡，扣除首贴奖及3日打卡奖励
+                4<=day
+                首贴，不影响3日打卡，影响7日打卡，扣除首贴奖励及7日打卡奖励
+                首贴，不影响3日打卡，不影响7日打卡，扣除首贴奖
+                非首贴：
+                day<=3
+                影响3日打卡，扣除3日打卡奖励
+                4<=day<=7
+                不影响3日打卡，影响7日打卡，扣除7日打卡奖励
+                8<=day
+                不影响3日打卡，不影响7日打卡，影响当月打卡，扣除当月打卡奖励
+            */
+            // 新增打卡奖励记录
+        }
+
+    }
+
+    /*
+     * 活动用户对应商品首贴
+     * return subject_id
+     * */
+    public function getZeroActiveSubject($active_id, $user_id)
+    {
+        // 连表查
+    }
+
+    /*
+     * 活动用户商品展示
+     * 已发帖则下沉
+     * */
+    public function getActiveUserItemsSortList($active_id, $user_id)
+    {
+
     }
 
     /*
