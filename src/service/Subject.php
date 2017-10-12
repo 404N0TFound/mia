@@ -3034,13 +3034,4 @@ class Subject extends \mia\miagroup\Lib\Service
         return $this->succ($result);
     }
 
-    /*
-     * 查询商品首发帖信息
-     * return subject_id
-     * */
-    public function checkZeroSubjectPrize($itemIds, $conditions)
-    {
-
-    }
-
 }
