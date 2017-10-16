@@ -43,6 +43,7 @@ class Data extends \mia\miagroup\Lib\Service
         $setData = [];
         $setData["start_time"] = $settings["start_time"];
         $setData["end_time"] = $settings["end_time"];
+        $setData["aggr_type"] = $settings["aggr_type"];
         
         if(isset($settings["all_label"]) && !empty(trim($settings["all_label"]))){
             $setData["all_label"] = explode(',', $settings["all_label"]);
