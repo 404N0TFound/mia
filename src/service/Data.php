@@ -151,5 +151,19 @@ class Data extends \mia\miagroup\Lib\Service
         $res = $this->dataModel->getTaskData($taskId, $page, $count);
         return $this->succ($res);
     }
+    
+    /**
+     * 删除任务数据
+     */
+    public function deleteTaskData($taskId, $setData)
+    {
+        if (empty($taskId)) {
+            return $this->succ([]);
+        }
+        $delData = [];
+        $delData[]=['status',$setData['status']];
+        $res = $this->dataModel->updateDataTask($taskId, $delData);
+        return $this->succ($res);
+    }
 
 }

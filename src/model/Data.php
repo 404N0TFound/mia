@@ -40,4 +40,10 @@ class Data
         $res = $this->taskResultData->getTaskData($taskId,$page,$count);
         return $res;
     }
+    
+    public function updateDataTask($taskId,$updateData)
+    {
+        $res = $this->taskData->updateDataTask($taskId,$updateData);
+        return $res;
+    }
 }

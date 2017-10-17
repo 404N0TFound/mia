@@ -140,6 +140,7 @@ class Item extends \mia\miagroup\Lib\Service {
                 $tmp['market_price'] = $item['market_price'];
                 $tmp['is_self'] = $item['is_self'];
                 $tmp['business_mode'] = $item['business_mode'];
+                $tmp['warehouse_type'] = $item['warehouse_type'];
                 $tmp['comm_rate'] = $item['comm_rate'];
                 $tmp['favorable_comment_percent'] = $item['favorable_comment_percent'];
                 if (!empty($item['feedback_rate'])) {
