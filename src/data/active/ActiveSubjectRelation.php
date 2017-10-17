@@ -79,7 +79,9 @@ class ActiveSubjectRelation extends \DB_Query {
         if (empty($subjectIds)) {
             return array();
         }
-        $where[] = ['status',$status];
+        if(!empty($status)) {
+            $where[] = ['status',$status];
+        }
         $where[] = ['subject_id',$subjectIds];
         $activeSubjectArrs = $this->getRows($where,'*');
         $result = array();
