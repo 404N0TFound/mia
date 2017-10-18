@@ -367,7 +367,7 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         foreach($activeInfos as $activeInfo) {
             if (isset($activeInfo['is_xiaoxiaole']) && !empty($activeInfo['is_xiaoxiaole'])) {
-                $xiaoxiaole[] = $activeInfo;
+                $xiaoxiaole = $activeInfo;
                 break;
             }
         }
