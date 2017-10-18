@@ -147,6 +147,35 @@ class ActiveSubjectRelation extends \DB_Query {
     }
 
     /*
+     * 获取活动用户发帖列表
+     * */
+    public function getActiveUserSubjectList($active_id, $user_id = 0, $page = 1, $limit = 20, $conditions = [])
+    {
+        if(empty($active_id)) {
+            return false;
+        }
+        $where = [];
+        $where[] = ['status', 1];
+        $where[] = ['active_id', $active_id];
+        if(!empty($user_id)) {
+            $where[] = ['user_id', $user_id];
+        }
+        if(!empty($conditions['s_time'])) {
+            // 开始时间
+            $where[] = [':ge', 'create_time', $conditions['s_time']];
+        }
+        if(!empty($conditions['e_time'])) {
+            // 结束时间
+            $where[] = [':le', 'create_time', $conditions['e_time']];
+        }
+        $field = 'active_id, subject_id, is_qualified, create_time';
+        $orderBy = 'id DESC';
+        $offsetLimit = $page * ($page - 1);
+        $res = $this->getRows($where, $field, $limit, $offsetLimit, $orderBy);
+        return $res;
+    }
+
+    /*
      * 获取活动用户发帖数
      * */
     public function getSubjectCountsByActive($active_id, $user_id = 0, $conditions = [])
@@ -169,9 +198,13 @@ class ActiveSubjectRelation extends \DB_Query {
         $orderBy = 'id desc';
         // 活动关联帖子数
         $count = $this->count($where);
+        if(empty($count)) {
+            return $return;
+        }
+        $return['count'] = $count;
         // 活动关联帖子列表
         $res = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy);
-        // 封装数据
+        $return['list'] = array_column($res, 'subject_id');
         return $return;
     }
 

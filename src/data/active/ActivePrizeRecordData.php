@@ -6,7 +6,7 @@ use Ice;
 class ActivePrizeRecordData extends \DB_Query {
 
     protected $dbResource = 'miagroup';
-    protected $tableName = 'group_active_win_prize_record';
+    protected $tableName = 'group_active_prize_record';
 
 
     /*
@@ -19,6 +19,7 @@ class ActivePrizeRecordData extends \DB_Query {
         }
         $where = [];
         $where[] = ['active_id', $active_id];
+        $where[] = ['status', 1];
         if(!empty($user_id)) {
             $where[] = ['user_id', $user_id];
         }

@@ -8,6 +8,7 @@ class User extends DB_Query {
     protected $dbResource = 'miadefault';
 
     protected $tableName = 'users';
+    protected $tableAddress = 'user_address';
 
     protected $mapping = [];
 
@@ -88,5 +89,29 @@ class User extends DB_Query {
         } else {
             return false;
         }
+    }
+
+    /*
+     * 获取蜜芽圈用户收货地址
+     * */
+    public function getGroupUserAddress($addressIds)
+    {
+        $userAdd = [];
+        if(empty($addressIds)) {
+            return false;
+        }
+        $this->tableName = $this->tableAddress;
+        $where = [];
+        $where[] = ['id', $addressIds];
+        $res = $this->getRows($where);
+        if(empty($res)) {
+            return false;
+        }
+        foreach($res as $value) {
+            if(!empty($value)) {
+                $userAdd[$value['id']] = $value;
+            }
+        }
+        return $userAdd;
     }
 }

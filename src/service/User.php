@@ -206,7 +206,7 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo['push_switch'] = $pushSwitch['push_switch'];
             }
         }
-        
+
         return $this->succ($userInfo);
     }
     
@@ -758,32 +758,50 @@ class User extends \mia\miagroup\Lib\Service {
     /*
      * 获取蜜芽圈用户信息
      * */
-    public function getGroupUserInfo($user_id)
+    public function getGroupUserInfo($user_ids)
     {
-        $return = [];
-        if(empty($user_id)) {
+        if(empty($user_ids)) {
             return $this->succ([]);
         }
-        $this->userModel->getGroupUserInfo($user_id);
-        // 组装地址结构体
-        return $this->succ($return);
+        $userInfos = $this->userModel->getGroupUserInfo($user_ids);
+        if(empty($userInfos)) {
+            return $this->succ([]);
+        }
+        $addressIds = array_column($userInfos, 'address_id');
+        $addressInfos = $this->userModel->getGroupUserAddress($addressIds);
+        foreach($userInfos as &$info) {
+            $addressInfo = $addressInfos[$info['address_id']];
+            if(!empty($addressInfo)) {
+                $info['dst_address'] = $addressInfo;
+                $info['dst_address']['mobile'] = $addressInfo['cell'];
+            }
+        }
+        return $this->succ($userInfos);
     }
 
     /*
-     * 新增用户收货地址
+     * 新增蜜芽圈用户信息
      * */
-    public function addGroupUserDeliAddress($params)
+    public function addGroupUserInfo($user_id, $address_id)
     {
-        if(empty($params['user_id'])) {
+        if(empty($user_id)) {
             return $this->succ();
         }
-        $insertData = [];
-        $insertData['user_id'] = $params['user_id'];
-        $insertData['create_time'] = date('Y-m-d H:i:s', time());
-        // 封装ext_info 信息
-        $insertData['ext_info']['cell'] = '';
-        $insertData['ext_info']['address'] = '';
-        $res = $this->userModel->addGroupUserInfo($insertData);
+        // 获取用户信息
+        $userInfo = $this->getGroupUserInfo([$user_id])['data'];
+        $insertData = $update = [];
+        if(empty($userInfo)) {
+            // insert
+            $insertData['user_id'] = $user_id;
+            $insertData['address_id'] = $address_id;
+            $insertData['create_time'] = date('Y-m-d H:i:s', time());
+            $res = $this->userModel->addGroupUserInfo($insertData);
+        }else{
+            // update
+            $update['address_id'] = $address_id;
+            $update['create_time'] = date('Y-m-d H:i:s', time());
+            $res = $this->userModel->updateGroupUserInfo($user_id, $update);
+        }
         return $this->succ($res);
     }
 }

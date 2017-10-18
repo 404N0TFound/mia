@@ -61,12 +61,41 @@ class Active {
                     if(isset($extInfo['text_lenth_limit']) && !empty($extInfo['text_lenth_limit'])){
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
                     }
-                    // 消消乐
+                    // 消消乐活动规则引导处理
                     if(isset($extInfo['is_xiaoxiaole']) && !empty($extInfo['is_xiaoxiaole'])) {
+                        // 消消乐活动标识
                         $activeArr[$active['id']]['is_xiaoxiaole'] = $extInfo['is_xiaoxiaole'];
-                        $activeArr[$active['id']]['prize_list'] = $extInfo['prize_list'];
-                        $activeArr[$active['id']]['xiaoxiaole_setting'] = $extInfo['xiaoxiaole_setting'];
-                        $activeArr[$active['id']]['xiaoxiaole_pre_setting'] = $extInfo['xiaoxiaole_pre_setting'];
+                        // 消消乐活动设置
+                        if(!empty($extInfo['xiaoxiaole_setting'])) {
+                            $xiaoxiaole_setting = $extInfo['xiaoxiaole_setting'];
+                            // 消消乐活动背景图
+                            $activeArr[$active['id']]['back_image'] = $xiaoxiaole_setting['back_image'];
+                            // 消消乐活动规则文案
+                            $activeArr[$active['id']]['active_regular'] = $xiaoxiaole_setting['active_regular'];
+                        }
+                        // 消消乐预设
+                        if(!empty($extInfo['xiaoxiaole_pre_setting'])) {
+                            $show_tab_list = [];
+                            $xiaoxiaole_pre_setting = $extInfo['xiaoxiaole_pre_setting'];
+                            foreach ($xiaoxiaole_pre_setting as $k => $tabInfo) {
+                                $now = strtotime("now");
+                                $start = strtotime($tabInfo['start_time']);
+                                $end = strtotime($tabInfo['end_time']);
+                                if($start > $now || $end < $now) {
+                                    continue;
+                                }
+                                $show_tab_list[$k] = $tabInfo;
+                            }
+                            $activeArr[$active['id']]['active_tab'] = array_values($show_tab_list);
+                        }
+                        // 消消乐奖项设置
+                        $activeArr[$active['id']]['active_award'] = $extInfo['prize_list'];
+                        // 消消乐活动背景颜色
+                        $activeArr[$active['id']]['back_color'] = \F_Ice::$ins->workApp->config->get('busconf.active.active_xiaoxiaole.guide_init.back_color');
+                        // 消消乐活动文案链接
+                        $activeArr[$active['id']]['active_regular_link'] = \F_Ice::$ins->workApp->config->get('busconf.active.active_xiaoxiaole.guide_init.active_regular_link');
+                        // 消消乐活动日期文字颜色
+                        $activeArr[$active['id']]['date_color'] = \F_Ice::$ins->workApp->config->get('busconf.active.active_xiaoxiaole.guide_init.date_color');
                     }
                 }
                 //如果传入了活动的进行状态，就直接返回改状态
@@ -196,6 +225,15 @@ class Active {
     public function getActiveWinPrizeRecord($active_id, $user_id, $conditions = [])
     {
         $data = $this->activePrizeData->getActiveWinPrizeRecord($active_id, $user_id, $conditions);
+        return $data;
+    }
+
+    /*
+     * 获取活动用户发帖数
+     * */
+    public function getActiveUserSubjectList($active_id, $user_id, $page = 1, $limit = 20, $conditions = [])
+    {
+        $data = $this->relationData->getActiveUserSubjectList($active_id, $user_id, $page, $limit, $conditions);
         return $data;
     }
 

@@ -34,10 +34,21 @@ $activeShare = array(
 //参加活动的文案
 $activeTitle = '参加活动';
 
-$xiaoxiaole_init = array(
-    'active_prize_init' => '发了%d个口碑,赚了%d蜜豆',
-    'active_clock_init' => '已赚%d蜜豆，连续发帖%d天得%d蜜豆，就差%d天啦',
-    'active_create_init' => '发%d帖'
+/*
+ * 消消乐活动配置
+ * */
+$active_xiaoxiaole = array(
+    'guide_init' => array(
+        'back_color' => '1',
+        'active_regular_link' => '2',
+        'date_color' => '3',
+    ),
+    'user_show_init' => array(
+        'mark_notice' => '已赚%d蜜豆，连续发帖%d天得%d蜜豆',
+    ),
+    'calendar_image' => array(
+        'back_img' => '',
+    ),
 );
 
 
