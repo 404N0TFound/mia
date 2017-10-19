@@ -7,6 +7,7 @@ class Active extends \DB_Query {
 
     protected $dbResource = 'miagroup';
     protected $tableName = 'group_active';
+    protected $tableActiveItem = 'group_active_item_tab';
 
     /**
      * 批量查活动信息
@@ -65,6 +66,25 @@ class Active extends \DB_Query {
         $where[] = ['operator',$operator];
         $affect = $this->update($setData,$where);
         return $affect;
+    }
+
+    /*
+     * 获取活动对应的sku
+     * */
+    public function getActiveTabItems($active_id, $tab_title)
+    {
+        if(empty($active_id) || empty($tab_title)) {
+            return [];
+        }
+        $where = [];
+        $where[] = ['active_id', $active_id];
+        $where[] = ['item_tab', $tab_title];
+        $where[] = ['status', 1];
+        $field = 'item_id';
+        $orderBy = 'id desc';
+        $this->tableName = $this->tableActiveItem;
+        $res = $this->getRows($where, $field, FALSE, 0, $orderBy);
+        return $res;
     }
     
 }

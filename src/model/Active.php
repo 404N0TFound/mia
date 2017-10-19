@@ -61,43 +61,18 @@ class Active {
                     if(isset($extInfo['text_lenth_limit']) && !empty($extInfo['text_lenth_limit'])){
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
                     }
-                    // 消消乐活动规则引导处理
-                    if(isset($extInfo['is_xiaoxiaole']) && !empty($extInfo['is_xiaoxiaole'])) {
-                        // 消消乐活动标识
-                        $activeArr[$active['id']]['is_xiaoxiaole'] = $extInfo['is_xiaoxiaole'];
-                        // 消消乐活动设置
-                        if(!empty($extInfo['xiaoxiaole_setting'])) {
-                            $xiaoxiaole_setting = $extInfo['xiaoxiaole_setting'];
-                            // 消消乐活动背景图
-                            $activeArr[$active['id']]['back_image'] = $xiaoxiaole_setting['back_image'];
-                            // 消消乐活动规则文案
-                            $activeArr[$active['id']]['active_regular'] = $xiaoxiaole_setting['active_regular'];
-                        }
-                        // 消消乐预设
-                        if(!empty($extInfo['xiaoxiaole_pre_setting'])) {
-                            $show_tab_list = [];
-                            $xiaoxiaole_pre_setting = $extInfo['xiaoxiaole_pre_setting'];
-                            foreach ($xiaoxiaole_pre_setting as $k => $tabInfo) {
-                                $now = strtotime("now");
-                                $start = strtotime($tabInfo['start_time']);
-                                $end = strtotime($tabInfo['end_time']);
-                                if($start > $now || $end < $now) {
-                                    continue;
-                                }
-                                $show_tab_list[$k] = $tabInfo;
-                            }
-                            $activeArr[$active['id']]['active_tab'] = array_values($show_tab_list);
-                        }
-                        // 消消乐奖项设置
-                        $activeArr[$active['id']]['active_award'] = $extInfo['prize_list'];
-                        // 消消乐活动配置
-                        $xiaoxiaole_config = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole.guide_init');
-                        // 消消乐活动背景颜色
-                        $activeArr[$active['id']]['back_color'] = $xiaoxiaole_config['back_color'];
-                        // 消消乐活动文案链接
-                        $activeArr[$active['id']]['active_regular_link'] = $xiaoxiaole_config['active_regular_link'];
-                        // 消消乐活动日期文字颜色
-                        $activeArr[$active['id']]['date_color'] = $xiaoxiaole_config['date_color'];
+                    // 消消乐
+                    if (isset($extInfo['is_xiaoxiaole']) && $extInfo['is_xiaoxiaole'] == 1) {
+                        $activeArr[$active['id']]['active_type'] = 'xiaoxiaole';
+                    } else {
+                        $activeArr[$active['id']]['active_type'] = 'common';
+                    }
+                    // 奖励展示待定
+                    if(isset($extInfo['prize_list']) && !empty($extInfo['prize_list'])) {
+                        $activeArr[$active['id']]['prize_list'] = $extInfo['prize_list'];
+                    }
+                    if(isset($extInfo['xiaoxiaole_setting']) && !empty($extInfo['xiaoxiaole_setting'])) {
+                        $activeArr[$active['id']]['xiaoxiaole_setting'] = $extInfo['xiaoxiaole_setting'];
                     }
                 }
                 //如果传入了活动的进行状态，就直接返回改状态
@@ -233,7 +208,7 @@ class Active {
     /*
      * 获取活动用户发帖数
      * */
-    public function getActiveUserSubjectList($active_id, $user_id, $page = 1, $limit = 20, $conditions = [])
+    public function getActiveUserSubjectList($active_id, $user_id = 0, $page = 1, $limit = 20, $conditions = [])
     {
         $data = $this->relationData->getActiveUserSubjectList($active_id, $user_id, $page, $limit, $conditions);
         return $data;
@@ -242,7 +217,7 @@ class Active {
     /*
      * 获取活动发帖用户排行
      * */
-    public function getActiveSubjectsRank($active_id)
+    public function getActiveSubjectsRank($active_id, $type = '', $page = 1, $count = 10)
     {
         $data = $this->relationData->getActiveSubjectsRank($active_id);
         return $data;
@@ -272,6 +247,15 @@ class Active {
     public function addActivePrizeRecord($insertData)
     {
         $data = $this->activePrizeData->addActivePrizeRecord($insertData);
+        return $data;
+    }
+
+    /*
+     * 获取活动tab对应的item
+     * */
+    public function getActiveTabItems($active_id, $tab_title)
+    {
+        $data = $this->activeData->getActiveTabItems($active_id, $tab_title);
         return $data;
     }
 }

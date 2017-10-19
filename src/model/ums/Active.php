@@ -80,6 +80,7 @@ class Active extends \DB_Query {
                         break;
                     case 'item_id':
                         $where[] = ['pt.item_id', $v];
+                        break;
                     default:
                         $where[] = [$k, $v];
                 }

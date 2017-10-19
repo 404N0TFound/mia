@@ -38,9 +38,10 @@ $activeTitle = '参加活动';
  * 消消乐活动配置
  * */
 $xiaoxiaole = array(
+    // 活动标识
+    'active_type' => 'xiaoxiaole',
     // 活动引导配置
     'guide_init' => array(
-        'back_color' => '#ffff33',
         'active_regular_link' => '',
         'date_color' => '#ffff33',
     ),
