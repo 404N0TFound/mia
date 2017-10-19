@@ -93,7 +93,7 @@ class Task extends \DB_Query {
         $taskDataArr = array();
         if (!empty($taskDataRes)) {
             foreach ($taskDataRes as $value) {
-                $taskDataArr[$value['task_id']][[$value['id']]]['id'] = $value['id'];
+                $taskDataArr[$value['task_id']][$value['id']]['id'] = $value['id'];
                 if(!empty($value['result'])){
                     $taskResult = json_decode($value['result'],true);
                     $taskDataArr[$value['task_id']][$value['id']]['result'] = $taskResult;
