@@ -12,6 +12,12 @@ class User extends \DB_Query {
     protected $tableLivePermission = 'group_live_room';
     protected $tableUserShield = 'user_shield';
     protected $tableUserRole = 'group_user_role';
+    protected $tableUserAddress = 'user_address';
+    protected $tableProvince = 'province';
+    protected $tableCity = 'province_city';
+    protected $tableArea = 'province_city_area';
+    protected $tableTown = 'province_city_area_town';
+
     /**
      * 获取所有自主口碑商家
      */
@@ -322,6 +328,40 @@ class User extends \DB_Query {
         $result['list'] = $userArr;
         $count = $this->getRow($where, 'count(*) as nums');
         $result['count'] = $count;
+        return $result;
+    }
+    
+    /**
+     * 根据用户id获取用户的收获地址信息
+     */
+    public function getUserAddressByUserIds($userIds) {
+        $this->dbResource = 'miadefaultums';
+        $this->tableName = $this->tableUserAddress;
+        
+        $where = array();
+        $result = array();
+        $where[] = [$this->tableName.'.user_id',$userIds];
+        $where[] = [$this->tableName.'.status',1];
+        $where[] = [$this->tableName.'.is_default',1];
+    
+        $join = 'left join '.$this->tableProvince. ' as p on ' .$this->tableName . '.prov=p.id ';
+        $join .= 'left join '.$this->tableCity. ' as c on ' .$this->tableName . '.city=c.id ';
+        $join .= 'left join '.$this->tableArea. ' as a on ' .$this->tableName . '.area=a.id ';
+        $join .= 'left join '.$this->tableTown. ' as t on ' .$this->tableName . '.town=t.id ';
+        $join .= 'left join '.$this->tableUsers. ' as u on ' .$this->tableName . '.user_id=u.id ';
+        
+        $field = $this->tableName.".user_id user_id,".$this->tableName.".name as name,
+                u.cell_phone as phone,p.name as pname,c.name as cname,a.name as aname,t.name as tname,"
+                .$this->tableName.".address as address";
+    
+        $data = $this->getRows($where, $field, FALSE, 0, FALSE, $join);
+        
+        if (empty($data)) {
+            return array();
+        }
+        foreach ($data as $v) {
+            $result[$v['user_id']] = $v;
+        }
         return $result;
     }
     
