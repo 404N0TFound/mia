@@ -532,6 +532,7 @@ class Subject extends \mia\miagroup\Lib\Service
         
         $subjectRes = array();
         $userService = new UserService();
+        $daren_list = $userService->getDoozerByCategory('doozer')['data'];
         // 拼装结果集
         foreach ($subjectIds as $subjectId) {
             if (!empty($subjectInfos[$subjectId])) {
@@ -604,7 +605,6 @@ class Subject extends \mia\miagroup\Lib\Service
                 }
             }
             // 美化图片
-            $daren_list = $userService->getDoozerByCategory('doozer')['data'];
             // 获取达人列表
             if (!empty($subjectInfo['ext_info']['beauty_image']) && !in_array($subjectInfo['user_id'], $daren_list)) {
                 $imageInfos = $subjectInfo['ext_info']['beauty_image'];

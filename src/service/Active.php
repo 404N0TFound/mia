@@ -130,6 +130,10 @@ class Active extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $extInfo = array();
+        if ($activeInfo['active_type'] == 'xiaoxiaole') {
+            $extInfo['is_xiaoxiaole'] = 1;
+            unset($activeInfo['active_type']);
+        }
         //参加活动的标签
         if (!empty($activeInfo['label_titles'])) {
             $labelService = new LabelService();
@@ -168,6 +172,10 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['icon_img']= $activeInfo['icon_img_info'];
             unset($activeInfo['icon_img_info']);
         }
+        if(!empty($activeInfo['xiaoxiaole_setting'])) {
+            $extInfo['xiaoxiaole_setting'] = $activeInfo['xiaoxiaole_setting'];
+            unset($activeInfo['xiaoxiaole_setting']);
+        }
         
         $activeInfo['ext_info'] = json_encode($extInfo);
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
@@ -203,6 +211,10 @@ class Active extends \mia\miagroup\Lib\Service {
             }
         }
         $extInfo = array();
+        if ($activeInfo['active_type'] == 'xiaoxiaole') {
+            $extInfo['is_xiaoxiaole'] = 1;
+            unset($activeInfo['active_type']);
+        }
         if(!empty($labels)){
             $extInfo['labels']= $labels;
             unset($activeInfo['label_titles']);
@@ -229,6 +241,10 @@ class Active extends \mia\miagroup\Lib\Service {
         if(isset($activeInfo['text_lenth_limit'])){
             $extInfo['text_lenth_limit']= $activeInfo['text_lenth_limit'];
             unset($activeInfo['text_lenth_limit']);
+        }
+        if(!empty($activeInfo['xiaoxiaole_setting'])) {
+            $extInfo['xiaoxiaole_setting'] = $activeInfo['xiaoxiaole_setting'];
+            unset($activeInfo['xiaoxiaole_setting']);
         }
         
         $activeInfo['ext_info'] = json_encode($extInfo);
