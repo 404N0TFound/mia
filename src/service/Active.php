@@ -413,25 +413,66 @@ class Active extends \mia\miagroup\Lib\Service {
         $return['mark_calendar'] = $calendarList;
 
         // 用户消消乐打卡提示
-        $calendarNum = $threeClock = $sevenClock = 0;
-        $xxl_word = F_Ice::$ins->workApp->config->get('busconf.active.active_xiaoxiaole.user_show_init.mark_notice');
-        foreach($calendarList as $value) {
+        $calendarNum = $threeClock = $sevenClock = $three_prize = $seven_prize = $month_prize = 0;
+        $continue_day_count = [];
+        $active_config = F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole.user_show_init');
+
+        // 日历背景图
+        $return['back_img'] = $active_config['calendar_image'];
+
+        // 获取当月的天数
+        $current_day = date('t');
+
+        foreach($calendarList as $k => $value) {
             if (!empty($value['subject_nums'])) {
                 $calendarNum += 1;
+                $continue_day_count[$k] = $calendarNum;
             } else {
+                $continue_day_count[$k] = $calendarNum - 1;
                 $calendarNum = 0;
             }
-            if ($calendarNum >= 3) {
+            if ($calendarNum >= 3 && $calendarNum < 7) {
                 $threeClock = 1;
-            }
-            if ($calendarNum >= 7) {
+            }else if($calendarNum >= 7 && $calendarNum < $current_day) {
                 $sevenClock = 1;
             }
         }
+
         // 获取活动奖励列表
         $prizeList = $activeInfo[$active_id]['active_award'];
+        // 打卡奖励配置
+        $calendar_config = $active_config['calendar_prize'];
+        foreach($prizeList as $prize) {
+            if($prize['prize_type'] == $calendar_config['three']) {
+                // 3日打卡奖励
+                $three_prize = $prize['bean_count'];
+            }
+            if($prize['prize_type'] == $calendar_config['seven']) {
+                // 7日打卡奖励
+                $seven_prize = $prize['bean_count'];
+            }
+            if($prize['prize_type'] == $calendar_config['month']) {
+                // 月度打卡奖励
+                $month_prize = $prize['bean_count'];
+            }
+        }
 
-        // 用户打卡提示（发布奖励配置）
+        // 用户打卡提示及打卡相差天数文案
+        if(empty($threeClock) && empty($sevenClock)) {
+            $return['apart_days'] = 3 - max($continue_day_count);
+            // 展示三日打卡提示
+            $return['mark_notice'] = sprintf($active_config['mark_notice'], $return['mibean_num'], 3, $three_prize);
+        }else if(!empty($threeClock) && empty($sevenClock)) {
+            $return['apart_days'] = 7 - max($continue_day_count);
+            // 展示七日打卡提示
+            $return['mark_notice'] = sprintf($active_config['mark_notice'], $return['mibean_num'], 7, $seven_prize);
+        }else {
+            // 展示月度打卡提示
+            $return['apart_days'] = $current_day - max($continue_day_count);
+            // 展示七日打卡提示
+            $return['mark_notice'] = sprintf($active_config['mark_notice'], $return['mibean_num'], $current_day, $month_prize);
+        }
+
         return $this->succ($return);
     }
 

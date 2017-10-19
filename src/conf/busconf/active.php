@@ -37,17 +37,29 @@ $activeTitle = '参加活动';
 /*
  * 消消乐活动配置
  * */
-$active_xiaoxiaole = array(
+$xiaoxiaole = array(
+    // 活动引导配置
     'guide_init' => array(
-        'back_color' => '1',
-        'active_regular_link' => '2',
-        'date_color' => '3',
+        'back_color' => '#ffff33',
+        'active_regular_link' => '',
+        'date_color' => '#ffff33',
     ),
+    // 活动用户打卡提示配置
     'user_show_init' => array(
+        // 打卡提示
         'mark_notice' => '已赚%d蜜豆，连续发帖%d天得%d蜜豆',
-    ),
-    'calendar_image' => array(
-        'back_img' => '',
+        // 活动日历背景图
+        'calendar_image' => array(
+            'url' => 'http://img3.imgtn.bdimg.com/it/u=2422152076,2897584653&fm=27&gp=0.jpg',
+            'width' => '228',
+            'height' => '151',
+        ),
+        // 打卡奖励配置
+        'calendar_prize' => array(
+            'three' => 1,
+            'seven' => 2,
+            'month' => 3,
+        ),
     ),
 );
 

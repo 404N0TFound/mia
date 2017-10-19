@@ -90,12 +90,14 @@ class Active {
                         }
                         // 消消乐奖项设置
                         $activeArr[$active['id']]['active_award'] = $extInfo['prize_list'];
+                        // 消消乐活动配置
+                        $xiaoxiaole_config = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole.guide_init');
                         // 消消乐活动背景颜色
-                        $activeArr[$active['id']]['back_color'] = \F_Ice::$ins->workApp->config->get('busconf.active.active_xiaoxiaole.guide_init.back_color');
+                        $activeArr[$active['id']]['back_color'] = $xiaoxiaole_config['back_color'];
                         // 消消乐活动文案链接
-                        $activeArr[$active['id']]['active_regular_link'] = \F_Ice::$ins->workApp->config->get('busconf.active.active_xiaoxiaole.guide_init.active_regular_link');
+                        $activeArr[$active['id']]['active_regular_link'] = $xiaoxiaole_config['active_regular_link'];
                         // 消消乐活动日期文字颜色
-                        $activeArr[$active['id']]['date_color'] = \F_Ice::$ins->workApp->config->get('busconf.active.active_xiaoxiaole.guide_init.date_color');
+                        $activeArr[$active['id']]['date_color'] = $xiaoxiaole_config['date_color'];
                     }
                 }
                 //如果传入了活动的进行状态，就直接返回改状态
