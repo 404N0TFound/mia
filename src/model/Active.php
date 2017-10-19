@@ -39,6 +39,11 @@ class Active {
                 $activeArr[$active['id']] = $active;
                 if(!empty($active['ext_info'])){
                     $extInfo = json_decode($active['ext_info'],true);
+                    if (isset($extInfo['is_xiaoxiaole']) && $extInfo['is_xiaoxiaole'] == 1) {
+                        $activeArr[$active['id']]['active_type'] = 'xiaoxiaole';
+                    } else {
+                        $activeArr[$active['id']]['active_type'] = 'common';
+                    }
                     if(!empty($extInfo['labels'])){
                         $activeArr[$active['id']]['labels'] = $extInfo['labels'];
                         $activeArr[$active['id']]['label_titles'] = implode(',',array_column($extInfo['labels'], 'title'));
@@ -61,12 +66,12 @@ class Active {
                     if(isset($extInfo['text_lenth_limit']) && !empty($extInfo['text_lenth_limit'])){
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
                     }
-                    // 消消乐
-                    if(isset($extInfo['is_xiaoxiaole']) && !empty($extInfo['is_xiaoxiaole'])) {
-                        $activeArr[$active['id']]['is_xiaoxiaole'] = $extInfo['is_xiaoxiaole'];
+                    if(isset($extInfo['prize_list']) && !empty($extInfo['prize_list'])) {
                         $activeArr[$active['id']]['prize_list'] = $extInfo['prize_list'];
+                    }
+                    // 消消乐
+                    if(isset($extInfo['xiaoxiaole_setting']) && !empty($extInfo['xiaoxiaole_setting'])) {
                         $activeArr[$active['id']]['xiaoxiaole_setting'] = $extInfo['xiaoxiaole_setting'];
-                        $activeArr[$active['id']]['xiaoxiaole_pre_setting'] = $extInfo['xiaoxiaole_pre_setting'];
                     }
                 }
                 //如果传入了活动的进行状态，就直接返回改状态
