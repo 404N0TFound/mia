@@ -773,7 +773,6 @@ class User extends \mia\miagroup\Lib\Service {
             $addressInfo = $addressInfos[$info['address_id']];
             if(!empty($addressInfo)) {
                 $info['dst_address'] = $addressInfo;
-                $info['dst_address']['mobile'] = $addressInfo['cell'];
             }
         }
         return $this->succ($userInfos);
