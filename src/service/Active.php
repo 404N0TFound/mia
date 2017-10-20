@@ -389,7 +389,7 @@ class Active extends \mia\miagroup\Lib\Service {
                 break;
             }
         }
-        // 获取活动的tab预设时间
+        // 获取活动的tab预设开始时间
         $pre_show_time = $xiaoxiaole['xiaoxiaole_setting']['pre_set_time'];
         if(strtotime($pre_show_time) > strtotime('now')) {
             // show current
@@ -411,10 +411,11 @@ class Active extends \mia\miagroup\Lib\Service {
             }
         }
         $active_guide = $this->getActiveConfig('xiaoxiaole', 'guide_init');
-        $xiaoxiaole['active_tab'] = $tab_setting;
         $xiaoxiaole['date_color'] = $active_guide['date_color'];
         $xiaoxiaole['active_regular_link'] = $active_guide['active_regular_link'];
-        $xiaoxiaole['active_award'] = $xiaoxiaole['xiaoxiaole_setting']['prize_list'];
+        $xiaoxiaole['active_tab'] = $tab_setting;
+        $xiaoxiaole['active_award'] = $xiaoxiaole['prize_list'];
+        $xiaoxiaole['back_img'] = $xiaoxiaole['xiaoxiaole_setting']['striation_img_url'];
         $xiaoxiaole['back_color'] = $xiaoxiaole['xiaoxiaole_setting']['backgroundcolor'];
         $xiaoxiaole['active_regular'] = $xiaoxiaole['xiaoxiaole_setting']['xiaoxiaole_rule'];
 
@@ -433,9 +434,8 @@ class Active extends \mia\miagroup\Lib\Service {
 
         // 获取用户信息
         $userService = new UserService();
-        $res = $userService->getUserInfoByUids([$user_id])['data'];
-        // 封装用户展示信息
-        $return['user_icon'] = $res[$user_id]['icon'];
+        $userInfo = $userService->getUserInfoByUids([$user_id])['data'];
+        $return['user_info'] = $userInfo[$user_id];
 
         // 获取活动信息
         $condition = array('active_ids' => array($active_id));
@@ -451,13 +451,40 @@ class Active extends \mia\miagroup\Lib\Service {
         $res = $this->getActiveSubjectCounts($active_id, $user_id, $conditions)['data'];
         $return['koubei_num'] = $res['count'];
 
+        // 活动用户是否是首贴标识(用于客户端区分打卡文案)
+        if(empty($return['koubei_num'])) {
+            $return['is_first_pub'] = 1;
+        }else {
+            $return['is_first_pub'] = 0;
+        }
+
         // 获取用户蜜豆数
         $res = $this->getActiveWinPrizeRecord($active_id, $user_id, $conditions)['data'];
         $return['mibean_num'] = $res['prize_num'];
 
         // 用户打卡日历
+        $handleCalendar = [];
         $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
-        $return['mark_calendar'] = $calendarList;
+
+        // 处理日历月份展示形式
+        foreach($calendarList as $k => $calendar) {
+            if(substr($calendar['issue_date'], 8, 2) == '01') {
+                if(!empty($calendar['is_today'])) {
+                    $handleCalendar[$k]['issue_date'] = '今天';
+                }else {
+                    $handleCalendar[$k]['issue_date'] = substr($calendar['issue_date'], 5, 2)."月";
+                }
+            }else {
+                if(!empty($calendar['is_today'])) {
+                    $handleCalendar[$k]['issue_date'] = '今天';
+                }else {
+                    $handleCalendar[$k]['issue_date'] = substr($calendar['issue_date'], 8, 2);
+                }
+            }
+            $handleCalendar[$k]['subject_nums'] = $calendar['subject_nums'];
+            $handleCalendar[$k]['is_today'] = $calendar['is_today'];
+        }
+        $return['mark_calendar'] = $handleCalendar;
 
         // 用户消消乐打卡提示
         $calendarNum = $threeClock = $sevenClock = $three_prize = $seven_prize = $month_prize = 0;
@@ -485,8 +512,8 @@ class Active extends \mia\miagroup\Lib\Service {
             }
         }
 
-        // 获取活动奖励列表(待定)
-        $prizeList = $activeInfo[$active_id]['active_award'];
+        // 获取活动奖励列表
+        $prizeList = $activeInfo[$active_id]['prize_list'];
         // 打卡奖励配置
         $calendar_config = $active_config['calendar_prize'];
         foreach($prizeList as $prize) {
@@ -535,19 +562,47 @@ class Active extends \mia\miagroup\Lib\Service {
         // 获取所有活动基本信息
         $condition = array('active_ids' => array($active_id));
         $activeInfo = $this->activeModel->getActiveList(0, FALSE, array(1), $condition);
-
-        // 活动tab信息
-        $tab_items['tab_info'] = [];
-
         if (empty($activeInfo)) {
             return $this->succ([]);
         }
+        // 展示tab
+        $active_setting = $activeInfo[$active_id]['xiaoxiaole_setting'];
+        if(empty($active_setting)) {
+            $tab_items['tab_info'] = [];
+        }
+        $pre_tab_flag = FALSE;
+        $pre_show_time = $active_setting['pre_set_time'];
+        if(strtotime($pre_show_time) < strtotime('now')) {
+            // show current
+            $tab_list = $active_setting['item_tab_list'];
+        }else {
+            // show pre
+            $tab_list = $active_setting['pre_set_item_tab_list'];
+            $tab_name_list = array_column($tab_list, 'name');
+            $pre_tab_flag = TRUE;
+        }
+
+        // 封装tab数据(图片的宽高，数据待定)
+
+        foreach($tab_list as $tab) {
+            if($tab['name'] == $tab_title) {
+                $tab_items['tab_info'] = $tab;
+            }
+        }
+
+        // 预设tab，需要处理tab预设关系(修改状态)
+        if(!empty($pre_tab_flag) && !empty($tab_name_list)) {
+            $updateData = ['is_pre_set' => 0];
+            $where = ['active_id' => $active_id, 'item_tab' => $tab_name_list];
+            $res = $this->activeModel->updateActiveItemPre($where, $updateData);
+        }
+
         $res = $this->activeModel->getActiveTabItems($active_id, $tab_title);
         if (empty($res)) {
             return $this->succ([]);
         }
         $item_ids = array_column($res, 'item_id');
-        $item_ids = [1014636, 1000016];
+        //$item_ids = [1014636, 1000016];
         $itemService = new ItemService();
         $itemInfos = $itemService->getBatchItemBrandByIds($item_ids)['data'];
         $activeUmsService = new UmsActiveService();
@@ -559,18 +614,18 @@ class Active extends \mia\miagroup\Lib\Service {
         $params['end_time'] = $activeInfo[$active_id]['end_time'];
         $result = $activeUmsService->getActiveSubjectCountByItems($params)['data'];
 
+        // 获取活动奖励（针对0口碑的蜜豆奖励）
+
         foreach ($itemInfos as $item_id => &$item) {
             if (empty($result[$item_id])) {
                 // 0贴文案，奖励50蜜豆
                 // 奖励类型
-                $item['prize_type'] = '奖励50蜜豆';
-            }else {
-                $item['prize_type'] = '';
+                $item['prize_type'] = 1;
+                // 奖励文案
+                $item['prize_desc'] = '消灭它，得50蜜豆';
             }
-            // 活动关联商品对应的发帖数
+            // 发帖数
             $item['koubei_num'] = $result[$item_id];
-            // 奖励文案
-            $item['prize_desc'] = '';
         }
         $tab_items['items'] = array_values($itemInfos);
         return $this->succ($tab_items);
@@ -780,7 +835,7 @@ class Active extends \mia\miagroup\Lib\Service {
         $calendar = $effect = [];
 
         // 获取当前时间日期
-        $today = date('m.d', time());
+        $today = date('Y-m-d', time());
 
         // 查询用户总发帖列表
         $page = 1;
@@ -793,9 +848,7 @@ class Active extends \mia\miagroup\Lib\Service {
             }
             foreach($list as $value) {
                 $subject_time = $value['create_time'];
-                $month = substr($subject_time, 5, 2);
-                $day = substr($subject_time, 8, 2);
-                $date = $month.'.'.$day;
+                $date = substr($subject_time, 0, 10);
                 $effect[$date]['issue_date'] = $date;
                 $effect[$date]['subject_nums'] += 1;
             }
@@ -813,7 +866,7 @@ class Active extends \mia\miagroup\Lib\Service {
         $fs_time = strtotime($conditions['s_time']);
         $fe_time = strtotime($conditions['e_time']);
         for ($start = $fs_time; $start <= $fe_time; $start += 24 * 3600) {
-            $date = date('m.d', $start);
+            $date = date('Y-m-d', $start);
             if(empty($effect[$date])) {
                 $calendar[$date]['issue_date'] = $date;
                 $calendar[$date]['subject_nums'] = 0;

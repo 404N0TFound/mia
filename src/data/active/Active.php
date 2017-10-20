@@ -67,24 +67,5 @@ class Active extends \DB_Query {
         $affect = $this->update($setData,$where);
         return $affect;
     }
-
-    /*
-     * 获取活动对应的sku
-     * */
-    public function getActiveTabItems($active_id, $tab_title)
-    {
-        if(empty($active_id) || empty($tab_title)) {
-            return [];
-        }
-        $where = [];
-        $where[] = ['active_id', $active_id];
-        $where[] = ['item_tab', $tab_title];
-        $where[] = ['status', 1];
-        $field = 'item_id';
-        $orderBy = 'id desc';
-        $this->tableName = $this->tableActiveItem;
-        $res = $this->getRows($where, $field, FALSE, 0, $orderBy);
-        return $res;
-    }
     
 }

@@ -2,6 +2,7 @@
 namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Active\Active as ActiveData;
+use mia\miagroup\Data\Active\ActiveItemTab;
 use \mia\miagroup\Data\Active\ActiveSubject as ActiveSubjectData;
 use \mia\miagroup\Data\Active\ActiveSubjectRelation as RelationData;
 use \mia\miagroup\Data\Active\ActivePrizeRecordData as ActivePrizeData;
@@ -61,16 +62,17 @@ class Active {
                     if(isset($extInfo['text_lenth_limit']) && !empty($extInfo['text_lenth_limit'])){
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
                     }
-                    // 消消乐
+                    // 消消乐标识
                     if (isset($extInfo['is_xiaoxiaole']) && $extInfo['is_xiaoxiaole'] == 1) {
                         $activeArr[$active['id']]['active_type'] = 'xiaoxiaole';
                     } else {
                         $activeArr[$active['id']]['active_type'] = 'common';
                     }
-                    // 奖励展示待定
+                    // 活动奖励
                     if(isset($extInfo['prize_list']) && !empty($extInfo['prize_list'])) {
                         $activeArr[$active['id']]['prize_list'] = $extInfo['prize_list'];
                     }
+                    // 活动设置
                     if(isset($extInfo['xiaoxiaole_setting']) && !empty($extInfo['xiaoxiaole_setting'])) {
                         $activeArr[$active['id']]['xiaoxiaole_setting'] = $extInfo['xiaoxiaole_setting'];
                     }
@@ -255,7 +257,18 @@ class Active {
      * */
     public function getActiveTabItems($active_id, $tab_title)
     {
-        $data = $this->activeData->getActiveTabItems($active_id, $tab_title);
+        $activeItemTabData = new ActiveItemTab();
+        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title);
+        return $data;
+    }
+
+    /*
+     * 更新活动商品预设状态
+     * */
+    public function updateActiveItemPre($where, $updateData)
+    {
+        $activeItemTabData = new ActiveItemTab();
+        $data = $activeItemTabData->updateActiveItemPre($where, $updateData);
         return $data;
     }
 }

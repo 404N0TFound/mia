@@ -62,6 +62,10 @@ $xiaoxiaole = array(
             'month' => 3,
         ),
     ),
+    // 活动tab商品奖励文案
+    'active_item_prize' => array(
+        'prize_word' => '消灭它，得%d蜜豆'
+    ),
 );
 
 
