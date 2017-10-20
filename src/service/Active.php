@@ -391,22 +391,22 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         // 获取活动的tab预设开始时间
         $pre_show_time = $xiaoxiaole['xiaoxiaole_setting']['pre_set_time'];
-        if(strtotime($pre_show_time) > strtotime('now')) {
-            // show current
-            $tab_list = $xiaoxiaole['xiaoxiaole_setting']['item_tab_list'];
-        }else {
+        if(strtotime($pre_show_time) < strtotime('now')) {
             // show pre
-            $tab_list = $xiaoxiaole['xiaoxiaole_pre_setting']['pre_set_item_tab_list'];
+            $tab_list = $xiaoxiaole['xiaoxiaole_setting']['pre_set_item_tab_list'];
+        }else {
+            // show current
+            $tab_list = $xiaoxiaole['xiaoxiaole_pre_setting']['item_tab_list'];
         }
         // 封装tab数据
         if(!empty($tab_list)) {
             foreach($tab_list as $k => $tab) {
                 $tab_setting[$k]['tab_title'] = $tab['name'];
                 if(!empty($tab['img_url'])) {
-                    $imgInfo = getimagesize($tab['img_url']);
+                    /*$imgInfo = getimagesize($tab['img_url']);
                     $tab_setting[$k]['tab_img']['url'] = $tab['img_url'];
                     $tab_setting[$k]['tab_img']['width'] = $imgInfo[0];
-                    $tab_setting[$k]['tab_img']['height'] = $imgInfo[1];
+                    $tab_setting[$k]['tab_img']['height'] = $imgInfo[1];*/
                 }
             }
         }
@@ -884,9 +884,9 @@ class Active extends \mia\miagroup\Lib\Service {
 
     /*
      * 消消乐活动用户发帖排行
-     * 获取前20名发帖最多的用户
+     * 获取前20名发帖最多的用户（没有分页效果）
      * */
-    public function getActiveUserRankList($active_id)
+    public function getActiveUserRankList($active_id, $page = 1, $limit = 20)
     {
         $return = [];
         if(empty($active_id)) {
@@ -894,7 +894,25 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         // 获取活动的所有帖子
         $res = $this->activeModel->getActiveSubjectsRank($active_id);
-        // 遍历，获取排行榜
+        if(empty($res)) {
+            return $this->succ([]);
+        }
+        // 批量获取用户信息
+        $userIds = array_column($res, 'user_id');
+        $userService = new UserService();
+        $userInfos = $userService->getUserInfoByUids($userIds)['data'];
+
+        // 排行页面文案
+        $return['rank_desc'] = '';
+        // 排行页面文字颜色
+        $return['rank_desc_color'] = '';
+        // 排行用户列表
+        foreach($res as $k => $v) {
+            if(!empty($userInfos[$v['user_id']])) {
+                $return['rank_users'][$k]['user_info'] = $userInfos[$v['user_id']];
+            }
+        }
+
         return $this->succ($return);
     }
 

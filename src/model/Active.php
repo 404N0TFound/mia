@@ -219,9 +219,9 @@ class Active {
     /*
      * 获取活动发帖用户排行
      * */
-    public function getActiveSubjectsRank($active_id, $type = '', $page = 1, $count = 10)
+    public function getActiveSubjectsRank($active_id, $page = 1, $limit = 10)
     {
-        $data = $this->relationData->getActiveSubjectsRank($active_id);
+        $data = $this->relationData->getActiveSubjectsRank($active_id, $page, $limit);
         return $data;
     }
 
