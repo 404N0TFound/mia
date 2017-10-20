@@ -1125,7 +1125,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 $return_Info = $this->koubeiModel->getBatchKoubeiByDefaultInfo($issue_info, $issue_type);
                 $label_service = new LabelService();
                 $labels = $label_service->getRecommendLabels()['data'];
-                $return_Info['labels'] = $labels;
+                if($labels && !empty($labels)){
+                    $return_Info['labels'] = $labels;
+                }
                 
                 //展示当前在线活动
                 $active_service = new ActiveService();
