@@ -137,7 +137,7 @@ class ActiveSubjectRelation extends \DB_Query {
     /*
      * 获取活动发帖用户排行
      * */
-    public function getActiveSubjectsRank($active_id, $page = 1, $limit = 20)
+    public function getActiveSubjectsRank($active_id, $limit = 20, $offset = 0)
     {
         $groupBy = 'user_id';
         $orderBy = 'count(subject_id) desc';
@@ -145,7 +145,7 @@ class ActiveSubjectRelation extends \DB_Query {
         $where[] = ['active_id', $active_id];
         $where[] = ['status', 1];
         $field = 'user_id, count(subject_id) as subject_count';
-        $res = $this->getRows($where, $field, $limit, 0, $orderBy, $join = FALSE, $groupBy);
+        $res = $this->getRows($where, $field, $limit, $offset, $orderBy, $join = FALSE, $groupBy);
         return $res;
     }
 

@@ -48,23 +48,23 @@ $xiaoxiaole = array(
     // 活动用户打卡提示配置
     'user_show_init' => array(
         // 打卡提示
-        'mark_notice' => '已赚%d蜜豆，连续发帖%d天得%d蜜豆',
+        'mark_notice' => '已赚%d蜜豆，连续发帖%d天得%s',
         // 活动日历背景图
         'calendar_image' => array(
             'url' => 'http://img3.imgtn.bdimg.com/it/u=2422152076,2897584653&fm=27&gp=0.jpg',
             'width' => '228',
             'height' => '151',
         ),
-        // 打卡奖励配置
-        'calendar_prize' => array(
-            'three' => 1,
-            'seven' => 2,
-            'month' => 3,
-        ),
     ),
     // 活动tab商品奖励文案
     'active_item_prize' => array(
         'prize_word' => '消灭它，得%d蜜豆'
+    ),
+    // 排行榜文案
+    'active_user_rank' => array(
+        'rank_desc' => '哇塞~ %s截至到现在，这些蜜粉发图量最多呦~',
+        'rank_desc_color' => '',
+        'achievement_desc' => '%s日起已发布了%d条口碑',
     ),
 );
 

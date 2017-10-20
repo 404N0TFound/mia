@@ -3,7 +3,6 @@ namespace mia\miagroup\Service;
 
 use \F_Ice;
 use mia\miagroup\Model\Active as ActiveModel;
-use mia\miagroup\Model\Item;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Util\NormalUtil;
@@ -402,9 +401,15 @@ class Active extends \mia\miagroup\Lib\Service {
         // 封装tab数据
         if(!empty($tab_list)) {
             foreach($tab_list as $k => $tab) {
+                // tab 名称
                 $tab_setting[$k]['tab_title'] = $tab['name'];
-                if(!empty($tab['img_url'])) {
-                    $tab_setting[$k]['tab_img'] = '';
+                // tab 图片
+                if(!empty($tab['tab_img'])) {
+                    $tab_setting[$k]['tab_img'] = $tab['tab_img'];
+                }
+                // tab 选中图片
+                if(!empty($tab['tab_selected_img'])) {
+                    $tab_setting[$k]['tab_selected_img'] = $tab['tab_selected_img'];
                 }
             }
         }
@@ -485,7 +490,8 @@ class Active extends \mia\miagroup\Lib\Service {
         $return['mark_calendar'] = $handleCalendar;
 
         // 用户消消乐打卡提示
-        $calendarNum = $threeClock = $sevenClock = $three_prize = $seven_prize = $month_prize = 0;
+        $calendarNum = $threeClock = $sevenClock = 0;
+        $three_prize = $seven_prize = $month_prize = '';
         $continue_day_count = [];
         $active_config = $this->getActiveConfig('xiaoxiaole', 'user_show_init');
 
@@ -512,20 +518,18 @@ class Active extends \mia\miagroup\Lib\Service {
 
         // 获取活动奖励列表
         $prizeList = $activeInfo[$active_id]['prize_list'];
-        // 打卡奖励配置
-        $calendar_config = $active_config['calendar_prize'];
         foreach($prizeList as $prize) {
-            if($prize['prize_type'] == $calendar_config['three']) {
-                // 3日打卡奖励
-                $three_prize = $prize['bean_count'];
-            }
-            if($prize['prize_type'] == $calendar_config['seven']) {
-                // 7日打卡奖励
-                $seven_prize = $prize['bean_count'];
-            }
-            if($prize['prize_type'] == $calendar_config['month']) {
-                // 月度打卡奖励
-                $month_prize = $prize['bean_count'];
+            if($prize['prize_type'] == 'sign_day') {
+                if($prize['sign_day'] == 3) {
+                    // 3日打卡奖励
+                    $three_prize = $prize['prize_name'];
+                }else if($prize['sign_day'] == 7) {
+                    // 7日打卡奖励
+                    $seven_prize = $prize['prize_name'];
+                }else if($prize['sign_day'] == 30) {
+                    // 月度打卡奖励
+                    $month_prize = $prize['prize_name'];
+                }
             }
         }
 
@@ -550,8 +554,9 @@ class Active extends \mia\miagroup\Lib\Service {
 
     /*
      * 获取活动tab商品展示
+     * 分页
      * */
-    public function getActiveTabItemList($active_id, $tab_title)
+    public function getActiveTabItemList($active_id, $tab_title, $page = 1, $limit = 20)
     {
         $tab_items = ['tab_info' =>[], 'items' => []];
         if (empty($active_id) || empty($tab_title)) {
@@ -580,11 +585,18 @@ class Active extends \mia\miagroup\Lib\Service {
             $pre_tab_flag = TRUE;
         }
 
-        // 封装tab数据(图片的宽高，数据待定)
-
         foreach($tab_list as $tab) {
+            // tab 名称
             if($tab['name'] == $tab_title) {
                 $tab_items['tab_info'] = $tab;
+            }
+            // tab 图片
+            if(!empty($tab['tab_img'])) {
+                $tab_items['tab_img'] = $tab['tab_img'];
+            }
+            // tab 选中图片
+            if(!empty($tab['tab_selected_img'])) {
+                $tab_items['tab_selected_img'] = $tab['tab_selected_img'];
             }
         }
 
@@ -595,7 +607,8 @@ class Active extends \mia\miagroup\Lib\Service {
             $res = $this->activeModel->updateActiveItemPre($where, $updateData);
         }
 
-        $res = $this->activeModel->getActiveTabItems($active_id, $tab_title);
+        $offset = $page > 1 ? ($page - 1) * $limit : 0;
+        $res = $this->activeModel->getActiveTabItems($active_id, $tab_title, $limit, $offset);
         if (empty($res)) {
             return $this->succ([]);
         }
@@ -613,6 +626,7 @@ class Active extends \mia\miagroup\Lib\Service {
         $result = $activeUmsService->getActiveSubjectCountByItems($params)['data'];
 
         // 获取活动奖励（针对0口碑的蜜豆奖励）
+        $prize_list = $activeInfo[$active_id]['prize_list'];
 
         foreach ($itemInfos as $item_id => &$item) {
             if (empty($result[$item_id])) {
@@ -856,10 +870,6 @@ class Active extends \mia\miagroup\Lib\Service {
             $page ++;
         }
 
-        if(empty($effect)) {
-            return $this->succ([]);
-        }
-
         // 活动时间内的日历
         $fs_time = strtotime($conditions['s_time']);
         $fe_time = strtotime($conditions['e_time']);
@@ -882,7 +892,7 @@ class Active extends \mia\miagroup\Lib\Service {
 
     /*
      * 消消乐活动用户发帖排行
-     * 获取前20名发帖最多的用户（没有分页效果）
+     * 获取前20发帖最多的用户（没有分页效果）
      * */
     public function getActiveUserRankList($active_id, $page = 1, $limit = 20)
     {
@@ -890,8 +900,21 @@ class Active extends \mia\miagroup\Lib\Service {
         if(empty($active_id)) {
             return $this->succ([]);
         }
+
+        // 获取活动信息
+        $condition = array('active_ids' => array($active_id));
+        $activeInfo = $this->activeModel->getActiveList(0, FALSE, array(1), $condition);
+        if(empty($activeInfo)) {
+            return $this->succ([]);
+        }
+        // 活动开始时间
+        $start_time = $activeInfo[$active_id]['start_time'];
+        $month = substr($start_time, 5, 2);
+        $day = substr($start_time, 8, 2);
+
         // 获取活动的所有帖子
-        $res = $this->activeModel->getActiveSubjectsRank($active_id);
+        $offset = $page > 1 ? ($page - 1) * $limit : 0;
+        $res = $this->activeModel->getActiveSubjectsRank($active_id, $limit, $offset);
         if(empty($res)) {
             return $this->succ([]);
         }
@@ -900,14 +923,19 @@ class Active extends \mia\miagroup\Lib\Service {
         $userService = new UserService();
         $userInfos = $userService->getUserInfoByUids($userIds)['data'];
 
+        // 获取排行榜文案
+        $config = $this->getActiveConfig('xiaoxiaole', 'active_user_rank');
+
         // 排行页面文案
-        $return['rank_desc'] = '';
+        $return['rank_desc'] = sprintf($config['rank_desc'], $month.'.'.$day);
         // 排行页面文字颜色
         $return['rank_desc_color'] = '';
         // 排行用户列表
         foreach($res as $k => $v) {
             if(!empty($userInfos[$v['user_id']])) {
                 $return['rank_users'][$k]['user_info'] = $userInfos[$v['user_id']];
+                $return['rank_users'][$k]['user_achievement_desc'] = sprintf($config['achievement_desc'], $month.'.'.$day, $v['subject_count']);
+                $return['rank_users'][$k]['koubei_num'] = $v['subject_count'];
             }
         }
 
@@ -915,7 +943,7 @@ class Active extends \mia\miagroup\Lib\Service {
     }
 
     /*
-     * 活动用户打卡明细
+     * 活动用户发帖明细
      * */
     public function getActiveUserClockDetail($active_id, $conditions = [])
     {

@@ -219,9 +219,9 @@ class Active {
     /*
      * 获取活动发帖用户排行
      * */
-    public function getActiveSubjectsRank($active_id, $page = 1, $limit = 10)
+    public function getActiveSubjectsRank($active_id, $limit = 20, $offset = 0)
     {
-        $data = $this->relationData->getActiveSubjectsRank($active_id, $page, $limit);
+        $data = $this->relationData->getActiveSubjectsRank($active_id, $limit, $offset);
         return $data;
     }
 
@@ -255,10 +255,10 @@ class Active {
     /*
      * 获取活动tab对应的item
      * */
-    public function getActiveTabItems($active_id, $tab_title)
+    public function getActiveTabItems($active_id, $tab_title, $limit = 20, $offset = 0)
     {
         $activeItemTabData = new ActiveItemTab();
-        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title);
+        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title, $limit, $offset);
         return $data;
     }
 

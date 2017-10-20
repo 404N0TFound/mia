@@ -11,7 +11,7 @@ class ActiveItemTab extends \DB_Query {
     /*
      * 获取活动对应的sku
      * */
-    public function getActiveTabItems($active_id, $tab_title)
+    public function getActiveTabItems($active_id, $tab_title, $limit = 20, $offset = 0)
     {
         if(empty($active_id) || empty($tab_title)) {
             return [];
@@ -23,7 +23,7 @@ class ActiveItemTab extends \DB_Query {
         $where[] = ['is_pre_set', 0];
         $field = 'item_id';
         $orderBy = 'id desc';
-        $res = $this->getRows($where, $field, FALSE, 0, $orderBy);
+        $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
         return $res;
     }
 
