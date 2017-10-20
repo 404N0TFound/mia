@@ -89,7 +89,8 @@ class Active extends \mia\miagroup\Lib\Service {
             }
             $activeRes['share_info'] = $shareInfo;
         }
-        
+
+        var_dump($activeRes);exit;
         return $this->succ($activeRes);
     }
     
@@ -403,10 +404,7 @@ class Active extends \mia\miagroup\Lib\Service {
             foreach($tab_list as $k => $tab) {
                 $tab_setting[$k]['tab_title'] = $tab['name'];
                 if(!empty($tab['img_url'])) {
-                    /*$imgInfo = getimagesize($tab['img_url']);
-                    $tab_setting[$k]['tab_img']['url'] = $tab['img_url'];
-                    $tab_setting[$k]['tab_img']['width'] = $imgInfo[0];
-                    $tab_setting[$k]['tab_img']['height'] = $imgInfo[1];*/
+                    $tab_setting[$k]['tab_img'] = '';
                 }
             }
         }
