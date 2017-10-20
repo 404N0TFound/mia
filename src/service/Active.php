@@ -3,7 +3,6 @@ namespace mia\miagroup\Service;
 
 use \F_Ice;
 use mia\miagroup\Model\Active as ActiveModel;
-use mia\miagroup\Model\Item;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Util\NormalUtil;

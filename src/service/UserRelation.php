@@ -142,9 +142,11 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             $sendFromUserId = $userId;//发送UserId
             $toUserId = $relationUserId;//接受UserId
             $news = new \mia\miagroup\Service\News();
-            //TODO 完全切换后关掉旧的
-            $news->addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId)['data'];
             $news->postMessage("follow", $toUserId, $sendFromUserId);
+        }
+        if (in_array($relationUserId, \F_Ice::$ins->workApp->config->get('busconf.userrelation.task_follow'))) {
+            $taskService = new GroupTask();
+            $taskService->checkFollowTask($userId);
         }
         return $this->succ($userRelation);
     }
@@ -198,8 +200,13 @@ class UserRelation extends \mia\miagroup\Lib\Service {
                 $this->userRelationModel->addRelation($userId, $relationUid, 2, 1);
             }
         }
+        if (!empty(array_intersect(\F_Ice::$ins->workApp->config->get('busconf.userrelation.task_follow'), $autoFollow))) {
+            $taskService = new GroupTask();
+            $taskService->checkFollowTask($userId);
+        }
         return $this->succ([]);
     }
+
 
 
     /**
