@@ -176,6 +176,10 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['xiaoxiaole_setting'] = $activeInfo['xiaoxiaole_setting'];
             unset($activeInfo['xiaoxiaole_setting']);
         }
+        if(!empty($activeInfo['prize_list'])) {
+            $extInfo['prize_list'] = $activeInfo['prize_list'];
+            unset($activeInfo['prize_list']);
+        }
         
         $activeInfo['ext_info'] = json_encode($extInfo);
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
@@ -245,6 +249,10 @@ class Active extends \mia\miagroup\Lib\Service {
         if(!empty($activeInfo['xiaoxiaole_setting'])) {
             $extInfo['xiaoxiaole_setting'] = $activeInfo['xiaoxiaole_setting'];
             unset($activeInfo['xiaoxiaole_setting']);
+        }
+        if(!empty($activeInfo['prize_list'])) {
+            $extInfo['prize_list'] = $activeInfo['prize_list'];
+            unset($activeInfo['prize_list']);
         }
         
         $activeInfo['ext_info'] = json_encode($extInfo);
