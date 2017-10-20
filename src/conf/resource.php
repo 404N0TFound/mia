@@ -252,6 +252,14 @@ $pool = array(
                     'port' => 6379,
                 ),
             ),
+        ),
+        'task' => array(
+            'default' => array(
+                array(
+                    'host' => '172.16.96.82',
+                    'port' => 6379,
+                ),
+            ),
         )
     ),
     'rabbitmq'=>array(

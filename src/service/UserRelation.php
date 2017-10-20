@@ -307,5 +307,33 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         $userIds = $this->userRelationModel->getFansListByUid($userId, $page, $count);
         return $this->succ($userIds);
     }
+
+    /**
+     * 获取用户关注任务，完成情况
+     */
+    public function getUserTaskFollow($userIds, $followIds)
+    {
+        if (empty($userIds) || empty($followIds)) {
+            return $this->succ([]);
+        }
+        $check_result = $this->userRelationModel->getUserFollowNum($userIds, $followIds);
+
+        $succ_num = count($followIds);
+        $return = [];
+        foreach ($userIds as $userId) {
+            if (array_key_exists($userId, $check_result) && $check_result[$userId]['num'] == $succ_num) {
+                $return[$userId] = [
+                    'succ' => 1,
+                    'time' => $check_result[$userId]['create_time']
+                ];
+            } else {
+                $return[$userId] = [
+                    'succ' => 0,
+                    'time' => ""
+                ];
+            }
+        }
+        return $this->succ($return);
+    }
 }
 

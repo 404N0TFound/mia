@@ -379,8 +379,8 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         $res = [];
-        $group_res = $this->subjectModel->getFirstSubject($userIdArr["group"], 1);
-        $koubei_res = $this->subjectModel->getFirstSubject($userIdArr["koubei"], 2);
+        $group_res = array_values($this->subjectModel->getFirstSubject($userIdArr["group"], 1));
+        $koubei_res = array_values($this->subjectModel->getFirstSubject($userIdArr["koubei"], 2));
         foreach ($subjectInfos as $val) {
             if ($val["source"] == 1 && in_array($val["id"], $group_res)) {
                 $res[$val["id"]] = 1;
@@ -391,6 +391,49 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         return $res;
+    }
+
+    /**
+     * 检测某段时间内首次发帖
+     * @param $userIds
+     * @param $source
+     * @param $timeStart
+     */
+    public function getFirstPubByTime($userIds, $source, $timeStart = "")
+    {
+        if (empty($userIds) || !in_array($source, [1, 2])) {
+            return $this->succ([]);
+        }
+        $group_res = $this->subjectModel->getFirstSubject($userIds, $source, true, $timeStart);
+        return $this->succ($group_res);
+    }
+
+    /**
+     * 检测用户是否完成首次发帖
+     * @param $userIds
+     * @param $source
+     */
+    public function checkUserFirstPub($userIds, $source)
+    {
+        if (empty($userIds) || !in_array($source, [1, 2])) {
+            return $this->succ([]);
+        }
+        $group_res = $this->subjectModel->getFirstSubject($userIds, $source, true);
+        $return = [];
+        foreach ($userIds as $userId) {
+            if (array_key_exists($userId, $group_res)) {
+                $return[$userId] = [
+                    'succ' => 1,
+                    'time' => $group_res[$userId]['time']
+                ];
+            } else {
+                $return[$userId] = [
+                    'succ' => 0,
+                    'time' => ""
+                ];
+            }
+        }
+        return $this->succ($return);
     }
 
     /**
@@ -1244,6 +1287,12 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectSetInfo['id'] = $subjectId;
         $subjectSetInfo['status'] = 1;
         $subjectSetInfo['user_info'] = $this->userService->getUserInfoByUserId($subjectSetInfo['user_id'])['data'];
+
+        //帖子异步操作，设置任务完成状态
+        $redis = new Redis();
+        $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.async_consume');
+        $redis->lpush($redis_info['key'], $subjectId . '_' . $subjectSetInfo['user_id'] . '_' . $subjectSetInfo['created']);
+        $redis->expire($redis_info['key'], $redis_info['expire_time']);
 
         // 5.4 分享信息
         $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');

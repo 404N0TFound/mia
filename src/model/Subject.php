@@ -684,12 +684,12 @@ class Subject {
         return $res;
     }
 
-    public function getFirstSubject($userIds, $source = 1)
+    public function getFirstSubject($userIds, $source = 1, $need_time = false, $timeStart = "")
     {
-        if(empty($userIds)) {
+        if (empty($userIds)) {
             return [];
         }
-        $result = $this->subjectData->getFirstSubject($userIds, $source);
+        $result = $this->subjectData->getFirstSubject($userIds, $source, $need_time, $timeStart);
         return $result;
     }
 }

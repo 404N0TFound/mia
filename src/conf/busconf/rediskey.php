@@ -20,6 +20,17 @@ $newsServicePrefix = $basePrefix . 'news:';
 //用户相关key前缀
 $userServicePrefix = $basePrefix . 'user_';
 
+
+/**
+ * 任务相关rediskey
+ */
+$taskKey = [
+    //到期时间 当天23:59:59
+    "member_task" => [
+        'key' => "member_task_%d_%d",//member_task_substr($user_id,-1)_$user_id
+    ]
+];
+
 /**
  * 消息相关rediskey
  */
@@ -231,6 +242,10 @@ $subjectKey = [
     'subject_check_resubmit' => [//帖子重复提交标记，使用List数据结构
         'key' => $subjectServicePrefix . 'check_resubmit_%s',
         'expire_time' => 3600,
+    ],
+    "async_consume" => [//帖子异步操作
+        'key' => $subjectServicePrefix ."async_consume",//list
+        'expire_time' => 86400 * 30
     ],
 ];
 

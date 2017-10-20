@@ -149,4 +149,16 @@ class UserRelation {
         $data = $this->groupSubjectUserExperts->getBatchExpertInfoByUids($userIds);
         return $data;
     }
+
+    /**
+     * 查询用户对指定一组用户的关注数量
+     */
+    public function getUserFollowNum($userIds, $followIds)
+    {
+        if (empty($userIds) || empty($followIds)) {
+            return [];
+        }
+        $res = $this->appUserRelation->getUserFollowNum($userIds, $followIds);
+        return $res;
+    }
 }

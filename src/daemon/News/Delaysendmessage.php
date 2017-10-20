@@ -10,10 +10,10 @@ class Delaysendmessage extends \FD_Daemon
     public function execute()
     {
         $redis = new Redis('news/default');
-        while (true) {
-            $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.newsKey.delay_to_write_news');
+        $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.newsKey.delay_to_write_news');
+        $key = $redis_info["key"];
 
-            $key = $redis_info["key"];
+        while (true) {
             //消息lpush压入表头的，取从表尾取
             $newsInfo = $redis->rpop($key);
 

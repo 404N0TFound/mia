@@ -372,17 +372,26 @@ class Subject extends \DB_Query {
         return $res;
     }
 
-    public function getFirstSubject($userIds, $source = 1)
+    public function getFirstSubject($userIds, $source = 1, $need_time = false, $timeStart = "")
     {
         $where = [];
         $where[] = ['user_id', $userIds];
         $where[] = ['source', $source];
-
+        if (!empty($timeStart)) {
+            $where[] = [':gt', 'created', $timeStart];
+        }
         $groupBy = array('user_id');
-        $data = $this->getRows($where, "id", FALSE, 0, "id ASC", FALSE, $groupBy);
+        $data = $this->getRows($where, "id,user_id,created", FALSE, 0, "id ASC", FALSE, $groupBy);
         $return = [];
         foreach ($data as $val) {
-            $return[] = $val["id"];
+            if ($need_time) {
+                $return[$val["user_id"]] = [
+                    "id" => $val["id"],
+                    "time" => $val["created"]
+                ];
+            } else {
+                $return[$val["user_id"]] = $val["id"];
+            }
         }
         return $return;
     }
