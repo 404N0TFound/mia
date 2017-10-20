@@ -133,6 +133,70 @@ class ActiveSubjectRelation extends \DB_Query {
         $res = $this->delete($where, FALSE, 1);
         return $res;
     }
+
+    /*
+     * 获取活动发帖用户排行
+     * */
+    public function getActiveSubjectsRank($active_id)
+    {
+        $groupBy = 'user_id';
+        $where[] = [];
+        $where[] = ['active_id', $active_id];
+        $where[] = ['status', 1];
+        $field = 'user_id, count(subject_id) as subject_count';
+        $res = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
+        return $res;
+    }
+
+    /*
+     * 获取活动用户发帖数
+     * */
+    public function getSubjectCountsByActive($active_id, $user_id = 0, $conditions = [])
+    {
+        $return = ['list' => [], 'count' => 0];
+        $where = [];
+        $where[] = ['active_id', $active_id];
+        if(!empty($user_id)) {
+            $where[] = ['user_id', $user_id];
+        }
+        if(!empty($conditions['s_time'])) {
+            // 开始时间
+            $where[] = [':ge', 'create_time', $conditions['s_time']];
+        }
+        if(!empty($conditions['e_time'])) {
+            // 结束时间
+            $where[] = [':le', 'create_time', $conditions['e_time']];
+        }
+        $field = 'subject_id';
+        $orderBy = 'id desc';
+        // 活动关联帖子数
+        $count = $this->count($where);
+        // 活动关联帖子列表
+        $res = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy);
+        // 封装数据
+        return $return;
+    }
+
+    /*
+     * 活动关联帖更新审核状态
+     * */
+    public function updateActiveSubjectVerify($setData, $id)
+    {
+        if (empty($setData)) {
+            return false;
+        }
+        $where = [];
+        $where[] = ['id', $id];
+
+        $set_data = [];
+        foreach ($setData as $k => $v) {
+            $set_data[] = [$k, $v];
+        }
+        $data = $this->update($set_data, $where);
+        return $data;
+
+
+    }
 }
 
 

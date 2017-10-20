@@ -11,6 +11,7 @@ use mia\miagroup\Data\User\GroupDoozer as GroupDoozerData;
 use mia\miagroup\Data\User\GroupUserCategory as UserCategoryData;
 use mia\miagroup\Data\User\GroupUserPermission as UserPermissionData;
 use mia\miagroup\Data\User\GroupUserRole as UserGroupData;
+use mia\miagroup\Data\User\GroupUserInfo as UserGroupInfoData;
 
 class User
 {
@@ -428,5 +429,23 @@ class User
         } else {
             return true;
         }
+    }
+
+    /*
+     * 批量获取蜜芽圈用户信息
+     * */
+    public function getGroupUserInfo($userIds)
+    {
+        $groupUserInfoData = new UserGroupInfoData();
+        $groupUserInfoData->getGroupUserInfo($userIds);
+    }
+
+    /*
+     * 新增蜜芽圈用户信息
+     * */
+    public function addGroupUserInfo($insertData)
+    {
+        $groupUserInfoData = new UserGroupInfoData();
+        $groupUserInfoData->addGroupUserInfo($insertData);
     }
 }

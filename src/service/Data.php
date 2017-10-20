@@ -36,44 +36,72 @@ class Data extends \mia\miagroup\Lib\Service
      */
     public function addDataTask($settings)
     {
-        if(!isset($settings["start_time"]) || !isset($settings["start_time"])) {
+        if(!isset($settings["start_time"]) || !isset($settings["end_time"]) || empty(trim($settings["start_time"])) || empty(trim($settings["end_time"]))) {
             return $this->error(500, '时间范围必须选择！');
         }
 
-        if(!empty($settings["all_label"])){
-            $settings["all_label"] = explode(',', $settings["all_label"]);
-            array_walk($settings["all_label"], function (&$n) {
+        $setData = [];
+        $setData["start_time"] = $settings["start_time"];
+        $setData["end_time"] = $settings["end_time"];
+        $setData["aggr_type"] = $settings["aggr_type"];
+        
+        if(isset($settings["all_label"]) && !empty(trim($settings["all_label"]))){
+            $setData["all_label"] = explode(',', $settings["all_label"]);
+            array_walk($setData["all_label"], function (&$n) {
                 $n = intval($n);
             });
             
         }
-        if(!empty($settings["without_label"])){
-            $settings["without_label"] = explode(',', $settings["without_label"]);
-            array_walk($settings["without_label"], function (&$n) {
+        if(isset($settings["without_label"]) && !empty(trim($settings["without_label"]))){
+            $setData["without_label"] = explode(',', $settings["without_label"]);
+            array_walk($setData["without_label"], function (&$n) {
                 $n = intval($n);
             });
         }
-        if(!empty($settings["one_label"])){
-            $settings["one_label"] = explode(',', $settings["one_label"]);
-            array_walk($settings["one_label"], function (&$n) {
+        if(isset($settings["one_label"]) && !empty(trim($settings["one_label"]))){
+            $setData["one_label"] = explode(',', $settings["one_label"]);
+            array_walk($setData["one_label"], function (&$n) {
                 $n = intval($n);
             });
         }
-        if(!empty($settings["subject_source"])){
-            $settings["subject_source"] = explode(',', $settings["subject_source"]);
-            array_walk($settings["subject_source"], function (&$n) {
+        if(isset($settings["subject_source"]) && !empty(trim($settings["subject_source"]))){
+            $setData["subject_source"] = explode(',', $settings["subject_source"]);
+            array_walk($setData["subject_source"], function (&$n) {
                 $n = intval($n);
             });
         }
-        if(!empty($settings["stat_cate"])){
-            $settings["stat_cate"] = explode(',', $settings["stat_cate"]);
-            array_walk($settings["stat_cate"], function (&$n) {
+        if(isset($settings["stat_cate"]) && !empty(trim($settings["stat_cate"]))){
+            $setData["stat_cate"] = explode(',', $settings["stat_cate"]);
+            array_walk($setData["stat_cate"], function (&$n) {
                 $n = intval($n);
             });
         }
+        
+        if(isset($settings["role_id"]) && intval($settings["role_id"]) > 0){
+            $setData["role_id"] = $settings["role_id"];
+        }
+        if(isset($settings["active_id"]) && intval($settings["active_id"]) > 0){
+            $setData["active_id"] = $settings["active_id"];
+        }
+        if(isset($settings["subject_status"])){
+            $setData["subject_status"] = intval($settings["subject_status"]);
+        }
+        if(isset($settings["need_title"])){
+            $setData["need_title"] = intval($settings["need_title"]);
+        }
+        if(isset($settings["need_img_url"])){
+            $setData["need_img_url"] = intval($settings["need_img_url"]);
+        }
+        if(isset($settings["need_item"])){
+            $setData["need_item"] = intval($settings["need_item"]);
+        }
+        if(isset($settings["label_num"]) && intval($settings["label_num"]) > 0){
+            $setData["label_num"] = $settings["label_num"];
+        }
+        
         $insertData = [];
         $insertData['create_time'] = date("Y-m-d H:i:s");
-        $insertData['settings'] = json_encode($settings);
+        $insertData['settings'] = json_encode($setData);
         $res = $this->dataModel->addDataTask($insertData);
         if(!$res) {
             return $this->error(500, '添加失败！');
@@ -121,6 +149,20 @@ class Data extends \mia\miagroup\Lib\Service
             return $this->succ([]);
         }
         $res = $this->dataModel->getTaskData($taskId, $page, $count);
+        return $this->succ($res);
+    }
+    
+    /**
+     * 删除任务数据
+     */
+    public function deleteTaskData($taskId, $setData)
+    {
+        if (empty($taskId)) {
+            return $this->succ([]);
+        }
+        $delData = [];
+        $delData[]=['status',$setData['status']];
+        $res = $this->dataModel->updateDataTask($taskId, $delData);
         return $this->succ($res);
     }
 

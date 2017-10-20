@@ -41,4 +41,12 @@ class Task extends \DB_Query
         }
         return $data;
     }
+    
+    public function updateDataTask($taskId,$updateData)
+    {
+        $where = [];
+        $where[] = ['id',$taskId];
+        $res = $this->update($updateData,$where);
+        return $res;
+    }
 }

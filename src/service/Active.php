@@ -3,9 +3,13 @@ namespace mia\miagroup\Service;
 
 use \F_Ice;
 use mia\miagroup\Model\Active as ActiveModel;
+use mia\miagroup\Model\Item;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Util\NormalUtil;
+use mia\miagroup\Service\ums\Active as UmsActiveService;
+use mia\miagroup\Service\Item as ItemService;
+use mia\miagroup\Service\User as UserService;
 
 class Active extends \mia\miagroup\Lib\Service {
 
@@ -126,6 +130,10 @@ class Active extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $extInfo = array();
+        if ($activeInfo['active_type'] == 'xiaoxiaole') {
+            $extInfo['is_xiaoxiaole'] = 1;
+            unset($activeInfo['active_type']);
+        }
         //参加活动的标签
         if (!empty($activeInfo['label_titles'])) {
             $labelService = new LabelService();
@@ -164,6 +172,10 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['icon_img']= $activeInfo['icon_img_info'];
             unset($activeInfo['icon_img_info']);
         }
+        if(!empty($activeInfo['xiaoxiaole_setting'])) {
+            $extInfo['xiaoxiaole_setting'] = $activeInfo['xiaoxiaole_setting'];
+            unset($activeInfo['xiaoxiaole_setting']);
+        }
         
         $activeInfo['ext_info'] = json_encode($extInfo);
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
@@ -199,6 +211,10 @@ class Active extends \mia\miagroup\Lib\Service {
             }
         }
         $extInfo = array();
+        if ($activeInfo['active_type'] == 'xiaoxiaole') {
+            $extInfo['is_xiaoxiaole'] = 1;
+            unset($activeInfo['active_type']);
+        }
         if(!empty($labels)){
             $extInfo['labels']= $labels;
             unset($activeInfo['label_titles']);
@@ -225,6 +241,10 @@ class Active extends \mia\miagroup\Lib\Service {
         if(isset($activeInfo['text_lenth_limit'])){
             $extInfo['text_lenth_limit']= $activeInfo['text_lenth_limit'];
             unset($activeInfo['text_lenth_limit']);
+        }
+        if(!empty($activeInfo['xiaoxiaole_setting'])) {
+            $extInfo['xiaoxiaole_setting'] = $activeInfo['xiaoxiaole_setting'];
+            unset($activeInfo['xiaoxiaole_setting']);
         }
         
         $activeInfo['ext_info'] = json_encode($extInfo);
@@ -347,6 +367,321 @@ class Active extends \mia\miagroup\Lib\Service {
             $activesArr[$key] = $activeInfos[$subjectActive['active_id']];
         }
         return $this->succ($activesArr);
+    }
+
+    /*
+     * 获取消消乐活动信息（展示初始化）
+     * return:当前正在进行的消消乐活动信息
+     * */
+    public function getXiaoxiaoleActiveInfo()
+    {
+        // 获取当前正在进行的活动列表
+        $activeInfo = $this->getCurrentActive()['data'];
+        $xiaoxiaole = [];
+        if(empty($activeInfo)) {
+            return $this->succ($xiaoxiaole);
+        }
+        foreach($activeInfo as $id => $active) {
+            if(isset($active['is_xiaoxiaole']) && !empty($active['is_xiaoxiaole'])) {
+                // 封装相关结构体（奖品结构体等）
+                $xiaoxiaole[$id] = $active;
+                // 处理tab展示预设（判断预设时间是否符合当前展示条件）
+                break;
+            }
+        }
+        return $this->succ($xiaoxiaole);
+    }
+
+    /*
+     * 消消乐活动参与用户展示信息
+     * */
+    public function getActiveUserClockInfo($active_id, $user_id)
+    {
+        if (empty($active_id) || empty($user_id)) {
+            return $this->succ([]);
+        }
+        $return = $conditions = $activeInfo = [];
+        $subject_count = $bean_count = 0;
+        // 获取用户信息
+        $userService = new UserService();
+        $res = $userService->getUserInfoByUids([$user_id])['data'];
+        $return['user_info'] = $res;
+
+        // 获取活动信息
+
+        // 获取活动的起止时间
+        $conditions['s_time'] = '';
+        $conditions['e_time'] = '';
+
+        // 获取用户发帖数(自然月)
+        $userSubjectsCount = $this->getActiveSubjectCounts($active_id, $user_id, $conditions);
+        if(!empty($userSubjectsCount)) {
+            $return['user_info'] = $userSubjectsCount;
+        }
+        // 获取用户蜜豆数
+        $res = $this->getActiveWinPrizeRecord($active_id, $user_id, $conditions)['data'];
+        if(!empty($res)) {
+            $bean_count = $res['prize_num'];
+        }
+        // 用户消消乐发帖数及蜜豆文案
+        $xxl_word = F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole_init')['active_prize_init'];
+        $return['init_word'] = sprintf($xxl_word, $subject_count, $bean_count);
+        // 用户打卡日历
+        $res = $this->getActiveUserClockCalendar($user_id, $active_id);
+        // 用户打卡提示（发布奖励配置）
+        return $this->succ($return);
+    }
+
+    /*
+     * 获取活动关联帖子列表及计数
+     * */
+    public function getActiveSubjectCounts($active_id, $user_id = 0, $conditions = [])
+    {
+        $result = ['subject' => [] ,'count' => 0];
+        if(empty($active_id)){
+            return $this->succ($result);
+        }
+        // 活动起止时间
+        $data = [];
+        $data['s_time'] = $conditions['s_time'];
+        $data['e_time'] = $conditions['e_time'];
+        $res = $this->activeModel->getSubjectCountsByActive($active_id, $user_id, $data);
+        // 封装数据
+        return $this->succ($result);
+    }
+
+    /*
+     * 活动关联帖奖励审核，是否中奖，蜜豆下发
+     * */
+    public function activeSubjectVerify($id, $status = 1)
+    {
+        $return = $setData = $insertData = [];
+        if(empty($active_id) || empty($subject_id)) {
+            return $this->succ($return);
+        }
+
+        // 更新帖子审核状态
+        $setData['is_qualified'] = intval($status);
+        $res = $this->activeModel->updateActiveSubjectVerify($setData, $id);
+
+        // 用户是否中奖及奖励下发
+        $res = $this->checkActiveSubjectPrize($id, $status);
+    }
+
+    /*
+     * 判断活动用户是否中奖
+     * return：中奖类型（prize_type）
+     * */
+    public function checkActiveSubjectPrize($id, $status = 1)
+    {
+        // 获取活动帖子关系信息
+        $activeSubjectInfo = [];
+        $active_id = '';
+        $user_id = '';
+        $subject_id = '';
+
+        // 写入奖励发放记录表
+        $insertData = [];
+        $insertData['active_id'] = $active_id;
+        $insertData['user_id'] = $user_id;
+        $insertData['subject_id'] = $subject_id;
+
+        // 获取活动信息（奖励信息）
+        $prizeInfo = $conditions = [];
+
+        $conditions['s_time'] = '';
+        $conditions['e_time'] = '';
+        $first = $zero = $three = $seven = false;
+
+        // 判断当前处理贴是否是0口碑贴
+        $res = $this->getZeroActiveSubject($active_id, $user_id);
+        if($res == $subject_id) {
+            // 0口碑帖处理
+            $zero = true;
+        }
+
+        // 判断当前贴是否为用户首贴
+        $res = $this->activeModel->getSubjectCountsByActive($active_id, $user_id, $conditions);
+        if(!empty($res)) {
+            $first = true;
+        }
+
+        // 判断当前贴是否符合3日打卡及7日打卡
+        $res = $this->checkActiveSatisfySubject($active_id, $user_id, $subject_id);
+
+        if($status == 1) {
+            // 下发蜜豆奖励
+            $insertData['status'] = 1;
+            if(!empty($zero)) {
+                // 下发0口碑奖励
+            }
+            if(!empty($first)) {
+                // 下发首贴奖励
+            }
+            if(!empty($three)) {
+                // 下发三日打卡奖励
+            }
+            if(!empty($three)) {
+                // 下发七日打卡奖励
+            }
+            // 新增打卡奖励记录
+            $insertData['status'] = 1;
+        }
+
+        if($status == -1) {
+            // 扣除蜜豆奖励
+            /*  0口碑：直接扣除
+                首贴：
+                day<=3
+                首贴，影响3日打卡，扣除首贴奖及3日打卡奖励
+                4<=day
+                首贴，不影响3日打卡，影响7日打卡，扣除首贴奖励及7日打卡奖励
+                首贴，不影响3日打卡，不影响7日打卡，扣除首贴奖
+                非首贴：
+                day<=3
+                影响3日打卡，扣除3日打卡奖励
+                4<=day<=7
+                不影响3日打卡，影响7日打卡，扣除7日打卡奖励
+                8<=day
+                不影响3日打卡，不影响7日打卡，影响当月打卡，扣除当月打卡奖励
+            */
+            // 新增打卡奖励记录
+        }
+
+    }
+
+    /*
+     * 活动用户对应商品首贴
+     * return subject_id
+     * */
+    public function getZeroActiveSubject($active_id, $user_id)
+    {
+        // 连表查
+    }
+
+    /*
+     * 活动用户商品展示
+     * 已发帖则下沉
+     * */
+    public function getActiveUserItemsSortList($active_id, $user_id)
+    {
+
+    }
+
+    /*
+    * 获取活动奖励蜜豆发放信息
+    * */
+    public function getActiveWinPrizeRecord($active_id, $user_id = 0, $conditions = [])
+    {
+        $return = ['prize_list' => [], 'prize_num' => 0];
+        if(empty($active_id)) {
+            return $this->succ($return);
+        }
+        // 获取用户蜜豆奖励列表
+        $res = $this->activeModel->getActiveWinPrizeRecord($active_id, $user_id, $conditions);
+        if(empty($res)) {
+            return $this->succ($return);
+        }
+        // 蜜豆奖励合并
+        $prize_num = 0;
+        foreach($res as $prizeInfo) {
+            $subject_id = $prizeInfo['subject_id'];
+            $active_id = $prizeInfo['active_id'];
+            // 关联relation查询帖子对应的审核状态（is_qualified）
+        }
+        $return['prize_list'] = $res['prize_list'];
+        $return['prize_num'] = $prize_num;
+        return $this->succ($return);
+    }
+
+    /*
+     * 消消乐活动用户打卡日历
+     * */
+    public function getActiveUserClockCalendar($active_id, $user_id)
+    {
+        if(empty($active_id) || empty($user_id)) {
+            return $this->succ([]);
+        }
+        $conditions = $calendar = [];
+        // 当月用户发帖情况
+        $subjectService =new Subject();
+        $xxl_word = F_Ice::$ins->workApp->config->get('busconf.active.active_clock_init')['active_create_init'];
+        for($i = 1; $i <= date('d'); $i ++) {
+            // 开始时间
+            $s_time = date('Y-m-'.$i, strtotime(date("Y-m-d")));
+            $conditions['s_time'] = $s_time;
+            // 结束时间
+            $conditions['e_time'] = date('Y-m').'-'.$i.' 23:59:59';
+            $userSubjectsCount = $subjectService->getBatchUserSubjectCounts([$user_id], $conditions)['data'];
+            $calendar[$i]['subject_count'] = $userSubjectsCount;
+            $calendar[$i]['date_show'] = date('m').'.'.$i;
+            $calendar[$i]['create_show'] = sprintf($xxl_word, $userSubjectsCount);
+        }
+        return $this->succ($calendar);
+    }
+
+    /**
+     * 获取活动tab关联商品的帖子信息
+     */
+    public function getActiveSubjectByItems($active_id, $tab_id) {
+        // 获取tab信息
+        $tab_info = [];
+        // 获取当前tab下的商品列表
+        $item_ids = [];
+        if(empty($item_ids)) {
+            return $this->succ([]);
+        }
+        // 批量获取商品信息
+        $result = [];
+        $itemService = new ItemService();
+        $itemInfos = $itemService->getItemList($item_ids)['data'];
+        if(empty($itemInfos)) {
+            return $this->succ([]);
+        }
+        $activeService = new UmsActiveService();
+        foreach ($itemInfos as $item_id => &$item) {
+            $params = [];
+            $params['item_id'] = $item_id;
+            $params['active_id'] = $active_id;
+            $result = $activeService->getActiveSubjectCountByItems($params)['data'];
+            if(empty($result[$item_id])) {
+                // 0贴文案，奖励50蜜豆
+                $item['zero_koubei_issue'] = '';
+            }
+            // 活动关联商品对应的发帖数
+            $item['subject_count'] = $result[$item_id];
+        }
+        return $this->succ($result);
+    }
+
+    /*
+     * 消消乐活动用户发帖排行
+     * */
+    public function getActiveUserRankList($active_id)
+    {
+        $return = [];
+        if(empty($active_id)) {
+            return $this->succ([]);
+        }
+        // 获取活动的所有帖子
+        $res = $this->activeModel->getActiveSubjectsRank($active_id);
+        // 遍历，获取排行榜
+        return $this->succ($return);
+    }
+
+    /*
+     * 活动用户打卡明细
+     * */
+    public function getActiveUserClockDetail($active_id, $conditions = [])
+    {
+        $return = [];
+        // 奖励类型，起止时间条件
+        $res = $this->getActiveWinPrizeRecord($active_id, 0, $conditions);
+        foreach ($res as $info) {
+            // 封装用户信息
+            // 查询用户优质贴数量
+        }
+        return $this->succ($return);
     }
     
 }

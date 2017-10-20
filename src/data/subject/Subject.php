@@ -72,9 +72,8 @@ class Subject extends \DB_Query {
         $where[] = ['status', 1];
         $groupBy = 'user_id';
         $field = 'user_id, count(1) as num';
-        
+
         $arrRes = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
-        
         if (!empty($arrRes)) {
             foreach ($arrRes as $res) {
                 $result[$res['user_id']] = intval($res['num']);

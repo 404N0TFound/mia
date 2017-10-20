@@ -93,7 +93,7 @@ class Task extends Service{
             $taskDataRes[$key] = $taskv;
             if(isset($taskv['result']['user_id']) && !empty($taskv['result']['user_id'])){
                 //根据用户id获取用户信息
-                $taskDataRes[$key]['user'] = $userService->getUserInfoByUids(array($taskv['result']['user_id']),0,array('count'))['data'][$taskv['result']['user_id']];
+                $taskDataRes[$key]['user'] = $userService->getUserInfoByUids(array($taskv['result']['user_id']),0,array('cell_phone','count'))['data'][$taskv['result']['user_id']];
                 //根据用户id获取收货信息
                 $taskDataRes[$key]['user_address'] = $userUmsService->getBatchUserAddress(array($taskv['result']['user_id']))['data'][$taskv['result']['user_id']];
             }

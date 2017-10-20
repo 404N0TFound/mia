@@ -4,16 +4,19 @@ namespace mia\miagroup\Model;
 use \mia\miagroup\Data\Active\Active as ActiveData;
 use \mia\miagroup\Data\Active\ActiveSubject as ActiveSubjectData;
 use \mia\miagroup\Data\Active\ActiveSubjectRelation as RelationData;
+use \mia\miagroup\Data\Active\ActivePrizeRecordData as ActivePrizeData;
 
 class Active {
     protected $activeData = null;
     protected $activeSubjectData = null;
     protected $relationData = null;
+    protected $activePrizeData = null;
 
     public function __construct() {
         $this->activeData = new ActiveData();
         $this->activeSubjectData = new ActiveSubjectData();
         $this->relationData = new RelationData();
+        $this->activePrizeData = new ActivePrizeData();
     }
     
     //活动列表第一页的取所有进行中和未开始活动
@@ -36,6 +39,11 @@ class Active {
                 $activeArr[$active['id']] = $active;
                 if(!empty($active['ext_info'])){
                     $extInfo = json_decode($active['ext_info'],true);
+                    if (isset($extInfo['is_xiaoxiaole']) && $extInfo['is_xiaoxiaole'] == 1) {
+                        $activeArr[$active['id']]['active_type'] = 'xiaoxiaole';
+                    } else {
+                        $activeArr[$active['id']]['active_type'] = 'common';
+                    }
                     if(!empty($extInfo['labels'])){
                         $activeArr[$active['id']]['labels'] = $extInfo['labels'];
                         $activeArr[$active['id']]['label_titles'] = implode(',',array_column($extInfo['labels'], 'title'));
@@ -57,6 +65,13 @@ class Active {
                     }
                     if(isset($extInfo['text_lenth_limit']) && !empty($extInfo['text_lenth_limit'])){
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
+                    }
+                    if(isset($extInfo['prize_list']) && !empty($extInfo['prize_list'])) {
+                        $activeArr[$active['id']]['prize_list'] = $extInfo['prize_list'];
+                    }
+                    // 消消乐
+                    if(isset($extInfo['xiaoxiaole_setting']) && !empty($extInfo['xiaoxiaole_setting'])) {
+                        $activeArr[$active['id']]['xiaoxiaole_setting'] = $extInfo['xiaoxiaole_setting'];
                     }
                 }
                 //如果传入了活动的进行状态，就直接返回改状态
@@ -179,5 +194,49 @@ class Active {
         $data = $this->relationData->delSubjectActiveRelation($relationData);
         return $data;
     }
-    
+
+    /*
+     * 获取活动奖励列表
+     * */
+    public function getActiveWinPrizeRecord($active_id, $user_id, $conditions = [])
+    {
+        $data = $this->activePrizeData->getActiveWinPrizeRecord($active_id, $user_id, $conditions);
+        return $data;
+    }
+
+    /*
+     * 获取活动发帖用户排行
+     * */
+    public function getActiveSubjectsRank($active_id)
+    {
+        $data = $this->relationData->getActiveSubjectsRank($active_id);
+        return $data;
+    }
+
+    /*
+     * 获取活动用户发帖数
+     * */
+    public function getSubjectCountsByActive($active_id, $user_id = 0, $conditions = [])
+    {
+        $data = $this->relationData->getSubjectCountsByActive($active_id, $user_id, $conditions);
+        return $data;
+    }
+
+    /*
+     * 活动关联帖更新审核状态
+     * */
+    public function updateActiveSubjectVerify($setData, $id)
+    {
+        $data = $this->relationData->updateActiveSubjectVerify($setData, $id);
+        return $data;
+    }
+
+    /*
+     * 新增活动奖励发放记录
+     * */
+    public function addActivePrizeRecord($insertData)
+    {
+        $data = $this->activePrizeData->addActivePrizeRecord($insertData);
+        return $data;
+    }
 }
