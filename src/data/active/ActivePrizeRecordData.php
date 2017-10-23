@@ -6,7 +6,7 @@ use Ice;
 class ActivePrizeRecordData extends \DB_Query {
 
     protected $dbResource = 'miagroup';
-    protected $tableName = 'group_active_win_prize_record';
+    protected $tableName = 'group_active_prize_record';
 
 
     /*
@@ -18,6 +18,7 @@ class ActivePrizeRecordData extends \DB_Query {
             return false;
         }
         $where = [];
+        $where[] = ['status', 1];
         $where[] = ['active_id', $active_id];
         if(!empty($user_id)) {
             $where[] = ['user_id', $user_id];
@@ -34,9 +35,8 @@ class ActivePrizeRecordData extends \DB_Query {
             // 奖励类型
             $where[] = ['prize_type', $conditions['type']];
         }
-        $field = 'prize_type,active_id,subject_id,user_id,prize_num';
-        $orderBy = 'id desc';
-        $arrRes = $this->getRows($where, $field, FALSE, 0, $orderBy);
+        $field = 'user_id, sum(prize_num) as prize_num';
+        $arrRes = $this->getRow($where, $field);
         return $arrRes;
     }
 

@@ -8,7 +8,8 @@ class ActiveSubjectRelation extends \DB_Query {
     protected $dbResource = 'miagroup';
 
     protected $tableName = 'group_subject_active_relation';
-    
+    protected $tablePointTags = 'group_subject_point_tags';
+
     /**
      * 新增活动帖子关联信息
      * @param array $relationSetInfo 活动帖子关联信息
@@ -137,25 +138,31 @@ class ActiveSubjectRelation extends \DB_Query {
     /*
      * 获取活动发帖用户排行
      * */
-    public function getActiveSubjectsRank($active_id)
+    public function getActiveSubjectsRank($active_id, $limit = 20, $offset = 0)
     {
         $groupBy = 'user_id';
-        $where[] = [];
+        $orderBy = 'count(subject_id) desc';
+        $where = [];
         $where[] = ['active_id', $active_id];
         $where[] = ['status', 1];
         $field = 'user_id, count(subject_id) as subject_count';
-        $res = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
+        $res = $this->getRows($where, $field, $limit, $offset, $orderBy, $join = FALSE, $groupBy);
         return $res;
     }
 
     /*
-     * 获取活动用户发帖数
+     * 获取活动用户发帖列表
      * */
-    public function getSubjectCountsByActive($active_id, $user_id = 0, $conditions = [])
+    public function getActiveUserSubjectList($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
     {
-        $return = ['list' => [], 'count' => 0];
+        if(empty($active_id)) {
+            return false;
+        }
         $where = [];
+        $where[] = ['status', 1];
         $where[] = ['active_id', $active_id];
+        $where[] = [':ne', 'is_qualified', -1];
+        $orderBy = 'id DESC';
         if(!empty($user_id)) {
             $where[] = ['user_id', $user_id];
         }
@@ -167,13 +174,50 @@ class ActiveSubjectRelation extends \DB_Query {
             // 结束时间
             $where[] = [':le', 'create_time', $conditions['e_time']];
         }
-        $field = 'subject_id';
+        if($conditions['type'] == 'is_first') {
+            $orderBy = 'id ASC';
+        }
+        $field = 'active_id, subject_id, is_qualified, create_time';
+        $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
+        return $res;
+    }
+
+    /*
+     * 获取活动用户发帖数
+     * */
+    public function getSubjectCountsByActive($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
+    {
+        $return = ['list' => [], 'count' => 0];
+        $where = [];
+        $where[] = ['active_id', $active_id];
+        $where[] = ['status', 1];
+        $where[] = [':ne', 'is_qualified', -1];
         $orderBy = 'id desc';
+        if(!empty($user_id)) {
+            $where[] = ['user_id', $user_id];
+        }
+        if(!empty($conditions['s_time'])) {
+            // 开始时间
+            $where[] = [':ge', 'create_time', $conditions['s_time']];
+        }
+        if(!empty($conditions['e_time'])) {
+            // 结束时间
+            $where[] = [':le', 'create_time', $conditions['e_time']];
+        }
+        if($conditions['type'] == 'user_first') {
+            // 获取个人首贴
+            $orderBy = 'id asc';
+        }
+        $field = 'subject_id';
         // 活动关联帖子数
         $count = $this->count($where);
+        if(empty($count)) {
+            return $return;
+        }
+        $return['count'] = $count;
         // 活动关联帖子列表
-        $res = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy);
-        // 封装数据
+        $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
+        $return['list'] = array_column($res, 'subject_id');
         return $return;
     }
 
@@ -194,8 +238,48 @@ class ActiveSubjectRelation extends \DB_Query {
         }
         $data = $this->update($set_data, $where);
         return $data;
+    }
 
+    /*
+     * 根据关联id批量获取关联帖子信息
+     * */
+    public function getActiveSubjectRelation($ids)
+    {
+        if(empty($ids)) {
+            return [];
+        }
+        $where = [];
+        $where[] = ['status', 1];
+        $where[] = ['id', $ids];
+        $where[] = [':ne', 'is_qualified', -1];
+        $fields = 'user_id, subject_id, active_id, is_qualified, create_time';
+        $res = $this->getRows($where, $fields);
+        return $res;
+    }
 
+    /*
+     * 获取商品对应的首帖信息
+     * */
+    public function getFirstItemSubject($item_id)
+    {
+        if(empty($item_id)) {
+            return [];
+        }
+        $where = $return = [];
+        $where[] = [$this->tablePointTags.'.item_id', $item_id];
+        $where[] = [$this->tableName.'.status', 1];
+        $where[] = [':ne', $this->tableName.'.is_qualified', -1];
+        $orderBy = $this->tablePointTags.'.id asc';
+        $fields = $this->tablePointTags.'.item_id,'.$this->tablePointTags.'.subject_id';
+        $join = 'left join '.$this->tablePointTags.' on '.$this->tableName.'.subject_id = '.$this->tablePointTags.'.subject_id';
+        $res = $this->getRows($where, $fields, 1, 0, $orderBy, $join);
+        if(empty($res)) {
+            return [];
+        }
+        foreach($res as $v) {
+            $return[$v['item_id']] = $v['subject_id'];
+        }
+        return $return;
     }
 }
 

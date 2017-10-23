@@ -437,7 +437,8 @@ class User
     public function getGroupUserInfo($userIds)
     {
         $groupUserInfoData = new UserGroupInfoData();
-        $groupUserInfoData->getGroupUserInfo($userIds);
+        $res = $groupUserInfoData->getGroupUserInfo($userIds);
+        return $res;
     }
 
     /*
@@ -446,6 +447,30 @@ class User
     public function addGroupUserInfo($insertData)
     {
         $groupUserInfoData = new UserGroupInfoData();
-        $groupUserInfoData->addGroupUserInfo($insertData);
+        $res = $groupUserInfoData->addGroupUserInfo($insertData);
+        return $res;
+    }
+
+    /*
+     * 更新蜜芽圈用户信息
+     * */
+    public function updateGroupUserInfo($user_id, $upData)
+    {
+        if (empty($user_id)) {
+            return false;
+        }
+        $groupUserInfoData = new UserGroupInfoData();
+        $res = $groupUserInfoData->updateUserGroupByRoleId($user_id, $upData);
+        return $res;
+    }
+
+    /*
+     * 批量获取蜜芽圈用户收货地址
+     * */
+    public function getGroupUserAddress($addressIds)
+    {
+        $userData = new UserData();
+        $res = $userData->getGroupUserAddress($addressIds);
+        return $res;
     }
 }

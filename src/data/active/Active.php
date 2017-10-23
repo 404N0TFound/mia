@@ -7,6 +7,7 @@ class Active extends \DB_Query {
 
     protected $dbResource = 'miagroup';
     protected $tableName = 'group_active';
+    protected $tableActiveItem = 'group_active_item_tab';
 
     /**
      * 批量查活动信息
