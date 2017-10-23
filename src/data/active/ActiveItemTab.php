@@ -30,19 +30,20 @@ class ActiveItemTab extends \DB_Query {
     /*
      * 更新预设tab预设状态
      * */
-    public function updateActiveItemPre($where, $updateData)
+    public function updateActiveItemPre($active_id, $updateData, $conditions = [])
     {
-        if(empty($where) || empty($updateData)) {
+        if(empty($active_id) || empty($updateData)) {
             return false;
         }
-        $whereData = $setData = [];
-        foreach($where as $k => $v) {
-            $whereData[] = [$k, $v];
+        $where = $setData = [];
+        $where[] = ['active_id', $active_id];
+        foreach($conditions as $k => $v) {
+            $where[] = [$k, $v];
         }
         foreach($updateData as $key=>$val){
             $setData[] = [$key,$val];
         }
-        $data = $this->update($setData, $whereData);
+        $data = $this->update($setData, $where);
         return $data;
     }
 }

@@ -32,7 +32,7 @@ class Active {
     }
     
     //获取活动列表
-    public function getActiveList($page, $limit, $status = array(1), $condition){
+    public function getActiveList($page, $limit, $status = array(1), $condition = []){
         $activeRes = $this->activeData->getBatchActiveInfos($page, $limit, $status,$condition);
         $activeArr = array();
         if(!empty($activeRes)){
@@ -210,9 +210,9 @@ class Active {
     /*
      * 获取活动用户发帖数
      * */
-    public function getActiveUserSubjectList($active_id, $user_id = 0, $page = 1, $limit = 20, $conditions = [])
+    public function getActiveUserSubjectList($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
     {
-        $data = $this->relationData->getActiveUserSubjectList($active_id, $user_id, $page, $limit, $conditions);
+        $data = $this->relationData->getActiveUserSubjectList($active_id, $user_id, $limit, $offset, $conditions);
         return $data;
     }
 
@@ -228,9 +228,9 @@ class Active {
     /*
      * 获取活动用户发帖数
      * */
-    public function getSubjectCountsByActive($active_id, $user_id = 0, $conditions = [])
+    public function getSubjectCountsByActive($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
     {
-        $data = $this->relationData->getSubjectCountsByActive($active_id, $user_id, $conditions);
+        $data = $this->relationData->getSubjectCountsByActive($active_id, $user_id, $limit, $offset, $conditions);
         return $data;
     }
 
@@ -265,10 +265,37 @@ class Active {
     /*
      * 更新活动商品预设状态
      * */
-    public function updateActiveItemPre($where, $updateData)
+    public function updateActiveItemPre($active_id, $updateData, $conditions = [])
     {
         $activeItemTabData = new ActiveItemTab();
-        $data = $activeItemTabData->updateActiveItemPre($where, $updateData);
+        $data = $activeItemTabData->updateActiveItemPre($active_id, $updateData, $conditions);
         return $data;
+    }
+
+    /*
+     * 根据关联id获取帖子信息
+     * */
+    public function getActiveSubjectRelation($ids)
+    {
+        $data = $this->relationData->getActiveSubjectRelation($ids);
+        return $data;
+    }
+
+    /*
+     * 获取活动用户关联商品0口碑帖
+     * */
+    public function getZeroActiveSubject($active_id, $user_id, $subject_id, $conditions = [])
+    {
+        $data = $this->relationData->getZeroActiveSubject($active_id, $user_id, $subject_id, $conditions);
+        return $data;
+    }
+
+    /*
+     * 获取帖子关联商品对应首贴信息
+     * */
+    public function getFirstItemSubject($item_id)
+    {
+        $res = $this->relationData->getFirstItemSubject($item_id);
+        return $res;
     }
 }

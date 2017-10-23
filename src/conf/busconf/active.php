@@ -44,16 +44,45 @@ $xiaoxiaole = array(
     'guide_init' => array(
         'active_regular_link' => '',
         'date_color' => '#ffff33',
+        'back_img' => array(
+            'url' => '',
+            'width' => '',
+            'height' => ''
+        ),
     ),
     // 活动用户打卡提示配置
     'user_show_init' => array(
         // 打卡提示
-        'mark_notice' => '已赚%d蜜豆，连续发帖%d天得%s',
+        'mark_notice' => '已赚%d蜜豆，连续发帖%d天得%s蜜豆',
         // 活动日历背景图
         'calendar_image' => array(
             'url' => 'http://img3.imgtn.bdimg.com/it/u=2422152076,2897584653&fm=27&gp=0.jpg',
             'width' => '228',
             'height' => '151',
+        ),
+        // 是否是首贴标识
+        'is_first_pub' => 1,
+        'no_first_pub' => 0,
+    ),
+    // 奖品
+    'active_issue_prize' => array(
+        //奖品类型
+        'prize_type' => array(
+            'sign' => 'sign_day',
+            'zero' => 'zero_koubei',
+            'every' => 'every_pub',
+            'other' => 'other'
+        ),
+        // 蜜豆下发奖项名称
+        'bean_issue' => array(
+
+        ),
+        // 奖励天数
+        'prize_day' => array(
+            '1' => 'one',
+            '3' => 'three',
+            '7' => 'seven',
+            '30' => 'month'
         ),
     ),
     // 活动tab商品奖励文案
@@ -65,6 +94,11 @@ $xiaoxiaole = array(
         'rank_desc' => '哇塞~ %s截至到现在，这些蜜粉发图量最多呦~',
         'rank_desc_color' => '',
         'achievement_desc' => '%s日起已发布了%d条口碑',
+    ),
+    // 活动帖子状态审核
+    'active_subject_qualified' => array(
+        'audit_failed' => -1,
+        'audit_pass' => 1,
     ),
 );
 

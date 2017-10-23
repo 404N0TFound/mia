@@ -1128,6 +1128,8 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 if($labels && !empty($labels)){
                     $return_Info['labels'] = $labels;
                 }
+
+                // 0贴确认发布文案
                 
                 //展示当前在线活动
                 $active_service = new ActiveService();
