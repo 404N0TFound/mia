@@ -580,7 +580,7 @@ class News extends \mia\miagroup\Lib\Service
             return $this->succ([]);
         }
         $create_date = '';
-        if (empty($maxSystemId)) {
+        if (empty($maxSystemTime)) {
             //新用户，获取用户的注册时间
             $userService = new userService();
             $create_date = $userService->getUserInfoByUids([$userId])["data"][$userId]["create_date"];
