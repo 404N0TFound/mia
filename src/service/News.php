@@ -703,7 +703,14 @@ class News extends \mia\miagroup\Lib\Service
      */
     public function noReadCounts($userId)
     {
-        $this->pullMessage($userId);
+        //防止同时请求，拉取两次
+        list($redis, $redis_key, $expire_time) = $this->getRedis("prevent_pull", intval($userId));
+        $prevent_pull = $redis->get($redis_key);
+        if (!$prevent_pull) {
+            $redis->set($redis_key, 1);
+            $redis->expire($redis_key, $expire_time);
+            $this->pullMessage($userId);
+        }
         $cateNum = [];
         $showCate = $this->getShowCate()['data'];
         foreach ($showCate as $cate) {
