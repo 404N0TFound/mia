@@ -163,6 +163,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
     /**
      * 自动关注
      * @param $userId
+     * @param $type string "register"注册关注  "daren"达人一键关注
      * @return mixed
      */
     public function addAutoFollow($userId, $type = 'register')
@@ -170,6 +171,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         if (empty(intval($userId))) {
             return $this->succ([]);
         }
+        $auto_operate = 1;
         switch ($type) {
             case 'register':
                 $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.userrelation.register_auto_follow');
@@ -194,10 +196,14 @@ class UserRelation extends \mia\miagroup\Lib\Service {
                     }
                 }
                 break;
+            case 'daren':
+                $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.userrelation.follow_daren');
+                $auto_operate = 0;
+                break;
         }
         if (!empty($autoFollow)) {
             foreach ($autoFollow as $relationUid) {
-                $this->userRelationModel->addRelation($userId, $relationUid, 2, 1);
+                $this->userRelationModel->addRelation($userId, $relationUid, 2, $auto_operate);
             }
         }
         if (!empty(array_intersect(\F_Ice::$ins->workApp->config->get('busconf.userrelation.task_follow'), $autoFollow))) {

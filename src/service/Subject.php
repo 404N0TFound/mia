@@ -364,6 +364,23 @@ class Subject extends \mia\miagroup\Lib\Service
         return $return;
     }
 
+
+    /**
+     * 达人最新发帖列表
+     */
+    public function darenSubjectList()
+    {
+        $darenIds = \F_Ice::$ins->workApp->config->get('busconf.subject.daren_ids');
+        //获取达人最新文章
+        $subjectIds = $this->subjectModel->getLastSubjectsByUids($darenIds);
+        $list_info = array_values($this->getBatchSubjectInfos($subjectIds)["data"]);
+        usort($list_info, function ($left, $right) use ($darenIds) {
+            return array_search($left["user_id"], $darenIds) > array_search($right["user_id"], $darenIds);
+        });
+        return $this->succ($list_info);
+    }
+
+
     /**
      * 检测是否首次发帖
      */
