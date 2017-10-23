@@ -209,7 +209,7 @@ class Active extends \mia\miagroup\Lib\Service {
             foreach($activeInfo['label_titles'] as $labelTitle){
                 $labelId = $labelService->addLabel($labelTitle)['data'];
                 $labelInfoArr['id'] = $labelId;
-                $labelInfoArr['title'] = $labelTitle['title'];
+                $labelInfoArr['title'] = $labelTitle;
                 $labels[] = $labelInfoArr;
             }
         }
