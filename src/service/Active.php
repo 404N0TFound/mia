@@ -407,6 +407,10 @@ class Active extends \mia\miagroup\Lib\Service {
         $xiaoxiaole['back_color'] = $xiaoxiaole['xiaoxiaole_setting']['backgroundcolor'];
         $xiaoxiaole['active_regular'] = $xiaoxiaole['xiaoxiaole_setting']['xiaoxiaole_rule'];
 
+        // 活动起止时间
+        $xiaoxiaole['start_time'] = date('m.d', strtotime($xiaoxiaole['start_time']));
+        $xiaoxiaole['end_time'] = date('m.d', strtotime($xiaoxiaole['end_time']));
+
         return $this->succ($xiaoxiaole);
     }
 
