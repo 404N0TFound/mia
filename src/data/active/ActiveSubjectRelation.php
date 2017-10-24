@@ -153,15 +153,17 @@ class ActiveSubjectRelation extends \DB_Query {
     /*
      * 获取活动用户发帖列表
      * */
-    public function getActiveUserSubjectList($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
+    public function getActiveUserSubjectList($active_id, $user_id = 0, $limit = 20, $offset = 0, $status = [1], $conditions = [])
     {
+        $return = ['list' => [], 'count' => 0];
         if(empty($active_id)) {
-            return false;
+            return $return;
         }
         $where = [];
-        $where[] = ['status', 1];
         $where[] = ['active_id', $active_id];
-        $where[] = [':ne', 'is_qualified', -1];
+        if (!empty($status)) {
+            $where[] = array('status', $status);
+        }
         $orderBy = 'id DESC';
         if(!empty($user_id)) {
             $where[] = ['user_id', $user_id];
@@ -174,42 +176,15 @@ class ActiveSubjectRelation extends \DB_Query {
             // 结束时间
             $where[] = [':le', 'create_time', $conditions['e_time']];
         }
-        if($conditions['type'] == 'is_first') {
+        if(!empty($conditions['is_qualified'])) {
+            // 审核状态
+            $where[] = ['is_qualified', $conditions['is_qualified']];
+        }
+        if($conditions['sort_type'] == 'user_first') {
+            // 排序状态
             $orderBy = 'id ASC';
         }
         $field = 'active_id, subject_id, is_qualified, create_time';
-        $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
-        return $res;
-    }
-
-    /*
-     * 获取活动用户发帖数
-     * */
-    public function getSubjectCountsByActive($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
-    {
-        $return = ['list' => [], 'count' => 0];
-        $where = [];
-        $where[] = ['active_id', $active_id];
-        $where[] = ['status', 1];
-        $where[] = [':ne', 'is_qualified', -1];
-        $orderBy = 'id desc';
-        if(!empty($user_id)) {
-            $where[] = ['user_id', $user_id];
-        }
-        if(!empty($conditions['s_time'])) {
-            // 开始时间
-            $where[] = [':ge', 'create_time', $conditions['s_time']];
-        }
-        if(!empty($conditions['e_time'])) {
-            // 结束时间
-            $where[] = [':le', 'create_time', $conditions['e_time']];
-        }
-        if($conditions['type'] == 'user_first') {
-            // 获取个人首贴
-            $orderBy = 'id asc';
-        }
-        $field = 'subject_id';
-        // 活动关联帖子数
         $count = $this->count($where);
         if(empty($count)) {
             return $return;
@@ -217,7 +192,7 @@ class ActiveSubjectRelation extends \DB_Query {
         $return['count'] = $count;
         // 活动关联帖子列表
         $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
-        $return['list'] = array_column($res, 'subject_id');
+        $return['list'] = $res;
         return $return;
     }
 
@@ -260,15 +235,20 @@ class ActiveSubjectRelation extends \DB_Query {
     /*
      * 获取商品对应的首帖信息
      * */
-    public function getFirstItemSubject($item_id)
+    public function getFirstItemSubject($active_id, $item_id, $status = [1], $conditions = [])
     {
-        if(empty($item_id)) {
+        if(empty($item_id) || empty($active_id)) {
             return [];
         }
         $where = $return = [];
         $where[] = [$this->tablePointTags.'.item_id', $item_id];
-        $where[] = [$this->tableName.'.status', 1];
-        $where[] = [':ne', $this->tableName.'.is_qualified', -1];
+        $where[] = [$this->tableName.'.active_id', $active_id];
+        if(!empty($status)) {
+            $where[] = [$this->tableName.'.status', $status];
+        }
+        if(!empty($conditions['is_qualified'])) {
+            $where[] = [$this->tableName.'.is_qualified', $conditions['is_qualified']];
+        }
         $orderBy = $this->tablePointTags.'.id asc';
         $fields = $this->tablePointTags.'.item_id,'.$this->tablePointTags.'.subject_id';
         $join = 'left join '.$this->tablePointTags.' on '.$this->tableName.'.subject_id = '.$this->tablePointTags.'.subject_id';

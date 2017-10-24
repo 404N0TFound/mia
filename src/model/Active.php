@@ -65,6 +65,41 @@ class Active {
                     // 消消乐标识
                     if (isset($extInfo['is_xiaoxiaole']) && $extInfo['is_xiaoxiaole'] == 1) {
                         $activeArr[$active['id']]['active_type'] = 'xiaoxiaole';
+                        // 消消乐活动的tab预设开始时间
+                        $pre_show_time = $extInfo['xiaoxiaole_setting']['pre_set_time'];
+                        // 活动默认展示tab
+                        $tab_list = $extInfo['xiaoxiaole_setting']['item_tab_list'];
+                        if(!empty($pre_show_time) && (strtotime($pre_show_time) < strtotime('now'))) {
+                            if(!empty($extInfo['xiaoxiaole_setting'])) {
+                                $xiaoxiaole_setting = $extInfo['xiaoxiaole_setting'];
+                                $extInfo['xiaoxiaole_setting']['item_tab_list'] = $xiaoxiaole_setting['pre_set_item_tab_list'];
+                                $extInfo['xiaoxiaole_setting']['pre_set_item_tab_list'] = [];
+                                $extInfo['xiaoxiaole_setting']['pre_set_time'] = '';
+                                // 更新活动ext_info
+                                $updateData['ext_info'] = $extInfo;
+                                $status = $this->updateActive($updateData, $active['id']);
+                                $tab_list = $extInfo['xiaoxiaole_setting']['item_tab_list'];
+                                $tab_pre_name_list = array_column($tab_list, 'name');
+                                if(!empty($status) && !empty($tab_pre_name_list)) {
+                                    // 更新item_tab预设状态
+                                    $updateData = ['is_pre_set' => 0];
+                                    $conditions = ['item_tab' => $tab_pre_name_list];
+                                    $this->updateActiveItemTab($active['id'], $updateData, $conditions);
+                                }
+                            }
+                        }
+                        // 封装tab数据
+                        $tab_setting = [];
+                        if(!empty($tab_list)) {
+                            foreach($tab_list as $k => $tab) {
+                                // tab 名称
+                                $tab_setting[$k] = $tab;
+                                $tab_setting[$k]['tab_title'] = $tab['name'];
+                                unset($tab_setting[$k]['name']);
+                            }
+                        }
+                        // 消消乐活动展示tab
+                        $activeArr[$active['id']]['active_tab'] = $tab_setting;
                     } else {
                         $activeArr[$active['id']]['active_type'] = 'common';
                     }
@@ -201,18 +236,18 @@ class Active {
     /*
      * 获取活动奖励列表
      * */
-    public function getActiveWinPrizeRecord($active_id, $user_id, $conditions = [])
+    public function getActiveWinPrizeRecord($active_id, $user_id, $limit = 20, $offset = 0, $conditions = [])
     {
-        $data = $this->activePrizeData->getActiveWinPrizeRecord($active_id, $user_id, $conditions);
+        $data = $this->activePrizeData->getActiveWinPrizeRecord($active_id, $user_id, $limit, $offset, $conditions);
         return $data;
     }
 
     /*
      * 获取活动用户发帖数
      * */
-    public function getActiveUserSubjectList($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
+    public function getActiveUserSubjectList($active_id, $user_id = 0, $limit = 20, $offset = 0, $status = [1], $conditions = [])
     {
-        $data = $this->relationData->getActiveUserSubjectList($active_id, $user_id, $limit, $offset, $conditions);
+        $data = $this->relationData->getActiveUserSubjectList($active_id, $user_id, $limit, $offset, $status, $conditions);
         return $data;
     }
 
@@ -222,15 +257,6 @@ class Active {
     public function getActiveSubjectsRank($active_id, $limit = 20, $offset = 0)
     {
         $data = $this->relationData->getActiveSubjectsRank($active_id, $limit, $offset);
-        return $data;
-    }
-
-    /*
-     * 获取活动用户发帖数
-     * */
-    public function getSubjectCountsByActive($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
-    {
-        $data = $this->relationData->getSubjectCountsByActive($active_id, $user_id, $limit, $offset, $conditions);
         return $data;
     }
 
@@ -265,10 +291,10 @@ class Active {
     /*
      * 更新活动商品预设状态
      * */
-    public function updateActiveItemPre($active_id, $updateData, $conditions = [])
+    public function updateActiveItemTab($active_id, $updateData, $conditions = [])
     {
         $activeItemTabData = new ActiveItemTab();
-        $data = $activeItemTabData->updateActiveItemPre($active_id, $updateData, $conditions);
+        $data = $activeItemTabData->updateActiveItemTab($active_id, $updateData, $conditions);
         return $data;
     }
 
@@ -293,9 +319,9 @@ class Active {
     /*
      * 获取帖子关联商品对应首贴信息
      * */
-    public function getFirstItemSubject($item_id)
+    public function getFirstItemSubject($active_id, $item_id, $status = [1], $conditions = [])
     {
-        $res = $this->relationData->getFirstItemSubject($item_id);
+        $res = $this->relationData->getFirstItemSubject($active_id, $item_id, $status, $conditions);
         return $res;
     }
 }
