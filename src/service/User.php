@@ -118,6 +118,9 @@ class User extends \mia\miagroup\Lib\Service {
             if (!in_array('cell_phone', $fields)) {
                 unset($userInfo['cell_phone']);
             }
+            if (in_array('ums', $fields)) {
+                $userInfo['original_username'] = $userInfo['username'];
+            }
             $userArr[$userInfo['id']] = $this->_optimizeUserInfo($userInfo, $currentUid)['data'];
         }
         return $this->succ($userArr);
