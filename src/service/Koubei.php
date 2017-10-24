@@ -1102,7 +1102,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $item_id        可选
      * @param $issue_type[default:koubei]  发布类型
      */
-    public function issueinit($order_id = 0, $item_id = 0, $issue_type = 'koubei', $active_id = 0){
+    public function issueinit($order_id = 0, $item_id = 0, $issue_type = 'koubei', $active_id = 0, $prize_type = ''){
 
         // 发布口碑传入，帖子不需要传
         if($issue_type == 'koubei') {
@@ -1129,12 +1129,28 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $return_Info['labels'] = $labels;
                 }
 
-                // 0贴确认发布文案
-                
+                // 判断当前活动是否为消消乐活动
+                $activeService = new ActiveService();
+                $active_config = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole');
+                $active_type = $active_config['active_type'];
+                $activeInfo = $activeService->getSingleActiveById($active_id)['data'];
+                $prize_type_config = $active_config['active_issue_prize']['prize_type']['zero'];
+                if($activeInfo['active_type'] == $active_type) {
+                    // 消消乐活动奖励类型
+                    if($prize_type == $prize_type_config && !empty($active_id)) {
+                        // 消除0贴确认发布文案
+                        $conditions['is_qualified'] = [0,1];
+                        $res = $activeService->getActiveItemFirstSubject($active_id, $item_id, [1], $conditions)['data'];
+                        if(!empty($res)) {
+                            // 说明当前活动下的商品没有发帖记录,写入文案
+                            $return_Info['confirm_doc'] = $active_config['active_no_zero_desc'];
+                        }
+                    }
+                }
                 //展示当前在线活动
                 $active_service = new ActiveService();
                 if($active_id > 0){
-                    $active_info[$active_id] = $active_service->getSingleActiveById($active_id)['data'];
+                    $active_info[$active_id] = $activeInfo;
                 }else{
                     $active_info = $active_service->getCurrentActive(6)['data'];
                 }
@@ -1200,6 +1216,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(empty($return_Info)) {
             $return_Info = array();
         }
+
+        var_dump($return_Info);exit;
+
         return $this->succ($return_Info);
     }
 

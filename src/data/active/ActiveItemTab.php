@@ -28,9 +28,9 @@ class ActiveItemTab extends \DB_Query {
     }
 
     /*
-     * 更新预设tab预设状态
+     * 更新活动tab对应商品
      * */
-    public function updateActiveItemPre($active_id, $updateData, $conditions = [])
+    public function updateActiveItemTab($active_id, $updateData, $conditions = [])
     {
         if(empty($active_id) || empty($updateData)) {
             return false;

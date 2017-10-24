@@ -34,6 +34,9 @@ $activeShare = array(
 //参加活动的文案
 $activeTitle = '参加活动';
 
+// 活动下发蜜豆服务类型
+$activeBeanType = 'active_add';
+
 /*
  * 消消乐活动配置
  * */
@@ -73,17 +76,6 @@ $xiaoxiaole = array(
             'every' => 'every_pub',
             'other' => 'other'
         ),
-        // 蜜豆下发奖项名称
-        'bean_issue' => array(
-
-        ),
-        // 奖励天数
-        'prize_day' => array(
-            '1' => 'one',
-            '3' => 'three',
-            '7' => 'seven',
-            '30' => 'month'
-        ),
     ),
     // 活动tab商品奖励文案
     'active_item_prize' => array(
@@ -100,6 +92,21 @@ $xiaoxiaole = array(
         'audit_failed' => -1,
         'audit_pass' => 1,
     ),
+    // 发帖明细
+    'active_subject_detail' => array(
+        'status' => array(
+            'is_fine' => '加精华',
+            'normal' => '正常',
+            'audit_failed' => '审核不通过',
+            'shield' => '已屏蔽'
+        ),
+        'is_zero_desc' => array(
+            'default' => '是否为0口碑：%s',
+            'prize_bean' => '赚了%d蜜豆'
+        ),
+    ),
+    // 活动发帖对应0贴奖文案
+    'active_no_zero_desc' => '0口碑奖的%d蜜豆已经被抢走了,确认要发布吗？',
 );
 
 

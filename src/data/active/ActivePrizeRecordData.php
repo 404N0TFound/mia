@@ -12,8 +12,9 @@ class ActivePrizeRecordData extends \DB_Query {
     /*
      * 获取活动奖励列表
      * */
-    public function getActiveWinPrizeRecord($active_id, $user_id, $conditions = [])
+    public function getActiveWinPrizeRecord($active_id, $user_id, $limit = 20, $offset = 0, $conditions = [])
     {
+        $return = ['list' => [], 'prize_num' => 0];
         if(empty($active_id)) {
             return false;
         }
@@ -31,13 +32,21 @@ class ActivePrizeRecordData extends \DB_Query {
             // 结束时间
             $where[] = [':le', 'create_time', $conditions['e_time']];
         }
-        if(!empty($conditions['type'])) {
+        if(!empty($conditions['prize_type'])) {
             // 奖励类型
-            $where[] = ['prize_type', $conditions['type']];
+            $where[] = ['prize_type', $conditions['prize_type']];
+        }
+        if(!$conditions['subject_id']) {
+            // 帖子
+            $where[] = ['subject_id', $conditions['subject_id']];
         }
         $field = 'user_id, sum(prize_num) as prize_num';
         $arrRes = $this->getRow($where, $field);
-        return $arrRes;
+        $return['prize_num'] = $arrRes['prize_num'];
+        $orderBy = 'id DESC';
+        $arrRes = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        $return['list'] = $arrRes;
+        return $return;
     }
 
     /*

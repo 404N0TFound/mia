@@ -7,7 +7,6 @@ class Active extends \DB_Query {
 
     protected $dbResource = 'miagroup';
     protected $tableName = 'group_active';
-    protected $tableActiveItem = 'group_active_item_tab';
 
     /**
      * 批量查活动信息
@@ -53,7 +52,10 @@ class Active extends \DB_Query {
         $where[] = ['id', $activeId];
         $setData = array();
         foreach($activeData as $key=>$val){
-            $setData[] = [$key,$val];
+            if (in_array($key, ['ext_info'])) {
+                $val = json_encode($val);
+            }
+            $setData[] = array($key, $val);
         }
         $data = $this->update($setData, $where);
         return $data;
