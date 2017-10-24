@@ -684,12 +684,35 @@ class Subject {
         return $res;
     }
 
-    public function getFirstSubject($userIds, $source = 1)
+    /**
+     * 获取首帖
+     * @param $userIds
+     * @param int $source
+     * @param bool $need_time
+     * @param string $timeStart
+     * @return array
+     */
+    public function getFirstSubject($userIds, $source = 1, $need_time = false, $timeStart = "")
     {
-        if(empty($userIds)) {
+        if (empty($userIds)) {
             return [];
         }
-        $result = $this->subjectData->getFirstSubject($userIds, $source);
+        $result = $this->subjectData->getFirstSubject($userIds, $source, $need_time, $timeStart);
+        return $result;
+    }
+
+
+    /**
+     * 获取最新发帖
+     * @param $userIds
+     * @return array
+     */
+    public function getLastSubjectsByUids($userIds)
+    {
+        if (empty($userIds)) {
+            return [];
+        }
+        $result = $this->subjectData->getLastSubjectsByUids($userIds);
         return $result;
     }
 }
