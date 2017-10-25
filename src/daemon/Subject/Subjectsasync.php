@@ -53,6 +53,16 @@ class Subjectsasync extends \FD_Daemon
                         $redis_task->hSet($redis_task_hash_key, "first_post", json_encode(["num" => 1, "time" => $historyInfo[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
+                //历史首次评价
+                if ($this->task_setting["first_evaluate"] === 1) {
+                    //对比历史首次评价id
+                    $historyInfo_2 = $subjectService->getFirstPubByTime([$userId], 2)["data"];
+                    if ($historyInfo_2[$userId]["id"] == $subjectId) {
+                        //首次发帖
+                        $redis_task->hSet($redis_task_hash_key, "first_evaluate", json_encode(["num" => 1, "time" => $historyInfo_2[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
+                    }
+                }
+
                 //当天首次发帖
                 if ($this->task_setting["post"] === 1) {
                     //对比当天第一次发帖id
@@ -60,6 +70,16 @@ class Subjectsasync extends \FD_Daemon
                     if ($todayInfo[$userId]["id"] == $subjectId) {
                         //首次发帖
                         $redis_task->hSet($redis_task_hash_key, "post", json_encode(["num" => 1, "time" => $todayInfo[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
+                    }
+                }
+
+                //当天首次评价
+                if ($this->task_setting["evaluate"] === 1) {
+                    //对比当天首次评价id
+                    $todayInfo_2 = $subjectService->getFirstPubByTime([$userId], 2, date("Y-m-d"))["data"];
+                    if ($todayInfo_2[$userId]["id"] == $subjectId) {
+                        //首次发帖
+                        $redis_task->hSet($redis_task_hash_key, "evaluate", json_encode(["num" => 1, "time" => $todayInfo_2[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
 
