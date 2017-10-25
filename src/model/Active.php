@@ -301,9 +301,9 @@ class Active {
     /*
      * 根据关联id获取帖子信息
      * */
-    public function getActiveSubjectRelation($ids)
+    public function getActiveSubjectRelation($ids, $status = [1], $conditions = [])
     {
-        $data = $this->relationData->getActiveSubjectRelation($ids);
+        $data = $this->relationData->getActiveSubjectRelation($ids, $status, $conditions);
         return $data;
     }
 

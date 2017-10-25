@@ -36,7 +36,7 @@ class ActivePrizeRecordData extends \DB_Query {
             // 奖励类型
             $where[] = ['prize_type', $conditions['prize_type']];
         }
-        if(!$conditions['subject_id']) {
+        if(!empty($conditions['subject_id'])) {
             // 帖子
             $where[] = ['subject_id', $conditions['subject_id']];
         }

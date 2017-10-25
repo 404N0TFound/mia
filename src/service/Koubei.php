@@ -1217,8 +1217,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $return_Info = array();
         }
 
-        var_dump($return_Info);exit;
-
         return $this->succ($return_Info);
     }
 

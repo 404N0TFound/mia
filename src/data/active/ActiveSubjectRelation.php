@@ -218,15 +218,19 @@ class ActiveSubjectRelation extends \DB_Query {
     /*
      * 根据关联id批量获取关联帖子信息
      * */
-    public function getActiveSubjectRelation($ids)
+    public function getActiveSubjectRelation($ids, $status = [1], $conditions = [])
     {
         if(empty($ids)) {
             return [];
         }
         $where = [];
-        $where[] = ['status', 1];
         $where[] = ['id', $ids];
-        $where[] = [':ne', 'is_qualified', -1];
+        if(!empty($status)) {
+            $where[] = ['status', 1];
+        }
+        if(!empty($conditions['is_qualified'])) {
+            $where[] = ['is_qualified', $conditions['is_qualified']];
+        }
         $fields = 'user_id, subject_id, active_id, is_qualified, create_time';
         $res = $this->getRows($where, $fields);
         return $res;
@@ -249,7 +253,7 @@ class ActiveSubjectRelation extends \DB_Query {
         if(!empty($conditions['is_qualified'])) {
             $where[] = [$this->tableName.'.is_qualified', $conditions['is_qualified']];
         }
-        $orderBy = $this->tablePointTags.'.id asc';
+        $orderBy = $this->tableName.'.id asc';
         $fields = $this->tablePointTags.'.item_id,'.$this->tablePointTags.'.subject_id';
         $join = 'left join '.$this->tablePointTags.' on '.$this->tableName.'.subject_id = '.$this->tablePointTags.'.subject_id';
         $res = $this->getRows($where, $fields, 1, 0, $orderBy, $join);
