@@ -63,29 +63,27 @@ class Active {
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
                     }
                     // 消消乐标识
-                    if (isset($extInfo['is_xiaoxiaole']) && $extInfo['is_xiaoxiaole'] == 1) {
+                    if (isset($extInfo['is_xiaoxiaole']) && $extInfo['is_xiaoxiaole'] == 1 && !empty($extInfo['xiaoxiaole_setting'])) {
                         $activeArr[$active['id']]['active_type'] = 'xiaoxiaole';
                         // 消消乐活动的tab预设开始时间
                         $pre_show_time = $extInfo['xiaoxiaole_setting']['pre_set_time'];
                         // 活动默认展示tab
                         $tab_list = $extInfo['xiaoxiaole_setting']['item_tab_list'];
                         if(!empty($pre_show_time) && (strtotime($pre_show_time) < strtotime('now'))) {
-                            if(!empty($extInfo['xiaoxiaole_setting'])) {
-                                $xiaoxiaole_setting = $extInfo['xiaoxiaole_setting'];
-                                $extInfo['xiaoxiaole_setting']['item_tab_list'] = $xiaoxiaole_setting['pre_set_item_tab_list'];
-                                $extInfo['xiaoxiaole_setting']['pre_set_item_tab_list'] = [];
-                                $extInfo['xiaoxiaole_setting']['pre_set_time'] = '';
-                                // 更新活动ext_info
-                                $updateData['ext_info'] = $extInfo;
-                                $status = $this->updateActive($updateData, $active['id']);
-                                $tab_list = $extInfo['xiaoxiaole_setting']['item_tab_list'];
-                                $tab_pre_name_list = array_column($tab_list, 'name');
-                                if(!empty($status) && !empty($tab_pre_name_list)) {
-                                    // 更新item_tab预设状态
-                                    $updateData = ['is_pre_set' => 0];
-                                    $conditions = ['item_tab' => $tab_pre_name_list];
-                                    $this->updateActiveItemTab($active['id'], $updateData, $conditions);
-                                }
+                            $xiaoxiaole_setting = $extInfo['xiaoxiaole_setting'];
+                            $extInfo['xiaoxiaole_setting']['item_tab_list'] = $xiaoxiaole_setting['pre_set_item_tab_list'];
+                            $extInfo['xiaoxiaole_setting']['pre_set_item_tab_list'] = [];
+                            $extInfo['xiaoxiaole_setting']['pre_set_time'] = '';
+                            // 更新活动ext_info
+                            $updateData['ext_info'] = $extInfo;
+                            $status = $this->updateActive($updateData, $active['id']);
+                            $tab_list = $extInfo['xiaoxiaole_setting']['item_tab_list'];
+                            $tab_pre_name_list = array_column($tab_list, 'name');
+                            if(!empty($status) && !empty($tab_pre_name_list)) {
+                                // 更新item_tab预设状态
+                                $updateData = ['is_pre_set' => 0];
+                                $conditions = ['item_tab' => $tab_pre_name_list];
+                                $this->updateActiveItemTab($active['id'], $updateData, $conditions);
                             }
                         }
                         // 封装tab数据
