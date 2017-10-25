@@ -9,5 +9,7 @@ $task_setting = [
     //关注
     "first_follow" => 1,//用户关注了所有的长文账号
     // 用户当日在任何一长文内点赞、收藏
-    "interact" => 1
+    "interact" => 1,
+    "first_evaluate" => 1,
+    "evaluate" => 1
 ];
