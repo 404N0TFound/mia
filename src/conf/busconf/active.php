@@ -101,8 +101,7 @@ $xiaoxiaole = array(
             'shield' => '已屏蔽'
         ),
         'is_zero_desc' => array(
-            'default' => '是否为0口碑：%s',
-            'prize_bean' => '赚了%d蜜豆'
+            'prize_bean' => '赚取蜜豆：%d蜜豆'
         ),
     ),
     // 活动发帖对应0贴奖文案
