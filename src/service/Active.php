@@ -722,7 +722,6 @@ class Active extends \mia\miagroup\Lib\Service {
             $rankLists['rank_users'][$k]['koubei_num'] = $v['subject_count'];
         }
 
-        var_dump($rankLists);exit;
         return $this->succ($rankLists);
     }
 
