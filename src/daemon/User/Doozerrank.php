@@ -39,7 +39,7 @@ class Doozerrank extends \FD_Daemon {
                 break;
         }
         //获取所有达人
-        $daren_list = $this->userCategoryData->getGroupUserIdList(false, false);
+        $daren_list = $this->userCategoryData->getGroupUserIdList('doozer', 0, false);
         //获取排行榜
         $rank_list = $this->subjectData->getPushlishRankByTime($daren_list, $start_time, $end_time, array('source' => 1), 0, 50);
         //更新排行榜
