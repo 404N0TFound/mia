@@ -184,6 +184,15 @@ $cron_list['subject_clocking_pub'] = array(
     'start_time' => '2017-09-25 18:00:00',
     'interval' => 60
 );
+//帖子异步处理
+$cron_list['subject_async'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=subjectsasync",
+    'start_time' => '2017-10-25 00:00:00',
+    'interval' => 1
+);
+
 
 /*************
  * 帖子相关结束

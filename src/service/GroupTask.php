@@ -69,7 +69,7 @@ class GroupTask extends \mia\miagroup\Lib\Service
             $redis_task = new Redis('task/default');
             $redis_task_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.taskKey.member_task');
             $redis_task_hash_key = sprintf($redis_task_info["key"], substr($userId, -1), $userId);
-            $redis_task->hSet($redis_task_hash_key, "first_follow", json_encode(["num" => 1, "time" => date("Y-m-d H:i:s"), "status" => 0, "reward" => 0]));
+            $redis_task->hSet($redis_task_hash_key, "first_follow", json_encode(["num" => 1, "time" => date("Y-m-d H:i:s"), "status" => 0, "reward" => "", "is_processed" => 1]));
             $redis_task->expireAt($redis_task_hash_key, strtotime(date('Y-m-d 23:59:59')));
         }
         \DB_Query::switchCluster($preNode);
@@ -88,7 +88,7 @@ class GroupTask extends \mia\miagroup\Lib\Service
         $redis_task_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.taskKey.member_task');
         $redis_task_hash_key = sprintf($redis_task_info["key"], substr($userId, -1), $userId);
         if (!$redis_task->hExists($redis_task_hash_key, 'interact')) {
-            $redis_task->hSet($redis_task_hash_key, "interact", json_encode(["num" => 1, "time" => date("Y-m-d H:i:s"), "status" => 0, "reward" => 0]));
+            $redis_task->hSet($redis_task_hash_key, "interact", json_encode(["num" => 1, "time" => date("Y-m-d H:i:s"), "status" => 0, "reward" => "", "is_processed" => 1]));
             $redis_task->expireAt($redis_task_hash_key, strtotime(date('Y-m-d 23:59:59')));
         }
         return $this->succ([]);

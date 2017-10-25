@@ -50,7 +50,7 @@ class Subjectsasync extends \FD_Daemon
                     $historyInfo = $subjectService->getFirstPubByTime([$userId], 1)["data"];
                     if ($historyInfo[$userId]["id"] == $subjectId) {
                         //首次发帖
-                        $redis_task->hSet($redis_task_hash_key, "first_post", json_encode(["num" => 1, "time" => $historyInfo[$userId]["time"], "status" => 0, "reward" => 0]));
+                        $redis_task->hSet($redis_task_hash_key, "first_post", json_encode(["num" => 1, "time" => $historyInfo[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
                 //当天首次发帖
@@ -59,7 +59,7 @@ class Subjectsasync extends \FD_Daemon
                     $todayInfo = $subjectService->getFirstPubByTime([$userId], 1, date("Y-m-d"))["data"];
                     if ($todayInfo[$userId]["id"] == $subjectId) {
                         //首次发帖
-                        $redis_task->hSet($redis_task_hash_key, "post", json_encode(["num" => 1, "time" => $todayInfo[$userId]["time"], "status" => 0, "reward" => 0]));
+                        $redis_task->hSet($redis_task_hash_key, "post", json_encode(["num" => 1, "time" => $todayInfo[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
 
@@ -70,7 +70,7 @@ class Subjectsasync extends \FD_Daemon
                     $subjectActiveInfo = $activeService->getActiveSubjectBySids([$subjectId], [])["data"];
                     if (!empty($subjectActiveInfo)) {
                         //参加了活动
-                        $redis_task->hSet($redis_task_hash_key, "partake", json_encode(["num" => 1, "time" => $finishTime, "status" => 0, "reward" => 0]));
+                        $redis_task->hSet($redis_task_hash_key, "partake", json_encode(["num" => 1, "time" => $finishTime, "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
                 //当天参加消消乐
@@ -82,7 +82,7 @@ class Subjectsasync extends \FD_Daemon
                         //判断活动id，是否是消消乐
                         $activeInfo = $activeService->getSingleActiveById($subjectActiveInfo[$subjectId]["active_id"], [], [])["data"];
                         if ($activeInfo["active_type"] == "xiaoxiaole") {
-                            $redis_task->hSet($redis_task_hash_key, "xiaoxiaole", json_encode(["num" => 1, "time" => $finishTime, "status" => 0, "reward" => 0]));
+                            $redis_task->hSet($redis_task_hash_key, "xiaoxiaole", json_encode(["num" => 1, "time" => $finishTime, "status" => 0, "reward" => "", "is_processed" => 1]));
                         }
                     }
                 }
