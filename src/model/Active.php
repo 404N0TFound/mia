@@ -283,10 +283,10 @@ class Active {
     /*
      * 获取活动tab对应的item
      * */
-    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0)
+    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
         $activeItemTabData = new ActiveItemTab();
-        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title, $user_id, $status, $limit, $offset);
+        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title, $user_id, $status, $limit, $offset, $conditions);
         return $data;
     }
 

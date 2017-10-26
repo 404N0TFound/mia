@@ -11,9 +11,9 @@ class ActiveItemTab extends \DB_Query {
     protected $tableActiveRelation = 'group_subject_active_relation';
 
     /*
-     * 获取活动对应的sku
+     * 获取活动用户对应的sku
      * */
-    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0)
+    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
         if(empty($active_id) || empty($tab_title)) {
             return [];
@@ -21,7 +21,9 @@ class ActiveItemTab extends \DB_Query {
         $where = [];
         $where[] = [$this->tableName.'.active_id', $active_id];
         $where[] = [$this->tableName.'.item_tab', $tab_title];
-        $where[] = [$this->tableName.'.is_pre_set', 0];
+        if(!empty($conditions['is_pre_set'])) {
+            $where[] = [$this->tableName.'.is_pre_set', $conditions['is_pre_set']];
+        }
         $where[] = [':isnull', 'tmp.subject_id'];
         if(!empty($status)) {
             $where[] = [$this->tableName.'.status', $status];
