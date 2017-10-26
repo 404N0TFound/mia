@@ -15,7 +15,7 @@ class ActiveItemTab extends \DB_Query {
      * */
     public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
-        if(empty($active_id) || empty($tab_title)) {
+        if(empty($active_id) || empty($tab_title) || empty($user_id)) {
             return [];
         }
         $where = [];
