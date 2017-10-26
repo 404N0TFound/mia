@@ -19,7 +19,6 @@ class ActivePrizeRecordData extends \DB_Query {
             return false;
         }
         $where = [];
-        $where[] = ['status', 1];
         $where[] = ['active_id', $active_id];
         if(!empty($user_id)) {
             $where[] = ['user_id', $user_id];
@@ -40,9 +39,12 @@ class ActivePrizeRecordData extends \DB_Query {
             // 帖子
             $where[] = ['subject_id', $conditions['subject_id']];
         }
-        $field = 'user_id, sum(prize_num) as prize_num';
-        $arrRes = $this->getRow($where, $field);
-        $return['prize_num'] = $arrRes['prize_num'];
+        if($conditions['type'] == 'count') {
+            $field = 'user_id, sum(prize_num) as prize_num';
+            $arrRes = $this->getRow($where, $field);
+            $return['prize_num'] = $arrRes['prize_num'];
+            return $return;
+        }
         $orderBy = 'id DESC';
         $arrRes = $this->getRows($where, '*', $limit, $offset, $orderBy);
         $return['list'] = $arrRes;

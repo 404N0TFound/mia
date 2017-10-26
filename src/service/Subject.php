@@ -1897,6 +1897,19 @@ class Subject extends \mia\miagroup\Lib\Service
                 //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
                 $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), array());
                 if (!empty($activeSubject['data'][$subjectId]) && in_array($status, array(0, -1, 1))) {
+                    // 获取活动id
+                    $active_id = $activeSubject['data'][$subjectId]['active_id'];
+                    // 获取活动信息
+                    $activeInfo = $activeService->getSingleActiveById($active_id)['data'];
+                    if(!empty($activeInfo)) {
+                        // 获取消消乐活动标识
+                        $xiaoxiaoleFlag = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole')['active_type'];
+                        if($xiaoxiaoleFlag == $activeInfo['active_type']) {
+                            // 当前贴为消消乐活动下发帖,删除需要扣除消消乐活动下发蜜豆
+                            $active_relation_id = $activeSubject['data'][$subjectId]['id'];
+                            $activeService->activeSubjectVerify([$active_relation_id], -1);
+                        }
+                    }
                     $activeService->upActiveSubject(array('status' => $status), $activeSubject['data'][$subjectId]['id']);
                 }
                 //修改帖子标签关系表status

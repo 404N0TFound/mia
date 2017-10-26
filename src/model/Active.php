@@ -84,6 +84,10 @@ class Active {
                                 $updateData = ['is_pre_set' => 0];
                                 $conditions = ['item_tab' => $tab_pre_name_list];
                                 $this->updateActiveItemTab($active['id'], $updateData, $conditions);
+                                // 更新默认tab失效状态
+                                $updateData = ['status' => 0];
+                                $conditions = ['item_tab' => $tab_pre_name_list];
+                                $this->updateActiveItemTab($active['id'], $updateData, $conditions);
                             }
                         }
                         // 封装tab数据
@@ -241,11 +245,11 @@ class Active {
     }
 
     /*
-     * 获取活动用户发帖数
+     * 获取活动用户发帖数及发帖列表
      * */
-    public function getActiveUserSubjectList($active_id, $user_id = 0, $limit = 20, $offset = 0, $status = [1], $conditions = [])
+    public function getActiveUserSubjectInfos($active_id, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
-        $data = $this->relationData->getActiveUserSubjectList($active_id, $user_id, $limit, $offset, $status, $conditions);
+        $data = $this->relationData->getActiveUserSubjectInfos($active_id, $user_id, $status, $limit, $offset, $conditions);
         return $data;
     }
 
@@ -279,10 +283,10 @@ class Active {
     /*
      * 获取活动tab对应的item
      * */
-    public function getActiveTabItems($active_id, $tab_title, $limit = 20, $offset = 0)
+    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
         $activeItemTabData = new ActiveItemTab();
-        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title, $limit, $offset);
+        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title, $user_id, $status, $limit, $offset, $conditions);
         return $data;
     }
 
@@ -306,20 +310,11 @@ class Active {
     }
 
     /*
-     * 获取活动用户关联商品0口碑帖
-     * */
-    public function getZeroActiveSubject($active_id, $user_id, $subject_id, $conditions = [])
-    {
-        $data = $this->relationData->getZeroActiveSubject($active_id, $user_id, $subject_id, $conditions);
-        return $data;
-    }
-
-    /*
      * 获取帖子关联商品对应首贴信息
      * */
-    public function getFirstItemSubject($active_id, $item_id, $status = [1], $conditions = [])
+    public function getItemSubjectRelation($active_id, $item_ids, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
-        $res = $this->relationData->getFirstItemSubject($active_id, $item_id, $status, $conditions);
+        $res = $this->relationData->getItemSubjectRelation($active_id, $item_ids, $status, $limit, $offset, $conditions);
         return $res;
     }
 }
