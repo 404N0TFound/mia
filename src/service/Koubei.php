@@ -1132,15 +1132,18 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 // 判断当前活动是否为消消乐活动
                 $activeService = new ActiveService();
                 $active_config = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole');
+                // 消消乐活动标识
                 $active_type = $active_config['active_type'];
+                // 获取活动信息
                 $activeInfo = $activeService->getSingleActiveById($active_id)['data'];
-                $prize_type_config = $active_config['active_issue_prize']['prize_type']['zero'];
+                // 获取0口碑奖励配置
+                $prize_zero_type = $active_config['active_issue_prize']['prize_type']['zero'];
                 if($activeInfo['active_type'] == $active_type) {
-                    // 消消乐活动奖励类型
-                    if($prize_type == $prize_type_config && !empty($active_id)) {
+                    if($prize_type == $prize_zero_type && !empty($active_id)) {
                         // 消除0贴确认发布文案
                         $conditions['is_qualified'] = [0,1];
-                        $res = $activeService->getActiveItemFirstSubject($active_id, $item_id, [1], $conditions)['data'];
+                        $conditions['sort_type'] = 'user_first';
+                        $res = $activeService->getActiveItemFirstSubject($active_id, $item_id, [1], 1, 1, $conditions)['data'];
                         if(!empty($res)) {
                             // 说明当前活动下的商品没有发帖记录,写入文案
                             $return_Info['confirm_doc'] = $active_config['active_no_zero_desc'];
@@ -2201,7 +2204,6 @@ class Koubei extends \mia\miagroup\Lib\Service {
             return $this->succ([]);
         }
         $item_id = (isset($koubeiData['item_id']) && intval($koubeiData['item_id']) > 0) ? intval($koubeiData['item_id']) : 0;
-        //$item_id = 198309936;
         $text = trim($koubeiData['text']);
         $content = strip_tags($text, '<span><p>');
         $char_count = mb_strlen($content, 'utf8');
@@ -2213,8 +2215,33 @@ class Koubei extends \mia\miagroup\Lib\Service {
 
         switch ($type) {
             case 'subject':
-                // 蜜豆操作
                 $return['issue_info']['mibean_reward'] = $mibean_reward;
+                // 蜜豆操作
+                $active_id = $koubeiData['subject_info']['active_id'];
+                if(!empty($active_id)) {
+                    // 获取活动信息
+                    $activeService = new ActiveService();
+                    $activeInfo = $activeService->getSingleActiveById($active_id)['data'];
+                    // 获取消消乐配置
+                    $active_config = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole');
+                    // 消消乐活动标识
+                    $active_type = $active_config['active_type'];
+                    // 发帖用户
+                    $user_id = $koubeiData['subject_info']['user_info']['user_id'];
+                    if($active_type == $activeInfo['active_type'] && !empty($user_id)) {
+                        // 获取0口碑奖励配置
+                        $prize_zero_type = $active_config['active_issue_prize']['prize_type']['zero'];
+                        $prizeList = $activeService->getActiveWinPrizeRecord($active_id, $user_id)['data']['list'];
+                        if(!empty($prizeList)) {
+                            foreach($prizeList as $prize) {
+                                if($prize['prize_type'] == $prize_zero_type && $prize['subject_id'] == $koubeiData['subject_id']) {
+                                    $return['issue_info']['mibean_reward'] = $prize['prize_num'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
                 break;
 
             default:

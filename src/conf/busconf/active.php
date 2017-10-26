@@ -76,6 +76,8 @@ $xiaoxiaole = array(
             'every' => 'every_pub',
             'other' => 'other'
         ),
+        'prize_desc' => '',
+        'prize_desc_color' => '',
     ),
     // 活动tab商品奖励文案
     'active_item_prize' => array(
