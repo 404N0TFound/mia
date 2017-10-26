@@ -371,13 +371,24 @@ class Subject extends \mia\miagroup\Lib\Service
     public function darenSubjectList()
     {
         $darenIds = \F_Ice::$ins->workApp->config->get('busconf.subject.daren_ids');
-        //获取达人最新文章
-        $subjectIds = $this->subjectModel->getLastSubjectsByUids($darenIds);
-        $list_info = array_values($this->getBatchSubjectInfos($subjectIds)["data"]);
-        usort($list_info, function ($left, $right) use ($darenIds) {
+        //获取达人最新一篇，有首页封面图的长文
+        $subjectIds = $this->subjectModel->getLastBlog($darenIds,5);
+        $list_info = array_values($this->getBatchSubjectInfos($subjectIds,0,['user_info',"index_cover"],[1])["data"]);
+
+        $lastList = [];
+        foreach ($list_info as $val) {
+            if(array_key_exists($val["user_id"],$lastList)) {
+                continue;
+            }
+            if(empty($val["index_cover"]["url"])) {
+                continue;
+            }
+            $lastList[$val["user_id"]] = $val;
+        }
+        usort($lastList, function ($left, $right) use ($darenIds) {
             return array_search($left["user_id"], $darenIds) > array_search($right["user_id"], $darenIds);
         });
-        return $this->succ($list_info);
+        return $this->succ($lastList);
     }
 
 
@@ -478,6 +489,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (in_array('first_pub', $field)) {
             $firstPubArr = $this->checkFirstPub($subjectInfos);
         }
+
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
@@ -739,6 +751,10 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (in_array('user_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['user_info'] = $userArr[$subjectInfo['user_id']];
+            }
+            //是否需要首页封面图
+            if (in_array('index_cover', $field)) {
+                $subjectRes[$subjectInfo['id']]['index_cover'] = isset($subjectInfo["ext_info"]["index_cover"]) ? NormalUtil::buildImgUrl($subjectInfo["ext_info"]["index_cover"]["url"],"original",$subjectInfo["ext_info"]["index_cover"]["width"],$subjectInfo["ext_info"]["index_cover"]["height"]) : ["url" => "", "width" => 0, "height" => 0];
             }
             if (in_array('comment', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_info'] = is_array($comments[$subjectInfo['id']]) ? array_values($comments[$subjectInfo['id']]) : array();
@@ -1881,6 +1897,19 @@ class Subject extends \mia\miagroup\Lib\Service
                 //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
                 $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), array());
                 if (!empty($activeSubject['data'][$subjectId]) && in_array($status, array(0, -1, 1))) {
+                    // 获取活动id
+                    $active_id = $activeSubject['data'][$subjectId]['active_id'];
+                    // 获取活动信息
+                    $activeInfo = $activeService->getSingleActiveById($active_id)['data'];
+                    if(!empty($activeInfo)) {
+                        // 获取消消乐活动标识
+                        $xiaoxiaoleFlag = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole')['active_type'];
+                        if($xiaoxiaoleFlag == $activeInfo['active_type']) {
+                            // 当前贴为消消乐活动下发帖,删除需要扣除消消乐活动下发蜜豆
+                            $active_relation_id = $activeSubject['data'][$subjectId]['id'];
+                            $activeService->activeSubjectVerify([$active_relation_id], -1);
+                        }
+                    }
                     $activeService->upActiveSubject(array('status' => $status), $activeSubject['data'][$subjectId]['id']);
                 }
                 //修改帖子标签关系表status

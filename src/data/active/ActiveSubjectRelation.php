@@ -151,9 +151,9 @@ class ActiveSubjectRelation extends \DB_Query {
     }
 
     /*
-     * 获取活动用户发帖列表
+     * 获取活动用户发帖列表及发帖数
      * */
-    public function getActiveUserSubjectList($active_id, $user_id = 0, $limit = 20, $offset = 0, $status = [1], $conditions = [])
+    public function getActiveUserSubjectInfos($active_id, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
         $return = ['list' => [], 'count' => 0];
         if(empty($active_id)) {
@@ -184,13 +184,13 @@ class ActiveSubjectRelation extends \DB_Query {
             // 排序状态
             $orderBy = 'id ASC';
         }
-        $field = 'active_id, subject_id, is_qualified, create_time';
-        $count = $this->count($where);
-        if(empty($count)) {
+        if($conditions['type'] == 'count') {
+            $count = $this->count($where);
+            $return['count'] = $count;
             return $return;
         }
-        $return['count'] = $count;
         // 活动关联帖子列表
+        $field = 'active_id, subject_id, is_qualified, create_time';
         $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
         $return['list'] = $res;
         return $return;
@@ -237,31 +237,37 @@ class ActiveSubjectRelation extends \DB_Query {
     }
 
     /*
-     * 获取商品对应的首帖信息
+     * 获取商品对应的帖子关联信息
      * */
-    public function getFirstItemSubject($active_id, $item_id, $status = [1], $conditions = [])
+    public function getItemSubjectRelation($active_id, $item_ids, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
-        if(empty($item_id) || empty($active_id)) {
+        if(empty($item_ids) || empty($active_id)) {
             return [];
         }
         $where = $return = [];
-        $where[] = [$this->tablePointTags.'.item_id', $item_id];
+        $where[] = [$this->tablePointTags.'.item_id', $item_ids];
         $where[] = [$this->tableName.'.active_id', $active_id];
+        $orderBy = $this->tableName.'.id DESC';
         if(!empty($status)) {
             $where[] = [$this->tableName.'.status', $status];
         }
         if(!empty($conditions['is_qualified'])) {
             $where[] = [$this->tableName.'.is_qualified', $conditions['is_qualified']];
         }
-        $orderBy = $this->tableName.'.id asc';
+        if(!empty($conditions['user_id'])) {
+            $where[] = [$this->tableName.'.user_id', $conditions['user_id']];
+        }
+        if($conditions['sort_type'] == 'user_first') {
+            $orderBy = $this->tableName.'.id ASC';
+        }
         $fields = $this->tablePointTags.'.item_id,'.$this->tablePointTags.'.subject_id';
         $join = 'left join '.$this->tablePointTags.' on '.$this->tableName.'.subject_id = '.$this->tablePointTags.'.subject_id';
-        $res = $this->getRows($where, $fields, 1, 0, $orderBy, $join);
+        $res = $this->getRows($where, $fields, $limit, $offset, $orderBy, $join);
         if(empty($res)) {
             return [];
         }
         foreach($res as $v) {
-            $return[$v['item_id']] = $v['subject_id'];
+            $return[$v['item_id']][] = $v['subject_id'];
         }
         return $return;
     }

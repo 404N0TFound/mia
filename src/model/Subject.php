@@ -715,4 +715,14 @@ class Subject {
         $result = $this->subjectData->getLastSubjectsByUids($userIds);
         return $result;
     }
+
+
+    public function getLastBlog($userIds, $num = 1)
+    {
+        if (empty($userIds)) {
+            return [];
+        }
+        $result = $this->subjectBlogData->getLastBlog($userIds, $num);
+        return $result;
+    }
 }

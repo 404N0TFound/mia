@@ -34,7 +34,7 @@ class GroupTask extends \mia\miagroup\Lib\Service
      */
     public function checkUserTaskStatus($userIds, $type)
     {
-        if (!in_array(trim($type), ["first_post", "first_follow"])) {
+        if (!in_array(trim($type), ["first_post", "first_follow","first_evaluate"])) {
             return $this->error(500, "类型错误");
         }
         $return = [];
@@ -49,6 +49,10 @@ class GroupTask extends \mia\miagroup\Lib\Service
                 $userRelationService = new UserRelationService();
                 $followIds = \F_Ice::$ins->workApp->config->get('busconf.userrelation.task_follow');
                 $return = $userRelationService->getUserTaskFollow($userIds, $followIds)['data'];
+                break;
+            case "first_evaluate":
+                $subjectService = new SubjectService();
+                $return = $subjectService->checkUserFirstPub($userIds, 2)['data'];
                 break;
         }
         return $this->succ($return);

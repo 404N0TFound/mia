@@ -7,23 +7,34 @@ class ActiveItemTab extends \DB_Query {
 
     protected $dbResource = 'miagroup';
     protected $tableName = 'group_active_item_tab';
+    protected $tablePointTags = 'group_subject_point_tags';
+    protected $tableActiveRelation = 'group_subject_active_relation';
 
     /*
-     * 获取活动对应的sku
+     * 获取活动用户对应的sku
      * */
-    public function getActiveTabItems($active_id, $tab_title, $limit = 20, $offset = 0)
+    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
-        if(empty($active_id) || empty($tab_title)) {
+        if(empty($active_id) || empty($tab_title) || empty($user_id)) {
             return [];
         }
         $where = [];
-        $where[] = ['active_id', $active_id];
-        $where[] = ['item_tab', $tab_title];
-        $where[] = ['status', 1];
-        $where[] = ['is_pre_set', 0];
-        $field = 'item_id';
-        $orderBy = 'id desc';
-        $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
+        $where[] = [$this->tableName.'.active_id', $active_id];
+        $where[] = [$this->tableName.'.item_tab', $tab_title];
+        if(!empty($conditions['is_pre_set'])) {
+            $where[] = [$this->tableName.'.is_pre_set', $conditions['is_pre_set']];
+        }
+        $where[] = [':isnull', 'tmp.subject_id'];
+        if(!empty($status)) {
+            $where[] = [$this->tableName.'.status', $status];
+        }
+        $join = 'LEFT JOIN (SELECT '.$this->tablePointTags.'.item_id,'.$this->tablePointTags.'.subject_id FROM '.$this->tablePointTags.' 
+        LEFT JOIN '.$this->tableActiveRelation.' ON '.$this->tablePointTags.'.subject_id = '.$this->tableActiveRelation.'.subject_id 
+        WHERE '.$this->tableActiveRelation.'.user_id = '.$user_id.' AND '.$this->tableActiveRelation.'.active_id = '.$active_id.' 
+        GROUP BY '.$this->tablePointTags.'.item_id) AS tmp ON '.$this->tableName.'.item_id = tmp.item_id';
+        $field = $this->tableName.'.item_id';
+        $orderBy = $this->tableName.'.id desc';
+        $res = $this->getRows($where, $field, $limit, $offset, $orderBy, $join);
         return $res;
     }
 
