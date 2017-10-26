@@ -419,28 +419,59 @@ class Active extends \mia\miagroup\Lib\Service {
     /*
      * 消消乐活动参与用户展示信息
      * */
-    public function getActiveUserClockInfo($active_id, $user_id)
+    public function getActiveUserClockInfo($active_id, $user_id = 0)
     {
-        if (empty($active_id) || empty($user_id)) {
+        if (empty($active_id)) {
             return $this->succ([]);
         }
-        $return = $conditions = $activeInfo = $calendarList = [];
-
-        // 获取用户信息
-        $userService = new UserService();
-        $userInfo = $userService->getUserInfoByUids([$user_id])['data'];
-        $return['user_info'] = $userInfo[$user_id];
+        $return = $conditions = $activeInfo = $calendarList = $handleCalendar = [];
 
         // 获取活动信息
         $activeInfo = $this->activeModel->getActiveList(1, 1, [1], ['active_ids' => [$active_id]]);
         if(empty($activeInfo)) {
             return $this->succ([]);
         }
-
-        $conditions['type'] = 'count';
-        $conditions['is_qualified'] = [0,1];
         $conditions['s_time'] = $activeInfo[$active_id]['start_time'];
         $conditions['e_time'] = $activeInfo[$active_id]['end_time'];
+
+        if(empty($user_id)) {
+            // 不登录情况
+            $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
+        }else {
+            $conditions['is_qualified'] = [0,1];
+            $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
+        }
+        // 处理日历月份展示形式
+        foreach($calendarList as $k => $calendar) {
+            if(substr($calendar['issue_date'], 8, 2) == '01') {
+                if(!empty($calendar['is_today'])) {
+                    $handleCalendar[$k]['issue_date_desc'] = '今天';
+                }else {
+                    $handleCalendar[$k]['issue_date_desc'] = substr($calendar['issue_date'], 5, 2)."月";
+                }
+            }else {
+                if(!empty($calendar['is_today'])) {
+                    $handleCalendar[$k]['issue_date_desc'] = '今天';
+                }else {
+                    $handleCalendar[$k]['issue_date_desc'] = substr($calendar['issue_date'], 8, 2);
+                }
+            }
+            $handleCalendar[$k]['subject_nums'] = $calendar['subject_nums'];
+            $handleCalendar[$k]['is_today'] = $calendar['is_today'];
+            $handleCalendar[$k]['issue_date'] = $calendar['issue_date'];
+        }
+        $return['mark_calendar'] = $handleCalendar;
+
+        if(empty($user_id)) {
+            return $this->succ($return);
+        }
+
+        // 获取用户信息
+        $userService = new UserService();
+        $userInfo = $userService->getUserInfoByUids([$user_id])['data'];
+        $return['user_info'] = $userInfo[$user_id];
+
+        $conditions['type'] = 'count';
         // 获取用户活动期间发帖数(有效发帖数)
         $res = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [1], FALSE, 0, $conditions);
         $return['koubei_num'] = $res['count'];
@@ -458,31 +489,6 @@ class Active extends \mia\miagroup\Lib\Service {
         // 获取用户蜜豆数
         $res = $this->getActiveWinPrizeRecord($active_id, $user_id, 1, 0, $conditions)['data'];
         $return['mibean_num'] = $res['prize_num'];
-
-        // 用户打卡日历
-        $handleCalendar = [];
-        unset($conditions['type']);
-        $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
-
-        // 处理日历月份展示形式
-        foreach($calendarList as $k => $calendar) {
-            if(substr($calendar['issue_date'], 8, 2) == '01') {
-                if(!empty($calendar['is_today'])) {
-                    $handleCalendar[$k]['issue_date'] = '今天';
-                }else {
-                    $handleCalendar[$k]['issue_date'] = substr($calendar['issue_date'], 5, 2)."月";
-                }
-            }else {
-                if(!empty($calendar['is_today'])) {
-                    $handleCalendar[$k]['issue_date'] = '今天';
-                }else {
-                    $handleCalendar[$k]['issue_date'] = substr($calendar['issue_date'], 8, 2);
-                }
-            }
-            $handleCalendar[$k]['subject_nums'] = $calendar['subject_nums'];
-            $handleCalendar[$k]['is_today'] = $calendar['is_today'];
-        }
-        $return['mark_calendar'] = $handleCalendar;
 
         // 用户活动连续打卡标识
         $calendarNum = 0;
@@ -630,7 +636,7 @@ class Active extends \mia\miagroup\Lib\Service {
     /*
      * 获取活动奖品列表
      * */
-    public function getActivePrizeList($active_id, $user_id, $page = 1, $limit = 8)
+    public function getActivePrizeList($active_id, $user_id = 0, $page = 1, $limit = 8)
     {
         $active_prize = [];
         if(empty($active_id)) {
@@ -980,6 +986,7 @@ class Active extends \mia\miagroup\Lib\Service {
                         // 奖励列表
                         $insertData['prize_type'] = $prize_type;
                         $insertData['prize_num'] = $prize['awards_num'];
+                        $insertData['create_time'] = date('Y-m-d H:i:s');
                         $res = $this->activeModel->addActivePrizeRecord($insertData);
                     }
                 }
@@ -1054,6 +1061,7 @@ class Active extends \mia\miagroup\Lib\Service {
                                 if($data['code'] == 200) {
                                     $insertData['prize_type'] = $prize_type;
                                     $insertData['prize_num'] = '-'.$prize['awards_num'];
+                                    $insertData['create_time'] = date('Y-m-d H:i:s');
                                     $res = $this->activeModel->addActivePrizeRecord($insertData);
                                 }
                             }
@@ -1107,7 +1115,7 @@ class Active extends \mia\miagroup\Lib\Service {
      * */
     public function getActiveUserClockCalendar($active_id, $user_id = 0, $conditions = [])
     {
-        if(empty($active_id) || empty($user_id)) {
+        if(empty($active_id)) {
             return $this->succ([]);
         }
         $calendar = $effect = [];
@@ -1118,7 +1126,7 @@ class Active extends \mia\miagroup\Lib\Service {
         // 查询用户总发帖列表
         $page = 1;
         $limit = 1000;
-        while (true) {
+        while ($user_id) {
             $offset = $page > 1 ? ($page - 1) * $limit : 0;
             $list = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [1], $limit, $offset, $conditions);
             if(empty($list)) {
