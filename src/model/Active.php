@@ -281,7 +281,7 @@ class Active {
     }
 
     /*
-     * 获取活动tab对应的item
+     * 获取活动tab下用户展示item列表
      * */
     public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
@@ -310,7 +310,7 @@ class Active {
     }
 
     /*
-     * 获取帖子关联商品对应首贴信息
+     * 获取帖子商品关联信息
      * */
     public function getItemSubjectRelation($active_id, $item_ids, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
