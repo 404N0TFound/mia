@@ -20,8 +20,8 @@ class ActiveItemTab extends \DB_Query {
         }
         $where = [];
         $where[] = [$this->tableName.'.active_id', $active_id];
-        if(!empty($conditions['tab_title'])) {
-            $where[] = [$this->tableName.'.item_tab', $conditions['tab_title']];
+        if(!empty($conditions['item_tab'])) {
+            $where[] = [$this->tableName.'.item_tab', $conditions['item_tab']];
         }
         if(!empty($conditions['is_pre_set'])) {
             $where[] = [$this->tableName.'.is_pre_set', $conditions['is_pre_set']];
@@ -73,8 +73,8 @@ class ActiveItemTab extends \DB_Query {
         if(!empty($status)) {
             $where[] = ['status', $status];
         }
-        if(!empty($conditions['tab_title'])) {
-            $where[] = ['item_tab', $conditions['tab_title']];
+        if(!empty($conditions['item_tab'])) {
+            $where[] = ['item_tab', $conditions['item_tab']];
         }
         if(!empty($conditions['is_pre_set'])) {
             $where[] = ['is_pre_set', $conditions['is_pre_set']];
