@@ -46,12 +46,8 @@ $xiaoxiaole = array(
     // 活动引导配置
     'guide_init' => array(
         'active_regular_link' => '',
-        'date_color' => '#ffff33',
-        'back_img' => array(
-            'url' => '',
-            'width' => '',
-            'height' => ''
-        ),
+        'date_color' => '#FFE63F',
+        'back_color' => '#8ED6FF',
     ),
     // 活动用户打卡提示配置
     'user_show_init' => array(
@@ -76,8 +72,7 @@ $xiaoxiaole = array(
             'every' => 'every_pub',
             'other' => 'other'
         ),
-        'prize_desc' => '',
-        'prize_desc_color' => '',
+        'prize_desc_color' => '#2A69B4',
     ),
     // 活动tab商品奖励文案
     'active_item_prize' => array(

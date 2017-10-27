@@ -405,8 +405,8 @@ class Active extends \mia\miagroup\Lib\Service {
         $xiaoxiaole['date_color'] = $active_guide['date_color'];
         $xiaoxiaole['active_regular_link'] = $active_guide['active_regular_link'];
         $xiaoxiaole['active_award'] = $xiaoxiaole['prize_list'];
-        $xiaoxiaole['back_img'] = $active_guide['back_img'];
-        $xiaoxiaole['back_color'] = $xiaoxiaole['xiaoxiaole_setting']['backgroundcolor'];
+        $xiaoxiaole['back_img'] = $xiaoxiaole['xiaoxiaole_setting']['striation_img_url'];
+        $xiaoxiaole['back_color'] = $active_guide['back_color'];
         $xiaoxiaole['active_regular'] = $xiaoxiaole['xiaoxiaole_setting']['xiaoxiaole_rule'];
 
         // 活动起止时间
@@ -654,8 +654,8 @@ class Active extends \mia\miagroup\Lib\Service {
         }
 
         $prize_config = $this->getActiveConfig('xiaoxiaole', 'active_issue_prize');
-        // 奖品页面设置
-        $active_prize['prize_desc'] = $prize_config['prize_desc'];
+        // 奖品页面文案
+        $active_prize['prize_desc'] = $activeInfo[$active_id]['xiaoxiaole_setting']['xiaoxiaole_rule'];
         // 奖品页面文字颜色设置
         $active_prize['prize_desc_color'] = $prize_config['prize_desc_color'];
 
@@ -809,19 +809,27 @@ class Active extends \mia\miagroup\Lib\Service {
     public function activeSubjectVerify($ids, $status = 1)
     {
         $return = ['status' => false];
+        $update_status = 0;
         $setData = $insertData = [];
         $ids = is_array($ids) ? $ids : [$ids];
         if(empty($ids)) {
             return $this->succ($return);
         }
-        // 更新帖子审核状态
+
         $setData['is_qualified'] = intval($status);
-        $res = $this->activeModel->updateActiveSubjectVerify($setData, $ids);
-        if(empty($res)) {
-            return $this->succ($return);
+        $verify_status = $this->getActiveConfig('xiaoxiaole', 'active_subject_qualified');
+        if(intval($status) == $verify_status['audit_pass']) {
+            // 更新关联表审核状态
+            $update_status = $this->activeModel->updateActiveSubjectVerify($setData, $ids);
         }
-        $res = $this->checkActiveSubjectPrize($ids, $status)['data'];
-        if(!empty($res)) {
+        if(intval($status) == $verify_status['audit_failed']) {
+            // 判断扣除蜜豆
+            $res = $this->checkActiveSubjectPrize($ids, $status)['data'];
+            if(!empty($res['status'])) {
+                $update_status = $this->activeModel->updateActiveSubjectVerify($setData, $ids);
+            }
+        }
+        if(!empty($update_status)) {
             $return['status'] = true;
         }
         return $this->succ($return);
@@ -1057,22 +1065,23 @@ class Active extends \mia\miagroup\Lib\Service {
                                 }
                             }
                         }
-                        // 扣除蜜豆操作
-                        if(!empty($prizeDelMiBean)) {
-                            foreach($prizeDelMiBean as $prize_type => $v) {
-                                // 蜜豆扣除
-                                $param['mibean'] =  '-'.$prize['awards_num'];
-                                $data = $mibean->sub($param);
-                                if($data['code'] == 200) {
-                                    $insertData['prize_type'] = $prize_type;
-                                    $insertData['prize_num'] = '-'.$prize['awards_num'];
-                                    $insertData['create_time'] = date('Y-m-d H:i:s');
-                                    $res = $this->activeModel->addActivePrizeRecord($insertData);
-                                }
+                    }
+
+                    // 扣除蜜豆操作
+                    if(!empty($prizeDelMiBean)) {
+                        foreach($prizeDelMiBean as $prize_type => $prize) {
+                            // 蜜豆扣除
+                            $param['mibean'] =  '-'.$prize['awards_num'];
+                            $data = $mibean->sub($param);
+                            if($data['code'] == 200) {
+                                $insertData['prize_type'] = $prize_type;
+                                $insertData['prize_num'] = '-'.$prize['awards_num'];
+                                $insertData['create_time'] = date('Y-m-d H:i:s');
+                                $res = $this->activeModel->addActivePrizeRecord($insertData);
                             }
-                            if(!empty($res)) {
-                                $return['status'] = true;
-                            }
+                        }
+                        if(!empty($res)) {
+                            $return['status'] = true;
                         }
                     }
                 }
