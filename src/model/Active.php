@@ -283,10 +283,20 @@ class Active {
     /*
      * 获取活动tab下用户展示item列表
      * */
-    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
+    public function getActiveUserTabItems($active_id, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
         $activeItemTabData = new ActiveItemTab();
-        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title, $user_id, $status, $limit, $offset, $conditions);
+        $data = $activeItemTabData->getActiveUserTabItems($active_id, $user_id, $status, $limit, $offset, $conditions);
+        return $data;
+    }
+
+    /*
+     * 获取活动tab关联item列表
+     * */
+    public function getActiveTabItems($active_id, $status = [1], $limit, $offset, $conditions)
+    {
+        $activeItemTabData = new ActiveItemTab();
+        $data = $activeItemTabData->getActiveTabItems($active_id, $status, $limit, $offset, $conditions);
         return $data;
     }
 

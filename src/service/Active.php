@@ -586,10 +586,15 @@ class Active extends \mia\miagroup\Lib\Service {
 
         $offset = $page > 1 ? ($page - 1) * $limit : 0;
         // 获取tab对应的item_id
-        $conditions['s_time'] = $activeInfo[$active_id]['start_time'];
-        $conditions['e_time'] = $activeInfo[$active_id]['end_time'];
         $conditions['is_pre_set'] = 0;
-        $tabItemList = $this->activeModel->getActiveTabItems($active_id, $tab_title, $user_id, [1], $limit, $offset, $conditions);
+        $conditions['item_tab'] = $tab_title;
+        if(empty($user_id)) {
+            $tabItemList = $this->activeModel->getActiveTabItems($active_id, [1], $limit, $offset, $conditions);
+        }else {
+            $conditions['s_time'] = $activeInfo[$active_id]['start_time'];
+            $conditions['e_time'] = $activeInfo[$active_id]['end_time'];
+            $tabItemList = $this->activeModel->getActiveUserTabItems($active_id, $user_id, [1], $limit, $offset, $conditions);
+        }
         if (empty($tabItemList)) {
             return $this->succ($tab_items);
         }
