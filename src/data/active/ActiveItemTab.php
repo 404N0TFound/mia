@@ -79,7 +79,7 @@ class ActiveItemTab extends \DB_Query {
         if(!empty($conditions['is_pre_set'])) {
             $where[] = ['is_pre_set', $conditions['is_pre_set']];
         }
-        $field = 'id, active_id, item_tab, item_tab, item_id, is_pre_set, status';
+        $field = 'id, active_id, item_tab, item_id, is_pre_set, status';
         $orderBy = 'id desc';
         $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
         return $res;
