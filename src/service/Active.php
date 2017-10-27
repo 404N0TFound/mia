@@ -663,10 +663,6 @@ class Active extends \mia\miagroup\Lib\Service {
         $prizeList = [];
         $prizeInfos = $activeInfo[$active_id]['prize_list'];
 
-        // 奖品列表分页
-        $offset = $page > 1 ? ($page - 1) * $limit : 0;
-        $prizeInfos  = array_slice($prizeInfos, $offset, $limit);
-
         foreach($prizeInfos as $k => $info) {
             // 奖项名称
             $prizeList[$k]['prize_name'] = $info['prize_type_name'];
@@ -675,7 +671,7 @@ class Active extends \mia\miagroup\Lib\Service {
             // 奖品名
             $prizeList[$k]['award_name'] = $info['prize_name'];
             // 奖品图片结构体
-            $prizeList[$k]['award_img'] = $info['prize_img'];
+            $prizeList[$k]['award_img'] = $info['img_url'];
         }
         $active_prize['prizes'] = $prizeList;
 
@@ -784,7 +780,7 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         // 获取帖子信息(查询所有状态的帖子信息)
         $subjectService = new SubjectService();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, ['user_info', 'count', 'content_format', 'album'], [])['data'];
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, ['user_info', 'count', 'content_format', 'album', 'item'], [])['data'];
 
         // 活动帖子状态设置
         $active_subject_status = $this->getActiveConfig('xiaoxiaole', 'active_subject_detail');
@@ -798,7 +794,7 @@ class Active extends \mia\miagroup\Lib\Service {
             // 帖子赚取蜜豆文案
             $subject['mibean_num'] = sprintf($active_subject_status['prize_bean'], $res['prize_num']);
         }
-        $return['subject_lists'] = array_values($res);
+        $return['subject_lists'] = array_values($subjectInfos);
 
         return $this->succ($return);
     }
@@ -984,9 +980,6 @@ class Active extends \mia\miagroup\Lib\Service {
                         }
                     }
                 }
-            }
-            if(empty($prizeSetMiBean)) {
-                continue;
             }
 
             // 蜜豆下发

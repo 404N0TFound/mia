@@ -45,7 +45,7 @@ $xiaoxiaole = array(
     'active_type' => 'xiaoxiaole',
     // 活动引导配置
     'guide_init' => array(
-        'active_regular_link' => '',
+        'active_regular_link' => 'https://m.mia.com/special/module/index/23263/wap/',
         'date_color' => '#FFE63F',
         'back_color' => '#8ED6FF',
     ),
@@ -54,11 +54,7 @@ $xiaoxiaole = array(
         // 打卡提示
         'mark_notice' => '已赚%d蜜豆，连续发帖%d天得%s蜜豆',
         // 活动日历背景图
-        'calendar_image' => array(
-            'url' => 'http://img3.imgtn.bdimg.com/it/u=2422152076,2897584653&fm=27&gp=0.jpg',
-            'width' => '228',
-            'height' => '151',
-        ),
+        'calendar_image' => 'https://img05.miyabaobei.com/d1/p5/2017/10/23/64/7a/647a6902d9ce9d8d53c0ca8c8df89a4c435801124.png',
         // 是否是首贴标识
         'is_first_pub' => 1,
         'no_first_pub' => 0,
