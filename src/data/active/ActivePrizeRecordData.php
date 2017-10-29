@@ -12,13 +12,14 @@ class ActivePrizeRecordData extends \DB_Query {
     /*
      * 获取活动奖励列表
      * */
-    public function getActiveWinPrizeRecord($active_id, $user_id, $limit = 20, $offset = 0, $conditions = [])
+    public function getActiveWinPrizeRecord($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
     {
-        $return = ['list' => [], 'prize_num' => 0];
+        $return = ['list' => [], 'prize_num_list' => []];
         if(empty($active_id)) {
             return false;
         }
         $where = [];
+        $groupBy = FALSE;
         $where[] = ['active_id', $active_id];
         if(!empty($user_id)) {
             $where[] = ['user_id', $user_id];
@@ -39,14 +40,19 @@ class ActivePrizeRecordData extends \DB_Query {
             // 帖子
             $where[] = ['subject_id', $conditions['subject_id']];
         }
+        if(!empty($conditions['group_by'])) {
+            // 分组
+            $groupBy = $conditions['group_by'];
+        }
         if($conditions['type'] == 'count') {
-            $field = 'user_id, sum(prize_num) as prize_num';
-            $arrRes = $this->getRow($where, $field);
-            $return['prize_num'] = $arrRes['prize_num'];
+            $field = 'user_id, sum(prize_num) as prize_num, subject_id';
+            $arrRes = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
+            $return['prize_num_list'] = $arrRes;
             return $return;
         }
         $orderBy = 'id DESC';
-        $arrRes = $this->getRows($where, '*', $limit, $offset, $orderBy);
+        $field = 'active_id, user_id, subject_id, prize_type, prize_num';
+        $arrRes = $this->getRows($where, $field, $limit, $offset, $orderBy);
         $return['list'] = $arrRes;
         return $return;
     }

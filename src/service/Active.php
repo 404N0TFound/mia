@@ -488,7 +488,7 @@ class Active extends \mia\miagroup\Lib\Service {
 
         // 获取用户蜜豆数
         $res = $this->getActiveWinPrizeRecord($active_id, $user_id, 1, 0, $conditions)['data'];
-        $return['mibean_num'] = $res['prize_num'];
+        $return['mibean_num'] = $res['prize_num_list'][0]['prize_num'];
 
         // 用户活动连续打卡标识
         $calendarNum = 0;
@@ -538,7 +538,6 @@ class Active extends \mia\miagroup\Lib\Service {
         for($i = 0; $i < count($signDays) ; $i++) {
             if($maxClockDay < $signDays[$i]) {
                 // 用户打卡最大天数比设置的最小天数还要小
-                $return['apart_days'] = $signDays[$i] - max($continue_day_count);
                 if(!empty($prize_sign_list[$signDays[$i]])) {
                     $apart_days = $prize_sign_list[$signDays[$i]]['sign_day'] - max($continue_day_count);
                     $sign_day = $prize_sign_list[$signDays[$i]]['sign_day'];
@@ -547,22 +546,19 @@ class Active extends \mia\miagroup\Lib\Service {
                 break;
             }
             if($maxClockDay >= $signDays[$i] && $maxClockDay < $signDays[$i+1]) {
-                foreach($prize_sign_list as $prize) {
-                    if($prize['sign_day'] == $signDays[$i+1]) {
-                        $apart_days = $signDays[$i+1] - max($continue_day_count);
-                        $sign_day = $prize['sign_day'];
-                        $awards_num = $prize['awards_num'];
-                    }
-                    // 满足条件，直接跳出最外层循环
-                    break 2;
+                if(!empty($prize_sign_list[$signDays[$i+1]])) {
+                    $apart_days = $prize_sign_list[$signDays[$i+1]]['sign_day'] - max($continue_day_count);
+                    $sign_day = $prize_sign_list[$signDays[$i+1]]['sign_day'];
+                    $awards_num = $prize_sign_list[$signDays[$i+1]]['awards_num'];
                 }
+                break;
             }
         }
         if(!empty($apart_days)) {
             // 打卡相隔天数
             $return['apart_days'] = $apart_days;
             // 打卡提示
-            $return['mark_notice'] = sprintf($active_config['mark_notice'], $return['mibean_num'], $sign_day, $awards_num);
+            $return['mark_notice'] = sprintf($active_config['mark_notice'], $sign_day, $awards_num);
         }
 
         return $this->succ($return);
@@ -625,9 +621,9 @@ class Active extends \mia\miagroup\Lib\Service {
         $active_item_prize = $this->getActiveConfig('xiaoxiaole', 'active_item_prize');
         foreach ($itemInfos as $item_id => &$item) {
             if (empty($itemSubjectCounts[$item_id])) {
-                // 奖励类型
+                // 0口碑奖励类型
                 $item['prize_type'] = $zero_prize['prize_type'];
-                // 奖励文案
+                // 0口碑奖励文案
                 $item['prize_desc'] = sprintf($active_item_prize['prize_word'], $zero_prize['awards_num']);
             }
             // 发帖数
@@ -785,14 +781,22 @@ class Active extends \mia\miagroup\Lib\Service {
         // 活动帖子状态设置
         $active_subject_status = $this->getActiveConfig('xiaoxiaole', 'active_subject_detail');
 
+        // 帖子得奖明细
+        $conditions['subject_id'] = $subjectIds;
+        $conditions['type'] = 'count';
+        $conditions['group_by'] = 'subject_id';
+        $res = $this->activeModel->getActiveWinPrizeRecord($active_id, $user_id, FALSE, 0, $conditions);
+        $prize_subject_list = [];
+        if(!empty($res['prize_num_list'])) {
+            foreach($res['prize_num_list'] as $v) {
+                $prize_subject_list[$v['subject_id']] = $v;
+            }
+        }
+
         foreach($subjectInfos as $subject_id => &$subject) {
-            // 得奖明细
-            $conditions['prize_type'] = $prize_config['prize_type']['zero'];
-            $conditions['subject_id'] = $subject_id;
-            $conditions['type'] = 'count';
-            $res = $this->activeModel->getActiveWinPrizeRecord($active_id, $user_id, FALSE, 0, $conditions);
             // 帖子赚取蜜豆文案
-            $subject['mibean_num'] = sprintf($active_subject_status['prize_bean'], $res['prize_num']);
+            $bean_num = $prize_subject_list[$subject_id]['prize_num'] ? $prize_subject_list[$subject_id]['prize_num'] : 0;
+            $subject['mibean_num'] = sprintf($active_subject_status['prize_bean'], $bean_num);
         }
         $return['subject_lists'] = array_values($subjectInfos);
 
@@ -1101,7 +1105,7 @@ class Active extends \mia\miagroup\Lib\Service {
     * */
     public function getActiveWinPrizeRecord($active_id, $user_id = 0, $page = 1, $limit = 20, $conditions = [])
     {
-        $return = ['list' => [], 'prize_num' => 0];
+        $return = ['list' => [], 'prize_num_list' => []];
         if(empty($active_id)) {
             return $this->succ($return);
         }
@@ -1111,7 +1115,7 @@ class Active extends \mia\miagroup\Lib\Service {
         if(empty($res)) {
             return $this->succ($return);
         }
-        $return['prize_num'] = $res['prize_num'];
+        $return['prize_num_list'] = $res['prize_num_list'];
         $return['list'] = $res['list'];
 
         return $this->succ($return);
