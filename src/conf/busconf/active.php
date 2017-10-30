@@ -87,7 +87,7 @@ $xiaoxiaole = array(
     ),
     // 发帖明细
     'active_subject_detail' => array(
-            'prize_bean' => '赚取蜜豆：%d蜜豆',
+            'prize_bean' => '%d蜜豆',
     ),
     // 活动发帖对应0贴奖文案
     'active_no_zero_desc' => '0口碑奖的%d蜜豆已经被抢走了,确认要发布吗？',
