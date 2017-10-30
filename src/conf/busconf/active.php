@@ -45,24 +45,16 @@ $xiaoxiaole = array(
     'active_type' => 'xiaoxiaole',
     // 活动引导配置
     'guide_init' => array(
-        'active_regular_link' => '',
-        'date_color' => '#ffff33',
-        'back_img' => array(
-            'url' => '',
-            'width' => '',
-            'height' => ''
-        ),
+        'active_regular_link' => 'https://m.mia.com/special/module/index/23263/wap/',
+        'date_color' => '#FFE63F',
+        'back_color' => '#8ED6FF',
     ),
     // 活动用户打卡提示配置
     'user_show_init' => array(
         // 打卡提示
-        'mark_notice' => '已赚%d蜜豆，连续发帖%d天得%s蜜豆',
+        'mark_notice' => '连续发帖%d天得%s蜜豆',
         // 活动日历背景图
-        'calendar_image' => array(
-            'url' => 'http://img3.imgtn.bdimg.com/it/u=2422152076,2897584653&fm=27&gp=0.jpg',
-            'width' => '228',
-            'height' => '151',
-        ),
+        'calendar_image' => 'https://img05.miyabaobei.com/d1/p5/2017/10/23/64/7a/647a6902d9ce9d8d53c0ca8c8df89a4c435801124.png',
         // 是否是首贴标识
         'is_first_pub' => 1,
         'no_first_pub' => 0,
@@ -76,8 +68,7 @@ $xiaoxiaole = array(
             'every' => 'every_pub',
             'other' => 'other'
         ),
-        'prize_desc' => '',
-        'prize_desc_color' => '',
+        'prize_desc_color' => '#2A69B4',
     ),
     // 活动tab商品奖励文案
     'active_item_prize' => array(
@@ -96,15 +87,7 @@ $xiaoxiaole = array(
     ),
     // 发帖明细
     'active_subject_detail' => array(
-        'status' => array(
-            'is_fine' => '加精华',
-            'normal' => '正常',
-            'audit_failed' => '审核不通过',
-            'shield' => '已屏蔽'
-        ),
-        'is_zero_desc' => array(
-            'prize_bean' => '赚取蜜豆：%d蜜豆'
-        ),
+            'prize_bean' => '赚取蜜豆：%d蜜豆',
     ),
     // 活动发帖对应0贴奖文案
     'active_no_zero_desc' => '0口碑奖的%d蜜豆已经被抢走了,确认要发布吗？',

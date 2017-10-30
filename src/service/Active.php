@@ -405,8 +405,8 @@ class Active extends \mia\miagroup\Lib\Service {
         $xiaoxiaole['date_color'] = $active_guide['date_color'];
         $xiaoxiaole['active_regular_link'] = $active_guide['active_regular_link'];
         $xiaoxiaole['active_award'] = $xiaoxiaole['prize_list'];
-        $xiaoxiaole['back_img'] = $active_guide['back_img'];
-        $xiaoxiaole['back_color'] = $xiaoxiaole['xiaoxiaole_setting']['backgroundcolor'];
+        $xiaoxiaole['back_img'] = $xiaoxiaole['xiaoxiaole_setting']['striation_img_url'];
+        $xiaoxiaole['back_color'] = $active_guide['back_color'];
         $xiaoxiaole['active_regular'] = $xiaoxiaole['xiaoxiaole_setting']['xiaoxiaole_rule'];
 
         // 活动起止时间
@@ -419,28 +419,59 @@ class Active extends \mia\miagroup\Lib\Service {
     /*
      * 消消乐活动参与用户展示信息
      * */
-    public function getActiveUserClockInfo($active_id, $user_id)
+    public function getActiveUserClockInfo($active_id, $user_id = 0)
     {
-        if (empty($active_id) || empty($user_id)) {
+        if (empty($active_id)) {
             return $this->succ([]);
         }
-        $return = $conditions = $activeInfo = $calendarList = [];
-
-        // 获取用户信息
-        $userService = new UserService();
-        $userInfo = $userService->getUserInfoByUids([$user_id])['data'];
-        $return['user_info'] = $userInfo[$user_id];
+        $return = $conditions = $activeInfo = $calendarList = $handleCalendar = [];
 
         // 获取活动信息
         $activeInfo = $this->activeModel->getActiveList(1, 1, [1], ['active_ids' => [$active_id]]);
         if(empty($activeInfo)) {
             return $this->succ([]);
         }
-
-        $conditions['type'] = 'count';
-        $conditions['is_qualified'] = [0,1];
         $conditions['s_time'] = $activeInfo[$active_id]['start_time'];
         $conditions['e_time'] = $activeInfo[$active_id]['end_time'];
+
+        if(empty($user_id)) {
+            // 不登录情况
+            $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
+        }else {
+            $conditions['is_qualified'] = [0,1];
+            $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
+        }
+        // 处理日历月份展示形式
+        foreach($calendarList as $k => $calendar) {
+            if(substr($calendar['issue_date'], 8, 2) == '01') {
+                if(!empty($calendar['is_today'])) {
+                    $handleCalendar[$k]['issue_date_desc'] = '今天';
+                }else {
+                    $handleCalendar[$k]['issue_date_desc'] = substr($calendar['issue_date'], 5, 2)."月";
+                }
+            }else {
+                if(!empty($calendar['is_today'])) {
+                    $handleCalendar[$k]['issue_date_desc'] = '今天';
+                }else {
+                    $handleCalendar[$k]['issue_date_desc'] = substr($calendar['issue_date'], 8, 2);
+                }
+            }
+            $handleCalendar[$k]['subject_nums'] = $calendar['subject_nums'];
+            $handleCalendar[$k]['is_today'] = $calendar['is_today'];
+            $handleCalendar[$k]['issue_date'] = $calendar['issue_date'];
+        }
+        $return['mark_calendar'] = $handleCalendar;
+
+        if(empty($user_id)) {
+            return $this->succ($return);
+        }
+
+        // 获取用户信息
+        $userService = new UserService();
+        $userInfo = $userService->getUserInfoByUids([$user_id])['data'];
+        $return['user_info'] = $userInfo[$user_id];
+
+        $conditions['type'] = 'count';
         // 获取用户活动期间发帖数(有效发帖数)
         $res = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [1], FALSE, 0, $conditions);
         $return['koubei_num'] = $res['count'];
@@ -457,32 +488,7 @@ class Active extends \mia\miagroup\Lib\Service {
 
         // 获取用户蜜豆数
         $res = $this->getActiveWinPrizeRecord($active_id, $user_id, 1, 0, $conditions)['data'];
-        $return['mibean_num'] = $res['prize_num'];
-
-        // 用户打卡日历
-        $handleCalendar = [];
-        unset($conditions['type']);
-        $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
-
-        // 处理日历月份展示形式
-        foreach($calendarList as $k => $calendar) {
-            if(substr($calendar['issue_date'], 8, 2) == '01') {
-                if(!empty($calendar['is_today'])) {
-                    $handleCalendar[$k]['issue_date'] = '今天';
-                }else {
-                    $handleCalendar[$k]['issue_date'] = substr($calendar['issue_date'], 5, 2)."月";
-                }
-            }else {
-                if(!empty($calendar['is_today'])) {
-                    $handleCalendar[$k]['issue_date'] = '今天';
-                }else {
-                    $handleCalendar[$k]['issue_date'] = substr($calendar['issue_date'], 8, 2);
-                }
-            }
-            $handleCalendar[$k]['subject_nums'] = $calendar['subject_nums'];
-            $handleCalendar[$k]['is_today'] = $calendar['is_today'];
-        }
-        $return['mark_calendar'] = $handleCalendar;
+        $return['mibean_num'] = $res['prize_num_list'][0]['prize_num'];
 
         // 用户活动连续打卡标识
         $calendarNum = 0;
@@ -532,7 +538,6 @@ class Active extends \mia\miagroup\Lib\Service {
         for($i = 0; $i < count($signDays) ; $i++) {
             if($maxClockDay < $signDays[$i]) {
                 // 用户打卡最大天数比设置的最小天数还要小
-                $return['apart_days'] = $signDays[$i] - max($continue_day_count);
                 if(!empty($prize_sign_list[$signDays[$i]])) {
                     $apart_days = $prize_sign_list[$signDays[$i]]['sign_day'] - max($continue_day_count);
                     $sign_day = $prize_sign_list[$signDays[$i]]['sign_day'];
@@ -541,22 +546,19 @@ class Active extends \mia\miagroup\Lib\Service {
                 break;
             }
             if($maxClockDay >= $signDays[$i] && $maxClockDay < $signDays[$i+1]) {
-                foreach($prize_sign_list as $prize) {
-                    if($prize['sign_day'] == $signDays[$i+1]) {
-                        $apart_days = $signDays[$i+1] - max($continue_day_count);
-                        $sign_day = $prize['sign_day'];
-                        $awards_num = $prize['awards_num'];
-                    }
-                    // 满足条件，直接跳出最外层循环
-                    break 2;
+                if(!empty($prize_sign_list[$signDays[$i+1]])) {
+                    $apart_days = $prize_sign_list[$signDays[$i+1]]['sign_day'] - max($continue_day_count);
+                    $sign_day = $prize_sign_list[$signDays[$i+1]]['sign_day'];
+                    $awards_num = $prize_sign_list[$signDays[$i+1]]['awards_num'];
                 }
+                break;
             }
         }
         if(!empty($apart_days)) {
             // 打卡相隔天数
             $return['apart_days'] = $apart_days;
             // 打卡提示
-            $return['mark_notice'] = sprintf($active_config['mark_notice'], $return['mibean_num'], $sign_day, $awards_num);
+            $return['mark_notice'] = sprintf($active_config['mark_notice'], $sign_day, $awards_num);
         }
 
         return $this->succ($return);
@@ -580,10 +582,15 @@ class Active extends \mia\miagroup\Lib\Service {
 
         $offset = $page > 1 ? ($page - 1) * $limit : 0;
         // 获取tab对应的item_id
-        $conditions['s_time'] = $activeInfo[$active_id]['start_time'];
-        $conditions['e_time'] = $activeInfo[$active_id]['end_time'];
         $conditions['is_pre_set'] = 0;
-        $tabItemList = $this->activeModel->getActiveTabItems($active_id, $tab_title, $user_id, [1], $limit, $offset, $conditions);
+        $conditions['item_tab'] = $tab_title;
+        if(empty($user_id)) {
+            $tabItemList = $this->activeModel->getActiveTabItems($active_id, [1], $limit, $offset, $conditions);
+        }else {
+            $conditions['s_time'] = $activeInfo[$active_id]['start_time'];
+            $conditions['e_time'] = $activeInfo[$active_id]['end_time'];
+            $tabItemList = $this->activeModel->getActiveUserTabItems($active_id, $user_id, [1], $limit, $offset, $conditions);
+        }
         if (empty($tabItemList)) {
             return $this->succ($tab_items);
         }
@@ -614,9 +621,9 @@ class Active extends \mia\miagroup\Lib\Service {
         $active_item_prize = $this->getActiveConfig('xiaoxiaole', 'active_item_prize');
         foreach ($itemInfos as $item_id => &$item) {
             if (empty($itemSubjectCounts[$item_id])) {
-                // 奖励类型
+                // 0口碑奖励类型
                 $item['prize_type'] = $zero_prize['prize_type'];
-                // 奖励文案
+                // 0口碑奖励文案
                 $item['prize_desc'] = sprintf($active_item_prize['prize_word'], $zero_prize['awards_num']);
             }
             // 发帖数
@@ -630,7 +637,7 @@ class Active extends \mia\miagroup\Lib\Service {
     /*
      * 获取活动奖品列表
      * */
-    public function getActivePrizeList($active_id, $user_id, $page = 1, $limit = 8)
+    public function getActivePrizeList($active_id, $user_id = 0, $page = 1, $limit = 8)
     {
         $active_prize = [];
         if(empty($active_id)) {
@@ -643,18 +650,14 @@ class Active extends \mia\miagroup\Lib\Service {
         }
 
         $prize_config = $this->getActiveConfig('xiaoxiaole', 'active_issue_prize');
-        // 奖品页面设置
-        $active_prize['prize_desc'] = $prize_config['prize_desc'];
+        // 奖品页面文案
+        $active_prize['prize_desc'] = $activeInfo[$active_id]['xiaoxiaole_setting']['xiaoxiaole_rule'];
         // 奖品页面文字颜色设置
         $active_prize['prize_desc_color'] = $prize_config['prize_desc_color'];
 
         // 获取活动奖励列表
         $prizeList = [];
         $prizeInfos = $activeInfo[$active_id]['prize_list'];
-
-        // 奖品列表分页
-        $offset = $page > 1 ? ($page - 1) * $limit : 0;
-        $prizeInfos  = array_slice($prizeInfos, $offset, $limit);
 
         foreach($prizeInfos as $k => $info) {
             // 奖项名称
@@ -664,7 +667,7 @@ class Active extends \mia\miagroup\Lib\Service {
             // 奖品名
             $prizeList[$k]['award_name'] = $info['prize_name'];
             // 奖品图片结构体
-            $prizeList[$k]['award_img'] = $info['prize_img'];
+            $prizeList[$k]['award_img'] = $info['img_url'];
         }
         $active_prize['prizes'] = $prizeList;
 
@@ -773,21 +776,29 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         // 获取帖子信息(查询所有状态的帖子信息)
         $subjectService = new SubjectService();
-        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, ['user_info', 'count', 'content_format', 'album'], [])['data'];
+        $subjectInfos = $subjectService->getBatchSubjectInfos($subjectIds, 0, ['user_info', 'count', 'content_format', 'album', 'item'], [])['data'];
 
         // 活动帖子状态设置
         $active_subject_status = $this->getActiveConfig('xiaoxiaole', 'active_subject_detail');
 
-        foreach($subjectInfos as $subject_id => &$subject) {
-            // 得奖明细
-            $conditions['prize_type'] = $prize_config['prize_type']['zero'];
-            $conditions['subject_id'] = $subject_id;
-            $conditions['type'] = 'count';
-            $res = $this->activeModel->getActiveWinPrizeRecord($active_id, $user_id, FALSE, 0, $conditions);
-            // 帖子赚取蜜豆文案
-            $subject['mibean_num'] = sprintf($active_subject_status['prize_bean'], $res['prize_num']);
+        // 帖子得奖明细
+        $conditions['subject_id'] = $subjectIds;
+        $conditions['type'] = 'count';
+        $conditions['group_by'] = 'subject_id';
+        $res = $this->activeModel->getActiveWinPrizeRecord($active_id, $user_id, FALSE, 0, $conditions);
+        $prize_subject_list = [];
+        if(!empty($res['prize_num_list'])) {
+            foreach($res['prize_num_list'] as $v) {
+                $prize_subject_list[$v['subject_id']] = $v;
+            }
         }
-        $return['subject_lists'] = array_values($res);
+
+        foreach($subjectInfos as $subject_id => &$subject) {
+            // 帖子赚取蜜豆文案
+            $bean_num = $prize_subject_list[$subject_id]['prize_num'] ? $prize_subject_list[$subject_id]['prize_num'] : 0;
+            $subject['mibean_num'] = sprintf($active_subject_status['prize_bean'], $bean_num);
+        }
+        $return['subject_lists'] = array_values($subjectInfos);
 
         return $this->succ($return);
     }
@@ -798,19 +809,27 @@ class Active extends \mia\miagroup\Lib\Service {
     public function activeSubjectVerify($ids, $status = 1)
     {
         $return = ['status' => false];
+        $update_status = 0;
         $setData = $insertData = [];
         $ids = is_array($ids) ? $ids : [$ids];
         if(empty($ids)) {
             return $this->succ($return);
         }
-        // 更新帖子审核状态
+
         $setData['is_qualified'] = intval($status);
-        $res = $this->activeModel->updateActiveSubjectVerify($setData, $ids);
-        if(empty($res)) {
-            return $this->succ($return);
+        $verify_status = $this->getActiveConfig('xiaoxiaole', 'active_subject_qualified');
+        if(intval($status) == $verify_status['audit_pass']) {
+            // 更新关联表审核状态
+            $update_status = $this->activeModel->updateActiveSubjectVerify($setData, $ids);
         }
-        $res = $this->checkActiveSubjectPrize($ids, $status)['data'];
-        if(!empty($res)) {
+        if(intval($status) == $verify_status['audit_failed']) {
+            // 判断扣除蜜豆
+            $res = $this->checkActiveSubjectPrize($ids, $status)['data'];
+            if(!empty($res['status'])) {
+                $update_status = $this->activeModel->updateActiveSubjectVerify($setData, $ids);
+            }
+        }
+        if(!empty($update_status)) {
             $return['status'] = true;
         }
         return $this->succ($return);
@@ -966,9 +985,6 @@ class Active extends \mia\miagroup\Lib\Service {
                     }
                 }
             }
-            if(empty($prizeSetMiBean)) {
-                continue;
-            }
 
             // 蜜豆下发
             if(!empty($prizeSetMiBean) && $status == $active_qualified['audit_pass']) {
@@ -980,6 +996,7 @@ class Active extends \mia\miagroup\Lib\Service {
                         // 奖励列表
                         $insertData['prize_type'] = $prize_type;
                         $insertData['prize_num'] = $prize['awards_num'];
+                        $insertData['create_time'] = date('Y-m-d H:i:s');
                         $res = $this->activeModel->addActivePrizeRecord($insertData);
                     }
                 }
@@ -1045,21 +1062,23 @@ class Active extends \mia\miagroup\Lib\Service {
                                 }
                             }
                         }
-                        // 扣除蜜豆操作
-                        if(!empty($prizeDelMiBean)) {
-                            foreach($prizeDelMiBean as $prize_type => $v) {
-                                // 蜜豆扣除
-                                $param['mibean'] =  '-'.$prize['awards_num'];
-                                $data = $mibean->sub($param);
-                                if($data['code'] == 200) {
-                                    $insertData['prize_type'] = $prize_type;
-                                    $insertData['prize_num'] = '-'.$prize['awards_num'];
-                                    $res = $this->activeModel->addActivePrizeRecord($insertData);
-                                }
+                    }
+
+                    // 扣除蜜豆操作
+                    if(!empty($prizeDelMiBean)) {
+                        foreach($prizeDelMiBean as $prize_type => $prize) {
+                            // 蜜豆扣除
+                            $param['mibean'] =  '-'.$prize['awards_num'];
+                            $data = $mibean->sub($param);
+                            if($data['code'] == 200) {
+                                $insertData['prize_type'] = $prize_type;
+                                $insertData['prize_num'] = '-'.$prize['awards_num'];
+                                $insertData['create_time'] = date('Y-m-d H:i:s');
+                                $res = $this->activeModel->addActivePrizeRecord($insertData);
                             }
-                            if(!empty($res)) {
-                                $return['status'] = true;
-                            }
+                        }
+                        if(!empty($res)) {
+                            $return['status'] = true;
                         }
                     }
                 }
@@ -1086,7 +1105,7 @@ class Active extends \mia\miagroup\Lib\Service {
     * */
     public function getActiveWinPrizeRecord($active_id, $user_id = 0, $page = 1, $limit = 20, $conditions = [])
     {
-        $return = ['list' => [], 'prize_num' => 0];
+        $return = ['list' => [], 'prize_num_list' => []];
         if(empty($active_id)) {
             return $this->succ($return);
         }
@@ -1096,7 +1115,7 @@ class Active extends \mia\miagroup\Lib\Service {
         if(empty($res)) {
             return $this->succ($return);
         }
-        $return['prize_num'] = $res['prize_num'];
+        $return['prize_num_list'] = $res['prize_num_list'];
         $return['list'] = $res['list'];
 
         return $this->succ($return);
@@ -1107,7 +1126,7 @@ class Active extends \mia\miagroup\Lib\Service {
      * */
     public function getActiveUserClockCalendar($active_id, $user_id = 0, $conditions = [])
     {
-        if(empty($active_id) || empty($user_id)) {
+        if(empty($active_id)) {
             return $this->succ([]);
         }
         $calendar = $effect = [];
@@ -1118,7 +1137,7 @@ class Active extends \mia\miagroup\Lib\Service {
         // 查询用户总发帖列表
         $page = 1;
         $limit = 1000;
-        while (true) {
+        while ($user_id) {
             $offset = $page > 1 ? ($page - 1) * $limit : 0;
             $list = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [1], $limit, $offset, $conditions);
             if(empty($list)) {

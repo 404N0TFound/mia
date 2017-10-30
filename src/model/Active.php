@@ -77,8 +77,8 @@ class Active {
                             // 更新活动ext_info
                             $updateData['ext_info'] = $extInfo;
                             $status = $this->updateActive($updateData, $active['id']);
-                            $tab_list = $extInfo['xiaoxiaole_setting']['item_tab_list'];
-                            $tab_pre_name_list = array_column($tab_list, 'name');
+                            $current_tab_list = $extInfo['xiaoxiaole_setting']['item_tab_list'];
+                            $tab_pre_name_list = array_column($current_tab_list, 'name');
                             if(!empty($status) && !empty($tab_pre_name_list)) {
                                 // 更新item_tab预设状态
                                 $updateData = ['is_pre_set' => 0];
@@ -86,8 +86,9 @@ class Active {
                                 $this->updateActiveItemTab($active['id'], $updateData, $conditions);
                                 // 更新默认tab失效状态
                                 $updateData = ['status' => 0];
-                                $conditions = ['item_tab' => $tab_pre_name_list];
+                                $conditions = ['item_tab' => array_column($tab_list, 'name')];
                                 $this->updateActiveItemTab($active['id'], $updateData, $conditions);
+                                $tab_list = $current_tab_list;
                             }
                         }
                         // 封装tab数据
@@ -238,7 +239,7 @@ class Active {
     /*
      * 获取活动奖励列表
      * */
-    public function getActiveWinPrizeRecord($active_id, $user_id, $limit = 20, $offset = 0, $conditions = [])
+    public function getActiveWinPrizeRecord($active_id, $user_id = 0, $limit = 20, $offset = 0, $conditions = [])
     {
         $data = $this->activePrizeData->getActiveWinPrizeRecord($active_id, $user_id, $limit, $offset, $conditions);
         return $data;
@@ -281,12 +282,22 @@ class Active {
     }
 
     /*
-     * 获取活动tab对应的item
+     * 获取活动tab下用户展示item列表
      * */
-    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
+    public function getActiveUserTabItems($active_id, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
         $activeItemTabData = new ActiveItemTab();
-        $data = $activeItemTabData->getActiveTabItems($active_id, $tab_title, $user_id, $status, $limit, $offset, $conditions);
+        $data = $activeItemTabData->getActiveUserTabItems($active_id, $user_id, $status, $limit, $offset, $conditions);
+        return $data;
+    }
+
+    /*
+     * 获取活动tab关联item列表
+     * */
+    public function getActiveTabItems($active_id, $status = [1], $limit, $offset, $conditions)
+    {
+        $activeItemTabData = new ActiveItemTab();
+        $data = $activeItemTabData->getActiveTabItems($active_id, $status, $limit, $offset, $conditions);
         return $data;
     }
 
@@ -310,7 +321,7 @@ class Active {
     }
 
     /*
-     * 获取帖子关联商品对应首贴信息
+     * 获取帖子商品关联信息
      * */
     public function getItemSubjectRelation($active_id, $item_ids, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {

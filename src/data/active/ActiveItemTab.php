@@ -13,14 +13,16 @@ class ActiveItemTab extends \DB_Query {
     /*
      * 获取活动用户对应的sku
      * */
-    public function getActiveTabItems($active_id, $tab_title, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
+    public function getActiveUserTabItems($active_id, $user_id = 0, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
-        if(empty($active_id) || empty($tab_title) || empty($user_id)) {
+        if(empty($active_id) || empty($user_id)) {
             return [];
         }
         $where = [];
         $where[] = [$this->tableName.'.active_id', $active_id];
-        $where[] = [$this->tableName.'.item_tab', $tab_title];
+        if(!empty($conditions['item_tab'])) {
+            $where[] = [$this->tableName.'.item_tab', $conditions['item_tab']];
+        }
         if(!empty($conditions['is_pre_set'])) {
             $where[] = [$this->tableName.'.is_pre_set', $conditions['is_pre_set']];
         }
@@ -56,5 +58,30 @@ class ActiveItemTab extends \DB_Query {
         }
         $data = $this->update($setData, $where);
         return $data;
+    }
+
+    /*
+     * 获取活动tab关联sku列表
+     * */
+    public function getActiveTabItems($active_id, $status = [1], $limit = 20, $offset = 0, $conditions = [])
+    {
+        if(empty($active_id)) {
+            return [];
+        }
+        $where = [];
+        $where[] = ['active_id', $active_id];
+        if(!empty($status)) {
+            $where[] = ['status', $status];
+        }
+        if(!empty($conditions['item_tab'])) {
+            $where[] = ['item_tab', $conditions['item_tab']];
+        }
+        if(!empty($conditions['is_pre_set'])) {
+            $where[] = ['is_pre_set', $conditions['is_pre_set']];
+        }
+        $field = 'id, active_id, item_tab, item_id, is_pre_set, status';
+        $orderBy = 'id desc';
+        $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
+        return $res;
     }
 }
