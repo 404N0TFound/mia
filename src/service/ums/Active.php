@@ -201,7 +201,7 @@ class Active extends \mia\miagroup\Lib\Service {
         $items = $item_service->getBatchItemBrandByIds($item_ids, false, [])['data'];
         foreach ($item_tabs as $v) {
             $v['item_info'] = !empty($items[$v['item_id']]) ? $items[$v['item_id']] : [];
-            $result[$v['item_tab']][] = $v;
+            $result[] = $v;
         }
         return $result;
     }
