@@ -180,4 +180,29 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         return $this->succ($result);
     }
+    
+    /**
+     * 查询消消乐所有活动商品
+     */
+    public function getAllXiaoxiaoleItems($active_id) {
+        $result = array();
+        if (intval($active_id) <= 0) {
+            return $this->succ($result);
+        }
+        $item_tabs = $this->activeModel->getActiveTabItemInfos($active_id, ['status' => 1]);
+        $item_ids = [];
+        if (empty($item_tabs)) {
+            return $this->succ($result);
+        }
+        foreach ($item_tabs as $v) {
+            $item_ids[] = $v['item_id'];
+        }
+        $item_service = new \mia\miagroup\Service\Item();
+        $items = $item_service->getBatchItemBrandByIds($item_ids, false, [])['data'];
+        foreach ($item_tabs as $v) {
+            $v['item_info'] = !empty($items[$v['item_id']]) ? $items[$v['item_id']] : [];
+            $result[$v['item_tab']][] = $v;
+        }
+        return $result;
+    }
 }
