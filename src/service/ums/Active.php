@@ -203,6 +203,6 @@ class Active extends \mia\miagroup\Lib\Service {
             $v['item_info'] = !empty($items[$v['item_id']]) ? $items[$v['item_id']] : [];
             $result[] = $v;
         }
-        return $result;
+        return $this->succ($result);
     }
 }
