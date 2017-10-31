@@ -38,9 +38,9 @@ class Data extends \mia\miagroup\Lib\Service
     {
         //如果筛选条件有活动id,时间范围则设置为活动开始结束时间
         if(intval($settings['active_id']) > 0){
-            $activeService = new ActiveService();
-            $activeInfo = $activeService->getSingleActiveById($settings['active_id'])['data'];
-            if(!empty($activeInfo)){
+            if(!empty($activeInfo) && empty($settings["start_time"]) && empty($settings["end_time"])){
+                $activeService = new ActiveService();
+                $activeInfo = $activeService->getSingleActiveById($settings['active_id'])['data'];
                 $settings["start_time"] = $activeInfo["start_time"];
                 $settings["end_time"] = $activeInfo["end_time"];
             }
@@ -93,7 +93,7 @@ class Data extends \mia\miagroup\Lib\Service
         if(isset($settings["active_id"]) && intval($settings["active_id"]) > 0){
             $setData["active_id"] = $settings["active_id"];
         }
-        if(isset($settings["subject_status"])){
+        if(isset($settings["subject_status"]) && $settings["subject_status"] != ''){
             $setData["subject_status"] = intval($settings["subject_status"]);
         }
         if(isset($settings["need_title"])){
