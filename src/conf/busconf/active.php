@@ -54,7 +54,11 @@ $xiaoxiaole = array(
         // 打卡提示
         'mark_notice' => '连续发帖%d天得%s蜜豆',
         // 活动日历背景图
-        'calendar_image' => 'https://img05.miyabaobei.com/d1/p5/2017/10/23/64/7a/647a6902d9ce9d8d53c0ca8c8df89a4c435801124.png',
+        'calendar_image' => array(
+            'url' => 'https://img05.miyabaobei.com/d1/p5/2017/10/23/64/7a/647a6902d9ce9d8d53c0ca8c8df89a4c435801124.png',
+            'width' => 928,
+            'height' => 663,
+        ),
         // 是否是首贴标识
         'is_first_pub' => 1,
         'no_first_pub' => 0,
