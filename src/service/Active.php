@@ -1226,7 +1226,7 @@ class Active extends \mia\miagroup\Lib\Service {
      */
     public function addActiveItem($active_item_info) {
         if (empty($active_item_info['active_id']) || empty($active_item_info['item_tab']) || empty($active_item_info['item_id']) || !in_array($active_item_info['is_pre_set'], [0, 1])) {
-            return false;
+            return $this->error(500);
         }
         $add_data = [];
         $add_data = [
