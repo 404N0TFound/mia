@@ -35,7 +35,7 @@ class ActiveItemTab extends \DB_Query {
         WHERE '.$this->tableActiveRelation.'.user_id = '.$user_id.' AND '.$this->tableActiveRelation.'.active_id = '.$active_id.' 
         GROUP BY '.$this->tablePointTags.'.item_id) AS tmp ON '.$this->tableName.'.item_id = tmp.item_id';
         $field = $this->tableName.'.item_id';
-        $orderBy = $this->tableName.'.id desc';
+        $orderBy = $this->tableName.'.sort desc,'.$this->tableName.'.id desc';
         $res = $this->getRows($where, $field, $limit, $offset, $orderBy, $join);
         return $res;
     }
@@ -80,7 +80,7 @@ class ActiveItemTab extends \DB_Query {
             $where[] = ['is_pre_set', $conditions['is_pre_set']];
         }
         $field = 'id, active_id, item_tab, item_id, is_pre_set, status';
-        $orderBy = 'id desc';
+        $orderBy = 'sort desc,id desc';
         $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
         return $res;
     }
