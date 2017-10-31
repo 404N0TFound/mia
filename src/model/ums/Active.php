@@ -130,7 +130,7 @@ class Active extends \DB_Query {
             }
         }
         $field = '*';
-        $orderBy = 'id desc';
+        $orderBy = 'sort desc, id desc';
         $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
         return $res;
     }
