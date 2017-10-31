@@ -12,12 +12,14 @@ class Active {
     protected $activeSubjectData = null;
     protected $relationData = null;
     protected $activePrizeData = null;
+    protected $activeItemTabData;
 
     public function __construct() {
         $this->activeData = new ActiveData();
         $this->activeSubjectData = new ActiveSubjectData();
         $this->relationData = new RelationData();
         $this->activePrizeData = new ActivePrizeData();
+        $this->activeItemTabData = new ActiveItemTab();
     }
     
     //活动列表第一页的取所有进行中和未开始活动
@@ -326,6 +328,41 @@ class Active {
     public function getItemSubjectRelation($active_id, $item_ids, $status = [1], $limit = 20, $offset = 0, $conditions = [])
     {
         $res = $this->relationData->getItemSubjectRelation($active_id, $item_ids, $status, $limit, $offset, $conditions);
+        return $res;
+    }
+    
+    /**
+     * 新增活动商品
+     */
+    public function addActiveItem($active_item_info) {
+        if (empty($active_item_info['active_id']) || empty($active_item_info['item_tab']) || empty($active_item_info['item_id']) || !in_array($active_item_info['is_pre_set'], [0, 1])) {
+            return false;
+        }
+        if (empty($active_item_info['sort'])) {
+            $data = $this->activeItemTabData->getActiveTabItems($active_item_info['active_id'], [], 1, 0, ['item_tab' => $active_item_info['item_tab']]);
+            $active_item_info['sort'] = isset($data[0]['sort']) ? ($data[0]['sort'] + 1) : 1;
+        }
+        $res = $this->activeItemTabData->addActiveItemInfo($active_item_info);
+        return $res;
+    }
+    
+    /**
+     * 清空标签卡下商品
+     */
+    public function clearActiveTabItem($active_id, $tab_name, $is_pre_set) {
+        $condition = ['item_tab' => $tab_name, 'is_pre_set' => $is_pre_set];
+        $res = $this->activeItemTabData->deleteInfoByActiveId($active_id, $condition);
+        return $res;
+    }
+    
+    /**
+     * 更新活动商品信息
+     */
+    public function updateActiveItemById($id, $update_info) {
+        if (empty($id) || empty($update_info)) {
+            return false;
+        }
+        $res = $this->activeItemTabData->updateActiveItemInfoById($id, $update_info);
         return $res;
     }
 }

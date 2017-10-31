@@ -1196,5 +1196,68 @@ class Active extends \mia\miagroup\Lib\Service {
         return $config;
     }
     
+    /**
+     * 更新消消乐活动商品
+     */
+    public function updateActiveItem($active_id, $tab_name, $is_pre_set, $item_ids) {
+        if (empty($active_id) || empty($tab_name) || empty($item_ids)) {
+            return $this->error(500); 
+        }
+        //清空当前标签卡下商品
+        $this->activeModel->clearActiveTabItem($active_id, $tab_name, $is_pre_set);
+        //重新插入更新后的商品
+        $i = count($item_ids);
+        foreach ($item_ids as $item_id) {
+            $active_item_info = [
+                'active_id' => $active_id,
+                'item_tab'  => $tab_name,
+                'item_id'   => $item_id,
+                'is_pre_set'=> $is_pre_set,
+                'sort'      => $i
+            ];
+            $this->activeModel->addActiveItem($active_item_info);
+            $i --;
+        }
+        return $this->succ(true);
+    }
+    
+    /**
+     * 新增消消乐商品
+     */
+    public function addActiveItem($active_item_info) {
+        if (empty($active_item_info['active_id']) || empty($active_item_info['item_tab']) || empty($active_item_info['item_id']) || !in_array($active_item_info['is_pre_set'], [0, 1])) {
+            return false;
+        }
+        $add_data = [];
+        $add_data = [
+            'active_id' => $active_item_info['active_id'],
+            'item_tab'  => $active_item_info['item_tab'],
+            'item_id'   => $active_item_info['item_id'],
+            'is_pre_set'=> $active_item_info['is_pre_set']
+        ];
+        $this->activeModel->addActiveItem($add_data);
+        return $this->succ(true);
+    }
+    
+    /**
+     * 删除消消乐商品
+     */
+    public function deleteActiveItem($id) {
+        if (empty($id)) {
+            return $this->error(500);
+        }
+    }
+    
+    /**
+     * 变更消消乐商品位置
+     */
+    public function changeActiveItemSort($id, $sort_value) {
+        if (empty($id) || empty($sort_value)) {
+            return $this->error(500);
+        }
+        $update_data = ['sort' => $sort_value];
+        $this->activeModel->updateActiveItemById($id, $update_data);
+        return $this->succ(true);
+    }
 }
 

@@ -79,9 +79,51 @@ class ActiveItemTab extends \DB_Query {
         if(!empty($conditions['is_pre_set'])) {
             $where[] = ['is_pre_set', $conditions['is_pre_set']];
         }
-        $field = 'id, active_id, item_tab, item_id, is_pre_set, status';
+        $field = 'id, active_id, item_tab, item_id, is_pre_set, status, sort';
         $orderBy = 'sort desc,id desc';
         $res = $this->getRows($where, $field, $limit, $offset, $orderBy);
+        return $res;
+    }
+    
+    /**
+     * 根据id更新活动商品信息
+     */
+    public function updateActiveItemInfoById($id, $update_data) {
+        if (empty($id) || empty($update_data)) {
+            return false;
+        }
+        $set_data = [];
+        $where[] = ['id', $id];
+        foreach ($update_data as $k => $v) {
+            $set_data[] = [$k, $v];
+        }
+        $res = $this->update($set_data, $where);
+        return $res;
+    }
+    
+    /**
+     * 新增活动商品信息
+     */
+    public function addActiveItemInfo($active_item_info) {
+        if (empty($active_item_info)) {
+            return false;
+        }
+        $res = $this->insert($active_item_info);
+        return $res;
+    }
+    
+    /**
+     * 根据活动id删除数据
+     */
+    public function deleteInfoByActiveId($active_id, $condition = []) {
+        if (empty($active_id)) {
+            return false;
+        }
+        $where[] = ['active_id', $active_id];
+        foreach ($condition as $k => $v) {
+            $where[] = [$k, $v];
+        }
+        $res = $this->delete($where);
         return $res;
     }
 }
