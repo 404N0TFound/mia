@@ -1242,10 +1242,12 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 删除消消乐商品
      */
-    public function deleteActiveItem($id) {
-        if (empty($id)) {
+    public function deleteActiveItem($active_id, $id) {
+        if (empty($id) || empty($active_id)) {
             return $this->error(500);
         }
+        $this->activeModel->deleteActiveItem($active_id, $id);
+        return $this->succ(true);
     }
     
     /**

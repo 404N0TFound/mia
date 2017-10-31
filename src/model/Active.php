@@ -342,6 +342,7 @@ class Active {
             $data = $this->activeItemTabData->getActiveTabItems($active_item_info['active_id'], [], 1, 0, ['item_tab' => $active_item_info['item_tab']]);
             $active_item_info['sort'] = isset($data[0]['sort']) ? ($data[0]['sort'] + 1) : 1;
         }
+        $active_item_info['create_time'] = date('Y-m-d H:i:s');
         $res = $this->activeItemTabData->addActiveItemInfo($active_item_info);
         return $res;
     }
@@ -363,6 +364,14 @@ class Active {
             return false;
         }
         $res = $this->activeItemTabData->updateActiveItemInfoById($id, $update_info);
+        return $res;
+    }
+    
+    /**
+     * 删除活动商品
+     */
+    public function deleteActiveItem($active_id, $id) {
+        $res = $this->activeItemTabData->deleteInfoByActiveId($active_id, ['id' => $id]);
         return $res;
     }
 }
