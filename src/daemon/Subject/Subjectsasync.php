@@ -63,22 +63,16 @@ class Subjectsasync extends \FD_Daemon
                     }
                 }
 
-                //当天首次发帖
+                //当天首次发帖，直接操作redis
                 if ($this->task_setting["post"] === 1) {
-                    //对比当天第一次发帖id
-                    $todayInfo = $subjectService->getFirstPubByTime([$userId], 1, date("Y-m-d"))["data"];
-                    if ($todayInfo[$userId]["id"] == $subjectId) {
-                        //首次发帖
+                    if (!$redis_task->hExists($redis_task_hash_key, 'post')) {
                         $redis_task->hSet($redis_task_hash_key, "post", json_encode(["num" => 1, "time" => $todayInfo[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
 
-                //当天首次评价
+                //当天首次评价，直接操作redis
                 if ($this->task_setting["evaluate"] === 1) {
-                    //对比当天首次评价id
-                    $todayInfo_2 = $subjectService->getFirstPubByTime([$userId], 2, date("Y-m-d"))["data"];
-                    if ($todayInfo_2[$userId]["id"] == $subjectId) {
-                        //首次发帖
+                    if (!$redis_task->hExists($redis_task_hash_key, 'evaluate')) {
                         $redis_task->hSet($redis_task_hash_key, "evaluate", json_encode(["num" => 1, "time" => $todayInfo_2[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
