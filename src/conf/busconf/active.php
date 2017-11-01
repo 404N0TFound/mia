@@ -43,6 +43,8 @@ $activeBeanType = 'active_add';
 $xiaoxiaole = array(
     // 活动标识
     'active_type' => 'xiaoxiaole',
+    // tab 展示数量
+    'tab_count' => 5,
     // 活动引导配置
     'guide_init' => array(
         'active_regular_link' => 'https://m.mia.com/special/module/index/23263/wap/',

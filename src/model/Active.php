@@ -37,6 +37,7 @@ class Active {
     public function getActiveList($page, $limit, $status = array(1), $condition = []){
         $activeRes = $this->activeData->getBatchActiveInfos($page, $limit, $status,$condition);
         $activeArr = array();
+        $xiaoxiaole_tab_count = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole.tab_count');
         if(!empty($activeRes)){
         foreach($activeRes as $active){
                 $activeArr[$active['id']] = $active;
@@ -92,6 +93,10 @@ class Active {
                                 $this->updateActiveItemTab($active['id'], $updateData, $conditions);
                                 $tab_list = $current_tab_list;
                             }
+                        }
+                        // tab最多展示5个
+                        if(count($tab_list) > $xiaoxiaole_tab_count) {
+                            $tab_list = array_slice($tab_list, 0, $xiaoxiaole_tab_count);
                         }
                         // 封装tab数据
                         $tab_setting = [];
