@@ -64,6 +64,8 @@ $xiaoxiaole = array(
         // 是否是首贴标识
         'is_first_pub' => 1,
         'no_first_pub' => 0,
+        // 首贴提示文案
+        'first_pub_notice' => '还没发帖呐，首贴就奖%d蜜豆~',
     ),
     // 奖品
     'active_issue_prize' => array(
@@ -84,7 +86,8 @@ $xiaoxiaole = array(
     'active_user_rank' => array(
         'rank_desc' => '哇塞~ %s截至到现在，这些蜜粉发图量最多呦~',
         'rank_desc_color' => '',
-        'achievement_desc' => '%s日起已发布了%d条口碑',
+        'achievement_desc' => '%s日起已发布了',
+        'achievement_desc_subject' => '%s条口碑',
     ),
     // 活动帖子状态审核
     'active_subject_qualified' => array(
