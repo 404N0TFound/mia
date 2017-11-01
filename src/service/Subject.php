@@ -368,12 +368,12 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 达人最新发帖列表
      */
-    public function darenSubjectList()
+    public function darenSubjectList($currentUid)
     {
         $darenIds = \F_Ice::$ins->workApp->config->get('busconf.subject.daren_ids');
         //获取达人最新一篇，有首页封面图的长文
         $subjectIds = $this->subjectModel->getLastBlog($darenIds,5);
-        $list_info = array_values($this->getBatchSubjectInfos($subjectIds,0,['user_info',"index_cover"],[1])["data"]);
+        $list_info = array_values($this->getBatchSubjectInfos($subjectIds, $currentUid, ['user_info', "index_cover"], [1])["data"]);
 
         $lastList = [];
         foreach ($list_info as $val) {
