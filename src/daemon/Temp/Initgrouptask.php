@@ -79,8 +79,13 @@ class Initgrouptask extends \FD_Daemon
             $followRes = $groupTaskService->checkUserTaskStatus($userIds, "first_follow")["data"];
             $evaluateRes = $groupTaskService->checkUserTaskStatus($userIds, "first_evaluate")["data"];
             //任务id=4
+            $finished_task = $userTaskData->getTaskList(["user_id" => $userIds]);
+            $finished_task_by_id = [];
+            foreach ($finished_task as $taskInfo) {
+                $finished_task_by_id[$taskInfo["task_id"]][] = $taskInfo["user_id"];
+            }
             foreach ($postRes as $k1 => $v1) {
-                if ($v1['succ'] == 1) {
+                if ($v1['succ'] == 1 && !in_array($k1, $finished_task_by_id[4])) {
                     $userTaskData->addTaskResult([
                         "user_id" => $k1,
                         "task_id" => 4,
@@ -88,12 +93,11 @@ class Initgrouptask extends \FD_Daemon
                         "finished_time" => $v1["time"],
                         "create_time" => date("Y-m-d H:i:s")
                     ]);
-
                 }
             }
             //任务id=5
             foreach ($followRes as $k2 => $v2) {
-                if ($v2['succ'] == 1) {echo 2;
+                if ($v2['succ'] == 1 && !in_array($k2, $finished_task_by_id[5])) {
                     $userTaskData->addTaskResult([
                         "user_id" => $k2,
                         "task_id" => 5,
@@ -105,7 +109,7 @@ class Initgrouptask extends \FD_Daemon
             }
             //任务id=7
             foreach ($evaluateRes as $k3 => $v3) {
-                if ($v3['succ'] == 1) {echo 3;
+                if ($v3['succ'] == 1 && !in_array($k3, $finished_task_by_id[7])) {
                     $userTaskData->addTaskResult([
                         "user_id" => $k3,
                         "task_id" => 7,
