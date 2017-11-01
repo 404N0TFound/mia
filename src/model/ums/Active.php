@@ -191,7 +191,7 @@ class Active extends \DB_Query {
         ];
         $field = "pt.item_id, COUNT(DISTINCT(pt.id)) as subject_count, COUNT(DISTINCT(k.id)) as koubei_count";
         $group_by = 'pt.item_id';
-        
+        $having = !empty($having) ? implode(' and ', $having) : false;
         $data = $this->getRows($where, $field, $limit, $offset, $order_by, $join, $group_by, $having);
         if (empty($data)) {
             return array();
