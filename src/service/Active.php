@@ -481,9 +481,9 @@ class Active extends \mia\miagroup\Lib\Service {
 
         // 活动用户是否是首贴标识(用于客户端区分打卡文案)
         if(empty($return['koubei_num'])) {
-            $return['is_first_pub'] = $active_config['no_first_pub'];
-        }else {
             $return['is_first_pub'] = $active_config['is_first_pub'];
+        }else {
+            $return['is_first_pub'] = $active_config['no_first_pub'];
         }
 
         // 获取用户蜜豆数
@@ -507,11 +507,16 @@ class Active extends \mia\miagroup\Lib\Service {
 
         // 获取活动奖励对应关系
         $prize_sign_list = [];
+        $first_issue_mibean = 0;
         foreach($activePrizeList as $prize) {
             if($prize['prize_type'] == $sign_config) {
                 $prize_sign_list[$prize['sign_day']] = $prize;
                 // 获取打卡配置奖励天数
                 $signDays[] = $prize['sign_day'];
+                if($prize['sign_day'] == 1) {
+                    // 首贴奖
+                    $first_issue_mibean = $prize['awards_num'];
+                }
             }
         }
         sort($signDays);
@@ -558,7 +563,12 @@ class Active extends \mia\miagroup\Lib\Service {
             // 打卡相隔天数
             $return['apart_days'] = $apart_days;
             // 打卡提示
-            $return['mark_notice'] = sprintf($active_config['mark_notice'], $sign_day, $awards_num);
+            if(!empty($return['is_first_pub'])) {
+                // 首贴奖励提示
+                $return['mark_notice'] = sprintf($active_config['first_pub_notice'], $first_issue_mibean);
+            }else {
+                $return['mark_notice'] = sprintf($active_config['mark_notice'], $sign_day, $awards_num);
+            }
         }
 
         return $this->succ($return);
@@ -725,7 +735,7 @@ class Active extends \mia\miagroup\Lib\Service {
                 continue;
             }
             $rankLists['rank_users'][$k]['user_info'] = $userInfos[$v['user_id']];
-            $rankLists['rank_users'][$k]['user_achievement_desc'] = sprintf($rank_config['achievement_desc'], $month.'.'.$day, $v['subject_count']);
+            $rankLists['rank_users'][$k]['user_achievement_desc'] = sprintf($rank_config['achievement_desc'], $month.'.'.$day).$rank_config['achievement_desc_subject'];
             $rankLists['rank_users'][$k]['koubei_num'] = $v['subject_count'];
         }
 
