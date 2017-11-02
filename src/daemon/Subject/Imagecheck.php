@@ -52,6 +52,8 @@ class Imagecheck extends \FD_Daemon
         $orderBy = FALSE;
         $where = [];
         $where[] = ['status', 1];
+        //暂时先只处理口碑图片
+        $where[] = ['source', 2];
         $where[] = [':gt','id', $lastId];
         $where[] = [':ne','ext_info', ''];
         $where[] = [':ne','image_url', ''];
@@ -77,16 +79,20 @@ class Imagecheck extends \FD_Daemon
             foreach ($ext_info['image'] as $k => $v_image) {
                 //检查是否包含二维码
                 $res = $image_util->qrdecode($host . $v_image['url']);
-                if ($res && $res['status'] == 0) {
-                    $ext_info['image'][$k]['is_hidden'] = 1;
-                    $has_qrcode = true;
-                    //同时设置美化图片不可见
-                    if (!empty($ext_info['beauty_image'])) {
-                        $ext_info['beauty_image'][$k]['is_hidden'] = 1;
-                    }
-                    //同时检查封面是否是二维码图
-                    if (!empty($ext_info['cover_image']) && $ext_info['cover_image']['url'] == $v_image['url']) {
-                        unset($ext_info['cover_image']);
+                if ($res && $res['status'] == 0 && !empty($res['symbols'])) {
+                    foreach ($res['symbols'] as $symbols) {
+                        if ($symbols['type'] == 'QRCODE') {
+                            $ext_info['image'][$k]['is_hidden'] = 1;
+                            $has_qrcode = true;
+                            //同时设置美化图片不可见
+                            if (!empty($ext_info['beauty_image'])) {
+                                $ext_info['beauty_image'][$k]['is_hidden'] = 1;
+                            }
+                            //同时检查封面是否是二维码图
+                            if (!empty($ext_info['cover_image']) && $ext_info['cover_image']['url'] == $v_image['url']) {
+                                unset($ext_info['cover_image']);
+                            }
+                        }
                     }
                 }
             }

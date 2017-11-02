@@ -202,7 +202,7 @@ $cron_list['beauty_data_incremental_sync'] = array(
 );
 //帖子图片检查
 $cron_list['subject_image_check'] = array(
-    'enable' => true,
+    'enable' => false,
     'engine' => 'php',
     'cli_args' => "--class=subject --action=imagecheck",
     'interval' => 3
