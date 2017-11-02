@@ -66,6 +66,8 @@ $xiaoxiaole = array(
         'no_first_pub' => 0,
         // 首贴提示文案
         'first_pub_notice' => '还没发帖呐，首贴就奖%d蜜豆~',
+        // 全勤打卡文案
+        'fullwork_notice' => '本月全勤打卡，已获得%d蜜豆',
     ),
     // 奖品
     'active_issue_prize' => array(

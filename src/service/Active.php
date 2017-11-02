@@ -54,6 +54,21 @@ class Active extends \mia\miagroup\Lib\Service {
         return $this->succ($activeRes);
     }
 
+
+    /*
+     * 批量获取活动信息(后台)
+     * */
+    public function getBatchActiveByIds($activeIds, $status = [1])
+    {
+        if(empty($activeIds)) {
+            return $this->succ([]);
+        }
+        $condition = ['active_ids' => $activeIds];
+        $activeInfos = $this->activeModel->getActiveList(0, 0, $status, $condition);
+        return $this->succ($activeInfos);
+    }
+
+
     /**
      * 获取单条活动信息
      */
@@ -541,8 +556,8 @@ class Active extends \mia\miagroup\Lib\Service {
 
         // 根据设置奖项获取用户打卡提示及相差天数文案
         for($i = 0; $i < count($signDays) ; $i++) {
-            if($maxClockDay < $signDays[$i]) {
-                // 用户打卡最大天数比设置的最小天数还要小
+            if($maxClockDay < $signDays[$i] || empty($prize_sign_list[$signDays[$i+1]])) {
+                // 用户打卡最大天数比设置的最小天数还要小 || 获得全勤奖
                 if(!empty($prize_sign_list[$signDays[$i]])) {
                     $apart_days = $prize_sign_list[$signDays[$i]]['sign_day'] - max($continue_day_count);
                     $sign_day = $prize_sign_list[$signDays[$i]]['sign_day'];
@@ -559,13 +574,17 @@ class Active extends \mia\miagroup\Lib\Service {
                 break;
             }
         }
-        if(!empty($apart_days)) {
-            // 打卡相隔天数
-            $return['apart_days'] = $apart_days;
-            // 打卡提示
-            if(!empty($return['is_first_pub'])) {
-                // 首贴奖励提示
-                $return['mark_notice'] = sprintf($active_config['first_pub_notice'], $first_issue_mibean);
+
+        // 打卡相隔天数
+        $return['apart_days'] = $apart_days;
+        // 打卡提示
+        if(!empty($return['is_first_pub'])) {
+            // 首贴奖励提示
+            $return['mark_notice'] = sprintf($active_config['first_pub_notice'], $first_issue_mibean);
+        }else {
+            if(empty($apart_days)) {
+                // 全勤奖
+                $return['mark_notice'] = sprintf($active_config['fullwork_notice'], $awards_num);
             }else {
                 $return['mark_notice'] = sprintf($active_config['mark_notice'], $sign_day, $awards_num);
             }
