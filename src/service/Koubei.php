@@ -37,7 +37,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $audit = new \mia\miagroup\Service\Audit();
         if(!empty($koubeiData['title'])){
             //过滤敏感词
-            $sensitive_res = $audit->checkSensitiveWords($koubeiData['title'], 0);
+            $sensitive_res = $audit->checkSensitiveWords($koubeiData['title']);
             if ($sensitive_res['code'] > 0) {
                 return $this->error($sensitive_res['code'], $sensitive_res['msg']);
             }
@@ -46,7 +46,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         if(!empty($koubeiData['text'])){
             //过滤敏感词
-            $sensitive_res = $audit->checkSensitiveWords($koubeiData['text'], 0);
+            $sensitive_res = $audit->checkSensitiveWords($koubeiData['text']);
             if ($sensitive_res['code'] > 0) {
                 return $this->error($sensitive_res['code'], $sensitive_res['msg']);
             }
