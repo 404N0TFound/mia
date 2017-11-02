@@ -993,7 +993,7 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if(!empty($subjectInfo['text'])){
                 //过滤敏感词
-                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'], 1)['data'];
+                $sensitive_res = $audit->checkSensitiveWords($subjectInfo['text'], 1);
                 if ($sensitive_res['code'] > 0) {
                     return $this->error($sensitive_res['code'], $sensitive_res['msg']);
                 }

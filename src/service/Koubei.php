@@ -34,6 +34,25 @@ class Koubei extends \mia\miagroup\Lib\Service {
      * @param $checkOrder 是否验证订单
      */
     public function createKoubei($koubeiData,$checkOrder=true){
+        $audit = new \mia\miagroup\Service\Audit();
+        if(!empty($koubeiData['title'])){
+            //过滤敏感词
+            $sensitive_res = $audit->checkSensitiveWords($koubeiData['title'], 0);
+            if ($sensitive_res['code'] > 0) {
+                return $this->error($sensitive_res['code'], $sensitive_res['msg']);
+            }
+            //过滤xss、过滤html标签
+            $koubeiData['title'] = strip_tags($koubeiData['title'], '<span><p>');
+        }
+        if(!empty($koubeiData['text'])){
+            //过滤敏感词
+            $sensitive_res = $audit->checkSensitiveWords($koubeiData['text'], 0);
+            if ($sensitive_res['code'] > 0) {
+                return $this->error($sensitive_res['code'], $sensitive_res['msg']);
+            }
+            //过滤脚本
+            $koubeiData['text'] = strip_tags($koubeiData['text'], '<span><p>');
+        }
         //判断是否需要验证订单，该判断是因为后台发布口碑时不需要订单号
         if($checkOrder === true){
             //获取订单信息，验证是否可以发布口碑（order service）
