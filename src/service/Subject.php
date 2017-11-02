@@ -368,12 +368,12 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 达人最新发帖列表
      */
-    public function darenSubjectList()
+    public function darenSubjectList($currentUid)
     {
         $darenIds = \F_Ice::$ins->workApp->config->get('busconf.subject.daren_ids');
         //获取达人最新一篇，有首页封面图的长文
         $subjectIds = $this->subjectModel->getLastBlog($darenIds,5);
-        $list_info = array_values($this->getBatchSubjectInfos($subjectIds,0,['user_info',"index_cover"],[1])["data"]);
+        $list_info = array_values($this->getBatchSubjectInfos($subjectIds, $currentUid, ['user_info', "index_cover"], [1])["data"]);
 
         $lastList = [];
         foreach ($list_info as $val) {
@@ -1330,7 +1330,7 @@ class Subject extends \mia\miagroup\Lib\Service
         //帖子异步操作，设置任务完成状态
         $redis = new Redis();
         $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.async_consume');
-        $redis->lpush($redis_info['key'], $subjectId . '_' . $subjectSetInfo['user_id'] . '_' . $subjectSetInfo['created']);
+        $redis->lpush($redis_info['key'], $subjectId . '_' . $subjectSetInfo['user_id'] . '_' . $subjectSetInfo['created'] . "_" . $subjectSetInfo['source']);
         $redis->expire($redis_info['key'], $redis_info['expire_time']);
 
         // 5.4 分享信息
