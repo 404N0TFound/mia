@@ -382,9 +382,9 @@ class Subject extends \DB_Query {
 
         $user_str = implode(",",$userIds);
         if (!empty($timeStart)) {
-            $join = "JOIN (SELECT MIN(id) min_id FROM group_subjects WHERE `user_id` IN (" . $user_str . ") AND created > '". $timeStart ."' GROUP BY user_id) subjects_b ON subjects_b.min_id = group_subjects.id";;
+            $join = "JOIN (SELECT MIN(id) min_id FROM group_subjects WHERE `user_id` IN (" . $user_str . ") AND created > '" . $timeStart . "' AND source = " . $source . " GROUP BY user_id) subjects_b ON subjects_b.min_id = group_subjects.id";;
         } else {
-            $join = "JOIN (SELECT MIN(id) min_id FROM group_subjects WHERE `user_id` IN (" . $user_str . ") GROUP BY user_id) subjects_b ON subjects_b.min_id = group_subjects.id";;
+            $join = "JOIN (SELECT MIN(id) min_id FROM group_subjects WHERE `user_id` IN (" . $user_str . ") AND source = " . $source . " GROUP BY user_id) subjects_b ON subjects_b.min_id = group_subjects.id";;
         }
 
         $data = $this->getRows($where, "id,user_id,created", FALSE, 0, "id ASC", $join);
