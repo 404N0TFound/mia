@@ -610,6 +610,9 @@ class Subject extends \mia\miagroup\Lib\Service
                 $imageInfos = $subjectInfo['ext_info']['beauty_image'];
                 if (is_array($imageInfos) && !empty($imageInfos)) {
                     foreach ($imageInfos as $key => $image) {
+                        if (isset($image['is_hidden']) && $image['is_hidden'] == 1) {
+                            continue;
+                        }
                         if(!empty($image['width'])){
                             $img_info = NormalUtil::buildImgUrl($image['url'],'watermark',$image['width'],$image['height']);
                             $imageUrl[$key]['width'] = $img_info['width'];
@@ -629,6 +632,9 @@ class Subject extends \mia\miagroup\Lib\Service
                 $imageInfos = $subjectInfo['ext_info']['image'];
                 if (is_array($imageInfos) && !empty($imageInfos)) {
                     foreach ($imageInfos as $key => $image) {
+                        if (isset($image['is_hidden']) && $image['is_hidden'] == 1) {
+                            continue;
+                        }
                         if(!empty($image['width'])){
                             $img_info = NormalUtil::buildImgUrl($image['url'],'watermark',$image['width'],$image['height']);
                             $imageUrl[$key]['width'] = $img_info['width'];
@@ -650,9 +656,9 @@ class Subject extends \mia\miagroup\Lib\Service
             } else if (!empty($smallImageInfos[0])) {
                 $subjectRes[$subjectInfo['id']]['cover_image'] = $smallImageInfos[0];
             }
-            $subjectRes[$subjectInfo['id']]['image_infos'] = $imageUrl;
-            $subjectRes[$subjectInfo['id']]['small_image_url'] = $smallImageUrl;
-            $subjectRes[$subjectInfo['id']]['image_url'] = $bigImageUrl;
+            $subjectRes[$subjectInfo['id']]['image_infos'] = array_values($imageUrl);
+            $subjectRes[$subjectInfo['id']]['small_image_url'] = array_values($smallImageUrl);
+            $subjectRes[$subjectInfo['id']]['image_url'] = array_values($bigImageUrl);
             if (!empty($smallImageInfos[0])) {
                 $subjectRes[$subjectInfo['id']]['smallImageInfos'] = $smallImageInfos[0];
             }

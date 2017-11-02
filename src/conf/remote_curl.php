@@ -15,6 +15,7 @@
  *   'success_code' => 0,                //可选配置，返回json请求成功状态码，默认为0
  *   'result_format'=> true,             //可选配置，返回结果是否格式化解析，默认为true。
  *   'time_out'     => 1,                //可选配置，请求超时时间，默认为1。
+ *   'log_response' => false,            //可选配置，是否记录请求日志，默认为false。
  * );
  */
 
@@ -82,4 +83,11 @@ $material_high_optimize = array(
     'url' => 'http://kbrank.rec.mia.com/material/get_material',
     'method' => 'get',
     'result_format' => false
+);
+
+//图片检查服务
+$image_check_service = array(
+    'url' => 'http://172.16.96.75:9000',
+    'method' => 'get',
+    'time_out' => 5,
 );
