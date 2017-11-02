@@ -1324,7 +1324,7 @@ class Subject extends \mia\miagroup\Lib\Service
         //帖子异步操作，设置任务完成状态
         $redis = new Redis();
         $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.async_consume');
-        $redis->lpush($redis_info['key'], $subjectId . '_' . $subjectSetInfo['user_id'] . '_' . $subjectSetInfo['created']);
+        $redis->lpush($redis_info['key'], $subjectId . '_' . $subjectSetInfo['user_id'] . '_' . $subjectSetInfo['created'] . "_" . $subjectSetInfo['source']);
         $redis->expire($redis_info['key'], $redis_info['expire_time']);
 
         // 5.4 分享信息
