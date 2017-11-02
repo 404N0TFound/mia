@@ -40,7 +40,7 @@ class Subjectsasync extends \FD_Daemon
             //消息lpush压入表头的，取从表尾取
             $asyncInfo = $redis->rpop($key);
             if (!empty($asyncInfo)) {
-                list($subjectId, $userId, $finishTime) = explode("_", $asyncInfo, 3);
+                list($subjectId, $userId, $finishTime, $source) = explode("_", $asyncInfo, 4);
                 $redis_task_hash_key = sprintf($redis_task_info["key"], substr($userId, -1), $userId);
 
                 $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
@@ -65,14 +65,14 @@ class Subjectsasync extends \FD_Daemon
 
                 //当天首次发帖，直接操作redis
                 if ($this->task_setting["post"] === 1) {
-                    if (!$redis_task->hExists($redis_task_hash_key, 'post')) {
+                    if ($source == 1 && !$redis_task->hExists($redis_task_hash_key, 'post')) {
                         $redis_task->hSet($redis_task_hash_key, "post", json_encode(["num" => 1, "time" => $finishTime, "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
 
                 //当天首次评价，直接操作redis
                 if ($this->task_setting["evaluate"] === 1) {
-                    if (!$redis_task->hExists($redis_task_hash_key, 'evaluate')) {
+                    if ($source == 2 && !$redis_task->hExists($redis_task_hash_key, 'evaluate')) {
                         $redis_task->hSet($redis_task_hash_key, "evaluate", json_encode(["num" => 1, "time" => $finishTime, "status" => 0, "reward" => "", "is_processed" => 1]));
                     }
                 }
