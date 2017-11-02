@@ -322,22 +322,22 @@ class News extends \mia\miagroup\Lib\Service
             case "coupon_overdue":
             case "redbag_receive":
             case "redbag_overdue":
-                $lastNewsInfo = $this->newsModel->getLastNews($type, $toUserId, $source_id, true)[0];
-                if (!empty($lastNewsInfo)) {
-                    //更新
-                    $insert_data['id'] = $lastNewsInfo['id'];
-                    //删除和已读状态还原
-                    $insert_data['is_read'] = 0;
-                    $insert_data['status'] = 1;
-
-                    $ext_info["money"] += $lastNewsInfo["ext_info"]["money"];
-                    $ext_info["num"] = $lastNewsInfo["ext_info"]["num"] + 1;
-                    if ($lastNewsInfo["is_read"] == 0 && $lastNewsInfo["status"] == 1) {
-                        $addCountCheck = 1;
-                    }
-                } else {
-                    $ext_info["num"] += 1;
-                }
+//                $lastNewsInfo = $this->newsModel->getLastNews($type, $toUserId, $source_id, true)[0];
+//                if (!empty($lastNewsInfo)) {
+//                    //更新
+//                    $insert_data['id'] = $lastNewsInfo['id'];
+//                    //删除和已读状态还原
+//                    $insert_data['is_read'] = 0;
+//                    $insert_data['status'] = 1;
+//
+//                    $ext_info["money"] += $lastNewsInfo["ext_info"]["money"];
+//                    $ext_info["num"] = $lastNewsInfo["ext_info"]["num"] + 1;
+//                    if ($lastNewsInfo["is_read"] == 0 && $lastNewsInfo["status"] == 1) {
+//                        $addCountCheck = 1;
+//                    }
+//                } else {
+                    $ext_info["num"] = 1;
+//                }
                 break;
             /*========会员plus：动态========*/
             //以下2种类型，plus_new_members，plus_new_fans按天把同类型合并
@@ -580,7 +580,7 @@ class News extends \mia\miagroup\Lib\Service
             return $this->succ([]);
         }
         $create_date = '';
-        if (empty($maxSystemId)) {
+        if (empty($maxSystemTime)) {
             //新用户，获取用户的注册时间
             $userService = new userService();
             $create_date = $userService->getUserInfoByUids([$userId])["data"][$userId]["create_date"];
@@ -703,7 +703,14 @@ class News extends \mia\miagroup\Lib\Service
      */
     public function noReadCounts($userId)
     {
-        $this->pullMessage($userId);
+        //防止同时请求，拉取两次
+        list($redis, $redis_key, $expire_time) = $this->getRedis("prevent_pull", intval($userId));
+        $prevent_pull = $redis->get($redis_key);
+        if (!$prevent_pull) {
+            $redis->set($redis_key, 1);
+            $redis->expire($redis_key, $expire_time);
+            $this->pullMessage($userId);
+        }
         $cateNum = [];
         $showCate = $this->getShowCate()['data'];
         foreach ($showCate as $cate) {

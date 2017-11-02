@@ -350,8 +350,8 @@ class User extends \DB_Query {
         $join .= 'left join '.$this->tableTown. ' as t on ' .$this->tableName . '.town=t.id ';
         $join .= 'left join '.$this->tableUsers. ' as u on ' .$this->tableName . '.user_id=u.id ';
         
-        $field = $this->tableName.".user_id user_id,".$this->tableName.".name as name,
-                u.cell_phone as phone,p.name as pname,c.name as cname,a.name as aname,t.name as tname,"
+        $field = $this->tableName.".user_id user_id,".$this->tableName.".name as name,"
+                .$this->tableName.".cell as phone,p.name as pname,c.name as cname,a.name as aname,t.name as tname,"
                 .$this->tableName.".address as address";
     
         $data = $this->getRows($where, $field, FALSE, 0, FALSE, $join);

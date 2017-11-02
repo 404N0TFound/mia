@@ -192,7 +192,29 @@ $cron_list['subject_async'] = array(
     'start_time' => '2017-10-25 00:00:00',
     'interval' => 1
 );
-
+//图片全量美化
+$cron_list['beauty_data_sync'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=imagebeauty full_dump",
+    'start_time' => '2017-05-14 14:00:00',
+    'interval' => 10
+);
+//图片增量美化
+$cron_list['beauty_data_incremental_sync'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=imagebeauty incremental_dump",
+    'start_time' => '2017-05-14 13:55:00',
+    'interval' => 5
+);
+//帖子图片检查
+$cron_list['subject_image_check'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=subject --action=imagecheck",
+    'interval' => 3
+);
 
 /*************
  * 帖子相关结束
@@ -262,33 +284,13 @@ $cron_list['item_multiple_rank'] = array(
     'start_time' => '2016-12-23 02:00:00',
     'interval' => 86400
 );
+/*************
+ * 口碑相关结束
+ *************/
 
-//更新活动帖子热度值
-$cron_list['active_subject_hotvalue'] = array(
-    'enable' => true,
-    'engine' => 'php',
-    'cli_args' => "--class=active --action=setactivesubjecthotvalue",
-    'start_time' => '2017-03-30 15:00:00',
-    'interval' => 3600
-);
-
-//图片全量美化
-$cron_list['beauty_data_sync'] = array(
-    'enable' => true,
-    'engine' => 'php',
-    'cli_args' => "--class=subject --action=imagebeauty full_dump",
-    'start_time' => '2017-05-14 14:00:00',
-    'interval' => 10
-);
-//图片增量美化
-$cron_list['beauty_data_incremental_sync'] = array(
-    'enable' => true,
-    'engine' => 'php',
-    'cli_args' => "--class=subject --action=imagebeauty incremental_dump",
-    'start_time' => '2017-05-14 13:55:00',
-    'interval' => 5
-);
-
+/*************
+ * 用户相关开始
+ *************/
 //达人月排行榜更新
 $cron_list['user_doozer_month_rank_update'] = array(
     'enable' => true,
@@ -313,6 +315,9 @@ $cron_list['user_majia_baby_birth_incr'] = array(
     'start_time' => '2017-09-19 00:01:00',
     'interval' => 86400
 );
+/*************
+ * 用户相关结束
+ *************/
 
 /**************
  * 消息相关配置  共10+10个*
@@ -502,3 +507,15 @@ $cron_list['delay_send_message_10'] = array(
 /**************
  * 消息相关配置  end*
  *************/
+    
+/**
+ * 其他脚本配置
+ */
+//更新活动帖子热度值
+$cron_list['active_subject_hotvalue'] = array(
+    'enable' => true,
+    'engine' => 'php',
+    'cli_args' => "--class=active --action=setactivesubjecthotvalue",
+    'start_time' => '2017-03-30 15:00:00',
+    'interval' => 3600
+);

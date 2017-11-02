@@ -96,8 +96,13 @@ $newsKey = [
     "cate_list" => [
         'key' => $newsServicePrefix . 'catelist:%s',
         'expire_time' => 86400
-    ]
+    ],
     /*==========消息5.7相关end==========*/
+    //消息防。重复拉取
+    "prevent_pull" => [
+        'key' => $newsServicePrefix . 'prevent_pull:%d',
+        'expire_time' => 30
+    ]
 ];
 
 /**

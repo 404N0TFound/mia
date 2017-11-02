@@ -201,7 +201,7 @@ class User
     {
         $userCategory = new UserCategoryData();
         $offset = ($page - 1) * $count;
-        $data = $userCategory->getGroupUserIdList($type, $page, $count);
+        $data = $userCategory->getGroupUserIdList($type, $offset, $count);
         return $data;
     }
     

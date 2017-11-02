@@ -628,11 +628,11 @@ class News
     public function getPullList($userId, $maxSystemTime, $create_date)
     {
         //查询条件
-        if (!empty($create_date)) {
+        $conditions["gt"]["send_time"] = $maxSystemTime;
+        if (!empty($create_date) && empty($maxSystemTime)) {
             $conditions["gt"]["send_time"] = $create_date;
         }
 
-        $conditions["gt"]["send_time"] = $maxSystemTime;
         $conditions["lt"]["send_time"] = date("Y-m-d H:i:s");//发送时间在当前时间之前
         $conditions["gt"]["abandon_time"] = date("Y-m-d H:i:s");//过期时间在当前时间之后
         $conditions["status"] = 1;

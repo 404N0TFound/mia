@@ -2,6 +2,7 @@
 namespace mia\miagroup\Util;
 
 use Intervention\Image\ImageManager;
+use mia\miagroup\Lib\RemoteCurl;
 
 class ImageUtil
 {
@@ -199,5 +200,41 @@ class ImageUtil
         // 锐化 30
         $img->sharpen(10);
         $img->save($newPath);
+    }
+    
+    /**
+     * 验证图片有效性，是否完整
+     * @return array
+     */
+    public function validCheck($image_url)
+    {
+        $remote_curl = new RemoteCurl('image_check_service');
+        $params['url'] = $image_url;
+        $result = $remote_curl->curl_remote('/image/valid', $params);
+        return $result;
+    }
+    
+    /**
+     * 检查图片清晰度
+     * @return array
+     */
+    public function clarityCheck($image_url)
+    {
+        $remote_curl = new RemoteCurl('image_check_service');
+        $params['url'] = $image_url;
+        $result = $remote_curl->curl_remote('/image/clarity', $params);
+        return $result;
+    }
+    
+    /**
+     * 图片二维码识别
+     * @return array
+     */
+    public function qrdecode($image_url)
+    {
+        $remote_curl = new RemoteCurl('image_check_service');
+        $params['url'] = $image_url;
+        $result = $remote_curl->curl_remote('/image/qrdecode', $params);
+        return $result;
     }
 }

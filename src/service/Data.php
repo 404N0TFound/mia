@@ -2,7 +2,7 @@
 
 namespace mia\miagroup\Service;
 use mia\miagroup\Model\Data as DataModel;
-
+use mia\miagroup\Service\Active as ActiveService;
 
 class Data extends \mia\miagroup\Lib\Service
 {
@@ -36,6 +36,16 @@ class Data extends \mia\miagroup\Lib\Service
      */
     public function addDataTask($settings)
     {
+        //如果筛选条件有活动id,时间范围则设置为活动开始结束时间
+        if(intval($settings['active_id']) > 0){
+            if(!empty($activeInfo) && empty($settings["start_time"]) && empty($settings["end_time"])){
+                $activeService = new ActiveService();
+                $activeInfo = $activeService->getSingleActiveById($settings['active_id'])['data'];
+                $settings["start_time"] = $activeInfo["start_time"];
+                $settings["end_time"] = $activeInfo["end_time"];
+            }
+        }
+        
         if(!isset($settings["start_time"]) || !isset($settings["end_time"]) || empty(trim($settings["start_time"])) || empty(trim($settings["end_time"]))) {
             return $this->error(500, '时间范围必须选择！');
         }
@@ -83,7 +93,7 @@ class Data extends \mia\miagroup\Lib\Service
         if(isset($settings["active_id"]) && intval($settings["active_id"]) > 0){
             $setData["active_id"] = $settings["active_id"];
         }
-        if(isset($settings["subject_status"])){
+        if(isset($settings["subject_status"]) && $settings["subject_status"] != ''){
             $setData["subject_status"] = intval($settings["subject_status"]);
         }
         if(isset($settings["need_title"])){
