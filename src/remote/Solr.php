@@ -367,9 +367,15 @@ class Solr
                 $solr_info['fq'][]   = '(supplier_id:[1 TO *] AND supplier_status:1)';
             }
         }
+        //所属仓库
         if (!empty($conditon['warehouse_type'])) {
-            //所属仓库
-            $solr_info['fq'][]   = 'warehouse_type:'. $conditon['warehouse_type'];
+            //如果只选择一级仓库分类，就包括一级下的所有二级分类
+            if(is_array($conditon['warehouse_type'])){
+                $solr_info['fq'][]   = "warehouse_type:(". implode(' OR ', $conditon['warehouse_type']) . ")";
+            }else{
+                //如果选择了二级分类就直接等于改二级分类的仓库
+                $solr_info['fq'][]   = 'warehouse_type:'. $conditon['warehouse_type'];
+            }
         }
         if (!empty($conditon['pop_type'])) {
             //所属仓库
