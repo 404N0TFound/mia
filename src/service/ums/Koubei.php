@@ -116,11 +116,19 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //类目ID
             $solrCond['category_id'] = $params['category_id'];
         }
-        if (!empty($params['warehouse_type']) && $isRealtime == false) {
-            //仓库类型
-            $solrCond['warehouse_type'] = $params['warehouse_type'];
+        //只选择了仓库一级类型，且为自营，则需要包括其下面的所有业务类型（1：自营,6：跨境购）
+        if (!empty($params['warehouse_type']) && $params['warehouse_type'] == 1 && empty($params['service_type']) && $isRealtime == false) {
+            $solrCond['warehouse_type'] = array(1,6);
         }
-        if (!empty($params['pop_type']) && $isRealtime == false && in_array($params['warehouse_type'], [3])) {
+        //只选择了仓库一级类型，且为pop，则需要包括其下面的所有业务类型（3：POP国内,5：直邮,7：虚拟跨境购,8：自营直邮,10：保税区,11：直邮一件代销,12：国内一件代销,13：一件代销海外站）
+        if (!empty($params['warehouse_type']) && $params['warehouse_type'] == 2 && empty($params['service_type']) && $isRealtime == false) {
+            $solrCond['warehouse_type'] = array(3,5,7,8,10,11,12,13);
+        }
+        //选择了仓库二级类型
+        if (!empty($params['service_type']) && $isRealtime == false) {
+            $solrCond['warehouse_type'] = $params['service_type'];
+        }
+        if (!empty($params['pop_type']) && $isRealtime == false && in_array($params['service_type'], [3])) {
             //拼团类型
             $solrCond['pop_type'] = $params['pop_type'];
         }
@@ -195,8 +203,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $limit = $solrCountData['count'];
                 }
             }
+            
             // 查询列表
             $solrData = $solr->getKoubeiList($solrCond, 'id', $params['page'], $limit, $orderBy);
+            //print_r($solrData);exit;
             if(!empty($solrData['list'])){
                 foreach ($solrData['list'] as $v) {
                     $koubeiIds[] = $v['id'];
@@ -555,4 +565,15 @@ class Koubei extends \mia\miagroup\Lib\Service {
         return $this->succ($return);
     }
 
+    
+    /**
+     * 根据商家id获取仓库信息
+     */
+    public function getBatchWarehouse($supplyIds){
+        if(empty($supplyIds)) {
+            return $this->succ(array());
+        }
+        $wearhouseInfo = $this->stockModel->getBatchNameBySupplyIds($supplyIds);
+        return $this->succ($wearhouseInfo);
+    }
 }
