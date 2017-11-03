@@ -41,8 +41,12 @@ class Comment extends \mia\miagroup\Lib\Service {
                 $fids[] = $commment['fid'];
             }
         }
+        //商家回复后统一默认为客服用户id
+        $commentUserId = F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
         // 获取用户信息
         if (in_array('user_info', $field)) {
+            //为了统一修改商家用户信息为客服信息，批量获取用户信息中默认加入客服信息
+            $userIds = array_push($userIds, $commentUserId);
             $users = $this->userService->getUserInfoByUids($userIds)['data'];
             if ($supplierHide == true) {
                 //是否有商家用户，如果是商家用户，不返回uid
@@ -61,6 +65,9 @@ class Comment extends \mia\miagroup\Lib\Service {
                 }
                 $koubeiUmsService = new KoubeiUmsService();
                 $warehouseInfo = $koubeiUmsService->getBatchWarehouse($supplierIds)['data'];
+                //统一取客服用户信息
+                
+                $commentInfo['comment_user'] = $this->userService->getUserInfoByUids(array($commentUserId))['data'][$commentUserId];
             }
         }
         // 获取帖子信息
@@ -88,9 +95,7 @@ class Comment extends \mia\miagroup\Lib\Service {
                 $commentInfo['comment_user'] = $users[$commentInfos[$commentId]['user_id']];
                 //如果仓库类型是10，11，12 ，13的商家进行回复，昵称统一修改为蜜芽客服
                 if(isset($commentInfo['comment_user']['supplier_id']) && in_array($warehouseInfo[$commentInfo['comment_user']['supplier_id']]['type'], $warehouseType)){
-                    //统一取客服用户信息
-                    $commentUserId = F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
-                    $commentInfo['comment_user'] = $this->userService->getUserInfoByUids(array($commentUserId))['data'][$commentUserId];
+                    $commentInfo['comment_user'] = $users[$commentUserId];
                 }
             }
             if (in_array('subject', $field)) {
