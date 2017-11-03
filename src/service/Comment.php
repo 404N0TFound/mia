@@ -8,6 +8,7 @@ use mia\miagroup\Model\Comment as CommentModel;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Service\News;
 use mia\miagroup\Service as Service;
+use mia\miagroup\Service\Ums\Koubei as KoubeiUmsService;
 
 class Comment extends \mia\miagroup\Lib\Service {
 
@@ -45,12 +46,20 @@ class Comment extends \mia\miagroup\Lib\Service {
             if ($supplierHide == true) {
                 //是否有商家用户，如果是商家用户，不返回uid
                 $itemService = new ItemService();
-                $userMerchantRelations = $itemService->getBatchUserSupplierMapping($userIds);
+                $userMerchantRelations = $itemService->getBatchUserSupplierMapping($userIds)['data'];
+                //仓库类型是10，11，12 ，13的商家，回复口碑后，昵称统一显示"蜜芽客服
+                $warehouseType = array(10,11,12,13);
+                $supplierIds = array();
                 foreach ($users as $uid => $user) {
                     if ($userMerchantRelations[$uid]['status'] == 1) {
                         $users[$uid]['id'] = -1;
+                        $users[$uid]['supplier_id'] = $userMerchantRelations[$uid]['supplier_id'];;
+                        //如果是商家，收集商家id，查仓库类型
+                        $supplierIds[] = $userMerchantRelations[$uid]['supplier_id'];
                     }
                 }
+                $koubeiUmsService = new KoubeiUmsService();
+                $warehouseInfo = $koubeiUmsService->getBatchWarehouse($supplierIds)['data'];
             }
         }
         // 获取帖子信息
@@ -76,6 +85,10 @@ class Comment extends \mia\miagroup\Lib\Service {
             $commentInfo['created'] = $commentInfos[$commentId]['create_time'];
             if (in_array('user_info', $field)) {
                 $commentInfo['comment_user'] = $users[$commentInfos[$commentId]['user_id']];
+                //如果仓库类型是10，11，12 ，13的商家进行回复，昵称统一修改为蜜芽客服
+                if(isset($commentInfo['comment_user']['supplier_id']) && in_array($warehouseInfo[$commentInfo['comment_user']['supplier_id']]['type'], $warehouseType)){
+                    $commentInfo['comment_user']['nickname'] = "蜜芽客服";
+                }
             }
             if (in_array('subject', $field)) {
                 $commentInfo['subject'] = $subjects[$commentInfos[$commentId]['subject_id']];
@@ -336,7 +349,9 @@ class Comment extends \mia\miagroup\Lib\Service {
         return $this->succ($arrSubjects);
     }
 
-    //获取选题评论列表
+    /**
+     * 获取选题评论列表
+     */ 
     public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
         $commentArrs = array();
         $commentIds = $this->commentModel->getCommentBySubjectId($subjectId, $user_type, $pageSize, $commentId);
