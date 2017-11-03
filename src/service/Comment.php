@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Service;
 
+use \F_Ice;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Item as ItemService;
@@ -87,7 +88,9 @@ class Comment extends \mia\miagroup\Lib\Service {
                 $commentInfo['comment_user'] = $users[$commentInfos[$commentId]['user_id']];
                 //如果仓库类型是10，11，12 ，13的商家进行回复，昵称统一修改为蜜芽客服
                 if(isset($commentInfo['comment_user']['supplier_id']) && in_array($warehouseInfo[$commentInfo['comment_user']['supplier_id']]['type'], $warehouseType)){
-                    $commentInfo['comment_user']['nickname'] = "蜜芽客服";
+                    //统一取客服用户信息
+                    $commentUserId = F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
+                    $commentInfo['comment_user'] = $this->userService->getUserInfoByUids(array($commentUserId))['data'][$commentUserId];
                 }
             }
             if (in_array('subject', $field)) {
