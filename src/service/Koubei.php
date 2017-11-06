@@ -1153,7 +1153,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 //展示当前在线活动####start
                 $active_service = new ActiveService();
                 if($active_id > 0){
-                    $active_info = $activeInfo;
+                    $active_info[0] = $activeInfo;
                 }else{
                     $activeInfos = $active_service->getCurrentActive(10)['data'];
                     //过滤掉当前在线的消消乐活动，取非消消乐的前6个在线活动
