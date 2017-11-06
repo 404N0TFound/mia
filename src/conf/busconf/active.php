@@ -79,6 +79,7 @@ $xiaoxiaole = array(
             'other' => 'other'
         ),
         'prize_desc_color' => '#2A69B4',
+        'prize_back_color' => '#64C6FF',
     ),
     // 活动tab商品奖励文案
     'active_item_prize' => array(
@@ -90,6 +91,7 @@ $xiaoxiaole = array(
         'rank_desc_color' => '',
         'achievement_desc' => '%s日起已发布了',
         'achievement_desc_subject' => '%s条口碑',
+        'rank_back_color' => '#64C6FF',
     ),
     // 活动帖子状态审核
     'active_subject_qualified' => array(
