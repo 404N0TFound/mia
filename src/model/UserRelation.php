@@ -103,7 +103,6 @@ class UserRelation {
                 $param['relation_id'] = $userId;
                 $param['to_user_id'] = $userId;
                 $res = $mibean->add($param);
-                var_dump($res);
             }
         }
         //更新状态查主库
