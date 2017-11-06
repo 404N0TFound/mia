@@ -1430,3 +1430,9 @@ $mibean_reward = 10;
  * 口碑分值
  */
 $koubei_score = [0,1,2,3,4,5];
+
+
+/*
+ * 口碑发布处理标签
+ */
+$koubei_label_title = '开箱晒物';

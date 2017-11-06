@@ -157,21 +157,17 @@ class Label extends \mia\miagroup\Lib\Service {
      * 获取全部推荐标签
      */
     public function getRecommendLabels($page=1,$count=10,$type = '') {
-        $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
-        $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
+
         if(!empty($type) && $type == 'koubei') {
-            // 口碑去除垃圾标签
-            foreach($labelInfos as $label) {
-                if($label['title'] == '开箱晒物') {
-                    $res[] = $label;
-                    break;
-                }
-            }
+            // 口碑去除垃圾标签(保留开箱晒物)
+            $title = \F_Ice::$ins->workApp->config->get('busconf.koubei.koubei_label_title');
+            $label = $this->getLabelInfoByTitle($title)['data'];
+            $labelIds = [$label['id']];
+        }else {
+            $labelIds = $this->labelModel->getRecommendLables($page,$count,'is_recommend');
         }
-        if(empty($res)) {
-            $res = $labelInfos;
-        }
-        return $this->succ(array_values($res));
+        $labelInfos = $this->getBatchLabelInfos($labelIds)['data'];
+        return $this->succ(array_values($labelInfos));
     }
 
     /**
