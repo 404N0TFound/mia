@@ -536,11 +536,20 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         sort($signDays);
 
-        // 倒序
-        rsort($calendarList);
-
         // 获取当天的日期
         $current_day = date('Y-m-d', time());
+
+        // 获取当前时间发帖日历
+        $currentCalendarList = [];
+        foreach($calendarList as $k => $value) {
+            $currentCalendarList[$k] = $value;
+            if($value['issue_date'] == $current_day) {
+                break;
+            }
+        }
+        $calendarList = $currentCalendarList;
+
+        rsort($calendarList);
 
         // 从当前时间的前一天开始统计连续打卡状态
         foreach($calendarList as $k => $value) {
@@ -590,7 +599,7 @@ class Active extends \mia\miagroup\Lib\Service {
         // 打卡提示
         if(!empty($return['is_first_pub'])) {
             // 首贴奖励提示
-            $return['mark_notice'] = sprintf($active_config['first_pub_notice'], $first_issue_mibean);
+            $return['mark_notice'] = $active_config['first_pub_notice'];
         }else {
             if(empty($apart_days)) {
                 // 全勤奖
@@ -890,7 +899,7 @@ class Active extends \mia\miagroup\Lib\Service {
         // 获取活动对应的帖子id
         $mibean = new \mia\miagroup\Remote\MiBean();
         $conditions['is_qualified'] = [0,1];
-        $activeRelation = $this->activeModel->getActiveSubjectRelation($ids, [1], $conditions);
+        $activeRelation = $this->activeModel->getActiveSubjectRelation($ids, [], $conditions);
         if(empty($activeRelation)) {
             return $this->succ($return);
         }
@@ -978,22 +987,33 @@ class Active extends \mia\miagroup\Lib\Service {
             $continue_day_count = $currentCalendarList = $signDays = [];
             $calendarNum = 0;
 
+            // 当前时间
+            $current_day = date('Y-m-d', time());
+
             // 用户打卡奖励类型
             if(!empty($signDayPrize)) {
 
-                // 用户活动周期打卡日历
+                // 当前日期用户活动打卡日历
                 $conditions['s_time'] = $activeInfo[$active_id]['start_time'];
-                $conditions['e_time'] = $activeInfo[$active_id]['end_time'];
+                $conditions['e_time'] = date('Y-m-d H:i:s', time());
                 $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
+                rsort($calendarList);
 
                 // 用户当前发帖时间连续发帖的天数
                 foreach($calendarList as $k => $value) {
+                    if($value['issue_date'] == $current_day) {
+                        // 当前时间发帖状态处理
+                        if(!empty($value['subject_nums'])) {
+                            $calendarNum += 1;
+                            $continue_day_count[$k] = $calendarNum;
+                        }
+                        continue;
+                    }
                     if (!empty($value['subject_nums'])) {
                         $calendarNum += 1;
                         $continue_day_count[$k] = $calendarNum;
-                    } else {
-                        $calendarNum = 0;
-                        $continue_day_count[$k] = $calendarNum;
+                    }else{
+                        break;
                     }
                 }
                 // 当前发帖时间连续打卡最大天数
@@ -1009,7 +1029,7 @@ class Active extends \mia\miagroup\Lib\Service {
                 $userFirstConditions['s_time'] = explode(' ', $create_time)[0];
                 $userFirstConditions['e_time'] = $userFirstConditions['s_time'].' 23:59:59';
                 $userFirstConditions['is_qualified'] = [0,1];
-                $firstSubjectByday = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, FALSE, 0, [1], $userFirstConditions);
+                $firstSubjectByday = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [1], 1, 0, $userFirstConditions);
                 if($subject_id == $firstSubjectByday['list'][0]['subject_id']) {
                     // 当前贴为每日首贴
                     for($i = 0; $i < count($signDays) ; $i++) {
@@ -1060,7 +1080,7 @@ class Active extends \mia\miagroup\Lib\Service {
                             // 打卡奖扣除蜜豆
                             // 满足打卡要求，并且发帖当天有效发帖量 <= 1,扣除蜜豆
                             $userFirstConditions['type'] = 'count';
-                            $res = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, FALSE, 0, [1], $userFirstConditions);
+                            $res = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [1], FALSE, 0, $userFirstConditions);
                             if($res['count'] <= 1) {
                                 // 当前发帖用户打卡日历
                                 $userClockList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
@@ -1070,14 +1090,26 @@ class Active extends \mia\miagroup\Lib\Service {
                                         $userClockList[$k]['subject_nums'] = 0;
                                     }
                                 }
+
+                                rsort($userClockList);
+                                $calendarNum = 0;
+                                $continue_day_count = [];
+
                                 // 获取处理用户连续打卡的最大天数
                                 foreach($userClockList as $k => $value) {
+                                    if($value['issue_date'] == $current_day) {
+                                        // 当前时间发帖状态处理
+                                        if(!empty($value['subject_nums'])) {
+                                            $calendarNum += 1;
+                                            $continue_day_count[$value['issue_date']] = $calendarNum;
+                                        }
+                                        continue;
+                                    }
                                     if (!empty($value['subject_nums'])) {
                                         $calendarNum += 1;
-                                        $continue_day_count[$k] = $calendarNum;
-                                    } else {
-                                        $calendarNum = 0;
-                                        $continue_day_count[$k] = $calendarNum;
+                                        $continue_day_count[$value['issue_date']] = $calendarNum;
+                                    }else{
+                                        break;
                                     }
                                 }
                                 // 当前发帖时间连续打卡最大天数
