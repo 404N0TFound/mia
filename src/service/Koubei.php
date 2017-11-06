@@ -1150,14 +1150,26 @@ class Koubei extends \mia\miagroup\Lib\Service {
                         }
                     }
                 }
-                //展示当前在线活动
+                //展示当前在线活动####start
                 $active_service = new ActiveService();
                 if($active_id > 0){
-                    $active_info[$active_id] = $activeInfo;
+                    $active_info = $activeInfo;
                 }else{
-                    $active_info = $active_service->getCurrentActive(6)['data'];
+                    $activeInfos = $active_service->getCurrentActive(10)['data'];
+                    //过滤掉当前在线的消消乐活动，取非消消乐的前6个在线活动
+                    foreach($activeInfos as $key=>$active){
+                        if($active['active_type'] == "xiaoxiaole"){
+                            continue;
+                        }
+                        $active_info[$key] = $active;
+                    }
+                    $active_info = array_slice(array_values($active_info),0,6);
                 }
-                $return_Info['current_actives'] = array_values($active_info);
+                
+                if(!empty($active_info)){
+                    $return_Info['current_actives'] = $active_info;
+                }
+                ####end
                 
                 //参加活动文案
                 $active_title = \F_Ice::$ins->workApp->config->get('busconf.active.activeTitle');
