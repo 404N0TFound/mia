@@ -536,11 +536,20 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         sort($signDays);
 
-        // 倒序
-        rsort($calendarList);
-
         // 获取当天的日期
         $current_day = date('Y-m-d', time());
+
+        // 获取当前时间发帖日历
+        $currentCalendarList = [];
+        foreach($calendarList as $k => $value) {
+            $currentCalendarList[$k] = $value;
+            if($value['issue_date'] == $current_day) {
+                break;
+            }
+        }
+        $calendarList = $currentCalendarList;
+
+        rsort($calendarList);
 
         // 从当前时间的前一天开始统计连续打卡状态
         foreach($calendarList as $k => $value) {
