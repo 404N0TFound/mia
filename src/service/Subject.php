@@ -1910,7 +1910,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     if(!empty($activeInfo)) {
                         // 获取消消乐活动标识
                         $xiaoxiaoleFlag = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole')['active_type'];
-                        if($xiaoxiaoleFlag == $activeInfo['active_type']) {
+                        if($xiaoxiaoleFlag == $activeInfo['active_type'] && empty($status)) {
                             // 当前贴为消消乐活动下发帖,删除需要扣除消消乐活动下发蜜豆
                             $active_relation_id = $activeSubject['data'][$subjectId]['id'];
                             $activeService->activeSubjectVerify([$active_relation_id], -1);
