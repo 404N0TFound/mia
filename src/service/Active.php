@@ -899,7 +899,7 @@ class Active extends \mia\miagroup\Lib\Service {
         // 获取活动对应的帖子id
         $mibean = new \mia\miagroup\Remote\MiBean();
         $conditions['is_qualified'] = [0,1];
-        $activeRelation = $this->activeModel->getActiveSubjectRelation($ids, [1], $conditions);
+        $activeRelation = $this->activeModel->getActiveSubjectRelation($ids, [], $conditions);
         if(empty($activeRelation)) {
             return $this->succ($return);
         }
