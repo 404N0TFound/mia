@@ -1,6 +1,7 @@
 <?php
 namespace mia\miagroup\Service;
 
+use \F_Ice;
 use mia\miagroup\Service\User as UserService;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Item as ItemService;
@@ -8,6 +9,7 @@ use mia\miagroup\Model\Comment as CommentModel;
 use mia\miagroup\Util\EmojiUtil;
 use mia\miagroup\Service\News;
 use mia\miagroup\Service as Service;
+use mia\miagroup\Service\Ums\Koubei as KoubeiUmsService;
 
 class Comment extends \mia\miagroup\Lib\Service {
 
@@ -39,18 +41,30 @@ class Comment extends \mia\miagroup\Lib\Service {
                 $fids[] = $commment['fid'];
             }
         }
+        //商家回复后统一默认为客服用户id
+        $commentUserId = F_Ice::$ins->workApp->config->get('busconf.user.miaKefuUid');
         // 获取用户信息
         if (in_array('user_info', $field)) {
+            //为了统一修改商家用户信息为客服信息，批量获取用户信息中默认加入客服信息
+            array_push($userIds, $commentUserId);
             $users = $this->userService->getUserInfoByUids($userIds)['data'];
             if ($supplierHide == true) {
                 //是否有商家用户，如果是商家用户，不返回uid
                 $itemService = new ItemService();
-                $userMerchantRelations = $itemService->getBatchUserSupplierMapping($userIds);
+                $userMerchantRelations = $itemService->getBatchUserSupplierMapping($userIds)['data'];
+                //仓库类型是10，11，12 ，13的商家，回复口碑后，昵称统一显示"蜜芽客服
+                $warehouseType = array(10,11,12,13);
+                $supplierIds = array();
                 foreach ($users as $uid => $user) {
                     if ($userMerchantRelations[$uid]['status'] == 1) {
                         $users[$uid]['id'] = -1;
+                        $users[$uid]['supplier_id'] = $userMerchantRelations[$uid]['supplier_id'];;
+                        //如果是商家，收集商家id，查仓库类型
+                        $supplierIds[] = $userMerchantRelations[$uid]['supplier_id'];
                     }
                 }
+                $koubeiUmsService = new KoubeiUmsService();
+                $warehouseInfo = $koubeiUmsService->getBatchWarehouse($supplierIds)['data'];
             }
         }
         // 获取帖子信息
@@ -76,6 +90,10 @@ class Comment extends \mia\miagroup\Lib\Service {
             $commentInfo['created'] = $commentInfos[$commentId]['create_time'];
             if (in_array('user_info', $field)) {
                 $commentInfo['comment_user'] = $users[$commentInfos[$commentId]['user_id']];
+                //如果仓库类型是10，11，12 ，13的商家进行回复，昵称统一修改为蜜芽客服
+                if(isset($commentInfo['comment_user']['supplier_id']) && in_array($warehouseInfo[$commentInfo['comment_user']['supplier_id']]['type'], $warehouseType)){
+                    $commentInfo['comment_user'] = $users[$commentUserId];
+                }
             }
             if (in_array('subject', $field)) {
                 $commentInfo['subject'] = $subjects[$commentInfos[$commentId]['subject_id']];
@@ -218,8 +236,6 @@ class Comment extends \mia\miagroup\Lib\Service {
 
         //回复帖子或评论：回复人非帖子作者，发消息给帖子作者
         if ($sendFromUserId != $toUserId) {
-            // 发消息 TODO 完全切换后关掉旧的
-            $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
             $this->newService->postMessage('img_comment', $toUserId, $sendFromUserId, $commentInfo['id']);
             //赠送用户蜜豆（帖子作者）
             $mibean = new \mia\miagroup\Remote\MiBean();
@@ -260,8 +276,6 @@ class Comment extends \mia\miagroup\Lib\Service {
         // 回复评论：被评论人不是帖子作者，被评论人不是评论人自己
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
             $toUserId = $commentInfo['parent_user']['user_id'];
-            // 发消息，发给被评论人 TODO 完全切换后关掉旧的
-            $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id'])['data'];
             $this->newService->postMessage('img_comment', $toUserId, $sendFromUserId, $commentInfo['id']);
 
             //8：00-23：00发送评论，发push
@@ -340,7 +354,9 @@ class Comment extends \mia\miagroup\Lib\Service {
         return $this->succ($arrSubjects);
     }
 
-    //获取选题评论列表
+    /**
+     * 获取选题评论列表
+     */ 
     public function getCommentBySubjectId($subjectId, $user_type = 0, $pageSize = 21, $commentId = 0) {
         $commentArrs = array();
         $commentIds = $this->commentModel->getCommentBySubjectId($subjectId, $user_type, $pageSize, $commentId);

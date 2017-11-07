@@ -8,11 +8,13 @@ class Active extends \mia\miagroup\Lib\Service {
     private $activeModel;
     private $userModel;
     private $subjectModel;
+    private $activeService;
 
     public function __construct() {
         parent::__construct();
         $this->activeModel = new ActiveModel();
         $this->userModel = new \mia\miagroup\Model\Ums\User();
+        $this->activeService = new \mia\miagroup\Service\Active();
     }
 
     /*
@@ -149,6 +151,65 @@ class Active extends \mia\miagroup\Lib\Service {
         }
         
         $result = $this->activeModel->getActiveSubjectByItem($condition, $offset, $limit);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 查询消消乐活动商品帖子情况
+     */
+    public function getXiaoxiaoleItem($params, $page = 1, $limit = false) {
+        $result = array();
+        $item_tab_params = ['item_tab' => $params['item_tab'], 'is_pre_set' => $params['is_pre_set']];
+        $item_tabs = $this->activeModel->getActiveTabItemInfos($params['active_id'], $item_tab_params, false);
+        if (empty($item_tabs)) {
+            return $this->succ($result);
+        }
+        $item_ids = [];
+        foreach ($item_tabs as $v) {
+            $item_ids[] = $v['item_id'];
+        }
+        //获取商品帖子数、口碑数
+        $itemSubjectCounts = $this->activeModel->getXiaoxiaoleItemSubjectCount($params);
+        $item_service = new \mia\miagroup\Service\Item();
+        $items = $item_service->getBatchItemBrandByIds($item_ids, false, [])['data'];
+        
+        foreach ($item_tabs as $v) {
+            if (array_intersect(array_keys($params), ['min_koubei_num', 'max_koubei_num', 'min_subject_num', 'max_subject_num', 'start_time', 'end_time'])) {
+                if (empty($itemSubjectCounts[$v['item_id']])) {
+                    continue;
+                }
+            }
+            $v['subject_count'] = intval($itemSubjectCounts[$v['item_id']]['subject_count']);
+            $v['koubei_count'] = intval($itemSubjectCounts[$v['item_id']]['koubei_count']);
+            $v['item_info'] = !empty($items[$v['item_id']]) ? $items[$v['item_id']] : [];
+            $result[] = $v;
+        }
+        
+        return $this->succ($result);
+    }
+    
+    /**
+     * 查询消消乐所有活动商品
+     */
+    public function getAllXiaoxiaoleItems($active_id) {
+        $result = array();
+        if (intval($active_id) <= 0) {
+            return $this->succ($result);
+        }
+        $item_tabs = $this->activeModel->getActiveTabItemInfos($active_id, ['status' => 1]);
+        $item_ids = [];
+        if (empty($item_tabs)) {
+            return $this->succ($result);
+        }
+        foreach ($item_tabs as $v) {
+            $item_ids[] = $v['item_id'];
+        }
+        $item_service = new \mia\miagroup\Service\Item();
+        $items = $item_service->getBatchItemBrandByIds($item_ids, false, [])['data'];
+        foreach ($item_tabs as $v) {
+            $v['item_info'] = !empty($items[$v['item_id']]) ? $items[$v['item_id']] : [];
+            $result[] = $v;
+        }
         return $this->succ($result);
     }
 }

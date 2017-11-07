@@ -8,6 +8,7 @@ class SubjectPointTags extends \DB_Query {
     protected $dbResource = 'miagroup';
 
     protected $tableName = 'group_subject_point_tags';
+    protected $tableActiveRelation = 'group_subject_active_relation';
 
     protected $mapping = array();
     

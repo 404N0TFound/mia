@@ -8,6 +8,12 @@ class User extends DB_Query {
     protected $dbResource = 'miadefault';
 
     protected $tableName = 'users';
+    protected $tableUserAddress = 'user_address';
+    protected $tableProvince = 'province';
+    protected $tableCity = 'province_city';
+    protected $tableArea = 'province_city_area';
+    protected $tableTown = 'province_city_area_town';
+
 
     protected $mapping = [];
 
@@ -89,4 +95,33 @@ class User extends DB_Query {
             return false;
         }
     }
+
+    /*
+     * 获取蜜芽圈用户收货地址
+     * */
+    public function getGroupUserAddress($addressIds)
+    {
+        $where = $result = [];
+        $where[] = ['ad.id', $addressIds];
+        $where[] = ['ad.status', 1];
+
+        $join = 'left join '.$this->tableUserAddress.' as ad on '.$this->tableName.'.id=ad.user_id ';
+        $join .= 'left join '.$this->tableProvince. ' as p on ad.prov=p.id ';
+        $join .= 'left join '.$this->tableCity. ' as c on ad.city=c.id ';
+        $join .= 'left join '.$this->tableArea. ' as a on ad.area=a.id ';
+        $join .= 'left join '.$this->tableTown. ' as t on ad.town=t.id ';
+
+        $field = 'ad.phone as phone,ad.id as id,ad.cell as mobile,ad.prov as prov_id,ad.city as city_id,ad.area as area_id,ad.town as town_id,ad.user_id as user_id,ad.name as name,ad.address as address,p.name as prov,c.name as city,a.name as area,t.name as town';
+
+        $data = $this->getRows($where, $field, FALSE, 0, FALSE, $join);
+
+        if (empty($data)) {
+            return [];
+        }
+        foreach ($data as $v) {
+            $result[$v['id']] = $v;
+        }
+        return $result;
+    }
+
 }

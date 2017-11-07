@@ -52,7 +52,10 @@ class Active extends \DB_Query {
         $where[] = ['id', $activeId];
         $setData = array();
         foreach($activeData as $key=>$val){
-            $setData[] = [$key,$val];
+            if (in_array($key, ['ext_info'])) {
+                $val = json_encode($val);
+            }
+            $setData[] = array($key, $val);
         }
         $data = $this->update($setData, $where);
         return $data;

@@ -189,4 +189,20 @@ class AppUserRelation extends DB_Query {
         }
         return $result;
     }
+
+    public function getUserFollowNum($userIds, $followIds)
+    {
+        $where[] = array('user_id', $userIds);
+        $where[] = array('replation_user_id', $followIds);
+        $where[] = array('status', 1);
+        $groupBy = array('user_id');
+
+        $data = $this->getRows($where, 'count(id) as num,user_id,create_time', FALSE, 0, 'create_time desc', false, $groupBy);
+
+        $return = [];
+        foreach ($data as $val) {
+            $return[$val["user_id"]] = $val;
+        }
+        return $return;
+    }
 }
