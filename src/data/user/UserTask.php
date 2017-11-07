@@ -7,7 +7,7 @@ use \DB_Query;
 class UserTask extends DB_Query
 {
 
-    protected $dbResource = 'miadefault';
+    protected $dbResource = 'miatask';
 
     protected $tableName = 'member_task_final_log';
 
