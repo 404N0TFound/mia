@@ -506,9 +506,7 @@ class Active extends \mia\miagroup\Lib\Service {
         $return['mibean_num'] = $res['prize_num_list'][0]['prize_num'];
 
         // 用户活动连续打卡标识
-        $calendarNum = 0;
-        // 用户打卡天数记录
-        $continue_day_count = [];
+        $maxClockDay = 0;
 
         // 日历背景图
         $return['back_img'] = $active_config['calendar_image'];
@@ -551,24 +549,14 @@ class Active extends \mia\miagroup\Lib\Service {
 
         rsort($calendarList);
 
-        // 从当前时间的前一天开始统计连续打卡状态
+        // 用户当前发帖时间连续发帖的天数
         foreach($calendarList as $k => $value) {
-            if($value['issue_date'] == $current_day) {
-                // 当前时间发帖状态处理
-                if(!empty($value['subject_nums'])) {
-                    $calendarNum += 1;
-                    $continue_day_count[$k] = $calendarNum;
-                }
-                continue;
-            }
             if (!empty($value['subject_nums'])) {
-                $calendarNum += 1;
-                $continue_day_count[$k] = $calendarNum;
+                $maxClockDay += 1;
             }else{
                 break;
             }
         }
-        $maxClockDay = max($continue_day_count);
 
         // 奖励文案配置参数
         $awards_num = $apart_days = $sign_day = 0;
@@ -984,11 +972,8 @@ class Active extends \mia\miagroup\Lib\Service {
             }
 
             // 打卡参数
-            $continue_day_count = $currentCalendarList = $signDays = [];
-            $calendarNum = 0;
-
-            // 当前时间
-            $current_day = date('Y-m-d', time());
+            $signDays = [];
+            $maxClockDay = 0;
 
             // 用户打卡奖励类型
             if(!empty($signDayPrize)) {
@@ -1001,23 +986,12 @@ class Active extends \mia\miagroup\Lib\Service {
 
                 // 用户当前发帖时间连续发帖的天数
                 foreach($calendarList as $k => $value) {
-                    if($value['issue_date'] == $current_day) {
-                        // 当前时间发帖状态处理
-                        if(!empty($value['subject_nums'])) {
-                            $calendarNum += 1;
-                            $continue_day_count[$k] = $calendarNum;
-                        }
-                        continue;
-                    }
                     if (!empty($value['subject_nums'])) {
-                        $calendarNum += 1;
-                        $continue_day_count[$k] = $calendarNum;
+                        $maxClockDay += 1;
                     }else{
                         break;
                     }
                 }
-                // 当前发帖时间连续打卡最大天数
-                $maxClockDay = max($continue_day_count);
 
                 // 获取奖项设置天数
                 $signDays = array_column($signDayPrize, 'sign_day');
@@ -1092,28 +1066,16 @@ class Active extends \mia\miagroup\Lib\Service {
                                 }
 
                                 rsort($userClockList);
-                                $calendarNum = 0;
-                                $continue_day_count = [];
+                                $maxClockDay = 0;
 
                                 // 获取处理用户连续打卡的最大天数
-                                foreach($userClockList as $k => $value) {
-                                    if($value['issue_date'] == $current_day) {
-                                        // 当前时间发帖状态处理
-                                        if(!empty($value['subject_nums'])) {
-                                            $calendarNum += 1;
-                                            $continue_day_count[$value['issue_date']] = $calendarNum;
-                                        }
-                                        continue;
-                                    }
+                                foreach($calendarList as $k => $value) {
                                     if (!empty($value['subject_nums'])) {
-                                        $calendarNum += 1;
-                                        $continue_day_count[$value['issue_date']] = $calendarNum;
+                                        $maxClockDay += 1;
                                     }else{
                                         break;
                                     }
                                 }
-                                // 当前发帖时间连续打卡最大天数
-                                $maxClockDay = max($continue_day_count);
 
                                 for($i = 0; $i < count($signDays) ; $i++) {
 
