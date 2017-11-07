@@ -50,7 +50,7 @@ class Subjectsasync extends \FD_Daemon
                     $historyInfo = $subjectService->getFirstPubByTime([$userId], 1)["data"];
                     if ($historyInfo[$userId]["id"] == $subjectId) {
                         //首次发帖
-                        $redis_task->hSet($redis_task_hash_key, "first_post", json_encode(["num" => 1, "time" => $historyInfo[$userId]["time"], "status" => 0, "reward" => "", "is_processed" => 1]));
+                        $redis_task->hSet($redis_task_hash_key, "first_post", json_encode(["num" => 1, "time" => $historyInfo[$userId]["time"], "status" => 0, "reward" => "+1元现金红包", "is_processed" => 0]));
                     }
                 }
                 //历史首次评价
