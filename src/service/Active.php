@@ -1093,7 +1093,6 @@ class Active extends \mia\miagroup\Lib\Service {
                             }
                         }
                     }
-                    var_dump($prizeDelMiBean);exit;
 
                     // 扣除蜜豆操作
                     if(!empty($prizeDelMiBean)) {
