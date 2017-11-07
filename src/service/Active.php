@@ -957,7 +957,7 @@ class Active extends \mia\miagroup\Lib\Service {
                 $item_id = $res[$subject_id][0];
                 // 获取商品下的首贴
                 $conditions['sort_type'] = 'user_first';
-                $res = $this->getActiveItemFirstSubject($active_id, $item_id, [1], 1, 1, $conditions)['data'];
+                $res = $this->getActiveItemFirstSubject($active_id, $item_id, [], 1, 1, $conditions)['data'];
                 unset($conditions['sort_type']);
                 $item_first_subject = $res[$item_id][0];
                 if($item_first_subject == $subject_id) {
@@ -1093,6 +1093,7 @@ class Active extends \mia\miagroup\Lib\Service {
                             }
                         }
                     }
+                    var_dump($prizeDelMiBean);exit;
 
                     // 扣除蜜豆操作
                     if(!empty($prizeDelMiBean)) {
