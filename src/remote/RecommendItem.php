@@ -61,7 +61,8 @@ class RecommendItem
                 $recommend_items[] = $recomm['csku'];
             }
         }
-        return $recommend_items;
+        unset($result['recs_list']);
+        return ['rec_info' => $result, 'sku_ids' => $recommend_items];
     }
 
     /**
