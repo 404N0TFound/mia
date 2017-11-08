@@ -225,6 +225,24 @@ class Robot extends \DB_Query {
         }
         return $result;
     }
+    
+    /**
+     * 查询知识素材分类
+     */
+    public function getKnowledgeMaterialCategory() {
+        $this->tableName = $this->tableKnowledgeMaterial;
+        $sql = "SELECT DISTINCT(`category`) from {$this->tableName} WHERE category IS NOT NULL";
+        $data = $this->query($sql);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                if(empty($v['category'])) {
+                    continue;
+                }
+                $result[] = $v['category'];
+            }
+        }
+        return $result;
+    }
 
     /**
      * 删除用户素材

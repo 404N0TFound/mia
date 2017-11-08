@@ -249,20 +249,27 @@ class Robot extends \mia\miagroup\Lib\Service {
       * 知识编辑页面初始化
       */
      public function knowledgeIssueInit() {
-         
-         $result = ['user_period' => [], 'user_status' => [], 'knowledge_category' => ''];
+         $result = ['user_period' => [], 'knowledge_category' => []];
+         $period_list = [];
          //获取年龄段
-         $user_period['pregnancy'] = \F_Ice::$ins->workApp->config->get('busconf.user.pregnancy_period');
-         $user_period['child'] = \F_Ice::$ins->workApp->config->get('busconf.user.child_period');
-         foreach ($user_period['pregnancy'] as $k => $pregnancy) {
+         $user_period = \F_Ice::$ins->workApp->config->get('busconf.user.pregnancy_period');
+         foreach ($user_period as $k => $pregnancy) {
              foreach ($pregnancy as $period => $v) {
-                 var_dump($period, $v);exit;
+                 $begin = (time() - strtotime($v['end'])) / 86400;
+                 $end = (time() - strtotime($v['start'])) / 86400;
+                 $period_list[$k][$period] = ['start' => $begin, 'end' => $end];
              }
          }
-         
-         
-         //获取知识分类
-         
+         $user_period = \F_Ice::$ins->workApp->config->get('busconf.user.child_period');
+         foreach ($user_period as $k => $child) {
+             foreach ($child as $period => $v) {
+                 $begin = (time() - strtotime($v['end'])) / 86400;
+                 $end = (time() - strtotime($v['start'])) / 86400;
+                 $period_list[$k][$period] = ['start' => $begin, 'end' => $end];
+             }
+         }
+         $result['user_period'] = $period_list;
+         return $this->succ($result);
      }
      
      /**
@@ -319,6 +326,14 @@ class Robot extends \mia\miagroup\Lib\Service {
          $robot_service = new \mia\miagroup\Service\Robot();
          $result['list'] = $robot_service->getBatchKnowledgeMaterial($knowledge_material_list['list'])['data'];
          $result['count'] = $knowledge_material_list['count'];
+         return $this->succ($result);
+     }
+     
+     /**
+      * 获取知识分类列表
+      */
+     public function getKnowledgeCategory() {
+         $result = $this->robotModel->getKnowledgeMaterialCategory();
          return $this->succ($result);
      }
 }
