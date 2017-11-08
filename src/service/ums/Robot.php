@@ -244,4 +244,81 @@ class Robot extends \mia\miagroup\Lib\Service {
          }
          return $this->succ($result);
      }
+     
+     /**
+      * 知识编辑页面初始化
+      */
+     public function knowledgeIssueInit() {
+         
+         $result = ['user_period' => [], 'user_status' => [], 'knowledge_category' => ''];
+         //获取年龄段
+         $user_period['pregnancy'] = \F_Ice::$ins->workApp->config->get('busconf.user.pregnancy_period');
+         $user_period['child'] = \F_Ice::$ins->workApp->config->get('busconf.user.child_period');
+         foreach ($user_period['pregnancy'] as $k => $pregnancy) {
+             foreach ($pregnancy as $period => $v) {
+                 var_dump($period, $v);exit;
+             }
+         }
+         
+         
+         //获取知识分类
+         
+     }
+     
+     /**
+      * 获取知识待处理列表
+      */
+     public function getKnowledgeToDoList($params, $current_op_admin, $page = 1, $limit = 10) {
+         if (empty($current_op_admin) || !in_array(array_keys($params), ['category', 'source', 'period']))
+             $robot_service = new \mia\miagroup\Service\Robot();
+         $order_by = 'id asc';
+         $editing_materials = array();
+         //查询锁定解除
+         $robot_service->unLockKnowledgeMaterial($current_op_admin);
+         //获取待处理的素材
+         $params['status'] = 0;
+         $offset = ($page - 1) * $limit;
+         $to_do_list = $this->robotModel->getKnowledgeMaterialData($params, $offset, $limit, $order_by);
+         //查询锁定
+         $robot_service->updateKnowledgeMaterialStatusByIds($this->robotConfig['knowledge_material_status']['locked'], $current_op_admin, $to_do_list['list']);
+         //获取结果集数据
+         $knowledge_material_ids = array_merge($editing_materials, $to_do_list['list']);
+         $knowledge_materials = $robot_service->getBatchKnowledgeMaterial($knowledge_material_ids)['data'];
+         return $this->succ(['count' => $to_do_list['count'], 'list' => array_values($knowledge_materials)]);
+     }
+     
+     /**
+      * 获取知识列表
+      */
+     public function getKnowledgeMaterialList($params, $page = 1, $limit = 10) {
+         $result = array('list' => array(), 'count' => 0);
+         $condition = array();
+         //初始化入参
+         $orderBy = 'id asc'; //默认排序
+         if (!empty($params['category'])) {
+             $condition['category'] = $params['category'];
+         }
+         if (!empty($params['period'])) {
+             $condition['keyword'] = $params['period'];
+         }
+         if (!empty($params['source'])) {
+             $condition['source'] = $params['source'];
+         }
+         if (!empty($params['after_id'])) {
+             $condition['after_id'] = $params['after_id'];
+         }
+         if (!empty($params['op_admin'])) {
+             $condition['op_admin'] = $params['op_admin'];
+         }
+         if (isset($params['status']) && in_array($params['status'], $this->robotConfig['knowledge_material_status'])) {
+             $condition['status'] = $params['status'];
+         }
+         $offset = ($page - 1) * $limit;
+         $knowledge_material_list = $this->robotModel->getKnowledgeMaterialData($condition, $offset, $limit, $orderBy);
+         //获取结果集数据
+         $robot_service = new \mia\miagroup\Service\Robot();
+         $result['list'] = $robot_service->getBatchKnowledgeMaterial($knowledge_material_list['list'])['data'];
+         $result['count'] = $knowledge_material_list['count'];
+         return $this->succ($result);
+     }
 }

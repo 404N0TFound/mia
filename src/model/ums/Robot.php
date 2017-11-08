@@ -10,6 +10,8 @@ class Robot extends \DB_Query {
     protected $tableAvatarMaterial = 'group_robot_avatar_material';
     //帖子素材表
     protected $tableSubjectMaterial = 'group_robot_subject_materials';
+    //知识素材表
+    protected $tableKnowledgeMaterial = 'group_robot_knowledge_material';
     //编辑帖子表
     protected $tableEditorSubject = 'group_robot_editor_subject';
     //文本素材表
@@ -29,6 +31,38 @@ class Robot extends \DB_Query {
                     case 'after_id';
                         $where[] = [':gt','id', $v];
                         break;
+                    default:
+                        $where[] = [$k, $v];
+                }
+            }
+        }
+        $result['count'] = $this->count($where);
+        if (intval($result['count']) <= 0) {
+            return $result;
+        }
+        $data = $this->getRows($where, 'id', $limit, $offset, $orderBy);
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $result['list'][] = $v['id'];
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * 查询知识素材表
+     */
+    public function getKnowledgeMaterialData($cond, $offset = 0, $limit = 10, $orderBy = '') {
+        $this->tableName = $this->tableKnowledgeMaterial;
+        $result = array('count' => 0, 'list' => array());
+        $where = array();
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'after_id';
+                    $where[] = [':gt','id', $v];
+                    break;
                     default:
                         $where[] = [$k, $v];
                 }

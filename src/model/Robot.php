@@ -7,12 +7,14 @@ class Robot {
     private $editorSubjectData;
     private $subjectMaterialData;
     private $textMaterialData;
+    private $knowledgeMaterialData;
     
     public function __construct() {
         $this->avatarMaterialData = new \mia\miagroup\Data\Robot\AvatarMaterial();
         $this->editorSubjectData = new \mia\miagroup\Data\Robot\EditorSubject();
         $this->subjectMaterialData = new \mia\miagroup\Data\Robot\SubjectMaterial();
         $this->textMaterialData = new \mia\miagroup\Data\Robot\TextMaterial();
+        $this->knowledgeMaterialData = new \mia\miagroup\Data\Robot\KnowledgeMaterial();
     }
     
     /**
@@ -145,12 +147,43 @@ class Robot {
         return $result;
     }
 
-
     /**
      * 更新文本素材信息
      */
     public function updateTextMaterailById($text_material_id, $update_data) {
         $result = $this->textMaterialData->updateTextMaterailById($text_material_id, $update_data);
+        return $result;
+    }
+    
+    /**
+     * 批量修改知识素材
+     */
+    public function updateKnowledgeMaterialByIds($set_data, $material_ids) {
+        $result = $this->knowledgeMaterialData->updateKnowledgeMaterialById($material_ids, $set_data);
+        return $result;
+    }
+    
+    /**
+     * 根据操作人修改知识素材状态
+     */
+    public function updateKnowledgeMaterialByOpadmin($update_status, $op_admin, $current_status) {
+        $result = $this->knowledgeMaterialData->updateKnowledgeMaterialByOpadmin($update_status, $op_admin, $current_status);
+        return $result;
+    }
+    
+    /**
+     * 获取单条知识素材
+     */
+    public function getSingleKnowledgeMaterial($material_id) {
+        $result = $this->knowledgeMaterialData->getKnowledgeMaterialById($material_id);
+        return $result;
+    }
+    
+    /**
+     * 批量获取帖子素材
+     */
+    public function getBatchKnowledgeMaterials($material_ids) {
+        $result = $this->knowledgeMaterialData->getBatchKnowledgeMaterial($material_ids);
         return $result;
     }
 }
