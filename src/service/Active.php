@@ -388,6 +388,8 @@ class Active extends \mia\miagroup\Lib\Service {
         $activesArr = array();
         foreach($subjectActives as $key=>$subjectActive){
             $activesArr[$key] = $activeInfos[$subjectActive['active_id']];
+            // 封装帖子对应活动达标状态
+            $activesArr[$key]['is_qualified'] = $subjectActive['is_qualified'];
         }
         return $this->succ($activesArr);
     }

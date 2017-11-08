@@ -505,11 +505,6 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
         }
 
-        if(in_array('xiaoxiaole', $field)) {
-            $activeService = new ActiveService();
-            $subjectActiveRelations = $activeService->getActiveSubjectBySids($subjectIds)['data'];
-        }
-
         // 获取活动信息
         if (in_array('group_actives', $field)) {
             $activeService = new ActiveService();
@@ -775,9 +770,8 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (in_array('group_actives', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_actives'] = is_array($subjectActives[$subjectInfo['id']]) ? $subjectActives[$subjectInfo['id']] : array();
-            }
-            if (in_array('xiaoxiaole', $field)) {
-                $subjectRes[$subjectInfo['id']]['is_qualified'] = !empty($subjectActiveRelations[$subjectInfo['id']]['is_qualified']) ? intval($subjectActiveRelations[$subjectInfo['id']]['is_qualified']) : 0;
+                $subjectRes[$subjectInfo['id']]['is_qualified'] = !empty($subjectActives[$subjectInfo['id']]['is_qualified']) ? intval($subjectActives[$subjectInfo['id']]['is_qualified']) : 0;
+
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
