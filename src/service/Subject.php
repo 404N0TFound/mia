@@ -824,12 +824,17 @@ class Subject extends \mia\miagroup\Lib\Service
                         $relateItemIds[] = $item['item_id'];
                     }
                     $relateItemIds = count($relateItemIds) > 3 ? array_splice($relateItemIds, 0, 3) : $relateItemIds;
-                    $itemIds = $itemRecommendService->getRecommedItemList('item', 9 - count($relateItemIds), $relateItemIds);
+                    $recItems = $itemRecommendService->getRecommedItemList('item', 9 - count($relateItemIds), $relateItemIds);
                 } else {
-                    $itemIds = $itemRecommendService->getRecommedItemList('home', 9);
+                    $recItems = $itemRecommendService->getRecommedItemList('home', 9);
                 }
                 $itemService = new \mia\miagroup\Service\Item();
-                $ItemInfos = $itemService->getBatchItemBrandByIds($itemIds)['data'];
+                $ItemInfos = $itemService->getBatchItemBrandByIds($recItems['sku_ids'])['data'];
+                if (!empty($recItems['rec_info']) && !empty($ItemInfos)) {
+                    foreach ($ItemInfos as $k => $v) {
+                        $ItemInfos[$k]['rec_info'] = json_encode($recItems['rec_info']);
+                    }
+                }
                 $subjectInfo['relate_items'] = array_values($ItemInfos);
             }
             //获取相关帖子
