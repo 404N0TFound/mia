@@ -504,7 +504,12 @@ class Subject extends \mia\miagroup\Lib\Service
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
         }
-        
+
+        if(in_array('xiaoxiaole', $field)) {
+            $activeService = new ActiveService();
+            $subjectActiveRelations = $activeService->getActiveSubjectBySids($subjectIds)['data'];
+        }
+
         // 获取活动信息
         if (in_array('group_actives', $field)) {
             $activeService = new ActiveService();
@@ -770,6 +775,9 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (in_array('group_actives', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_actives'] = is_array($subjectActives[$subjectInfo['id']]) ? $subjectActives[$subjectInfo['id']] : array();
+            }
+            if (in_array('xiaoxiaole', $field)) {
+                $subjectRes[$subjectInfo['id']]['is_qualified'] = !empty($subjectActiveRelations[$subjectInfo['id']]['is_qualified']) ? intval($subjectActiveRelations[$subjectInfo['id']]['is_qualified']) : 0;
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
@@ -3017,6 +3025,16 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($result);
         }
         $activeService = new ActiveService();
+        $labelSerive = new LabelService();
+        if(empty($status)) {
+            $activeIds = array_column($subjectInfos, 'active_id');
+        }else{
+            $activeIds = [$activeId];
+        }
+
+        // 批量获取活动信息
+        $activeInfos = $activeService->getBatchActiveByIds($activeIds)['data'];
+
         foreach($subjectInfos as $info) {
             $setData = $activeData = [];
             $subject_id = $info['id'];
@@ -3046,6 +3064,13 @@ class Subject extends \mia\miagroup\Lib\Service
                 $relationSetInfo['active_id'] = $subject_active_id;
                 // 物理删除帖子活动关联表
                 $res = $activeService->delSubjectActiveRelation($relationSetInfo);
+                if(!empty($res)) {
+                    // 解除帖子活动标签
+                    if(!empty($activeInfos[$subject_active_id])) {
+                        $label = $activeInfos[$subject_active_id]['labels'];
+                        $res = $labelSerive->cancleSelectedTag($subject_id, $label[0]['id']);
+                    }
+                }
                 if(!empty($res)) {
                     $setData['active_id'] = 0;
                 }

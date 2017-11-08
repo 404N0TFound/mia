@@ -47,7 +47,7 @@ $xiaoxiaole = array(
     'tab_count' => 5,
     // 活动引导配置
     'guide_init' => array(
-        'active_regular_link' => 'https://m.mia.com/special/module/index/23263/wap/',
+        'active_regular_link' => 'https://m.mia.com/special/module/index/23578/app/',
         'date_color' => '#FFE63F',
         'back_color' => '#8ED6FF',
     ),

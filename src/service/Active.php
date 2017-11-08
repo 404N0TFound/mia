@@ -551,6 +551,13 @@ class Active extends \mia\miagroup\Lib\Service {
 
         // 用户当前发帖时间连续发帖的天数
         foreach($calendarList as $k => $value) {
+            if($value['issue_date'] == $current_day) {
+                // 当前时间发帖状态处理
+                if(!empty($value['subject_nums'])) {
+                    $maxClockDay += 1;
+                }
+                continue;
+            }
             if (!empty($value['subject_nums'])) {
                 $maxClockDay += 1;
             }else{
