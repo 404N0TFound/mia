@@ -558,27 +558,56 @@ class Active extends \mia\miagroup\Lib\Service {
             }
         }
 
+        // 打卡奖项时间及间隔排列数组
+        $signDayArithmetic = [];
+        for($i = 0; $i < count($signDays); $i++) {
+            if(empty($i)) {
+                $signDayArithmetic[$i] = $signDays[$i];
+            }else{
+                $signDayArithmetic[$i] = $signDays[$i] - $signDays[$i-1];
+            }
+        }
+
+        $handleMaxDay = $maxClockDay;
+
+        $firstOperFlag = true;
+        $existenceDay = 0;
+
         // 奖励文案配置参数
         $awards_num = $apart_days = $sign_day = 0;
 
-        // 根据设置奖项获取用户打卡提示及相差天数文案
-        for($i = 0; $i < count($signDays) ; $i++) {
-            if($maxClockDay < $signDays[$i] || empty($prize_sign_list[$signDays[$i+1]])) {
-                // 用户打卡最大天数比设置的最小天数还要小 || 获得全勤奖
-                if(!empty($prize_sign_list[$signDays[$i]])) {
-                    $apart_days = $prize_sign_list[$signDays[$i]]['sign_day'] - $maxClockDay;
-                    $sign_day = $prize_sign_list[$signDays[$i]]['sign_day'];
+        for($i = 0; $i < count($signDayArithmetic); $i++) {
+            $handleMaxDay = $handleMaxDay - $signDayArithmetic[$i];
+            if($handleMaxDay < 0) {
+                if(!empty($firstOperFlag)) {
+                    $apart_days = $signDays[$i] - $maxClockDay;
+                    $sign_day = $signDays[$i];
                     $awards_num = $prize_sign_list[$signDays[$i]]['awards_num'];
+                    break;
+                }else {
+                    $apart_days = $signDays[$i] - $existenceDay;
+                    $sign_day = $signDays[$i];
+                    $awards_num = $prize_sign_list[$signDays[$i]]['awards_num'];
+                    break;
                 }
-                break;
-            }
-            if($maxClockDay >= $signDays[$i] && $maxClockDay < $signDays[$i+1]) {
-                if(!empty($prize_sign_list[$signDays[$i+1]])) {
-                    $apart_days = $prize_sign_list[$signDays[$i+1]]['sign_day'] - $maxClockDay;
-                    $sign_day = $prize_sign_list[$signDays[$i+1]]['sign_day'];
+            } else if($handleMaxDay == 0) {
+                if(empty($prize_sign_list[$signDays[$i+1]])) {
+                    $apart_days = $signDays[$i-1];
+                    $sign_day = $signDays[$i-1];
+                    $awards_num = $prize_sign_list[$signDays[$i-1]]['awards_num'];
+                }else{
+                    $apart_days = $signDayArithmetic[$i+1];
+                    $sign_day = $signDays[$i+1];
                     $awards_num = $prize_sign_list[$signDays[$i+1]]['awards_num'];
                 }
                 break;
+            }else{
+                if($handleMaxDay > 0 && empty($signDayArithmetic[$i+1])) {
+                    // 记录已经存在的天数
+                    $i = -1;
+                    $firstOperFlag = false;
+                    $existenceDay = $handleMaxDay;
+                }
             }
         }
 
@@ -887,23 +916,40 @@ class Active extends \mia\miagroup\Lib\Service {
         // 获取活动对应的帖子id
         $mibean = new \mia\miagroup\Remote\MiBean();
         $conditions['is_qualified'] = [0,1];
+
+        // 查主库
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
         $activeRelation = $this->activeModel->getActiveSubjectRelation($ids, [], $conditions);
+        \DB_Query::switchCluster($preNode);
+
         if(empty($activeRelation)) {
             return $this->succ($return);
         }
+        // 获取活动id
+        $activeIds = array_column($activeRelation, 'active_id');
+
+        // 获取活动信息
+        $activeInfos = $this->activeModel->getActiveList(1, 1, [1], ['active_ids' => $activeIds]);
+
+        // 获取奖品配置
+        $prize_config = $this->getActiveConfig('xiaoxiaole', 'active_issue_prize');
+
+        // 审核状态配置
+        $active_qualified = $this->getActiveConfig('xiaoxiaole', 'active_subject_qualified');
+
         foreach($activeRelation as $relation) {
             $active_id = $relation['active_id'];
             $user_id = $relation['user_id'];
             $subject_id = $relation['subject_id'];
             $create_time = $relation['create_time'];
             // 获取活动信息
-            $activeInfo = $this->activeModel->getActiveList(1, 1, [1], ['active_ids' => [$active_id]]);
+            $activeInfo = $activeInfos[$active_id];
             if(empty($activeInfo)) {
                 continue;
             }
             // 帖子活动是否为消消乐
             $xiaoxiaole = $this->getActiveConfig('xiaoxiaole', 'active_type');
-            if($activeInfo[$active_id]['active_type'] != $xiaoxiaole) {
+            if($activeInfo['active_type'] != $xiaoxiaole) {
                 continue;
             }
 
@@ -923,10 +969,7 @@ class Active extends \mia\miagroup\Lib\Service {
             $param['to_user_id'] = $user_id;
 
             // 获取活动奖励列表
-            $prizeList = $activeInfo[$active_id]['prize_list'];
-
-            // 获取奖品配置
-            $prize_config = $this->getActiveConfig('xiaoxiaole', 'active_issue_prize');
+            $prizeList = $activeInfo['prize_list'];
 
             $signDayPrize = $zeroKoubeiPrize = $everyPubPrize = [];
 
@@ -943,8 +986,11 @@ class Active extends \mia\miagroup\Lib\Service {
                 }
             }
 
-            // 审核状态配置
-            $active_qualified = $this->getActiveConfig('xiaoxiaole', 'active_subject_qualified');
+            // 打卡奖项设置
+            $prize_sign_list = [];
+            foreach ($signDayPrize as $prize) {
+                $prize_sign_list[$prize['sign_day']] = $prize;
+            }
 
             // 记录奖品下发类型及下发蜜豆种类
             $prizeSetMiBean = $prizeDelMiBean = $userFirstConditions = [];
@@ -972,14 +1018,14 @@ class Active extends \mia\miagroup\Lib\Service {
             }
 
             // 打卡参数
-            $signDays = [];
+            $signDays = $calendarList = $signDayArithmetic = [];
             $maxClockDay = 0;
 
             // 用户打卡奖励类型
             if(!empty($signDayPrize)) {
 
                 // 当前日期用户活动打卡日历
-                $conditions['s_time'] = $activeInfo[$active_id]['start_time'];
+                $conditions['s_time'] = $activeInfo['start_time'];
                 $conditions['e_time'] = date('Y-m-d H:i:s', time());
                 $calendarList = $this->getActiveUserClockCalendar($active_id, $user_id, $conditions)['data'];
                 rsort($calendarList);
@@ -997,6 +1043,33 @@ class Active extends \mia\miagroup\Lib\Service {
                 $signDays = array_column($signDayPrize, 'sign_day');
                 sort($signDays);
 
+                // 打卡奖项时间及间隔排列数组
+                for($i = 0; $i < count($signDays); $i++) {
+                    if(empty($i)) {
+                        $signDayArithmetic[$i] = $signDays[$i];
+                    }else{
+                        $signDayArithmetic[$i] = $signDays[$i] - $signDays[$i-1];
+                    }
+                }
+
+                $handleMaxDay = $maxClockDay;
+
+                // 奖励文案配置参数
+                $sign_day = 0;
+
+                for($i = 0; $i < count($signDayArithmetic); $i++) {
+                    $handleMaxDay = $handleMaxDay - $signDayArithmetic[$i];
+                    if($handleMaxDay == 0) {
+                        $sign_day = $signDays[$i];
+                        break;
+                    }else{
+                        if($handleMaxDay > 0 && empty($signDayArithmetic[$i+1])) {
+                            // 记录已经存在的天数
+                            $i = -1;
+                        }
+                    }
+                }
+
                 // 判断当前贴是否为每日首贴,打卡奖根据每天的首贴来判断，其余情况不下发打卡奖励蜜豆
 
                 $userFirstConditions['sort_type'] = 'user_first';
@@ -1004,18 +1077,9 @@ class Active extends \mia\miagroup\Lib\Service {
                 $userFirstConditions['e_time'] = $userFirstConditions['s_time'].' 23:59:59';
                 $userFirstConditions['is_qualified'] = [0,1];
                 $firstSubjectByday = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [1], 1, 0, $userFirstConditions);
-                if($subject_id == $firstSubjectByday['list'][0]['subject_id']) {
+                if($subject_id == $firstSubjectByday['list'][0]['subject_id'] && $sign_day > 0) {
                     // 当前贴为每日首贴
-                    for($i = 0; $i < count($signDays) ; $i++) {
-                        if($maxClockDay == $signDays[$i]) {
-                            foreach($signDayPrize as $prize) {
-                                if($prize['sign_day'] == $signDays[$i]) {
-                                    $prizeSetMiBean[$prize['prize_type']]['awards_num'] = $prize['awards_num'];
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    $prizeSetMiBean[$prize_sign_list[$sign_day]['prize_type']]['awards_num'] = $prize_sign_list[$sign_day]['awards_num'];
                 }
             }
 
@@ -1040,14 +1104,26 @@ class Active extends \mia\miagroup\Lib\Service {
 
             // 蜜豆扣除
             if(!empty($prizeSetMiBean) && $status == $active_qualified['audit_failed']) {
-                // 获取当前用户获得的蜜豆奖励列表
+                // 获取当前操作帖获得的蜜豆奖励列表
+                $conditions['subject_id'] = $subject_id;
                 $res = $this->activeModel->getActiveWinPrizeRecord($active_id, $user_id, FALSE, 0, $conditions);
+                unset($conditions['subject_id']);
                 $activeUserPrizeList = $res['list'];
+
+                // 当前操作贴蜜豆下发情况
+                $subject_bean = [];
+                foreach($activeUserPrizeList as $value) {
+                    if(in_array($value['prize_type'], $prize_config['prize_type'])) {
+                        $subject_bean[$value['prize_type']] += $value['prize_num'];
+                    }
+                }
+
                 if(!empty($activeUserPrizeList)) {
                     foreach($activeUserPrizeList as $prize) {
                         if($prize['prize_type'] != $prize_config['prize_type']['sign']) {
                             // 非打卡奖，单独奖项可直接扣除
-                            if(!empty($prizeSetMiBean[$prize['prize_type']]) && $prize['subject_id'] == $subject_id) {
+                            if(!empty($prizeSetMiBean[$prize['prize_type']]) &&
+                                $prize['subject_id'] == $subject_id && $subject_bean[$prize['prize_type']] > 0) {
                                 $prizeDelMiBean[$prize['prize_type']]['awards_num'] = $prize['prize_num'];
                             }
                         }else {
@@ -1069,7 +1145,7 @@ class Active extends \mia\miagroup\Lib\Service {
                                 $maxClockDay = 0;
 
                                 // 获取处理用户连续打卡的最大天数
-                                foreach($calendarList as $k => $value) {
+                                foreach($userClockList as $k => $value) {
                                     if (!empty($value['subject_nums'])) {
                                         $maxClockDay += 1;
                                     }else{
@@ -1077,16 +1153,31 @@ class Active extends \mia\miagroup\Lib\Service {
                                     }
                                 }
 
-                                for($i = 0; $i < count($signDays) ; $i++) {
+                                $handleMaxDay = $maxClockDay;
 
-                                    if($maxClockDay < $signDays[$i]) {
-                                        foreach($signDayPrize as $signPrize) {
-                                            if($prize['prize_type'] == $signPrize['prize_type'] &&
-                                                $prize['prize_num'] == $signPrize['awards_num'] &&
-                                                $signPrize['sign_day'] == $signDays[$i]) {
-                                                // 需扣除蜜豆
-                                                $prizeDelMiBean[$prize['prize_type']]['awards_num'] = $prize['prize_num'];
-                                            }
+                                // 奖励文案配置参数
+                                $awards_num = 0;
+
+                                for($i = 0; $i < count($signDayArithmetic); $i++) {
+                                    $handleMaxDay = $handleMaxDay - $signDayArithmetic[$i];
+                                    if($handleMaxDay == 0) {
+                                        $awards_num = $prize_sign_list[$signDays[$i]]['awards_num'];
+                                        break;
+                                    }else{
+                                        if($handleMaxDay > 0 && empty($signDayArithmetic[$i+1])) {
+                                            // 记录已经存在的天数
+                                            $i = -1;
+                                        }
+                                    }
+                                }
+
+                                if(empty($awards_num)) {
+                                    foreach($signDayPrize as $signPrize) {
+                                        if($prize['prize_type'] == $signPrize['prize_type'] &&
+                                            $prize['prize_num'] != $awards_num &&
+                                            $subject_bean[$prize['prize_type']] > 0) {
+                                            // 需扣除蜜豆
+                                            $prizeDelMiBean[$prize['prize_type']]['awards_num'] = $prize['prize_num'];
                                         }
                                     }
                                 }
