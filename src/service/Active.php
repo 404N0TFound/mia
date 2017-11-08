@@ -840,7 +840,7 @@ class Active extends \mia\miagroup\Lib\Service {
             $conditions['e_time'] = $issue_date.' 23:59:59';
         }
         $offset = $page > 1 ? ($page -1) * $limit : 0;
-        $res = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [], $limit, $offset, $conditions);
+        $res = $this->activeModel->getActiveUserSubjectInfos($active_id, $user_id, [-1,1], $limit, $offset, $conditions);
         $subjectList = $res['list'];
 
         if(empty($subjectList)) {
