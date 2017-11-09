@@ -268,6 +268,24 @@ class Robot extends \mia\miagroup\Lib\Service {
                  $period_list[$k][$period] = ['start' => $begin, 'end' => $end];
              }
          }
+         $result['knowledge_category'] = [
+             '备孕' => [
+                 '备孕常识' => [
+                     '备孕二胎',
+                     '生育能力'
+                 ],
+                 '饮食调理' => [
+                     '叶酸',
+                     '中药调理',
+                     '备孕食谱'
+                 ]
+             ],
+             '孕期' => [
+                 '孕期检查' => [
+                     '胎儿发育'
+                 ]
+             ]
+         ];
          $result['user_period'] = $period_list;
          return $this->succ($result);
      }
