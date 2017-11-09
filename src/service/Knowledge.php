@@ -14,6 +14,49 @@ class Knowledge extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 发布知识素材
+     */
+    public function issueKnowledge($param) {
+        //参数校验
+        if (empty($param['user_status']) || empty($param['category_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
+            return $this->error(500);
+        }
+        if ($param['min_period'] >= $param['max_period']) {
+            return $this->error(500);
+        }
+        $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaKnowledgeUid');
+        $param['author_hidden'] = 1;
+        $subject_service = new \mia\miagroup\Service\Subject();
+        //解析参数
+        $parsed_param = $subject_service->parseBlogParam($param, 'knowledge');
+        if (!empty($param['labels']) && is_array($param['labels'])) {
+            $parsed_param['labels'] = array_merge($parsed_param['labels'], $param['labels']);
+        }
+        
+        //发布长文贴子
+        $result = $subject_service->issue($parsed_param['subject_info'], $parsed_param['items'], $parsed_param['labels']);
+        if ($result['code'] > 0) {
+            return $this->error($result['code'], $result['msg']);
+        }
+        $knowledge_info = [];
+        $knowledge_info['user_id'] = $param['user_id'];
+        $knowledge_info['subject_id'] = $result['data']['id'];
+        $knowledge_info['title'] = $parsed_param['subject_info']['title'];
+        $knowledge_info['text'] = $parsed_param['subject_info']['text'];
+        $knowledge_info['user_status'] = $param['user_status'];
+        $knowledge_info['category_id'] = $param['category_id'];
+        $knowledge_info['min_period'] = $param['min_period'];
+        $knowledge_info['max_period'] = $param['max_period'];
+        $knowledge_info['accurate_period'] = $param['min_period'] + $param['accurate_period'];
+        $knowledge_info['blog_meta'] = $parsed_param['blog_meta'];
+        $knowledge_info['status'] = $parsed_param['subject_info']['status'];
+        $knowledge_info['create_time'] = $result['data']['created'];
+        $this->knowledgeModel->addKnowledge($knowledge_info);
+        
+        return $this->succ($result['data']);
+    }
+    
+    /**
      * 获取知识分类列表（一级->二级->标签）
      */
     public function getKnowledgeCateLalbels() {

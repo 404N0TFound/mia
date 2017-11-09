@@ -53,4 +53,10 @@ class Knowledge {
     
     }
     
+    /**
+     * 新增知识
+     */
+    public function addKnowledge($param) {
+        ;
+    }
 }

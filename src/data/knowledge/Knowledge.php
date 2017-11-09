@@ -1,7 +1,7 @@
 <?php
 namespace mia\miagroup\Data\Knowledge;
 
-class Knowledge extends \DB_Query{
+class KnowledgeCategory extends \DB_Query{
     protected $tableName = 'group_knowledge_category';
     protected $dbResource = 'miagroup';
     protected $mapping = [];
