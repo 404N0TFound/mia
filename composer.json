@@ -41,11 +41,12 @@
             "mia\\miagroup\\Data\\HeadLine\\":    "src/data/headline",
             "mia\\miagroup\\Data\\Audit\\":    "src/data/audit",
             "mia\\miagroup\\Data\\PointTags\\":    "src/data/pointtags",
-	        "mia\\miagroup\\Data\\Active\\":    "src/data/active",
+	    "mia\\miagroup\\Data\\Active\\":    "src/data/active",
             "mia\\miagroup\\Data\\Search\\":    "src/data/search",
             "mia\\miagroup\\Data\\Robot\\":    "src/data/robot",
-	        "mia\\miagroup\\Data\\OperationLog\\":    "src/data/operationlog",
+	    "mia\\miagroup\\Data\\OperationLog\\":    "src/data/operationlog",
             "mia\\miagroup\\Data\\Data\\":    "src/data/data",
+	    "mia\\miagroup\\Data\\Knowledge\\":    "src/data/knowledge",
             "Wcs\\": "src/lib/Wcs"
         },
         "files": [
