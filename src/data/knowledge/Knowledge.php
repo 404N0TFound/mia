@@ -9,14 +9,17 @@ class KnowledgeCategory extends \DB_Query{
     /**
      * 查询知识分类
      */
-    public function getKnowledgeCateByIds($cateIds, $status = array(1)) {
-        $result = array();
-        $where[] = ['id',$cateIds];
+    public function getKnowledgeCates($cateIds=array(), $status = array(1)) {
+        $result = [];
+        $where = [];
+        if(!empty($cateIds)){
+            $where[] = ['id',$cateIds];
+        }
         $where[] = ['status',$status];
-        $data = $this->getRows($where,'id as category_id, name as category_name');
+        $data = $this->getRows($where);
         if (!empty($data) && is_array($data)) {
             foreach ($data as $v) {
-                $result[$v['category_id']] = $v;
+                $result[$v['id']] = $v;
             }
         }
         return $result;
