@@ -2,18 +2,19 @@
 namespace mia\miagroup\Model;
 
 use \mia\miagroup\Data\Knowledge\Knowledge as KnowledgeData;
+use \mia\miagroup\Data\Knowledge\KnowledgeCategory;
 use mia\miagroup\Data\Knowledge\KnowledgeSubjectRelation;
 use mia\miagroup\Data\Knowledge\KnowledgeLabelRelation;
 class Knowledge {
 
-    public $knowledgeData = null;
-
-    public $knowledgeSubjectRelation = null;
-
-    public $knowledgeLabelRelation = null;
+    private $knowledgeData = null;
+    private $knowledgeCategoryData = null;
+    private $knowledgeSubjectRelation = null;
+    private $knowledgeLabelRelation = null;
 
     public function __construct() {
         $this->knowledgeData = new KnowledgeData();
+        $this->knowledgeCategoryData = new KnowledgeCategory();
         $this->knowledgeSubjectRelation = new KnowledgeSubjectRelation();
         $this->knowledgeLabelRelation = new KnowledgeLabelRelation();
     }
@@ -30,7 +31,7 @@ class Knowledge {
      * 获取知识分类信息
      */
     public function getCategoryInfosByCids($cateIds,$status){
-        $result = $this->knowledgeData->getKnowledgeCates($cateIds, $status);
+        $result = $this->knowledgeCategoryData->getKnowledgeCates($cateIds, $status);
         return $result;
     }
     
@@ -61,7 +62,8 @@ class Knowledge {
     /**
      * 新增知识
      */
-    public function addKnowledge($param) {
-        ;
+    public function addKnowledge($insert_data) {
+        $result = $this->knowledgeData->addKnowledge($insert_data);
+        return $result;
     }
 }

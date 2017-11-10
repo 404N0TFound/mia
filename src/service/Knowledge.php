@@ -4,7 +4,6 @@ namespace mia\miagroup\Service;
 use mia\miagroup\Model\Knowledge as KnowledgeModel;
 use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\Subject as SubjectService;
-use mia\miagroup\Util\NormalUtil;
 class Knowledge extends \mia\miagroup\Lib\Service {
 
     public $knowledgeModel = null;
@@ -27,15 +26,16 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         }
         $param['user_id'] = \F_Ice::$ins->workApp->config->get('busconf.user.miaKnowledgeUid');
         $param['author_hidden'] = 1;
+        
         $subject_service = new \mia\miagroup\Service\Subject();
         //解析参数
         $parsed_param = $subject_service->parseBlogParam($param, 'knowledge');
-        if (!empty($param['labels']) && is_array($param['labels'])) {
-            $parsed_param['labels'] = array_merge($parsed_param['labels'], $param['labels']);
+        if (empty($parsed_param['subject_info']['title']) || empty($parsed_param['subject_info']['text'])) {
+            return $this->error(500);
         }
-        
-        //发布长文贴子
-        $result = $subject_service->issue($parsed_param['subject_info'], $parsed_param['items'], $parsed_param['labels']);
+        //发布知识贴子
+        $param['labels'] = !empty($param['labels']) && is_array($param['labels']) ? $param['labels'] : [];
+        $result = $subject_service->issue($parsed_param['subject_info'], $parsed_param['items'], $param['labels']);
         if ($result['code'] > 0) {
             return $this->error($result['code'], $result['msg']);
         }
@@ -45,12 +45,11 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['title'] = $parsed_param['subject_info']['title'];
         $knowledge_info['text'] = $parsed_param['subject_info']['text'];
         $knowledge_info['user_status'] = $param['user_status'];
-        $knowledge_info['category_id'] = $param['category_id'];
         $knowledge_info['min_period'] = $param['min_period'];
         $knowledge_info['max_period'] = $param['max_period'];
         $knowledge_info['accurate_period'] = $param['min_period'] + $param['accurate_period'];
         $knowledge_info['blog_meta'] = $parsed_param['blog_meta'];
-        $knowledge_info['status'] = $parsed_param['subject_info']['status'];
+        $knowledge_info['status'] = $param['status'];
         $knowledge_info['create_time'] = $result['data']['created'];
         $this->knowledgeModel->addKnowledge($knowledge_info);
         
