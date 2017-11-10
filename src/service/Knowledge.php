@@ -134,7 +134,10 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         
         //检查帖子是否存在
         $subjectService = new SubjectService();
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);//查主库
         $subjectInfo = $subjectService->getSingleSubjectById($subject_id)['data'];
+        \DB_Query::switchCluster($preNode);//结束主库查询
+        
         if(empty($subjectInfo)){
             return $this->error(1107);
         }
@@ -177,8 +180,9 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         //获取标签id
         $labelService = new LabelService();
         //如果不存在，先插入标签，然后存关联关系
+        $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);//查主库
         $label_id = $labelService->addLabel($label_title)['data'];
-        
+        \DB_Query::switchCluster($preNode);//结束主库查询
         //判断是否已经存在关联关系
         $condition = array('cate_id'=>$cate_id,'label_id'=>$label_id);
         $relation_res = $this->knowledgeModel->getKnowledgeCateLabelRelation($condition);
