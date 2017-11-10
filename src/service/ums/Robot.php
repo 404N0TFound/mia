@@ -288,9 +288,6 @@ class Robot extends \mia\miagroup\Lib\Service {
                  }
              }
          }
-         foreach ($category_labels as $k => $labels) {
-             $category_labels[$k] = array_values($labels);
-         }
          $result['knowledge_category'] = $category_labels;
          $result['user_period'] = $period_list;
          return $this->succ($result);
