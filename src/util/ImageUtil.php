@@ -237,4 +237,71 @@ class ImageUtil
         $result = $remote_curl->curl_remote('/image/qrdecode', $params);
         return $result;
     }
+    
+    /**
+     * 压缩图片
+     */
+    public function compression($path, $output_path, $max_size, $max_width = 750, $max_height = 750) {
+        ini_set("memory_limit", "128M");
+        if (!is_file($path)) {
+            return false;
+        }
+        //获取图片尺寸、大小及类型
+        list($width, $height, $type) = getimagesize($path);
+        $size = filesize($path);
+        
+        //计算压缩后图片质量
+        $quality = $size > $max_size ? floor($max_size / $size * 100) : 100;
+        
+        //计算压缩后图片尺寸
+        if ($width < $max_width && $height < $max_height) {
+            $new_width = $width;
+            $new_height = $height;
+        } else if ($width > $max_width && $height < $max_height) {
+            $zoom_ratio = $width / $max_width;
+            $new_width = $max_width;
+            $height = intval($height / $zoom_ratio);
+        } else if ($width < $max_width && $height > $max_height) {
+            $zoom_ratio = $height / $max_height;
+            $new_height = $max_height;
+            $new_width = intval($width / $zoom_ratio);
+        } else {
+            if ($width > $height) {
+                $zoom_ratio = $width / $max_width;
+                $new_width = $max_width;
+                $new_height = intval($height / $zoom_ratio);
+            } else {
+                $zoom_ratio = $height / $max_height;
+                $new_height = $max_height;
+                $new_width = intval($width / $zoom_ratio);
+            }
+        }
+        //生成新图片
+        $img_new = imagecreatetruecolor($new_width, $new_height); 
+        switch($type){
+            case 1:
+                $img = imagecreatefromgif($path);
+                break;
+            case 2:
+                $img = imagecreatefromjpeg($path);
+                break;
+            case 3:
+                $img = imagecreatefrompng($path);
+                break;
+        }
+        imagecopyresampled($img_new, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
+        switch($type){
+            case 1:
+                $res = imagegif($img_new, $output_path, $quality);
+                break;
+            case 2:
+                $res = imagejpeg($img_new, $output_path, $quality);
+                break;
+            case 3:
+                $res = imagepng($img_new, $output_path, $quality);
+                break;
+        }
+        imagedestroy($img_new);
+        return true;
+    }
 }
