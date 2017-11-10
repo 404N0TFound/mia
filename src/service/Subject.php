@@ -654,6 +654,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['recommend_icon'] = $subjectInfo['is_fine'];
             $subjectRes[$subjectInfo['id']]['show_age'] = $subjectInfo['show_age'];
             $subjectRes[$subjectInfo['id']]['share_count'] = $subjectInfo['share_count'];
+            $subjectRes[$subjectInfo['id']]['semantic_analys'] = $subjectInfo['semantic_analys'];
             // 处理帖子图片地址
             $imageUrl = array();
             $smallImageUrl = array();
@@ -1917,7 +1918,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     if(!empty($activeInfo)) {
                         // 获取消消乐活动标识
                         $xiaoxiaoleFlag = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole')['active_type'];
-                        if($xiaoxiaoleFlag == $activeInfo['active_type'] && empty($status)) {
+                        if($xiaoxiaoleFlag == $activeInfo['active_type']) {
                             // 当前贴为消消乐活动下发帖,删除需要扣除消消乐活动下发蜜豆
                             $active_relation_id = $activeSubject['data'][$subjectId]['id'];
                             $activeService->activeSubjectVerify([$active_relation_id], -1);
