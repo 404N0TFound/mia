@@ -53,6 +53,9 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['create_time'] = $result['data']['created'];
         $this->knowledgeModel->addKnowledge($knowledge_info);
         
+        //插入分类与帖子关系
+        $this->addKnowledgeCateSubjectRelation($param['category_id'], $result['data']['id']);
+        
         return $this->succ($result['data']);
     }
     
