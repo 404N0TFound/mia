@@ -18,7 +18,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
      */
     public function issueKnowledge($param) {
         //参数校验
-        if (empty($param['user_status']) || empty($param['category_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
+        if (empty($param['category_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
             return $this->error(500);
         }
         if ($param['min_period'] >= $param['max_period']) {
@@ -44,7 +44,13 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['subject_id'] = $result['data']['id'];
         $knowledge_info['title'] = $parsed_param['subject_info']['title'];
         $knowledge_info['text'] = $parsed_param['subject_info']['text'];
-        $knowledge_info['user_status'] = $param['user_status'];
+        if ($param['max_period'] < 0) {
+            $knowledge_info['user_status'] = 2;
+        } else if ($param['min_period'] > 0) {
+            $knowledge_info['user_status'] = 1;
+        } else {
+            $knowledge_info['user_status'] = 3;
+        }
         $knowledge_info['min_period'] = $param['min_period'];
         $knowledge_info['max_period'] = $param['max_period'];
         $knowledge_info['accurate_period'] = $param['min_period'] + $param['accurate_period'];
@@ -55,8 +61,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         
         //插入分类与帖子关系
         $this->addKnowledgeCateSubjectRelation($param['category_id'], $result['data']['id']);
-        
-        return $this->succ($result['data']);
+        return $this->succ(true);
     }
     
     /**
