@@ -268,24 +268,30 @@ class Robot extends \mia\miagroup\Lib\Service {
                  $period_list[$k][$period] = ['start' => $begin, 'end' => $end];
              }
          }
-         $result['knowledge_category'] = [
-             '备孕' => [
-                 '备孕常识' => [
-                     '备孕二胎',
-                     '生育能力'
-                 ],
-                 '饮食调理' => [
-                     '叶酸',
-                     '中药调理',
-                     '备孕食谱'
-                 ]
-             ],
-             '孕期' => [
-                 '孕期检查' => [
-                     '胎儿发育'
-                 ]
-             ]
-         ];
+         $knowledge_service = new \mia\miagroup\Service\Knowledge();
+         $categorys = $knowledge_service->getKnowledgeCateLalbels()['data'];
+         $category_labels = [];
+         foreach ($categorys as $category_2) {
+             foreach ($category_2 as $labels) {
+                 foreach ($labels as $label) {
+                     if (!isset($category_labels[$label['parent_name']])) {
+                         $category_labels[$label['parent_name']] = [];
+                     }
+                     if (!isset($category_labels[$label['parent_name']][$label['category_id']])) {
+                         $category_labels[$label['parent_name']][$label['category_id']] = [
+                             'id' => $label['category_id'],
+                             'name' => $label['category_name'],
+                             'labels' => []
+                         ];
+                     }
+                     $category_labels[$label['parent_name']][$label['category_id']]['labels'][] = $label['label_name'];
+                 }
+             }
+         }
+         foreach ($category_labels as $k => $labels) {
+             $category_labels[$k] = array_values($labels);
+         }
+         $result['knowledge_category'] = $category_labels;
          $result['user_period'] = $period_list;
          return $this->succ($result);
      }
