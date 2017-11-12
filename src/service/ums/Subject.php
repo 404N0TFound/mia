@@ -65,7 +65,9 @@ class Subject extends \mia\miagroup\Lib\Service {
         if ($params['source'] !== null && $params['source'] !== '' && in_array($params['source'], array(0, 1, 2, 4)) && empty($condition['id'])) {
             //帖子来源
             if($params['source'] == 0){
-                $params['source'] = array(1, 2, 4);
+                $params['source'] = array(1, 2, 4, 5);
+            }else if($params['source'] == 1) {
+                $params['source'] = array(1, 5);
             }
             $condition['source'] = $params['source'];
         }
@@ -245,6 +247,8 @@ class Subject extends \mia\miagroup\Lib\Service {
             //帖子来源
             if($data['source'] == 0){
                 $data['source'] = array(1, 2, 4, 5);
+            }else if($data['source'] == 1){
+                $data['source'] = array(1,5);
             }
             $solrParams['source'] = $data['source'];
         }

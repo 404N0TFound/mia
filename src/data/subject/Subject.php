@@ -72,9 +72,8 @@ class Subject extends \DB_Query {
         $where[] = ['status', 1];
         $groupBy = 'user_id';
         $field = 'user_id, count(1) as num';
-        
+
         $arrRes = $this->getRows($where, $field, $limit = FALSE, $offset = 0, $orderBy = FALSE, $join = FALSE, $groupBy);
-        
         if (!empty($arrRes)) {
             foreach ($arrRes as $res) {
                 $result[$res['user_id']] = intval($res['num']);
@@ -372,20 +371,56 @@ class Subject extends \DB_Query {
         return $res;
     }
 
-    public function getFirstSubject($userIds, $source = 1)
+    public function getFirstSubject($userIds, $source = 1, $need_time = false, $timeStart = "")
     {
         $where = [];
         $where[] = ['user_id', $userIds];
         $where[] = ['source', $source];
+        if (!empty($timeStart)) {
+            $where[] = [':gt', 'created', $timeStart];
+        }
 
-        $groupBy = array('user_id');
-        $data = $this->getRows($where, "id", FALSE, 0, "id ASC", FALSE, $groupBy);
+        $user_str = implode(",",$userIds);
+        if (!empty($timeStart)) {
+            $join = "JOIN (SELECT MIN(id) min_id FROM group_subjects WHERE `user_id` IN (" . $user_str . ") AND created > '" . $timeStart . "' AND source = " . $source . " GROUP BY user_id) subjects_b ON subjects_b.min_id = group_subjects.id";;
+        } else {
+            $join = "JOIN (SELECT MIN(id) min_id FROM group_subjects WHERE `user_id` IN (" . $user_str . ") AND source = " . $source . " GROUP BY user_id) subjects_b ON subjects_b.min_id = group_subjects.id";;
+        }
+
+        $data = $this->getRows($where, "id,user_id,created", FALSE, 0, "id ASC", $join);
         $return = [];
         foreach ($data as $val) {
-            $return[] = $val["id"];
+            if ($need_time) {
+                $return[$val["user_id"]] = [
+                    "id" => $val["id"],
+                    "time" => $val["created"]
+                ];
+            } else {
+                $return[$val["user_id"]] = $val["id"];
+            }
         }
         return $return;
     }
 
+    /**
+     * 获取用户最新发帖
+     * @param $userIds
+     * @return array
+     */
+    public function getLastSubjectsByUids($userIds)
+    {
+        $where = [];
+        $where[] = ['user_id', $userIds];
 
+        $groupBy = array('user_id');
+        $data = $this->getRows($where, "max(id) max_id", FALSE, 0, "id DESC", FALSE, $groupBy);
+        if(empty($data)) {
+            return [];
+        }
+        $return = [];
+        foreach ($data as $v) {
+            $return[] = $v["max_id"];
+        }
+        return $return;
+    }
 }

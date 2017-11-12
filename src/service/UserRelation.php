@@ -144,6 +144,10 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             $news = new \mia\miagroup\Service\News();
             $news->postMessage("follow", $toUserId, $sendFromUserId);
         }
+        if (in_array($relationUserId, \F_Ice::$ins->workApp->config->get('busconf.userrelation.task_follow'))) {
+            $taskService = new GroupTask();
+            $taskService->checkFollowTask($userId);
+        }
         return $this->succ($userRelation);
     }
     
@@ -159,6 +163,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
     /**
      * 自动关注
      * @param $userId
+     * @param $type string "register"注册关注  "daren"达人一键关注
      * @return mixed
      */
     public function addAutoFollow($userId, $type = 'register')
@@ -166,6 +171,7 @@ class UserRelation extends \mia\miagroup\Lib\Service {
         if (empty(intval($userId))) {
             return $this->succ([]);
         }
+        $auto_operate = 1;
         switch ($type) {
             case 'register':
                 $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.userrelation.register_auto_follow');
@@ -190,14 +196,23 @@ class UserRelation extends \mia\miagroup\Lib\Service {
                     }
                 }
                 break;
+            case 'daren':
+                $autoFollow = \F_Ice::$ins->workApp->config->get('busconf.userrelation.follow_daren');
+                $auto_operate = 0;
+                break;
         }
         if (!empty($autoFollow)) {
             foreach ($autoFollow as $relationUid) {
-                $this->userRelationModel->addRelation($userId, $relationUid, 2, 1);
+                $this->userRelationModel->addRelation($userId, $relationUid, 2, $auto_operate);
             }
+        }
+        if (!empty(array_intersect(\F_Ice::$ins->workApp->config->get('busconf.userrelation.task_follow'), $autoFollow))) {
+            $taskService = new GroupTask();
+            $taskService->checkFollowTask($userId);
         }
         return $this->succ([]);
     }
+
 
 
     /**
@@ -304,6 +319,34 @@ class UserRelation extends \mia\miagroup\Lib\Service {
     {
         $userIds = $this->userRelationModel->getFansListByUid($userId, $page, $count);
         return $this->succ($userIds);
+    }
+
+    /**
+     * 获取用户关注任务，完成情况
+     */
+    public function getUserTaskFollow($userIds, $followIds)
+    {
+        if (empty($userIds) || empty($followIds)) {
+            return $this->succ([]);
+        }
+        $check_result = $this->userRelationModel->getUserFollowNum($userIds, $followIds);
+
+        $succ_num = count($followIds);
+        $return = [];
+        foreach ($userIds as $userId) {
+            if (array_key_exists($userId, $check_result) && $check_result[$userId]['num'] == $succ_num) {
+                $return[$userId] = [
+                    'succ' => 1,
+                    'time' => $check_result[$userId]['create_time']
+                ];
+            } else {
+                $return[$userId] = [
+                    'succ' => 0,
+                    'time' => ""
+                ];
+            }
+        }
+        return $this->succ($return);
     }
 }
 

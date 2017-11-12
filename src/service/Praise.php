@@ -136,11 +136,16 @@ class Praise extends \mia\miagroup\Lib\Service {
             }
             #end赠送用户蜜豆
         }
-    
+
+        //长文，检测任务
+        if ($subjectInfo['type'] === 'blog') {
+            $taskService = new GroupTask();
+            $taskService->checkBlogTask($userId);
+        }
         //更新图片表之后获取赞数量及是否赞过状态
         $subjectInfo['fancied_by_me'] = true;
         $subjectInfo['fancied_count'] = $subjectInfo['fancied_count'] + 1;
-    
+
         if($userId != $subjectInfo['user_info']['user_id']) {
             $news = new \mia\miagroup\Service\News();
             $news->postMessage('img_like', $subjectInfo['user_info']['user_id'], $userId, $praiseId);

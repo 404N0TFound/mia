@@ -364,6 +364,34 @@ class Subject extends \mia\miagroup\Lib\Service
         return $return;
     }
 
+
+    /**
+     * 达人最新发帖列表
+     */
+    public function darenSubjectList($currentUid)
+    {
+        $darenIds = \F_Ice::$ins->workApp->config->get('busconf.subject.daren_ids');
+        //获取达人最新一篇，有首页封面图的长文
+        $subjectIds = $this->subjectModel->getLastBlog($darenIds,5);
+        $list_info = array_values($this->getBatchSubjectInfos($subjectIds, $currentUid, ['user_info', "index_cover"], [1])["data"]);
+
+        $lastList = [];
+        foreach ($list_info as $val) {
+            if(array_key_exists($val["user_id"],$lastList)) {
+                continue;
+            }
+            if(empty($val["index_cover"]["url"])) {
+                continue;
+            }
+            $lastList[$val["user_id"]] = $val;
+        }
+        usort($lastList, function ($left, $right) use ($darenIds) {
+            return array_search($left["user_id"], $darenIds) > array_search($right["user_id"], $darenIds);
+        });
+        return $this->succ($lastList);
+    }
+
+
     /**
      * 检测是否首次发帖
      */
@@ -379,8 +407,8 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         $res = [];
-        $group_res = $this->subjectModel->getFirstSubject($userIdArr["group"], 1);
-        $koubei_res = $this->subjectModel->getFirstSubject($userIdArr["koubei"], 2);
+        $group_res = array_values($this->subjectModel->getFirstSubject($userIdArr["group"], 1));
+        $koubei_res = array_values($this->subjectModel->getFirstSubject($userIdArr["koubei"], 2));
         foreach ($subjectInfos as $val) {
             if ($val["source"] == 1 && in_array($val["id"], $group_res)) {
                 $res[$val["id"]] = 1;
@@ -391,6 +419,49 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
         return $res;
+    }
+
+    /**
+     * 检测某段时间内首次发帖
+     * @param $userIds
+     * @param $source
+     * @param $timeStart
+     */
+    public function getFirstPubByTime($userIds, $source, $timeStart = "")
+    {
+        if (empty($userIds) || !in_array($source, [1, 2])) {
+            return $this->succ([]);
+        }
+        $group_res = $this->subjectModel->getFirstSubject($userIds, $source, true, $timeStart);
+        return $this->succ($group_res);
+    }
+
+    /**
+     * 检测用户是否完成首次发帖
+     * @param $userIds
+     * @param $source
+     */
+    public function checkUserFirstPub($userIds, $source)
+    {
+        if (empty($userIds) || !in_array($source, [1, 2])) {
+            return $this->succ([]);
+        }
+        $group_res = $this->subjectModel->getFirstSubject($userIds, $source, true);
+        $return = [];
+        foreach ($userIds as $userId) {
+            if (array_key_exists($userId, $group_res)) {
+                $return[$userId] = [
+                    'succ' => 1,
+                    'time' => $group_res[$userId]['time']
+                ];
+            } else {
+                $return[$userId] = [
+                    'succ' => 0,
+                    'time' => ""
+                ];
+            }
+        }
+        return $this->succ($return);
     }
 
     /**
@@ -418,6 +489,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (in_array('first_pub', $field)) {
             $firstPubArr = $this->checkFirstPub($subjectInfos);
         }
+
         // 用户信息
         if (in_array('user_info', $field)) {
             $userIds = array_unique($userIdArr);
@@ -432,7 +504,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (in_array('group_labels', $field)) {
             $subjectLabels = $this->labelService->getBatchSubjectLabels($subjectIds)['data'];
         }
-        
+
         // 获取活动信息
         if (in_array('group_actives', $field)) {
             $activeService = new ActiveService();
@@ -686,6 +758,10 @@ class Subject extends \mia\miagroup\Lib\Service
             if (in_array('user_info', $field)) {
                 $subjectRes[$subjectInfo['id']]['user_info'] = $userArr[$subjectInfo['user_id']];
             }
+            //是否需要首页封面图
+            if (in_array('index_cover', $field)) {
+                $subjectRes[$subjectInfo['id']]['index_cover'] = isset($subjectInfo["ext_info"]["index_cover"]) ? NormalUtil::buildImgUrl($subjectInfo["ext_info"]["index_cover"]["url"],"original",$subjectInfo["ext_info"]["index_cover"]["width"],$subjectInfo["ext_info"]["index_cover"]["height"]) : ["url" => "", "width" => 0, "height" => 0];
+            }
             if (in_array('comment', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_info'] = is_array($comments[$subjectInfo['id']]) ? array_values($comments[$subjectInfo['id']]) : array();
             }
@@ -694,6 +770,8 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (in_array('group_actives', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_actives'] = is_array($subjectActives[$subjectInfo['id']]) ? $subjectActives[$subjectInfo['id']] : array();
+                $subjectRes[$subjectInfo['id']]['is_qualified'] = !empty($subjectActives[$subjectInfo['id']]['is_qualified']) ? intval($subjectActives[$subjectInfo['id']]['is_qualified']) : 0;
+
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
@@ -950,13 +1028,13 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 批量获取用户发布的帖子数
      */
-    public function getBatchUserSubjectCounts($userIds) {
+    public function getBatchUserSubjectCounts($userIds, $conditions= []) {
         if (empty($userIds) || !is_array($userIds)) {
             return $this->succ(array());
         }
         $largePublishCountUser = \F_Ice::$ins->workApp->config->get('busconf.user.largePublishCountUser');
         $diffUserIds = array_diff($userIds, $largePublishCountUser);
-        $data = $this->subjectModel->getBatchUserSubjectCounts($diffUserIds);
+        $data = $this->subjectModel->getBatchUserSubjectCounts($diffUserIds, $conditions);
         if (array_intersect($userIds, $largePublishCountUser)) {
             foreach ($largePublishCountUser as $uid) {
                 $data[$uid] = 10000;
@@ -1255,6 +1333,12 @@ class Subject extends \mia\miagroup\Lib\Service
         $subjectSetInfo['id'] = $subjectId;
         $subjectSetInfo['status'] = 1;
         $subjectSetInfo['user_info'] = $this->userService->getUserInfoByUserId($subjectSetInfo['user_id'])['data'];
+
+        //帖子异步操作，设置任务完成状态
+        $redis = new Redis();
+        $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.async_consume');
+        $redis->lpush($redis_info['key'], $subjectId . '_' . $subjectSetInfo['user_id'] . '_' . $subjectSetInfo['created'] . "_" . $subjectSetInfo['source']);
+        $redis->expire($redis_info['key'], $redis_info['expire_time']);
 
         // 5.4 分享信息
         $shareConfig = \F_Ice::$ins->workApp->config->get('busconf.subject');
@@ -1828,6 +1912,19 @@ class Subject extends \mia\miagroup\Lib\Service
                 //检验帖子是否参加了活动，如果参加了活动，修改活动帖子关联表记录
                 $activeSubject = $activeService->getActiveSubjectBySids(array($subjectId), array());
                 if (!empty($activeSubject['data'][$subjectId]) && in_array($status, array(0, -1, 1))) {
+                    // 获取活动id
+                    $active_id = $activeSubject['data'][$subjectId]['active_id'];
+                    // 获取活动信息
+                    $activeInfo = $activeService->getSingleActiveById($active_id)['data'];
+                    if(!empty($activeInfo)) {
+                        // 获取消消乐活动标识
+                        $xiaoxiaoleFlag = \F_Ice::$ins->workApp->config->get('busconf.active.xiaoxiaole')['active_type'];
+                        if($xiaoxiaoleFlag == $activeInfo['active_type'] && empty($status)) {
+                            // 当前贴为消消乐活动下发帖,删除需要扣除消消乐活动下发蜜豆
+                            $active_relation_id = $activeSubject['data'][$subjectId]['id'];
+                            $activeService->activeSubjectVerify([$active_relation_id], -1);
+                        }
+                    }
                     $activeService->upActiveSubject(array('status' => $status), $activeSubject['data'][$subjectId]['id']);
                 }
                 //修改帖子标签关系表status
@@ -2200,6 +2297,11 @@ class Subject extends \mia\miagroup\Lib\Service
             }
         }
 
+        //长文收藏检查任务
+        if ($subjectInfo['type'] === 'blog' && $status == 1) {
+            $taskService = new GroupTask();
+            $taskService->checkBlogTask($userId);
+        }
         $res = [];
         if ($collectInfo["status"] == $status) {
             $success = $status;
@@ -2924,6 +3026,16 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->succ($result);
         }
         $activeService = new ActiveService();
+        $labelSerive = new LabelService();
+        if(empty($status)) {
+            $activeIds = array_column($subjectInfos, 'active_id');
+        }else{
+            $activeIds = [$activeId];
+        }
+
+        // 批量获取活动信息
+        $activeInfos = $activeService->getBatchActiveByIds($activeIds)['data'];
+
         foreach($subjectInfos as $info) {
             $setData = $activeData = [];
             $subject_id = $info['id'];
@@ -2953,6 +3065,13 @@ class Subject extends \mia\miagroup\Lib\Service
                 $relationSetInfo['active_id'] = $subject_active_id;
                 // 物理删除帖子活动关联表
                 $res = $activeService->delSubjectActiveRelation($relationSetInfo);
+                if(!empty($res)) {
+                    // 解除帖子活动标签
+                    if(!empty($activeInfos[$subject_active_id])) {
+                        $label = $activeInfos[$subject_active_id]['labels'];
+                        $res = $labelSerive->cancleSelectedTag($subject_id, $label[0]['id']);
+                    }
+                }
                 if(!empty($res)) {
                     $setData['active_id'] = 0;
                 }
@@ -3019,27 +3138,27 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         $result = ['flag' => false];
         $subjectInfos = $this->getBatchSubjectInfos($subjectIds)['data'];
-        if(empty($subjectInfos)) {
+        if (empty($subjectInfos)) {
             return $this->succ($result);
         }
         $koubeiService = new KoubeiService();
         $conditions['syn_del'] = 1;
-        foreach($subjectInfos as $subject_id => $info) {
+        foreach ($subjectInfos as $subject_id => $info) {
             $koubei_id = $info['koubei_id'];
             $user_id = $info['user_id'];
-            if(empty($koubei_id)) {
+            if (empty($koubei_id)) {
                 continue;
             }
             // 设置口碑状态(物理删除)
             $res = $koubeiService->delete($koubei_id, $user_id, $conditions)['data'];
-            if(empty($res)) {
+            if (empty($res)) {
                 continue;
             }
             $setData = [];
             $setData['ext_info']['koubei']['id'] = 0;
             $res = $this->updateSubject($subject_id, $setData)['data'];
         }
-        if(!empty($res)) {
+        if (!empty($res)) {
             $result['flag'] = true;
         }
         return $this->succ($result);

@@ -102,4 +102,40 @@ class SubjectBlog extends \DB_Query {
         }
         return $result;
     }
+
+    public function getLastBlog($userIds, $num = 1)
+    {
+        $user_str = implode(",",$userIds);
+
+        $sql = <<<EOD
+SELECT
+	a.subject_id
+FROM
+	group_subject_blog_info a
+WHERE
+    a.user_id IN ({$user_str})
+AND
+	{$num} > (
+		SELECT
+			COUNT(*)
+		FROM
+			group_subject_blog_info b
+		WHERE
+		b.user_id IN ({$user_str})
+		AND	b.user_id = a.user_id
+		AND b.create_time > a.create_time
+	)
+ORDER BY
+	a.create_time DESC
+EOD;
+        $res = $this->query($sql);
+        if(empty($res)) {
+            return [];
+        }
+        $return = [];
+        foreach ($res as $v) {
+            $return[] = $v["subject_id"];
+        }
+        return $return;
+    }
 }

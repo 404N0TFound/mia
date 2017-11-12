@@ -92,6 +92,18 @@ class UserRelation {
                 "source"            => $source,
             );
             $insertRes = $this->appUserRelation->insertRelation($setInfo);
+            //关注官方账号，加1蜜豆
+            //长文账号，奖励1蜜豆
+            $followIds = \F_Ice::$ins->workApp->config->get('busconf.userrelation.task_follow');
+            if(in_array($relationUserId,$followIds)) {
+                //送蜜豆
+                $mibean = new \mia\miagroup\Remote\MiBean();
+                $param['user_id'] = $relationUserId;
+                $param['relation_type'] = 'follow_me';
+                $param['relation_id'] = $userId;
+                $param['to_user_id'] = $userId;
+                $res = $mibean->add($param);
+            }
         }
         //更新状态查主库
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);
@@ -148,5 +160,17 @@ class UserRelation {
     {
         $data = $this->groupSubjectUserExperts->getBatchExpertInfoByUids($userIds);
         return $data;
+    }
+
+    /**
+     * 查询用户对指定一组用户的关注数量
+     */
+    public function getUserFollowNum($userIds, $followIds)
+    {
+        if (empty($userIds) || empty($followIds)) {
+            return [];
+        }
+        $res = $this->appUserRelation->getUserFollowNum($userIds, $followIds);
+        return $res;
     }
 }

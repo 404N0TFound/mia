@@ -24,7 +24,7 @@ class User extends \mia\miagroup\Lib\Service {
      *
      * @param array $userIds     
      * @param array $fields,
-     * 包括count、relation、cell_phone、user_group等
+     * 包括count、relation、cell_phone、user_group、xiaoxiaole等
      * @return array
      */
     public function getUserInfoByUids(array $userIds, $currentUid = 0, array $fields = array()) {
@@ -209,7 +209,7 @@ class User extends \mia\miagroup\Lib\Service {
                 $userInfo['push_switch'] = $pushSwitch['push_switch'];
             }
         }
-        
+
         return $this->succ($userInfo);
     }
     
@@ -757,5 +757,53 @@ class User extends \mia\miagroup\Lib\Service {
         $res = $this->userModel->getGroupUserIdList($type, $page, $count);
         return $this->succ($res);
     }
-    
+
+    /*
+     * 获取蜜芽圈用户信息
+     * */
+    public function getGroupUserInfo($user_ids)
+    {
+        if(empty($user_ids)) {
+            return $this->succ([]);
+        }
+        $userInfos = $this->userModel->getGroupUserInfo($user_ids);
+        if(empty($userInfos)) {
+            return $this->succ([]);
+        }
+        $addressIds = array_column($userInfos, 'address_id');
+        $addressInfos = $this->userModel->getGroupUserAddress($addressIds);
+        foreach($userInfos as &$info) {
+            $addressInfo = $addressInfos[$info['address_id']];
+            if(!empty($addressInfo)) {
+                $info['dst_address'] = $addressInfo;
+            }
+        }
+        return $this->succ($userInfos);
+    }
+
+    /*
+     * 新增蜜芽圈用户信息
+     * */
+    public function addGroupUserInfo($user_id, $address_id)
+    {
+        if(empty($user_id)) {
+            return $this->succ();
+        }
+        // 获取用户信息
+        $userInfo = $this->getGroupUserInfo([$user_id])['data'];
+        $insertData = $update = [];
+        if(empty($userInfo)) {
+            // insert
+            $insertData['user_id'] = $user_id;
+            $insertData['address_id'] = $address_id;
+            $insertData['create_time'] = date('Y-m-d H:i:s', time());
+            $res = $this->userModel->addGroupUserInfo($insertData);
+        }else{
+            // update
+            $update['address_id'] = $address_id;
+            $update['create_time'] = date('Y-m-d H:i:s', time());
+            $res = $this->userModel->updateGroupUserInfo($user_id, $update);
+        }
+        return $this->succ($res);
+    }
 }
