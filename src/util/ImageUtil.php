@@ -241,17 +241,14 @@ class ImageUtil
     /**
      * 压缩图片
      */
-    public function compression($path, $output_path, $max_size, $max_width = 750, $max_height = 750) {
-        ini_set("memory_limit", "128M");
+    public function compress($path, $output_path, $max_width = 750, $max_height = 750, $quality = 90) {
+        ini_set("memory_limit", "16G");
         if (!is_file($path)) {
             return false;
         }
         //获取图片尺寸、大小及类型
         list($width, $height, $type) = getimagesize($path);
         $size = filesize($path);
-        
-        //计算压缩后图片质量
-        $quality = $size > $max_size ? floor($max_size / $size * 100) : 100;
         
         //计算压缩后图片尺寸
         if ($width < $max_width && $height < $max_height) {
@@ -292,16 +289,17 @@ class ImageUtil
         imagecopyresampled($img_new, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
         switch($type){
             case 1:
-                $res = imagegif($img_new, $output_path, $quality);
+                imagegif($img_new, $output_path, $quality);
                 break;
             case 2:
-                $res = imagejpeg($img_new, $output_path, $quality);
+                imagejpeg($img_new, $output_path, $quality);
                 break;
             case 3:
-                $res = imagepng($img_new, $output_path, $quality);
+                imagepng($img_new, $output_path, $quality);
                 break;
         }
         imagedestroy($img_new);
+        imagedestroy($img);
         return true;
     }
 }
