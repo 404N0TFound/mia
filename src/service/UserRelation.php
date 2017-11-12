@@ -142,8 +142,6 @@ class UserRelation extends \mia\miagroup\Lib\Service {
             $sendFromUserId = $userId;//发送UserId
             $toUserId = $relationUserId;//接受UserId
             $news = new \mia\miagroup\Service\News();
-            //TODO 完全切换后关掉旧的
-            $news->addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId)['data'];
             $news->postMessage("follow", $toUserId, $sendFromUserId);
         }
         return $this->succ($userRelation);

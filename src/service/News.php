@@ -1504,7 +1504,11 @@ class News extends \mia\miagroup\Lib\Service
                 $index_title = "您的帖子被".$user_name."在文章中引用啦";
                 break;
             case "add_fine"://加精消息里面，source_id记得就是帖子ID
-                $title = "您的帖子被加精，奉上50蜜豆";
+                if (intval($newsInfo['ext_info']['mibean']) > 0) {
+                    $title = "您的帖子被加精，奉上{$newsInfo['ext_info']['mibean']}蜜豆";
+                } else {
+                    $title = "您的帖子被加精";
+                }
                 $url = sprintf($app_mapping_config['subject'], $newsInfo["source_id"]);
                 $text = $this->subjectInfo[$newsInfo["source_id"]]["text"];
                 $image = $this->subjectInfo[$newsInfo["source_id"]]["cover_image"]["url"];
@@ -1966,7 +1970,7 @@ class News extends \mia\miagroup\Lib\Service
 
 
     /**
-     * 发布一条消息  |  旧版本
+     * 发布一条消息  |  旧版本（已废弃）
      *
      * @param $type              enum 消息类型 enum('single','all')
      * @param $resourceType      enum 消息相关资源类型 enum('group','outlets')
@@ -1977,11 +1981,11 @@ class News extends \mia\miagroup\Lib\Service
      * @param $content           string 消息内容
      *
      **/
-    public function addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId = 0, $resourceId = 0, $content = "")
-    {
-        $data = $this->newsModel->addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId, $resourceId, $content);
-        return $this->succ($data);
-    }
+//     public function addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId = 0, $resourceId = 0, $content = "")
+//     {
+//         $data = $this->newsModel->addNews($type, $resourceType, $resourceSubType, $sendFromUserId, $toUserId, $resourceId, $content);
+//         return $this->succ($data);
+//     }
 
 
     /*================新消息系统================*/

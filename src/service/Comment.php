@@ -218,8 +218,6 @@ class Comment extends \mia\miagroup\Lib\Service {
 
         //回复帖子或评论：回复人非帖子作者，发消息给帖子作者
         if ($sendFromUserId != $toUserId) {
-            // 发消息 TODO 完全切换后关掉旧的
-            $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id']);
             $this->newService->postMessage('img_comment', $toUserId, $sendFromUserId, $commentInfo['id']);
             //赠送用户蜜豆（帖子作者）
             $mibean = new \mia\miagroup\Remote\MiBean();
@@ -260,8 +258,6 @@ class Comment extends \mia\miagroup\Lib\Service {
         // 回复评论：被评论人不是帖子作者，被评论人不是评论人自己
         if ($commentInfo['parent_user'] && $commentInfo['parent_user']['user_id'] != $toUserId && $commentInfo['parent_user']['user_id'] != $sendFromUserId) {
             $toUserId = $commentInfo['parent_user']['user_id'];
-            // 发消息，发给被评论人 TODO 完全切换后关掉旧的
-            $this->newService->addNews('single', 'group', 'img_comment', $sendFromUserId, $toUserId, $commentInfo['id'])['data'];
             $this->newService->postMessage('img_comment', $toUserId, $sendFromUserId, $commentInfo['id']);
 
             //8：00-23：00发送评论，发push
