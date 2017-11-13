@@ -146,8 +146,8 @@ class Active extends \mia\miagroup\Lib\Service {
         $extInfo = array();
         if ($activeInfo['active_type'] == 'xiaoxiaole') {
             $extInfo['is_xiaoxiaole'] = 1;
-            unset($activeInfo['active_type']);
         }
+        unset($activeInfo['active_type']);
         //参加活动的标签
         if (!empty($activeInfo['label_titles'])) {
             $labelService = new LabelService();

@@ -1597,6 +1597,7 @@ class Subject extends \mia\miagroup\Lib\Service
         $news = new \mia\miagroup\Service\News();
 
         foreach($subjects_info as $subject_info){
+            $news_ext_info = [];
             //有关联商品才加蜜豆
             if (!empty($subjectItemIds[$subject_info['id']])) {
                 $param = array(
@@ -1606,6 +1607,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     'to_user_id'        => $subject_info['user_id']
                 );
                 $data = $mibean->add($param);
+                $news_ext_info['mibean'] = 50;
             }
             
             //发送消息推送，每天发三次
@@ -1617,7 +1619,7 @@ class Subject extends \mia\miagroup\Lib\Service
             //     $redis->expireAt($push_num_key, strtotime(date('Y-m-d 23:59:59')));
             // }
             //发送站内信
-            $news->postMessage('add_fine', $subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['id']);
+            $news->postMessage('add_fine', $subject_info['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.miaTuUid'), $subject_info['id'], $news_ext_info);
         }
         //推荐更新入队列
         foreach ($subjectId as $v) {

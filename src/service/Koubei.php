@@ -979,11 +979,11 @@ class Koubei extends \mia\miagroup\Lib\Service {
         // 给被评论的口碑发消息
         $newService = new \mia\miagroup\Service\News();
         if ($userId != $subjectInfo['user_id']) {
-            $newService->addNews('single', 'group', 'img_comment', $userId, $subjectInfo['user_id'], $commentInfo['id']);
+            $newService->postMessage('img_comment', $subjectInfo['user_id'], $userId, $commentInfo['id']);
         }
         // 给口碑的评论回复发消息
         if ($parentInfo['comment_user'] && $parentInfo['comment_user']['user_id'] != $userId) {
-            $newService->addNews('single', 'group', 'img_comment', $userId, $parentInfo['comment_user']['user_id'], $commentInfo['id'])['data'];
+            $newService->postMessage('img_comment', $commentInfo['parent_user']['user_id'], $userId, $commentInfo['id']);
         }
     
         return $this->succ($commentInfo);
