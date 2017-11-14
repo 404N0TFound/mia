@@ -66,4 +66,29 @@ class Knowledge {
         $result = $this->knowledgeData->addKnowledge($insert_data);
         return $result;
     }
+    
+    /**
+     * 新增知识分类
+     */
+    public function addKnowledgeCategory($insert_data) {
+        $result = $this->knowledgeCategoryData->addKnowledgeCategory($insert_data);
+        return $result;
+    }
+    
+    /**
+     * 删除知识分类
+     */
+    public function delKnowledgeCategory($cateId) {
+        $result = $this->knowledgeCategoryData->updateCategory($condition,$update_data);
+        return $result;
+    }
+    
+    /**
+     * 删除知识分类与标签的关联
+     */
+    public function delKnowledgeCateLabelRelation($cateId,$labelId) {
+        $result = $this->knowledgeLabelRelation->updateRelation($condition,$update_data);
+        return $result;
+    }
+    
 }
