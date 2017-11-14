@@ -378,10 +378,3 @@ $daren_ids = [
     13704047,//兔管家
     13704048,//种草兔
 ];
-
-// 发帖文案图片字数控制
-$subject_mission = array(
-    'type' => 'mission_center',
-    'text_limit' => 20,
-    'image_limit' => 1,
-);
