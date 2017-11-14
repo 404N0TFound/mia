@@ -268,6 +268,7 @@ class Robot extends \mia\miagroup\Lib\Service {
                  $period_list[$k][$period] = ['start' => $begin, 'end' => $end];
              }
          }
+         $period_list['备孕']['备孕'] = ['start' => -1001, 'end' => -1000];
          $knowledge_service = new \mia\miagroup\Service\Knowledge();
          $categorys = $knowledge_service->getKnowledgeCateLalbels()['data'];
          $category_labels = [];

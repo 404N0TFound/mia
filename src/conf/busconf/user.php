@@ -193,19 +193,19 @@ $pregnancy_period = array(
  * 宝宝年龄二级菜单
  */
 $child_period = array(
-    '新生儿(月子期)' => array(
+    '1月龄' => array(
         '1月龄' => array('start' => '-1 month', 'end' => 'now'),
     ),
-    '2-3月龄(哺乳/产后恢复)' => array(
+    '2-3月龄' => array(
         '2月龄' => array('start' => '-2 month', 'end' => '-1 month'),
         '3月龄' => array('start' => '-3 month', 'end' => '-2 month'),
     ),
-    '4-6月龄(哺乳/产后恢复)' => array(
+    '4-6月龄' => array(
         '4月龄' => array('start' => '-4 month', 'end' => '-3 month'),
         '5月龄' => array('start' => '-5 month', 'end' => '-4 month'),
         '6月龄' => array('start' => '-6 month', 'end' => '-5 month'),
     ),
-    '7-12月龄(哺乳/产后恢复)' => array(
+    '7-12月龄' => array(
         '7月龄' => array('start' => '-7 month', 'end' => '-6 month'),
         '8月龄' => array('start' => '-8 month', 'end' => '-7 month'),
         '9月龄' => array('start' => '-9 month', 'end' => '-8 month'),
@@ -213,7 +213,21 @@ $child_period = array(
         '11月龄' => array('start' => '-11 month', 'end' => '-10 month'),
         '12月龄' => array('start' => '-12 month', 'end' => '-11 month'),
     ),
-    '1-2岁(断奶/身材重塑)' => array(
+    '0-1岁' => array(
+        '1月龄' => array('start' => '-1 month', 'end' => 'now'),
+        '2月龄' => array('start' => '-2 month', 'end' => '-1 month'),
+        '3月龄' => array('start' => '-3 month', 'end' => '-2 month'),
+        '4月龄' => array('start' => '-4 month', 'end' => '-3 month'),
+        '5月龄' => array('start' => '-5 month', 'end' => '-4 month'),
+        '6月龄' => array('start' => '-6 month', 'end' => '-5 month'),
+        '7月龄' => array('start' => '-7 month', 'end' => '-6 month'),
+        '8月龄' => array('start' => '-8 month', 'end' => '-7 month'),
+        '9月龄' => array('start' => '-9 month', 'end' => '-8 month'),
+        '10月龄' => array('start' => '-10 month', 'end' => '-9 month'),
+        '11月龄' => array('start' => '-11 month', 'end' => '-10 month'),
+        '12月龄' => array('start' => '-12 month', 'end' => '-11 month'),
+    ),
+    '1-2岁' => array(
         '1岁1月' => array('start' => '-1 year -1 month', 'end' => '-1 year'),
         '1岁2月' => array('start' => '-1 year -2 month', 'end' => '-1 year -1 month'),
         '1岁3月' => array('start' => '-1 year -3 month', 'end' => '-1 year -2 month'),
@@ -227,7 +241,7 @@ $child_period = array(
         '1岁11月' => array('start' => '-1 year -11 month', 'end' => '-1 year -10 month'),
         '1岁12月' => array('start' => '-1 year -12 month', 'end' => '-1 year -11 month'),
     ),
-    '2-3岁(断奶/身材重塑)' => array(
+    '2-3岁' => array(
         '2岁1月' => array('start' => '-2 year -1 month', 'end' => '-2 year'),
         '2岁2月' => array('start' => '-2 year -2 month', 'end' => '-2 year -1 month'),
         '2岁3月' => array('start' => '-2 year -3 month', 'end' => '-2 year -2 month'),
@@ -241,13 +255,9 @@ $child_period = array(
         '2岁11月' => array('start' => '-2 year -11 month', 'end' => '-2 year -10 month'),
         '2岁12月' => array('start' => '-2 year -12 month', 'end' => '-2 year -11 month'),
     ),
-    '3-4岁' => array(
+    '3-6岁' => array(
         '3-4岁' => array('start' => '-3 year', 'end' => '-2 year'),
-    ),
-    '4-5岁' => array(
         '4-5岁' => array('start' => '-4 year', 'end' => '-3 year'),
-    ),
-    '5-6岁' => array(
         '5-6岁' => array('start' => '-5 year', 'end' => '-4 year'),
     ),
 );
