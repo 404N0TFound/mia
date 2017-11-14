@@ -48,16 +48,16 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['subject_id'] = $result['data']['id'];
         $knowledge_info['title'] = $parsed_param['subject_info']['title'];
         $knowledge_info['text'] = $parsed_param['subject_info']['text'];
-        if ($param['max_period'] < 0) {
+        if ($param['max_period'] <= -1000) {
+            $knowledge_info['user_status'] = 3;
+        } else if ($param['max_period'] < 0) {
             $knowledge_info['user_status'] = 2;
         } else if ($param['min_period'] > 0) {
             $knowledge_info['user_status'] = 1;
-        } else {
-            $knowledge_info['user_status'] = 3;
         }
         $knowledge_info['min_period'] = $param['min_period'];
         $knowledge_info['max_period'] = $param['max_period'];
-        $knowledge_info['accurate_period'] = $param['min_period'] + $param['accurate_period'];
+        $knowledge_info['accurate_period'] = $param['accurate_period'];
         $knowledge_info['blog_meta'] = $parsed_param['blog_meta'];
         $knowledge_info['status'] = $param['status'];
         $knowledge_info['create_time'] = $result['data']['created'];
