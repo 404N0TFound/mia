@@ -68,52 +68,40 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         if (empty($knowledgeCateLabels)) {
             return $this->succ(array());
         }
-        
-        $pCateIds = array();
-        $categoryIds = array();
+    
         $labelIds = array();
-        //获取关系表中的分类id和标签id，因为多对多关系，使用需要去重
+        //获取关系表中的标签id，因为多对多关系，使用需要去重
+        $categoryLabels = array();
         foreach ($knowledgeCateLabels as $knowledgeCateLabel) {
-            if($knowledgeCateLabel['parent_cate_id'] > 0){
-                $pCateIds[] = $knowledgeCateLabel['parent_cate_id'];//一级分类
-            }
-            $categoryIds[] = $knowledgeCateLabel['category_id'];//二级分类
+            $categoryLabels[$knowledgeCateLabel['category_id']]['labels'][$knowledgeCateLabel['label_id']] = $knowledgeCateLabel;
             $labelIds[] = $knowledgeCateLabel['label_id'];
         }
-        
-        $pCateIds = array_unique($pCateIds);//一级分类id去重
-        $categoryIds = array_unique($categoryIds);//分类id去重
-        //获取一级、二级分类信息，为了获取分类名称
-        $bothCateIds = array_merge($pCateIds,$categoryIds);
-        $categoryInfos = $this->knowledgeModel->getCategoryInfosByCids($bothCateIds,array(0,1));
         
         $labelService = new LabelService();
         //获取标签信息
         $labelIds = array_unique($labelIds);//标签id去重
         //为了获取标签名称
         $labelInfos = $labelService->getBatchLabelInfos($labelIds)['data'];
-    
-        //拼装结果集
-        $result = array();
-        foreach ($knowledgeCateLabels as $key => $knowledgeCateLabel) {
-            $temp['parent_id'] = $knowledgeCateLabel['parent_cate_id'];
-            $temp['category_id'] = $knowledgeCateLabel['category_id'];
-            $temp['label_id'] = $knowledgeCateLabel['label_id'];
-            $temp['status'] = $knowledgeCateLabel['status'];
-            //如果存在父分类，获取父分类信息
-            if($knowledgeCateLabel['parent_cate_id'] > 0){
-                $temp['parent_name'] = $categoryInfos[$knowledgeCateLabel['parent_cate_id']]['name'];
-            }
-            //如果存在分类，获取分类信息
-            if($knowledgeCateLabel['category_id'] > 0){
-                $temp['category_name'] = $categoryInfos[$knowledgeCateLabel['category_id']]['name'];
-            }
-            //获取标签信息
-            if ($knowledgeCateLabel['label_id'] > 0) {
-                $temp['label_name'] = $labelInfos[$knowledgeCateLabel['label_id']]['title'];
-            }
 
-            $result[$knowledgeCateLabel['parent_cate_id']][$knowledgeCateLabel['category_id']][$knowledgeCateLabel['label_id']] = $temp;
+        $categoryInfos = $this->knowledgeModel->getCategoryInfosByCids(array(),array(0,1));
+    
+        //组装知识分类信息
+        foreach($categoryInfos as $categoryInfo){
+            if($categoryInfo['parent_id'] > 0){
+                $temp['category_id'] = $categoryInfo['id'];
+                $temp['category_name'] = $categoryInfo['name'];
+                $temp['status'] = $categoryInfo['status'];
+                $temp['parent_id'] = $categoryInfo['parent_id'];
+                $temp['parent_name'] = $categoryInfos[$categoryInfo['parent_id']]['name'];
+                $result[$categoryInfo['parent_id']][$categoryInfo['id']]= $temp;
+            }
+            if($categoryLabels[$categoryInfo['id']]['labels']){
+                foreach($categoryLabels[$categoryInfo['id']]['labels'] as $label){
+                    $labelTemp['label_id'] = $label['label_id'];
+                    $labelTemp['label_name'] = $labelInfos[$label['label_id']]['title'];
+                    $result[$categoryInfo['parent_id']][$categoryInfo['id']]['labels'][$label['label_id']] = $labelTemp;
+                }
+            }
         }
         return $this->succ($result);
     }
