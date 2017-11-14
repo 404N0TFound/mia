@@ -50,9 +50,11 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['text'] = $parsed_param['subject_info']['text'];
         if ($param['max_period'] <= -1000) {
             $knowledge_info['user_status'] = 3;
+            $param['min_period'] = 0;
+            $param['max_period'] = 0;
         } else if ($param['max_period'] < 0) {
             $knowledge_info['user_status'] = 2;
-        } else if ($param['min_period'] > 0) {
+        } else if ($param['min_period'] >= 0) {
             $knowledge_info['user_status'] = 1;
         }
         $knowledge_info['min_period'] = $param['min_period'];
