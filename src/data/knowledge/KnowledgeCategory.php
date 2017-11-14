@@ -24,4 +24,42 @@ class KnowledgeCategory extends \DB_Query{
         }
         return $result;
     }
+    
+    /**
+     * 查询知识分类
+     */
+    public function insertKnowledgeCategory($insertData) {
+        $result = [];
+        $where = [];
+        if(!empty($cateIds)){
+            $where[] = ['id',$cateIds];
+        }
+        $where[] = ['status',$status];
+        $data = $this->getRows($where);
+        if (!empty($data) && is_array($data)) {
+            foreach ($data as $v) {
+                $result[$v['id']] = $v;
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * 查询知识分类
+     */
+    public function updateKnowledgeCategory($where=array(), $updateData) {
+        $result = [];
+        $where = [];
+        if(!empty($cateIds)){
+            $where[] = ['id',$cateIds];
+        }
+        $where[] = ['status',$status];
+        $data = $this->getRows($where);
+        if (!empty($data) && is_array($data)) {
+            foreach ($data as $v) {
+                $result[$v['id']] = $v;
+            }
+        }
+        return $result;
+    }
 }

@@ -201,5 +201,46 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $res = $this->knowledgeModel->addKnowledgeCateLabelRelation($insertData);
         return $this->succ($res);
     }
-
+    
+    /**
+     * 删除知识分类下标签
+     */
+    public function delKnowledgeCateLabelRelation($cateId,$labelId) {
+        if(empty($cateId) || empty($labelId)){
+            return $this->error(500);
+        }
+        $data = $this->knowledgeModel->delKnowledgeCateLabelRelation($cateId,$labelId);
+        return $this->succ($data);
+    }
+    
+    /**
+     * 
+     * 新增知识分类
+     */
+    public function addKnowledgeCategory($param) {
+        //参数校验
+        if (empty($param) || empty($param['name']) || empty($param['parent_id']) || empty($param['level'])) {
+            return $this->error(500);
+        }
+        $knowledgeCategory = [];
+        $knowledgeCategory['name'] = trim($param['name']);
+        $knowledgeCategory['level'] = intval($param['level']);
+        $knowledgeCategory['modify_author'] = $param['user_id'];
+        
+        $res = $this->knowledgeModel->addKnowledgeCategory($knowledgeCategory);
+    
+        return $this->succ($res);
+    }
+    
+    /**
+     * 删除知识分类
+     */
+    public function delKnowledgeCategory($cateId) {
+    
+        if(empty($cateId)){
+            return $this->error(500);
+        }
+        $data = $this->knowledgeModel->delKnowledgeCategory($cateId);
+        return $this->succ($data);
+    }
 }
