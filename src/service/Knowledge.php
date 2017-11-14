@@ -33,9 +33,13 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         if (empty($parsed_param['subject_info']['title']) || empty($parsed_param['subject_info']['text'])) {
             return $this->error(500);
         }
+        if (!empty($param['labels']) && is_array($param['labels'])) {
+            foreach ($param['labels'] as $label) {
+                $parsed_param['labels'][] = ['title' => $label];
+            }
+        }
         //发布知识贴子
-        $param['labels'] = !empty($param['labels']) && is_array($param['labels']) ? $param['labels'] : [];
-        $result = $subject_service->issue($parsed_param['subject_info'], $parsed_param['items'], $param['labels']);
+        $result = $subject_service->issue($parsed_param['subject_info'], $parsed_param['items'], $parsed_param['labels']);
         if ($result['code'] > 0) {
             return $this->error($result['code'], $result['msg']);
         }
