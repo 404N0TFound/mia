@@ -11,6 +11,11 @@ $miaTuUid = '3782852';
 $miaKefuUid = '13638396';
 
 /**
+ * 蜜芽知识uid
+ */
+$miaKnowledgeUid = '13704136';
+
+/**
  * 蜜芽甄选客服uid
  */
 $miaZhenXuanKefuUid = '19080286';
@@ -242,9 +247,7 @@ $child_period = array(
     '4-5岁' => array(
         '4-5岁' => array('start' => '-4 year', 'end' => '-3 year'),
     ),
-    /*
     '5-6岁' => array(
         '5-6岁' => array('start' => '-5 year', 'end' => '-4 year'),
     ),
-    */
 );

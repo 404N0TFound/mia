@@ -28,6 +28,16 @@ $subject_material_status = [
 ];
 
 /**
+ * 知识素材状态，0待编辑 1列表锁定 2编辑中 3已生成帖子
+ */
+$knowledge_material_status = [
+    'unused' => 0,
+    'locked' => 1,
+    'editing'=> 2,
+    'used'   => 3
+];
+
+/**
  * 运营帖子状态，1编辑完成 2编辑中 3已生成帖子
  */
 $editor_subject_status = [

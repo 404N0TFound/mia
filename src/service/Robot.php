@@ -497,4 +497,43 @@ class Robot extends \mia\miagroup\Lib\Service {
         $user_service->updateUserInfo($user_id, $majia_info);
         return $this->succ(true);
     }
+    
+    /**
+     * 批量更新知识素材状态
+     */
+    public function updateKnowledgeMaterialStatusByIds($status, $op_admin, $material_ids) {
+        if (empty($material_ids) || !in_array($status, $this->robotConfig['knowledge_material_status']) || empty($op_admin)) {
+            return $this->error(500);
+        }
+        $set_data = ['status' => $status, 'op_admin' => $op_admin];
+        $result = $this->robotModel->updateKnowledgeMaterialByIds($set_data, $material_ids);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 知识素材查询解锁
+     */
+    public function unLockKnowledgeMaterial($op_admin) {
+        if (empty($op_admin)) {
+            return $this->error(500);
+        }
+        $result = $this->robotModel->updateKnowledgeMaterialByOpadmin($this->robotConfig['knowledge_material_status']['unused'], $op_admin, $this->robotConfig['knowledge_material_status']['locked']);
+        return $this->succ($result);
+    }
+    
+    /**
+     * 获取单条知识素材
+     */
+    public function getSingleKnowledgeMaterial($material_id) {
+        $knowledge_material = $this->robotModel->getSingleKnowledgeMaterial($material_id);
+        return $this->succ($knowledge_material);
+    }
+    
+    /**
+     * 批量获取知识素材
+     */
+    public function getBatchKnowledgeMaterial($material_ids) {
+        $subject_materials = $this->robotModel->getBatchKnowledgeMaterials($material_ids);
+        return $this->succ($subject_materials);
+    }
 }

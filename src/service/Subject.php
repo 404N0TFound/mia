@@ -2358,7 +2358,7 @@ class Subject extends \mia\miagroup\Lib\Service
         }
 
         //解析参数
-        $parsed_param = $this->_parseBlogParam($param);
+        $parsed_param = $this->parseBlogParam($param);
         //发布长文贴子
         $result = $this->issue($parsed_param['subject_info'], $parsed_param['items'], $parsed_param['labels']);
         if ($result['code'] > 0) {
@@ -2409,7 +2409,7 @@ class Subject extends \mia\miagroup\Lib\Service
             return $this->error(1133);
         }
         $param['user_id'] = $subject_info['user_id'];
-        $parsed_param = $this->_parseBlogParam($param);
+        $parsed_param = $this->parseBlogParam($param);
         //处理修改过的商品
         $exist_items = [];
         if (!empty($subject_info['items'])) {
@@ -2605,7 +2605,7 @@ class Subject extends \mia\miagroup\Lib\Service
     /**
      * 解析长文发布/编辑的入参
      */
-    private function _parseBlogParam($param) {
+    public function parseBlogParam($param, $type = 'blog') {
         $subject_info = []; //帖子信息
         $blog_meta = []; //长文信息
         $items = []; //关联商品
@@ -2614,7 +2614,8 @@ class Subject extends \mia\miagroup\Lib\Service
         //meta元素
         if (!empty($param['blog_meta'])) {
             $subject_info['text'] = '';
-            $subject_info['ext_info']['is_blog'] = 1;
+            $ext_key = 'is_'. $type;
+            $subject_info['ext_info'][$ext_key] = 1;
             foreach ($param['blog_meta'] as $v) {
                 if (!isset($v[$v['type']]) || empty($v[$v['type']])) {
                     continue;
@@ -2733,7 +2734,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (!empty($param['status'])) {
             $subject_info['status'] = $param['status'];
             //非官方直属账号，发布需审核
-            if ($param['status'] == 1 && !in_array($param['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
+            if ($param['status'] == 1 && $type == 'blog' && !in_array($param['user_id'], \F_Ice::$ins->workApp->config->get('busconf.user.blog_audit_white_list'))) {
                 $subject_info['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.to_audit');
             }
         }
