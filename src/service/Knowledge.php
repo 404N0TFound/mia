@@ -71,7 +71,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         //更新素材状态
         if (intval($param['material_id']) > 0) {
             $robot_service = new \mia\miagroup\Service\Robot();
-            $robot_service->updateKnowledgeMaterialStatusByIds(\F_Ice::$ins->workApp->config->get('busconf.robot.knowledge_material_status.status'), $param['op_admin'], [$param['material_id']]);
+            $robot_service->updateKnowledgeMaterialStatusByIds(\F_Ice::$ins->workApp->config->get('busconf.robot.knowledge_material_status.used'), $param['op_admin'], [$param['material_id']]);
         }
         
         return $this->succ(true);
