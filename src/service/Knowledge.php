@@ -67,6 +67,13 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         
         //插入分类与帖子关系
         $this->addKnowledgeCateSubjectRelation($param['category_id'], $result['data']['id']);
+        
+        //更新素材状态
+        if (intval($param['material_id']) > 0) {
+            $robot_service = new \mia\miagroup\Service\Robot();
+            $robot_service->updateKnowledgeMaterialStatusByIds($this->robotConfig['knowledge_material_status']['used'], $param['op_admin'], [$param['material_id']]);
+        }
+        
         return $this->succ(true);
     }
     
