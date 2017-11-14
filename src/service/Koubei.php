@@ -847,15 +847,29 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if(!is_numeric($koubeiId) || intval($koubeiId) <= 0){
             return $this->error(500);
         }
+
+        //查出口碑信息，用户提供同步数据
+        $koubeInfo = $this->koubeiModel->getBatchKoubeiByIds(array($koubeiId), array(2))[$koubeiId];
+
         //更新口碑状态
         $koubeUpData = array('status'=>$status,'admin_id'=>$adminId,'verify_time'=>date('Y-m-d H:i:s'));
         $res = $this->koubeiModel->setKoubeiStatus($koubeiId, $koubeUpData);
         //如果是修改为不通过，不需要同步蜜芽圈
         if($status== 0){
+            // 口碑对应的帖子id
+            $subject_id = $koubeInfo['subject_id'];
+            // 获取帖子信息
+            if(!empty($subject_id) && $subject_id > 0) {
+                $subjectInfo = $this->subjectService->getBatchSubjectInfos([$subject_id], 0, [])['data'];
+                if(!empty($subjectInfo) && empty($subjectInfo['semantic_analys'])) {
+                    // 口碑对应帖子内容差评，删除该帖
+                    $conditions['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.user_delete');
+                    $this->subjectService->updateSubject($subject_id, $conditions);
+                }
+            }
             return $this->succ($res);
         }
-        //查出口碑信息，用户提供同步数据
-        $koubeInfo = $this->koubeiModel->getBatchKoubeiByIds(array($koubeiId), array(2))[$koubeiId];
+
         if($koubeInfo['subject_id'] > 0){
             //如果同步过，直接返回通过状态
             return $this->succ($res);
@@ -1184,7 +1198,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     }
                     $active_info = array_slice(array_values($active_info),0,6);
                 }
-                
+
                 if(!empty($active_info)){
                     $return_Info['current_actives'] = $active_info;
                 }

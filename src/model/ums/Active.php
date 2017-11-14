@@ -22,7 +22,7 @@ class Active extends \DB_Query {
             $where[] = ['status',$status];
         }
         $field = "id, title, status, end_time";
-        $where[] = [':gt', 'created', $time];
+        $where[] = [':gt', 'start_time', $time];
         $res = $this->getRows($where, $field);
         return $res;
     }

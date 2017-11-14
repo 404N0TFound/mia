@@ -132,6 +132,10 @@ class Koubei extends \mia\miagroup\Lib\Service {
             //拼团类型
             $solrCond['pop_type'] = $params['pop_type'];
         }
+        if (!empty($params['stock_id']) && $isRealtime == false) {
+            //仓库类型
+            $solrCond['stock_id'] = $params['stock_id'];
+        }
         if (strtotime($params['start_time']) > 0 && intval($solrCond['id']) <= 0) {
             //起始时间
             $solrCond['start_time'] = $params['start_time'];
