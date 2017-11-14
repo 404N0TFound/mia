@@ -1185,6 +1185,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
                 }
                 //展示当前在线活动####start
                 $active_service = new ActiveService();
+                $subject_mission = \F_Ice::$ins->workApp->config->get('busconf.subject.subject_mission');
                 if($active_id > 0){
                     $active_info[0] = $activeInfo;
                 }else{
@@ -1198,7 +1199,14 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     }
                     $active_info = array_slice(array_values($active_info),0,6);
                 }
-                
+
+                foreach($active_info as &$active) {
+                    if(!empty($item_id) && $item_id == $subject_mission['type']) {
+                        $active['image_count_limit'] = $subject_mission['image_limit'];
+                        $active['text_lenth_limit'] = $subject_mission['text_limit'];
+                    }
+                }
+
                 if(!empty($active_info)){
                     $return_Info['current_actives'] = $active_info;
                 }

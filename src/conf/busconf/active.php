@@ -87,7 +87,7 @@ $xiaoxiaole = array(
     ),
     // 排行榜文案
     'active_user_rank' => array(
-        'rank_desc' => '哇塞~ %s截至到现在，这些蜜粉发图量最多呦~',
+        'rank_desc' => '哇塞~ %s截至到现在，这些蜜粉发贴量最多呦~',
         'rank_desc_color' => '',
         'achievement_desc' => '%s日起已发布了',
         'achievement_desc_subject' => '%s条口碑',
