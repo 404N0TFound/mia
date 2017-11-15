@@ -313,7 +313,7 @@ class Subject extends \mia\miagroup\Lib\Service {
             //活动
             $solrParams['active_id'] = $data['active_id'];
         }
-        if (isset($data['is_qualified'])) {
+        if (isset($data['is_qualified']) && $data['is_qualified'] != null) {
             //活动
             $solrParams['is_qualified'] = $data['is_qualified'];
         }
