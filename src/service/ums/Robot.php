@@ -244,4 +244,118 @@ class Robot extends \mia\miagroup\Lib\Service {
          }
          return $this->succ($result);
      }
+     
+     /**
+      * 知识编辑页面初始化
+      */
+     public function knowledgeIssueInit() {
+         $result = ['user_period' => [], 'knowledge_category' => []];
+         $period_list = [];
+         //获取年龄段
+         $user_period = \F_Ice::$ins->workApp->config->get('busconf.user.pregnancy_period');
+         foreach ($user_period as $k => $pregnancy) {
+             foreach ($pregnancy as $period => $v) {
+                 $begin = (time() - strtotime($v['end'])) / 86400;
+                 $end = (time() - strtotime($v['start'])) / 86400;
+                 $period_list[$k][$period] = ['start' => $begin, 'end' => $end];
+             }
+         }
+         $user_period = \F_Ice::$ins->workApp->config->get('busconf.user.child_period');
+         foreach ($user_period as $k => $child) {
+             foreach ($child as $period => $v) {
+                 $begin = (time() - strtotime($v['end'])) / 86400;
+                 $end = (time() - strtotime($v['start'])) / 86400;
+                 $period_list[$k][$period] = ['start' => $begin, 'end' => $end];
+             }
+         }
+         $period_list['备孕']['备孕'] = ['start' => -1001, 'end' => -1000];
+         $knowledge_service = new \mia\miagroup\Service\Knowledge();
+         $categorys = $knowledge_service->getKnowledgeCateLalbels()['data'];
+         $category_labels = [];
+         foreach ($categorys as $category_2) {
+             foreach ($category_2 as $labels) {
+                 foreach ($labels as $label) {
+                     if (!isset($category_labels[$label['parent_name']])) {
+                         $category_labels[$label['parent_name']] = [];
+                     }
+                     if (!isset($category_labels[$label['parent_name']][$label['category_id']])) {
+                         $category_labels[$label['parent_name']][$label['category_id']] = [
+                             'id' => $label['category_id'],
+                             'name' => $label['category_name'],
+                             'labels' => []
+                         ];
+                     }
+                     $category_labels[$label['parent_name']][$label['category_id']]['labels'][] = $label['label_name'];
+                 }
+             }
+         }
+         $result['knowledge_category'] = $category_labels;
+         $result['user_period'] = $period_list;
+         return $this->succ($result);
+     }
+     
+     /**
+      * 获取知识待处理列表
+      */
+     public function getKnowledgeToDoList($params, $current_op_admin, $page = 1, $limit = 10) {
+         if (empty($current_op_admin) || !in_array(array_keys($params), ['category', 'source', 'period']))
+             $robot_service = new \mia\miagroup\Service\Robot();
+         $order_by = 'id asc';
+         $editing_materials = array();
+         //查询锁定解除
+         $robot_service->unLockKnowledgeMaterial($current_op_admin);
+         //获取待处理的素材
+         $params['status'] = 0;
+         $offset = ($page - 1) * $limit;
+         $to_do_list = $this->robotModel->getKnowledgeMaterialData($params, $offset, $limit, $order_by);
+         //查询锁定
+         $robot_service->updateKnowledgeMaterialStatusByIds($this->robotConfig['knowledge_material_status']['locked'], $current_op_admin, $to_do_list['list']);
+         //获取结果集数据
+         $knowledge_material_ids = array_merge($editing_materials, $to_do_list['list']);
+         $knowledge_materials = $robot_service->getBatchKnowledgeMaterial($knowledge_material_ids)['data'];
+         return $this->succ(['count' => $to_do_list['count'], 'list' => array_values($knowledge_materials)]);
+     }
+     
+     /**
+      * 获取知识列表
+      */
+     public function getKnowledgeMaterialList($params, $page = 1, $limit = 10) {
+         $result = array('list' => array(), 'count' => 0);
+         $condition = array();
+         //初始化入参
+         $orderBy = 'id asc'; //默认排序
+         if (!empty($params['category'])) {
+             $condition['category'] = $params['category'];
+         }
+         if (!empty($params['period'])) {
+             $condition['keyword'] = $params['period'];
+         }
+         if (!empty($params['source'])) {
+             $condition['source'] = $params['source'];
+         }
+         if (!empty($params['after_id'])) {
+             $condition['after_id'] = $params['after_id'];
+         }
+         if (!empty($params['op_admin'])) {
+             $condition['op_admin'] = $params['op_admin'];
+         }
+         if (isset($params['status']) && in_array($params['status'], $this->robotConfig['knowledge_material_status'])) {
+             $condition['status'] = $params['status'];
+         }
+         $offset = ($page - 1) * $limit;
+         $knowledge_material_list = $this->robotModel->getKnowledgeMaterialData($condition, $offset, $limit, $orderBy);
+         //获取结果集数据
+         $robot_service = new \mia\miagroup\Service\Robot();
+         $result['list'] = $robot_service->getBatchKnowledgeMaterial($knowledge_material_list['list'])['data'];
+         $result['count'] = $knowledge_material_list['count'];
+         return $this->succ($result);
+     }
+     
+     /**
+      * 获取知识分类列表
+      */
+     public function getKnowledgeCategory() {
+         $result = $this->robotModel->getKnowledgeMaterialCategory();
+         return $this->succ($result);
+     }
 }
