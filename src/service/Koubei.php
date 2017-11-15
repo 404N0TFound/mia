@@ -861,7 +861,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             // 获取帖子信息
             if(!empty($subject_id) && $subject_id > 0) {
                 $subjectInfo = $this->subjectService->getBatchSubjectInfos([$subject_id], 0, [])['data'];
-                if(!empty($subjectInfo) && $subjectInfo['semantic_analys'] != null && $subjectInfo['semantic_analys'] === 0) {
+                if(!empty($subjectInfo) && $subjectInfo['semantic_analys'] !== null && $subjectInfo['semantic_analys'] == 0) {
                     // 口碑对应帖子内容差评，删除该帖
                     $conditions['status'] = \F_Ice::$ins->workApp->config->get('busconf.subject.status.user_delete');
                     $this->subjectService->updateSubject($subject_id, $conditions);
