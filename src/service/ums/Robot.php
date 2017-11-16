@@ -292,7 +292,7 @@ class Robot extends \mia\miagroup\Lib\Service {
       * 获取知识待处理列表
       */
      public function getKnowledgeToDoList($params, $current_op_admin, $page = 1, $limit = 10) {
-         if (empty($current_op_admin) || !in_array(array_keys($params), ['category', 'source', 'period']))
+         if (empty($current_op_admin) || !in_array(array_keys($params), ['category', 'source', 'period', 'days_from', 'days_to']))
              $robot_service = new \mia\miagroup\Service\Robot();
          $order_by = 'id asc';
          $editing_materials = array();
