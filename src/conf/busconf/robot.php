@@ -34,7 +34,8 @@ $knowledge_material_status = [
     'unused' => 0,
     'locked' => 1,
     'editing'=> 2,
-    'used'   => 3
+    'used'   => 3,
+    'deleted' => 4
 ];
 
 /**
