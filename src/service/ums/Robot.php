@@ -272,23 +272,17 @@ class Robot extends \mia\miagroup\Lib\Service {
          $knowledge_service = new \mia\miagroup\Service\Knowledge();
          $categorys = $knowledge_service->getKnowledgeCateLalbels()['data'];
          $category_labels = [];
-         foreach ($categorys as $category_2) {
-             foreach ($category_2 as $labels) {
-                 foreach ($labels as $label) {
-                     if (!isset($category_labels[$label['parent_name']])) {
-                         $category_labels[$label['parent_name']] = [];
-                     }
-                     if (!isset($category_labels[$label['parent_name']][$label['category_id']])) {
-                         $category_labels[$label['parent_name']][$label['category_id']] = [
-                             'id' => $label['category_id'],
-                             'name' => $label['category_name'],
-                             'labels' => []
-                         ];
-                     }
-                     $category_labels[$label['parent_name']][$label['category_id']]['labels'][] = $label['label_name'];
-                 }
+         
+         foreach($categorys as $category){
+             foreach($category as $clabels){
+                 $labels = array_values($clabels['labels']);
+                 $labels = array_column($clabels['labels'], 'label_name');
+                 $category_labels[$clabels['parent_name']][$clabels['category_id']]['id'] = $clabels['category_id'];
+                 $category_labels[$clabels['parent_name']][$clabels['category_id']]['name'] = $clabels['category_name'];
+                 $category_labels[$clabels['parent_name']][$clabels['category_id']]['labels'] = $labels;
              }
          }
+         
          $result['knowledge_category'] = $category_labels;
          $result['user_period'] = $period_list;
          return $this->succ($result);
@@ -298,7 +292,7 @@ class Robot extends \mia\miagroup\Lib\Service {
       * 获取知识待处理列表
       */
      public function getKnowledgeToDoList($params, $current_op_admin, $page = 1, $limit = 10) {
-         if (empty($current_op_admin) || !in_array(array_keys($params), ['category', 'source', 'period']))
+         if (empty($current_op_admin) || !in_array(array_keys($params), ['category', 'source', 'period', 'days_from', 'days_to']))
              $robot_service = new \mia\miagroup\Service\Robot();
          $order_by = 'id asc';
          $editing_materials = array();
