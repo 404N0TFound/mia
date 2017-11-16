@@ -64,10 +64,10 @@ class Robot extends \DB_Query {
                         $where[] = [':gt', 'id', $v];
                         break;
                     case 'days_from':
-                        $where[] = [':gt', 'days', $v];
+                        $where[] = [':ge', 'days', $v];
                         break;
                     case 'days_to':
-                        $where[] = [':lt', 'days', $v];
+                        $where[] = [':le', 'days', $v];
                         break;
                     default:
                         $where[] = [$k, $v];
