@@ -31,10 +31,10 @@ class Subjectsasync extends \FD_Daemon
         $redis_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.subjectKey.async_consume');
         $key = $redis_info["key"];
         $subjectService = new SubjectService();
+        $activeService = new Active();
 
         $redis_task = new Redis('task/default');
         $redis_task_info = \F_Ice::$ins->workApp->config->get('busconf.rediskey.taskKey.member_task');
-
 
         while (true) {
             //消息lpush压入表头的，取从表尾取
@@ -47,10 +47,21 @@ class Subjectsasync extends \FD_Daemon
                 //历史首次发帖
                 if ($this->task_setting["first_post"] === 1) {
                     //对比历史第一次发帖id
-                    $historyInfo = $subjectService->getFirstPubByTime([$userId], 1)["data"];
-                    if ($historyInfo[$userId]["id"] == $subjectId) {
-                        //首次发帖
-                        $redis_task->hSet($redis_task_hash_key, "first_post", json_encode(["num" => 1, "time" => $historyInfo[$userId]["time"], "status" => 0, "reward" => "+1元现金红包", "is_processed" => 0]));
+//                    $historyInfo = $subjectService->getFirstPubByTime([$userId], 1)["data"];
+//                    if ($historyInfo[$userId]["id"] == $subjectId) {
+//                        //首次发帖
+//                        $redis_task->hSet($redis_task_hash_key, "first_post", json_encode(["num" => 1, "time" => $historyInfo[$userId]["time"], "status" => 0, "reward" => "+1元现金红包", "is_processed" => 0]));
+//                    }
+                    # 11.17 判断是否是当前活动下首帖 (可以重复提交任务，所以每天发一次)
+
+                    $active_id = \F_Ice::$ins->workApp->config->get('busconf.task.active_id');
+                    $subjectActiveInfo = $activeService->getActiveSubjectBySids([$subjectId], [])["data"];
+                    if (!empty($subjectActiveInfo)) {
+                        //参加了指定活动
+                        $activeInfo = $activeService->getSingleActiveById($subjectActiveInfo[$subjectId]["active_id"], [], [])["data"];
+                        if ($activeInfo["id"] == $active_id && !$redis_task->hExists($redis_task_hash_key, 'first_post')) {
+                            $redis_task->hSet($redis_task_hash_key, "first_post", json_encode(["num" => 1, "time" => $finishTime, "status" => 0, "reward" => "+1元现金红包", "is_processed" => 0]));
+                        }
                     }
                 }
                 //历史首次评价
@@ -80,7 +91,6 @@ class Subjectsasync extends \FD_Daemon
                 //当天参加活动
                 if ($this->task_setting["partake"] === 1 && !$redis_task->hExists($redis_task_hash_key, 'partake')) {
                     //判断活动id
-                    $activeService = new Active();
                     $subjectActiveInfo = $activeService->getActiveSubjectBySids([$subjectId], [])["data"];
                     if (!empty($subjectActiveInfo)) {
                         //参加了活动
@@ -89,7 +99,6 @@ class Subjectsasync extends \FD_Daemon
                 }
                 //当天参加消消乐
                 if ($this->task_setting["xiaoxiaole"] === 1 && !$redis_task->hExists($redis_task_hash_key, 'xiaoxiaole')) {
-                    $activeService = new Active();
                     $subjectActiveInfo = $activeService->getActiveSubjectBySids([$subjectId], [])["data"];
                     if (!empty($subjectActiveInfo)) {
                         //参加了活动
