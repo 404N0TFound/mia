@@ -1035,6 +1035,10 @@ class Solr
                         // 存在负值，单独处理
                         $where['fq'][]   = 'status:"'.$v.'"';
                         break;
+                    case 'is_qualified':
+                        // 存在负值，单独处理
+                        $where['fq'][]   = 'is_qualified:"'.$v.'"';
+                        break;
                     case 'item_id':
                         $where['fq'][]   = "goods:(". implode(' OR ', $v) . ")";
                         break;
