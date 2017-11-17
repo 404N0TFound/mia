@@ -13,3 +13,6 @@ $task_setting = [
     "first_evaluate" => 1,
     "evaluate" => 1
 ];
+
+//首帖完成，是当前活动下首帖
+$active_id = 596;
