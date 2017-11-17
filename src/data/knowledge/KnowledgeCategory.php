@@ -9,11 +9,18 @@ class KnowledgeCategory extends \DB_Query{
     /**
      * 查询知识分类
      */
-    public function getKnowledgeCates($cateIds=array(), $status = array(1)) {
+    public function getKnowledgeCates($condition=array(), $status = array(1)) {
         $result = [];
         $where = [];
-        if(!empty($cateIds)){
-            $where[] = ['id',$cateIds];
+        if(isset($condition['cate_ids'])){
+            $where[] = ['id',$condition['cate_ids']];
+        }
+        if(isset($condition['cate_name'])){
+            $where[] = ['name',$condition['cate_name']];
+        }
+        
+        if(isset($condition['parent_id'])){
+            $where[] = ['parent_id',$condition['parent_id']];
         }
         $where[] = ['status',$status];
         $data = $this->getRows($where);
@@ -26,40 +33,25 @@ class KnowledgeCategory extends \DB_Query{
     }
     
     /**
-     * 查询知识分类
+     * 添加知识分类
      */
     public function insertKnowledgeCategory($insertData) {
-        $result = [];
-        $where = [];
-        if(!empty($cateIds)){
-            $where[] = ['id',$cateIds];
+        if (empty($insertData)) {
+            return false;
         }
-        $where[] = ['status',$status];
-        $data = $this->getRows($where);
-        if (!empty($data) && is_array($data)) {
-            foreach ($data as $v) {
-                $result[$v['id']] = $v;
-            }
-        }
-        return $result;
+        $insertData = $this->insert($insertData);
+        return $insertData;
     }
     
     /**
-     * 查询知识分类
+     * 修改知识分类
      */
-    public function updateKnowledgeCategory($where=array(), $updateData) {
-        $result = [];
-        $where = [];
-        if(!empty($cateIds)){
-            $where[] = ['id',$cateIds];
+    public function updateCategory($where, $updateData) {
+        if (empty($where) || empty($updateData)) {
+            return false;
         }
-        $where[] = ['status',$status];
-        $data = $this->getRows($where);
-        if (!empty($data) && is_array($data)) {
-            foreach ($data as $v) {
-                $result[$v['id']] = $v;
-            }
-        }
-        return $result;
+        
+        $data = $this->update($updateData, $where);
+        return $data;
     }
 }

@@ -30,8 +30,8 @@ class Knowledge {
     /**
      * 获取知识分类信息
      */
-    public function getCategoryInfosByCids($cateIds,$status){
-        $result = $this->knowledgeCategoryData->getKnowledgeCates($cateIds, $status);
+    public function getCategoryInfosByCids($condition,$status){
+        $result = $this->knowledgeCategoryData->getKnowledgeCates($condition, $status);
         return $result;
     }
     
@@ -71,14 +71,14 @@ class Knowledge {
      * 新增知识分类
      */
     public function addKnowledgeCategory($insert_data) {
-        $result = $this->knowledgeCategoryData->addKnowledgeCategory($insert_data);
+        $result = $this->knowledgeCategoryData->insertKnowledgeCategory($insert_data);
         return $result;
     }
     
     /**
      * 删除知识分类
      */
-    public function delKnowledgeCategory($cateId) {
+    public function updateKnowledgeCategory($condition,$update_data) {
         $result = $this->knowledgeCategoryData->updateCategory($condition,$update_data);
         return $result;
     }
@@ -86,8 +86,8 @@ class Knowledge {
     /**
      * 删除知识分类与标签的关联
      */
-    public function delKnowledgeCateLabelRelation($cateId,$labelId) {
-        $result = $this->knowledgeLabelRelation->updateRelation($condition,$update_data);
+    public function updateKnowledgeCateLabelRelation($condition,$update_data) {
+        $result = $this->knowledgeLabelRelation->updateKnowledgeCateLabelRelation($condition,$update_data);
         return $result;
     }
     

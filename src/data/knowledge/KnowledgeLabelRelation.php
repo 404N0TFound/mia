@@ -43,7 +43,22 @@ class KnowledgeLabelRelation extends \DB_Query {
      * @return bool
      */
     public function insertKnowledgeCateLabelRelation($cateLabelRelationInfo) {
+        if(empty($cateLabelRelationInfo)){
+            return false;
+        }
         $insertData = $this->insert($cateLabelRelationInfo);
         return $insertData;
+    }
+    
+    /**
+     * 修改蜜芽圈知识分类和标签关系记录
+     */
+    public function updateKnowledgeCateLabelRelation($where, $updateData) {
+        if (empty($where) || empty($updateData)) {
+            return false;
+        }
+    
+        $data = $this->update($updateData, $where);
+        return $data;
     }
 }
