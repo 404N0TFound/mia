@@ -137,6 +137,13 @@ class User extends \mia\miagroup\Lib\Service {
         $data = $userModel->getBatchExpertInfoByUids($userIds);
         return $this->succ($data);
     }
+    
+    /**
+     * 根据设备号批量获取group_user_info信息
+     */
+    public function getGroupUserInfoByDvcIds($dvc_ids) {
+        
+    }
 
     /**
      *
@@ -183,6 +190,8 @@ class User extends \mia\miagroup\Lib\Service {
         $userInfo['level_number'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level']; // 用户等级
         $userInfo['level'] = NormalUtil::getConfig('busconf.member.level_info')[$userInfo['level']]['level_name']; // 用户等级名称
         $userInfo['status'] = $userInfo['status'];
+        
+        //拼装group_user_info结构体
         
         return $this->succ($userInfo);
     }
@@ -391,6 +400,8 @@ class User extends \mia\miagroup\Lib\Service {
      * 更新用户信息
      */
     public function updateUserInfo($user_id, $user_info) {
+        //迁移api修改用户信息逻辑
+        //更新group_user_info
         if (intval($user_id) <= 0 || empty($user_info) || !is_array($user_info)) {
             return $this->error(500);
         }
@@ -408,7 +419,7 @@ class User extends \mia\miagroup\Lib\Service {
     /**
      * 获取推荐用户列表
      */
-    public function userRecommend($type, $current_uid = 0, $page = 1, $count = 10) {
+    public function userRecommend($type, $current_uid = 0, $page = 1, $count = 10, $filter_follow = false) {
         $user_ids = array();
         switch ($type) {
             case 'same_age_recommend': //同龄用户推荐
@@ -418,6 +429,10 @@ class User extends \mia\miagroup\Lib\Service {
             case 'album_user_recommend': //专栏用户推荐
             default: //目前都统一推荐逻辑
                 $user_ids = $this->userModel->getGroupUserIdList('doozer', $page, $count);
+        }
+        //过滤已关注
+        if ($filter_follow === true) {
+            
         }
         $recommend_users = $this->getUserInfoByUids($user_ids, $current_uid)['data'];
         return $this->succ(array_values($recommend_users));

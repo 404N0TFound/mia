@@ -292,16 +292,30 @@ class Knowledge extends \mia\miagroup\Lib\Service {
     }
     
     /**
-     * 获取小贴士列表
+     * 同龄首页
      */
-    public function getTipsList($type, $accurate_day = 0, $before_id = 0, $after_id = 0, $limit = 10) {
-        ;
+    public function sameAgeIndex($user_id, $dvc_id) {
+        //获取group_user_info
+        //获取近期小贴士
+        //获取今日必读
+        //获取同龄用户推荐
+        //获取同龄内容推荐
+    }
+    
+    /**
+     * 获取用户小贴士列表
+     */
+    public function getUserTipsList($type, $user_id, $dvc_id, $accurate_day = 0, $before_id = 0, $after_id = 0, $limit = 10) {
+        //获取贴士列表
+        //获取身高体重标准
+        //获取用户记录的身高体重
+        //拼装结果集
     }
     
     /**
      * 获取今日必读知识
      */
-    public function getDailyRecommendKnowledge($param) {
+    public function getDailyRecommendKnowledge($user_id, $dvc_id, $accurate_day = 0) {
         ;
     }
 }
