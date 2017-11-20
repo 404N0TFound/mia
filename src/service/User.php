@@ -36,6 +36,7 @@ class User extends \mia\miagroup\Lib\Service {
         if (empty($userInfos)) {
             return array();
         }
+        $babyInfos = $this->userModel->getBabyInfosByUids($userIds);
         // 如果是登陆用户，获取登录用户和发帖子用户关注的关系
         if (intval($currentUid) > 0) {
             $userRelation = new UserRelation();
@@ -410,6 +411,8 @@ class User extends \mia\miagroup\Lib\Service {
     public function userRecommend($type, $current_uid = 0, $page = 1, $count = 10) {
         $user_ids = array();
         switch ($type) {
+            case 'same_age_recommend': //同龄用户推荐
+                break;
             case 'daren_rank_recommend': //达人频道推荐
             case 'user_search_recommend': //搜索用户推荐
             case 'album_user_recommend': //专栏用户推荐
@@ -805,5 +808,40 @@ class User extends \mia\miagroup\Lib\Service {
             $res = $this->userModel->updateGroupUserInfo($user_id, $update);
         }
         return $this->succ($res);
+    }
+    
+    /**
+     * 新增宝宝信息
+     */
+    public function addBabyInfo($baby_info) {
+        
+    }
+    
+    /**
+     * 删除宝宝信息
+     */
+    public function delBaby($user_id, $baby_id) {
+        
+    }
+    
+    /**
+     * 切换用户状态
+     */
+    public function switchUserStatus($user_id, $status) {
+        
+    }
+    
+    /**
+     * 记录宝宝信息
+     */
+    public function recordBaby($user_id, $baby_id, $record_info) {
+        
+    }
+    
+    /**
+     * 获取宝宝记录
+     */
+    public function getBabyRecords($user_id, $baby_id) {
+        
     }
 }

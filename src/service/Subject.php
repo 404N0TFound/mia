@@ -390,6 +390,13 @@ class Subject extends \mia\miagroup\Lib\Service
         });
         return $this->succ($lastList);
     }
+    
+    /**
+     * 获取同龄推荐帖子内容
+     */
+    public function getSameAgeSubject() {
+        
+    }
 
 
     /**
@@ -3165,5 +3172,4 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         return $this->succ($result);
     }
-
 }

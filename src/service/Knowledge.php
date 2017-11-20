@@ -290,4 +290,18 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $data = $this->knowledgeModel->updateKnowledgeCategory($condition,$setData);
         return $this->succ($data);
     }
+    
+    /**
+     * 获取小贴士列表
+     */
+    public function getTipsList($type, $accurate_day = 0, $before_id = 0, $after_id = 0, $limit = 10) {
+        ;
+    }
+    
+    /**
+     * 获取今日必读知识
+     */
+    public function getDailyRecommendKnowledge($param) {
+        ;
+    }
 }
