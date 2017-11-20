@@ -82,56 +82,44 @@ class Knowledge extends \mia\miagroup\Lib\Service {
      */
     public function getKnowledgeCateLalbels() {
         //获取分类标签关联关系信息
-        $knowledgeCateLabels = $this->knowledgeModel->getKnowledgeCateLabelRelation(array());
+        $knowledgeCateLabels = $this->knowledgeModel->getKnowledgeCateLabelRelation(array('status'=>1));
         if (empty($knowledgeCateLabels)) {
             return $this->succ(array());
         }
-        
-        $pCateIds = array();
-        $categoryIds = array();
+    
         $labelIds = array();
-        //获取关系表中的分类id和标签id，因为多对多关系，使用需要去重
+        //获取关系表中的标签id，因为多对多关系，使用需要去重
+        $categoryLabels = array();
         foreach ($knowledgeCateLabels as $knowledgeCateLabel) {
-            if($knowledgeCateLabel['parent_cate_id'] > 0){
-                $pCateIds[] = $knowledgeCateLabel['parent_cate_id'];//一级分类
-            }
-            $categoryIds[] = $knowledgeCateLabel['category_id'];//二级分类
+            $categoryLabels[$knowledgeCateLabel['category_id']]['labels'][$knowledgeCateLabel['label_id']] = $knowledgeCateLabel;
             $labelIds[] = $knowledgeCateLabel['label_id'];
         }
-        
-        $pCateIds = array_unique($pCateIds);//一级分类id去重
-        $categoryIds = array_unique($categoryIds);//分类id去重
-        //获取一级、二级分类信息，为了获取分类名称
-        $bothCateIds = array_merge($pCateIds,$categoryIds);
-        $categoryInfos = $this->knowledgeModel->getCategoryInfosByCids($bothCateIds,array(0,1));
         
         $labelService = new LabelService();
         //获取标签信息
         $labelIds = array_unique($labelIds);//标签id去重
         //为了获取标签名称
         $labelInfos = $labelService->getBatchLabelInfos($labelIds)['data'];
-    
-        //拼装结果集
-        $result = array();
-        foreach ($knowledgeCateLabels as $key => $knowledgeCateLabel) {
-            $temp['parent_id'] = $knowledgeCateLabel['parent_cate_id'];
-            $temp['category_id'] = $knowledgeCateLabel['category_id'];
-            $temp['label_id'] = $knowledgeCateLabel['label_id'];
-            $temp['status'] = $knowledgeCateLabel['status'];
-            //如果存在父分类，获取父分类信息
-            if($knowledgeCateLabel['parent_cate_id'] > 0){
-                $temp['parent_name'] = $categoryInfos[$knowledgeCateLabel['parent_cate_id']]['name'];
-            }
-            //如果存在分类，获取分类信息
-            if($knowledgeCateLabel['category_id'] > 0){
-                $temp['category_name'] = $categoryInfos[$knowledgeCateLabel['category_id']]['name'];
-            }
-            //获取标签信息
-            if ($knowledgeCateLabel['label_id'] > 0) {
-                $temp['label_name'] = $labelInfos[$knowledgeCateLabel['label_id']]['title'];
-            }
 
-            $result[$knowledgeCateLabel['parent_cate_id']][$knowledgeCateLabel['category_id']][$knowledgeCateLabel['label_id']] = $temp;
+        $categoryInfos = $this->knowledgeModel->getCategoryInfosByCids(array(),array(0,1));
+    
+        //组装知识分类信息
+        foreach($categoryInfos as $categoryInfo){
+            if($categoryInfo['parent_id'] > 0){
+                $temp['category_id'] = $categoryInfo['id'];
+                $temp['category_name'] = $categoryInfo['name'];
+                $temp['status'] = $categoryInfo['status'];
+                $temp['parent_id'] = $categoryInfo['parent_id'];
+                $temp['parent_name'] = $categoryInfos[$categoryInfo['parent_id']]['name'];
+                $result[$categoryInfo['parent_id']][$categoryInfo['id']]= $temp;
+            }
+            if($categoryLabels[$categoryInfo['id']]['labels']){
+                foreach($categoryLabels[$categoryInfo['id']]['labels'] as $label){
+                    $labelTemp['label_id'] = $label['label_id'];
+                    $labelTemp['label_name'] = $labelInfos[$label['label_id']]['title'];
+                    $result[$categoryInfo['parent_id']][$categoryInfo['id']]['labels'][$label['label_id']] = $labelTemp;
+                }
+            }
         }
         return $this->succ($result);
     }
@@ -145,7 +133,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         //检查知识分类是否存在
-        $cateInfo = $this->knowledgeModel->getCategoryInfosByCids(array($cate_id),array(0,1))[$cate_id];
+        $cateInfo = $this->knowledgeModel->getCategoryInfosByCids(array('cate_ids'=>array($cate_id)),array(1))[$cate_id];
         if(empty($cateInfo)){
             return $this->error(90004,'该分类不存在');
         }
@@ -162,7 +150,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         //判断是否已经存在关联关系
         $condition = array('subject_id'=>$subject_id,'cate_id'=>$cate_id);
         $relation_res = $this->knowledgeModel->getKnowledgeCateSubjectRelation($condition);
-        if(!empty($relation_res)){
+        if(!empty($relation_res[0]) && $relation_res[0]['status'] == 1){
             return $this->error(90001,'对应关系已经存在');
         }
         
@@ -191,7 +179,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         }
         
         //检查知识分类是否存在
-        $cateInfo = $this->knowledgeModel->getCategoryInfosByCids(array($cate_id),array(0,1))[$cate_id];
+        $cateInfo = $this->knowledgeModel->getCategoryInfosByCids(array('cate_ids'=>array($cate_id)),array(1))[$cate_id];
         if(empty($cateInfo)){
             return $this->error(90004,'该分类不存在');
         }
@@ -204,8 +192,19 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         //判断是否已经存在关联关系
         $condition = array('cate_id'=>$cate_id,'label_id'=>$label_id);
         $relation_res = $this->knowledgeModel->getKnowledgeCateLabelRelation($condition);
-        if(!empty($relation_res)){
+
+        if(!empty($relation_res[0]) && $relation_res[0]['status'] == 1){
             return $this->error(90001,'对应关系已经存在');
+        }
+        //如果关联关系被删除过，则更新
+        if(!empty($relation_res[0]) && $relation_res[0]['status'] == 0){
+            $condition = array();
+            $update_data = array();
+            $condition[] = ['category_id',$cate_id];
+            $condition[] = ['label_id',$label_id];
+            $update_data[] = ['status',1];
+            $res = $this->knowledgeModel->updateKnowledgeCateLabelRelation($condition,$update_data);
+            return $this->succ($res);
         }
         
         $insertData = array();
@@ -227,7 +226,12 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         if(empty($cateId) || empty($labelId)){
             return $this->error(500);
         }
-        $data = $this->knowledgeModel->delKnowledgeCateLabelRelation($cateId,$labelId);
+        $condition = array();
+        $setData = array();
+        $condition[] = ['category_id',$cateId];
+        $condition[] = ['label_id',$labelId];
+        $setData[] = ['status',0];
+        $data = $this->knowledgeModel->updateKnowledgeCateLabelRelation($condition,$setData);
         return $this->succ($data);
     }
     
@@ -240,13 +244,35 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         if (empty($param) || empty($param['name']) || empty($param['parent_id']) || empty($param['level'])) {
             return $this->error(500);
         }
+        //判断知识是否存在
+        $condition = array();
+        $condition['cate_name'] = $param['name'];
+        $condition['parent_id'] = $param['parent_id'];
+        $cateInfo = $this->knowledgeModel->getCategoryInfosByCids($condition,array(0,1));
+        $cateInfo = array_values($cateInfo);
+        
+        if(!empty($cateInfo[0]) && $cateInfo[0]['status'] == 1){
+            return $this->error(90005,'该分类已存在');
+        }
+        //如果该分类被删除过，则更新
+        if(!empty($cateInfo[0]) && $cateInfo[0]['status'] == 0){
+            $condition = array();
+            $setData = array();
+            $condition[] = ['id',$cateInfo[0]['id']];
+            $update_data[] = ['status',1];
+            $res = $this->knowledgeModel->updateKnowledgeCategory($condition,$update_data);
+            return $this->succ($res);
+        }
+        
         $knowledgeCategory = [];
+        $knowledgeCategory['parent_id'] = intval($param['parent_id']);
         $knowledgeCategory['name'] = trim($param['name']);
         $knowledgeCategory['level'] = intval($param['level']);
-        $knowledgeCategory['modify_author'] = $param['user_id'];
+        $knowledgeCategory['status'] = 1;
+        $knowledgeCategory['modify_author'] = $param['operator'];
+        $knowledgeCategory['last_modify'] = $param['oper_time'];
         
         $res = $this->knowledgeModel->addKnowledgeCategory($knowledgeCategory);
-    
         return $this->succ($res);
     }
     
@@ -254,11 +280,14 @@ class Knowledge extends \mia\miagroup\Lib\Service {
      * 删除知识分类
      */
     public function delKnowledgeCategory($cateId) {
-    
         if(empty($cateId)){
             return $this->error(500);
         }
-        $data = $this->knowledgeModel->delKnowledgeCategory($cateId);
+        $condition = array();
+        $setData = array();
+        $condition[] = ['id',$cateId];
+        $setData[] = ['status',0];
+        $data = $this->knowledgeModel->updateKnowledgeCategory($condition,$setData);
         return $this->succ($data);
     }
 }

@@ -60,9 +60,15 @@ class Robot extends \DB_Query {
             //组装where条件
             foreach ($cond as $k => $v) {
                 switch ($k) {
-                    case 'after_id';
-                    $where[] = [':gt','id', $v];
-                    break;
+                    case 'after_id':
+                        $where[] = [':gt', 'id', $v];
+                        break;
+                    case 'days_from':
+                        $where[] = [':ge', 'days', $v];
+                        break;
+                    case 'days_to':
+                        $where[] = [':le', 'days', $v];
+                        break;
                     default:
                         $where[] = [$k, $v];
                 }
