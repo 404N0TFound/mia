@@ -843,7 +843,8 @@ class User extends \mia\miagroup\Lib\Service {
      * 切换用户状态
      */
     public function switchUserStatus($user_id, $status) {
-        
+        //更新group_user_info
+        //更新user表
     }
     
     /**
@@ -856,7 +857,14 @@ class User extends \mia\miagroup\Lib\Service {
     /**
      * 获取宝宝记录
      */
-    public function getBabyRecords($user_id, $baby_id) {
+    public function getBabyRecordList($user_id, $baby_id, $accurate_day) {
         
+    }
+    
+    /**
+     * 获取宝宝详细记录
+     */
+    public function getBabyDetailRecord($user_id, $baby_id, $accurate_day) {
+        ;
     }
 }

@@ -2256,14 +2256,17 @@ class Subject extends \mia\miagroup\Lib\Service
         // 素材相关标识
         $configMaterial = $this->config['source']['material'];
         $subjectSource = $subjectInfo['source'];
-        $is_material = $subjectInfo['type'];
+        $subject_type = $subjectInfo['type'];
 
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
         if (empty($collectInfo)) {
             //插入
-            if($is_material == 'material' || $configMaterial == $subjectSource) {
+            if($subject_type == 'material') {
                 $type = $this->config['subject_collect']['material'];
+            }
+            if($subject_type == 'knowledge') {
+                $type = $this->config['subject_collect']['knowledge'];
             }
             $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
             if ($type == 1 && $subjectInfo["user_id"] != $userId) {
@@ -2292,8 +2295,11 @@ class Subject extends \mia\miagroup\Lib\Service
                 $setData[] = ['update_time', date("Y-m-d H:i:s")];
                 $where[] = ['user_id', $userId];
                 $where[] = ['source_id', $sourceId];
-                if($is_material == 'material' || $configMaterial == $subjectSource) {
+                if($subject_type == 'material') {
                     $type = $this->config['subject_collect']['material'];
+                }
+                if($subject_type == 'knowledge') {
+                    $type = $this->config['subject_collect']['knowledge'];
                 }
                 $where[] = ['source_type', $type];
                 $result = $this->subjectModel->updateCollect($setData, $where);

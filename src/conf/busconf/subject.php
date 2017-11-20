@@ -365,6 +365,7 @@ $miagroup_cate_mapping = array(
 $subject_collect = array(
     'subject'  => 1,
     'material' => 2,
+    'knowledge' => 3,
 );
 
 //达人帖子列表页，达人id
