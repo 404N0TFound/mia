@@ -637,8 +637,10 @@ class Subject extends \mia\miagroup\Lib\Service
                         continue;
                     }
                 }
-            }else if($subjectInfos[$subjectId]['ext_info']['is_material'] == 1) {
+            } else if($subjectInfos[$subjectId]['ext_info']['is_material'] == 1) {
                 $subjectRes[$subjectInfo['id']]['type'] = 'material';
+            } else if($subjectInfos[$subjectId]['ext_info']['is_knowledge'] == 1) {
+                $subjectRes[$subjectInfo['id']]['type'] = 'knowledge';
             } else {
                 $subjectRes[$subjectInfo['id']]['type'] = 'normal';
             }
@@ -2243,7 +2245,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * @param int $type 1：帖子, 2:素材；
      * @return mixed
      */
-    public function subjectCollect($userId, $sourceId, $status = 1, $type = 1)
+    public function subjectCollect($userId, $sourceId, $status = 1)
     {
         if (empty($userId) || empty($sourceId)) {
             return $this->error(500);
@@ -2257,17 +2259,15 @@ class Subject extends \mia\miagroup\Lib\Service
         $configMaterial = $this->config['source']['material'];
         $subjectSource = $subjectInfo['source'];
         $subject_type = $subjectInfo['type'];
-
+        if($subject_type == 'material') {
+            $type = $this->config['subject_collect']['material'];
+        } else if($subject_type == 'knowledge') {
+            $type = $this->config['subject_collect']['knowledge'];
+        }
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
         if (empty($collectInfo)) {
             //插入
-            if($subject_type == 'material') {
-                $type = $this->config['subject_collect']['material'];
-            }
-            if($subject_type == 'knowledge') {
-                $type = $this->config['subject_collect']['knowledge'];
-            }
             $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
             if ($type == 1 && $subjectInfo["user_id"] != $userId) {
                 if ($subjectInfo['type'] === 'blog') {
@@ -2295,12 +2295,6 @@ class Subject extends \mia\miagroup\Lib\Service
                 $setData[] = ['update_time', date("Y-m-d H:i:s")];
                 $where[] = ['user_id', $userId];
                 $where[] = ['source_id', $sourceId];
-                if($subject_type == 'material') {
-                    $type = $this->config['subject_collect']['material'];
-                }
-                if($subject_type == 'knowledge') {
-                    $type = $this->config['subject_collect']['knowledge'];
-                }
                 $where[] = ['source_type', $type];
                 $result = $this->subjectModel->updateCollect($setData, $where);
                 if ($status == 1) {
