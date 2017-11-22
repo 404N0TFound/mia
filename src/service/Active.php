@@ -231,8 +231,8 @@ class Active extends \mia\miagroup\Lib\Service {
         $extInfo = array();
         if ($activeInfo['active_type'] == 'xiaoxiaole') {
             $extInfo['is_xiaoxiaole'] = 1;
-            unset($activeInfo['active_type']);
         }
+        unset($activeInfo['active_type']);
         if(!empty($labels)){
             $extInfo['labels']= $labels;
             unset($activeInfo['label_titles']);
