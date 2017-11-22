@@ -18,6 +18,15 @@ class Knowledge {
         $this->knowledgeSubjectRelation = new KnowledgeSubjectRelation();
         $this->knowledgeLabelRelation = new KnowledgeLabelRelation();
     }
+    
+    /**
+     * 根据帖子id批量获取知识
+     */
+    public function getKnowledgeBySubjectIds($subject_ids, $status = [1])
+    {
+        $result = $this->knowledgeData->getKnowledgeBySubjectIds($subject_ids, $status);
+        return $result;
+    }
 
     /**
      * 获取（全部/带查询条件）的知识分类标签关联信息——默认全部

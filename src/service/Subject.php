@@ -894,14 +894,17 @@ class Subject extends \mia\miagroup\Lib\Service
         $this->commentService = new CommentService();
         $commentInfo = $this->commentService->getCommentBySubjectId($subjectId, 0, 3)['data'];
         $subjectInfo['comment_info'] = $commentInfo;
-        
         /*蜜芽帖、口碑贴相关逻辑开始*/
         if ($subjectInfo['source'] != 3 && empty($subjectInfo['album_article'])) {
             if ($subjectInfo['type'] == 'blog') {
                 $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId], $status)[$subjectId];
-                if (!empty($blog_info)) {
-                    $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
-                }
+            }
+            if ($subjectInfo['type'] == 'knowledge') {
+                $knowledge_service = new \mia\miagroup\Service\Knowledge();
+                $blog_info = $knowledge_service->getKnowledgeDetai($subjectId);
+            }
+            if (!empty($blog_info)) {
+                $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
             }
             //获取商品推荐
             if (in_array('item', $field)) {

@@ -474,7 +474,7 @@ class User
             return false;
         }
         $groupUserInfoData = new UserGroupInfoData();
-        $res = $groupUserInfoData->updateUserGroupByRoleId($user_id, $upData);
+        $res = $groupUserInfoData->updateGroupUserInfo($user_id, $upData);
         return $res;
     }
 

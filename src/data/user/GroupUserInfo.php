@@ -8,7 +8,6 @@ class GroupUserInfo extends DB_Query {
     protected $dbResource = 'miagroup';
 
     protected $tableName = 'group_user_info';
-    protected $tableAddress = 'user_address';
 
     /*
      * 获取蜜芽圈用户信息
@@ -52,7 +51,7 @@ class GroupUserInfo extends DB_Query {
     /*
      * 更新蜜芽圈用户信息
      * */
-    public function updateUserGroupByRoleId($user_id, $setInfo)
+    public function updateGroupUserInfo($user_id, $setInfo)
     {
         if (empty($user_id) || empty($setInfo)) {
             return false;
@@ -62,7 +61,9 @@ class GroupUserInfo extends DB_Query {
 
         $where[] = ['user_id', $user_id];
         foreach ($setInfo as $k => $v) {
-            $setData[] = [$k, $v];
+            if (in_array($k, ['ext_info'])) {
+                $insertData[$k] = json_encode($v);
+            }
         }
         $res = $this->update($setData, $where);
         return $res;
