@@ -45,6 +45,13 @@ class User
     }
     
     /**
+     * 批量获取group_user_info信息
+     */
+    public function getGroupUserInfoByUids($user_ids) {
+        
+    }
+    
+    /**
      * 批量获取宝宝信息
      */
     public function getBabyInfosByUids($user_ids) {

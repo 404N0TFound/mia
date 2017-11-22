@@ -828,8 +828,9 @@ class User extends \mia\miagroup\Lib\Service {
     /**
      * 新增宝宝信息
      */
-    public function addBabyInfo($baby_info) {
-        
+    public function addBabyInfo($baby_info, $sync_status = true) {
+        //新增宝宝信息
+        //切换用户状态
     }
     
     /**
@@ -850,7 +851,7 @@ class User extends \mia\miagroup\Lib\Service {
     /**
      * 记录宝宝信息
      */
-    public function recordBaby($user_id, $baby_id, $record_info) {
+    public function recordBabyGrowth($user_id, $baby_id, $record_info) {
         
     }
     
