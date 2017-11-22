@@ -62,7 +62,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['accurate_period'] = $param['accurate_period'];
         $knowledge_info['blog_meta'] = $parsed_param['blog_meta'];
         $knowledge_info['op_admin'] = $param['op_admin'];
-        $knowledge_info['status'] = $param['status'];
+        $knowledge_info['status'] = 1;
         $knowledge_info['create_time'] = $result['data']['created'];
         $this->knowledgeModel->addKnowledge($knowledge_info);
         
@@ -76,6 +76,24 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         }
         
         return $this->succ(true);
+    }
+    
+    /**
+     * 获取知识详情
+     */
+    public function getKnowledgeDetai($subject_id) {
+        $data = $this->knowledgeModel->getKnowledgeBySubjectIds([$subject_id])[$subject_id];
+        if (empty($data)) {
+            return $this->succ([]);
+        }
+        $knowledge_info['id'] = $data['id'];
+        $knowledge_info['subject_id'] = $data['subject_id'];
+        $knowledge_info['user_id'] = $data['user_id'];
+        $knowledge_info['title'] = $data['title'];
+        $knowledge_info['text'] = $data['text'];
+        $knowledge_info['blog_meta'] = $data['blog_meta'];
+        $knowledge_info['create_time'] = $data['create_time'];
+        return $knowledge_info;
     }
     
     /**

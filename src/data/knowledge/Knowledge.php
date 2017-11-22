@@ -45,5 +45,32 @@ class Knowledge extends \DB_Query {
         $data = $this->update($set_data, $where);
         return $data;
     }
+    
+    /**
+     * 批量查知识
+     */
+    public function getKnowledgeBySubjectIds($subject_ids, $status = array(1)) {
+        if (empty($subject_ids)) {
+            return array();
+        }
+        $where = array();
+        $where[] = array('subject_id', $subject_ids);
+        if (!empty($status)) {
+            $where[] = array('status', $status);
+        }
+        $subjects = $this->getRows($where);
+        if (empty($subjects)) {
+            return array();
+        }
+        $result = array();
+        foreach ($subjects as $v) {
+            if (!empty($v['ext_info'])) {
+                $v['ext_info'] = json_decode($v['ext_info'], true);
+            }
+            $v['blog_meta'] = json_decode($v['blog_meta'], true);
+            $result[$v['subject_id']] = $v;
+        }
+        return $result;
+    }
 
 }
