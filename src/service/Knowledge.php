@@ -61,6 +61,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['max_period'] = $param['max_period'];
         $knowledge_info['accurate_period'] = $param['accurate_period'];
         $knowledge_info['blog_meta'] = $parsed_param['blog_meta'];
+        $knowledge_info['op_admin'] = $param['op_admin'];
         $knowledge_info['status'] = $param['status'];
         $knowledge_info['create_time'] = $result['data']['created'];
         $this->knowledgeModel->addKnowledge($knowledge_info);
