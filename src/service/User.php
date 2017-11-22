@@ -224,6 +224,13 @@ class User extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 根据dvc_id获取蜜芽圈用户信息 
+     */
+    public function getGroupUserInfoByDvcid($dvc_id) {
+        
+    }
+    
+    /**
      * 专家详情
      */
     public function expertsInfo($userId, $currentId){
