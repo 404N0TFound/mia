@@ -79,6 +79,13 @@ class Knowledge extends \mia\miagroup\Lib\Service {
     }
     
     /**
+     * 获取知识详情
+     */
+    public function getKnowledgeDetai($subject_id) {
+        
+    }
+    
+    /**
      * 获取知识分类列表（一级->二级->标签）
      */
     public function getKnowledgeCateLalbels() {
