@@ -401,6 +401,13 @@ class Search extends Service
         $return = $userService->userRecommend('user_search_recommend', $currentUid)['data'];
         return $this->succ(['user_list' => $return]);
     }
+    
+    /**
+     * 知识搜索
+     */
+    public function knowledgeSearch($param) {
+        
+    }
 
     /**
      * 商品搜索，推荐热词列表
