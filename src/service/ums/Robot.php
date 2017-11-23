@@ -207,8 +207,8 @@ class Robot extends \mia\miagroup\Lib\Service {
     /**
      * 获取全部编辑人
      */
-    public function getEditorSubjectAdmin() {
-        $result = $this->robotModel->getEditorSubjectAdmin();
+    public function getEditorSubjectAdmin($adminType = '') {
+        $result = $this->robotModel->getEditorSubjectAdmin($adminType);
         return $this->succ($result);
     }
     
@@ -350,6 +350,60 @@ class Robot extends \mia\miagroup\Lib\Service {
       */
      public function getKnowledgeCategory() {
          $result = $this->robotModel->getKnowledgeMaterialCategory();
+         return $this->succ($result);
+     }
+     
+     /**
+     * 获取知识帖子列表
+     */
+     public function getKnowledgeSubjectList($params, $page = 1, $limit = 20) {
+         $result = array('list' => array(), 'count' => 0);
+         $condition = array();
+         //初始化入参
+         $orderBy = 'id asc'; //默认排序
+         if (!empty($params['parent_cate_id'])) {
+             $condition['parent_cate_id'] = $params['parent_cate_id'];
+         }
+         if (!empty($params['category_id'])) {
+             $condition['category_id'] = $params['category_id'];
+         }
+     
+         if (!empty($params['op_admin'])) {
+             $condition['op_admin'] = $params['op_admin'];
+         }
+         if (!empty($params['start_time'])) {
+             $condition['start_time'] = $params['start_time'];
+         }
+         if (!empty($params['end_time'])) {
+             $condition['end_time'] = $params['end_time'];
+         }
+         $offset = ($page - 1) * $limit;
+         $subject_list = $this->robotModel->getKnowledgeSubjectData($condition, $offset, $limit, $orderBy);
+         //获取知识分类数据
+         $knowledge_service = new \mia\miagroup\Service\Knowledge();
+         $knowledgeCate = $knowledge_service->getKnowledgeCates()['data'];
+         $subject_ids = array();
+         if (!empty($subject_list['list'])) {
+             foreach ($subject_list['list'] as $v) {
+                 $subject_ids[] = $v['subject_id'];
+             }
+         }
+         //获取结果集数据
+         $subject_service = new \mia\miagroup\Service\Subject();
+         $subjects = $subject_service->getBatchSubjectInfos($subject_ids, 0, array('user_info', 'count','content_format', 'share_info'), array())['data'];
+         if (!empty($subject_list['list'])) {
+             foreach ($subject_list['list'] as $k => $v) {
+                 $subject_list['list'][$k]['subject'] = $subjects[$v['subject_id']];
+                 $subject_list['list'][$k]['parent_name'] = $knowledgeCate[$v['parent_cate_id']]['name'];
+                 $subject_list['list'][$k]['category_name'] = $knowledgeCate[$v['category_id']]['name'];
+             }
+         }
+     
+         $result['pcategorys'] = array_slice($knowledgeCate, 0,6);
+         $result['categorys'] = array_slice($knowledgeCate, 6);
+          
+         $result['list'] = $subject_list['list'];
+         $result['count'] = $subject_list['count'];
          return $this->succ($result);
      }
 }

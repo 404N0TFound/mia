@@ -337,4 +337,12 @@ class Knowledge extends \mia\miagroup\Lib\Service {
     public function getDailyRecommendKnowledge($user_id, $dvc_id, $accurate_day = 0) {
         ;
     }
+    
+    /**
+     * 获取知识分类
+     */
+    public function getKnowledgeCates($cateIds = array()) {
+        $categoryInfos = $this->knowledgeModel->getCategoryInfosByCids($cateIds,array(1));
+        return $this->succ($categoryInfos);
+    }
 }
