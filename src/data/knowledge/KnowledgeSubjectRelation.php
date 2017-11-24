@@ -46,4 +46,17 @@ class KnowledgeSubjectRelation extends \DB_Query {
         $insertData = $this->insert($cateSubjectRelationInfo);
         return $insertData;
     }
+
+
+    /**
+     * 修改帖子分类关系记录
+     */
+    public function delRelation($subject_id)
+    {
+        $where = [["subject_id", $subject_id], ["status", 1]];
+        $updateData = [["status", 0]];
+
+        $data = $this->update($updateData, $where);
+        return $data;
+    }
 }

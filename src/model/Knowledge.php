@@ -51,7 +51,16 @@ class Knowledge {
         $result = $this->knowledgeSubjectRelation->getKnowledgeCateSubjectRelation($condition);
         return $result;
     }
-    
+
+    /**
+     * 删除现有关系
+     */
+    public function delCateRelation($subject_id)
+    {
+        $result = $this->knowledgeSubjectRelation->delRelation($subject_id);
+        return $result;
+    }
+
     /**
      * 新增知识分类帖子关联信息
      */
@@ -75,7 +84,16 @@ class Knowledge {
         $result = $this->knowledgeData->addKnowledge($insert_data);
         return $result;
     }
-    
+
+    /**
+     * 编辑知识
+     */
+    public function editKnowledge($subject_id, $knowledge_info)
+    {
+        $result = $this->knowledgeData->updateKnowledgeBySubjectId($subject_id, $knowledge_info);
+        return $result;
+    }
+
     /**
      * 新增知识分类
      */
