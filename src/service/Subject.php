@@ -901,7 +901,7 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if ($subjectInfo['type'] == 'knowledge') {
                 $knowledge_service = new \mia\miagroup\Service\Knowledge();
-                $blog_info = $knowledge_service->getKnowledgeDetai($subjectId);
+                $blog_info = $knowledge_service->getKnowledgeDetail($subjectId)['data'];
             }
             if (!empty($blog_info)) {
                 $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);

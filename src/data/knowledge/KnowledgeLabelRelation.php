@@ -57,7 +57,7 @@ class KnowledgeLabelRelation extends \DB_Query {
         if (empty($where) || empty($updateData)) {
             return false;
         }
-    
+
         $data = $this->update($updateData, $where);
         return $data;
     }

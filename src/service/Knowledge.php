@@ -4,6 +4,7 @@ namespace mia\miagroup\Service;
 use mia\miagroup\Model\Knowledge as KnowledgeModel;
 use mia\miagroup\Service\Label as LabelService;
 use mia\miagroup\Service\Subject as SubjectService;
+
 class Knowledge extends \mia\miagroup\Lib\Service {
 
     public $knowledgeModel = null;
@@ -77,11 +78,126 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         
         return $this->succ(true);
     }
-    
+
+
+    public function editKnowledge($param) {
+        if (empty($param['subject_id']) || empty($param['category_id']) || empty($param['blog_meta']) || !is_array($param['blog_meta'])) {
+            return $this->error(500);
+        }
+        //参数校验
+        if ($param['min_period'] >= $param['max_period']) {
+            return $this->error(500);
+        }
+        $subject_service = new SubjectService();
+        $subject_info = $subject_service->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[])['data'];
+
+        if (empty($subject_info) || $subject_info['type'] != 'knowledge') {
+            return $this->error(1131);
+        }
+        //TODO 编辑暂时没限制
+        $param['user_id'] = $subject_info['user_id'];
+        $parsed_param = $subject_service->parseBlogParam($param, 'knowledge');
+
+        if (empty($parsed_param['subject_info']['title']) || empty($parsed_param['subject_info']['text'])) {
+            return $this->error(500);
+        }
+        if (!empty($param['labels']) && is_array($param['labels'])) {
+            foreach ($param['labels'] as $label) {
+                $parsed_param['labels'][] = ['title' => $label];
+            }
+        }
+
+        //处理修改过的标签
+        $exist_labels = [];
+        if (!empty($subject_info['group_labels'])) {
+            $exist_labels = array_column($subject_info['group_labels'], 'title');
+        }
+        $delete_labels = array_diff($exist_labels, array_column($parsed_param['labels'], 'title'));
+        $new_labels = array_diff(array_column($parsed_param['labels'], 'title'), $exist_labels);
+
+        $labelService = new Label();
+        if(!empty($delete_labels)) {
+            foreach ($delete_labels as $label) {
+                $label_id = $labelService->addLabel($label)['data'];
+                $labelService->cancleSelectedTag($param['subject_id'], $label_id);
+            }
+        }
+        if(!empty($new_labels)) {
+            foreach ($new_labels as $label) {
+                $labelService->addSubjectLabelRelationInput($param['subject_id'], $label, $subject_info['user_id'], $subject_info['created']);
+            }
+        }
+
+        //修改知识表
+        $knowledge_info = [];
+        $knowledge_info['user_id'] = $param['user_id'];
+        if ($param['max_period'] <= -1000) {
+            $knowledge_info['user_status'] = 3;
+            $param['min_period'] = 0;
+            $param['max_period'] = 0;
+        } else if ($param['max_period'] < 0) {
+            $knowledge_info['user_status'] = 2;
+        } else if ($param['min_period'] >= 0) {
+            $knowledge_info['user_status'] = 1;
+        }
+        $knowledge_info['min_period'] = $param['min_period'];
+        $knowledge_info['max_period'] = $param['max_period'];
+        $knowledge_info['accurate_period'] = $param['accurate_period'];
+        $knowledge_info['op_admin'] = $param['op_admin'];
+        if (!empty($parsed_param["subject_info"]['text'])) {
+            $knowledge_info['text'] = $parsed_param["subject_info"]['text'];
+        }
+        if (!empty($parsed_param["subject_info"]['title'])) {
+            $knowledge_info['title'] = $parsed_param["subject_info"]['title'];
+        }
+        if (!empty($parsed_param['blog_meta'])) {
+            $knowledge_info['blog_meta'] = $parsed_param['blog_meta'];
+        }
+        if (isset($parsed_param['status'])) {
+            $knowledge_info['status'] = $parsed_param['status'];
+        }
+        if (!empty($knowledge_info)) {
+            $this->knowledgeModel->editKnowledge($param['subject_id'], $knowledge_info);
+        }
+        //修改帖子表
+        if (!empty($parsed_param['subject_info'])) {
+            $subject_set_data = [];
+            if (!empty($parsed_param['subject_info']['title'])) {
+                $subject_set_data['title'] = $parsed_param['subject_info']['title'];
+            }
+            if (isset($parsed_param['subject_info']['status'])) {
+                $subject_set_data['status'] = $parsed_param['subject_info']['status'];
+            }
+            if (!empty($parsed_param['subject_info']['text'])) {
+                $subject_set_data['text'] = $parsed_param['subject_info']['text'];
+            }
+            if (!empty($parsed_param['subject_info']['ext_info'])) {
+                $subject_set_data['ext_info'] = $parsed_param['subject_info']['ext_info'];
+            }
+            if (!empty($parsed_param['subject_info']['image_infos'])) {
+                $subject_set_data['image_url'] = is_array($parsed_param['subject_info']['image_infos']) ? implode('#', array_column($parsed_param['subject_info']['image_infos'], 'url')) : '';
+                $subject_set_data['ext_info']['image'] = $parsed_param['subject_info']['image_infos'];
+            }
+            $subject_service->updateSubject($param['subject_id'], $subject_set_data);
+        }
+        //修改分类与帖子关系
+        //判断是否已经存在关联关系
+        $condition = array('subject_id' => $param['subject_id'], 'status' => 1);
+        $relation_res = $this->knowledgeModel->getKnowledgeCateSubjectRelation($condition);
+        $old_relation = array_column($relation_res, 'category_id');
+        if (!in_array($param['category_id'], $old_relation)) {
+            //删除旧关系
+            $this->knowledgeModel->delCateRelation($param['subject_id']);
+            //添加新关系
+            $this->addKnowledgeCateSubjectRelation($param['category_id'], $param['subject_id']);
+        }
+        return $this->succ(true);
+    }
+
     /**
      * 获取知识详情
      */
-    public function getKnowledgeDetai($subject_id) {
+    public function getKnowledgeDetail($subject_id) {
         $data = $this->knowledgeModel->getKnowledgeBySubjectIds([$subject_id])[$subject_id];
         if (empty($data)) {
             return $this->succ([]);
@@ -93,9 +209,16 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['text'] = $data['text'];
         $knowledge_info['blog_meta'] = $data['blog_meta'];
         $knowledge_info['create_time'] = $data['create_time'];
-        return $knowledge_info;
+        $knowledge_info['min_period'] = $data['min_period'];
+        $knowledge_info['max_period'] = $data['max_period'];
+        $knowledge_info['accurate_period'] = $data['accurate_period'];
+        //获取分类
+        $condition = array('subject_id' => $subject_id, 'status' => 1);
+        $relation_res = $this->knowledgeModel->getKnowledgeCateSubjectRelation($condition);
+        $knowledge_info["category"] = $relation_res;
+        return $this->succ($knowledge_info);
     }
-    
+
     /**
      * 获取知识分类列表（一级->二级->标签）
      */
