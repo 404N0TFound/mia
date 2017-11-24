@@ -61,7 +61,8 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['max_period'] = $param['max_period'];
         $knowledge_info['accurate_period'] = $param['accurate_period'];
         $knowledge_info['blog_meta'] = $parsed_param['blog_meta'];
-        $knowledge_info['status'] = $param['status'];
+        $knowledge_info['op_admin'] = $param['op_admin'];
+        $knowledge_info['status'] = 1;
         $knowledge_info['create_time'] = $result['data']['created'];
         $this->knowledgeModel->addKnowledge($knowledge_info);
         
@@ -75,6 +76,24 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         }
         
         return $this->succ(true);
+    }
+    
+    /**
+     * 获取知识详情
+     */
+    public function getKnowledgeDetai($subject_id) {
+        $data = $this->knowledgeModel->getKnowledgeBySubjectIds([$subject_id])[$subject_id];
+        if (empty($data)) {
+            return $this->succ([]);
+        }
+        $knowledge_info['id'] = $data['id'];
+        $knowledge_info['subject_id'] = $data['subject_id'];
+        $knowledge_info['user_id'] = $data['user_id'];
+        $knowledge_info['title'] = $data['title'];
+        $knowledge_info['text'] = $data['text'];
+        $knowledge_info['blog_meta'] = $data['blog_meta'];
+        $knowledge_info['create_time'] = $data['create_time'];
+        return $knowledge_info;
     }
     
     /**
@@ -289,5 +308,41 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $setData[] = ['status',0];
         $data = $this->knowledgeModel->updateKnowledgeCategory($condition,$setData);
         return $this->succ($data);
+    }
+    
+    /**
+     * 同龄首页
+     */
+    public function sameAgeIndex($user_id, $dvc_id) {
+        //获取group_user_info
+        //获取近期小贴士
+        //获取今日必读
+        //获取同龄用户推荐
+        //获取同龄内容推荐
+    }
+    
+    /**
+     * 获取用户小贴士列表
+     */
+    public function getUserTipsList($type, $user_id, $dvc_id, $accurate_day = 0, $before_id = 0, $after_id = 0, $limit = 10) {
+        //获取贴士列表
+        //获取身高体重标准
+        //获取用户记录的身高体重
+        //拼装结果集
+    }
+    
+    /**
+     * 获取今日必读知识
+     */
+    public function getDailyRecommendKnowledge($user_id, $dvc_id, $accurate_day = 0) {
+        ;
+    }
+    
+    /**
+     * 获取知识分类
+     */
+    public function getKnowledgeCates($cateIds = array()) {
+        $categoryInfos = $this->knowledgeModel->getCategoryInfosByCids($cateIds,array(1));
+        return $this->succ($categoryInfos);
     }
 }

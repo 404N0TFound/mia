@@ -390,6 +390,13 @@ class Subject extends \mia\miagroup\Lib\Service
         });
         return $this->succ($lastList);
     }
+    
+    /**
+     * 获取同龄推荐帖子内容
+     */
+    public function getSameAgeSubject() {
+        
+    }
 
 
     /**
@@ -630,8 +637,10 @@ class Subject extends \mia\miagroup\Lib\Service
                         continue;
                     }
                 }
-            }else if($subjectInfos[$subjectId]['ext_info']['is_material'] == 1) {
+            } else if($subjectInfos[$subjectId]['ext_info']['is_material'] == 1) {
                 $subjectRes[$subjectInfo['id']]['type'] = 'material';
+            } else if($subjectInfos[$subjectId]['ext_info']['is_knowledge'] == 1) {
+                $subjectRes[$subjectInfo['id']]['type'] = 'knowledge';
             } else {
                 $subjectRes[$subjectInfo['id']]['type'] = 'normal';
             }
@@ -885,14 +894,17 @@ class Subject extends \mia\miagroup\Lib\Service
         $this->commentService = new CommentService();
         $commentInfo = $this->commentService->getCommentBySubjectId($subjectId, 0, 3)['data'];
         $subjectInfo['comment_info'] = $commentInfo;
-        
         /*蜜芽帖、口碑贴相关逻辑开始*/
         if ($subjectInfo['source'] != 3 && empty($subjectInfo['album_article'])) {
             if ($subjectInfo['type'] == 'blog') {
                 $blog_info = $this->subjectModel->getBlogBySubjectIds([$subjectId], $status)[$subjectId];
-                if (!empty($blog_info)) {
-                    $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
-                }
+            }
+            if ($subjectInfo['type'] == 'knowledge') {
+                $knowledge_service = new \mia\miagroup\Service\Knowledge();
+                $blog_info = $knowledge_service->getKnowledgeDetai($subjectId);
+            }
+            if (!empty($blog_info)) {
+                $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
             }
             //获取商品推荐
             if (in_array('item', $field)) {
@@ -2236,7 +2248,7 @@ class Subject extends \mia\miagroup\Lib\Service
      * @param int $type 1：帖子, 2:素材；
      * @return mixed
      */
-    public function subjectCollect($userId, $sourceId, $status = 1, $type = 1)
+    public function subjectCollect($userId, $sourceId, $status = 1)
     {
         if (empty($userId) || empty($sourceId)) {
             return $this->error(500);
@@ -2249,15 +2261,16 @@ class Subject extends \mia\miagroup\Lib\Service
         // 素材相关标识
         $configMaterial = $this->config['source']['material'];
         $subjectSource = $subjectInfo['source'];
-        $is_material = $subjectInfo['type'];
-
+        $subject_type = $subjectInfo['type'];
+        if($subject_type == 'material') {
+            $type = $this->config['subject_collect']['material'];
+        } else if($subject_type == 'knowledge') {
+            $type = $this->config['subject_collect']['knowledge'];
+        }
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
         if (empty($collectInfo)) {
             //插入
-            if($is_material == 'material' || $configMaterial == $subjectSource) {
-                $type = $this->config['subject_collect']['material'];
-            }
             $result = $this->subjectModel->addCollection($userId, $sourceId, $type);
             if ($type == 1 && $subjectInfo["user_id"] != $userId) {
                 if ($subjectInfo['type'] === 'blog') {
@@ -2285,9 +2298,6 @@ class Subject extends \mia\miagroup\Lib\Service
                 $setData[] = ['update_time', date("Y-m-d H:i:s")];
                 $where[] = ['user_id', $userId];
                 $where[] = ['source_id', $sourceId];
-                if($is_material == 'material' || $configMaterial == $subjectSource) {
-                    $type = $this->config['subject_collect']['material'];
-                }
                 $where[] = ['source_type', $type];
                 $result = $this->subjectModel->updateCollect($setData, $where);
                 if ($status == 1) {
@@ -3165,5 +3175,4 @@ class Subject extends \mia\miagroup\Lib\Service
         }
         return $this->succ($result);
     }
-
 }

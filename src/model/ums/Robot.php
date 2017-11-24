@@ -16,6 +16,12 @@ class Robot extends \DB_Query {
     protected $tableEditorSubject = 'group_robot_editor_subject';
     //文本素材表
     protected $tableTextMaterial = 'group_robot_text_material';
+    //知识表
+    protected $tableKnowledge = 'group_knowledge_info';
+    //知识分类表
+    protected $tableKnowledgeCate = 'group_knowledge_category';
+    //f知分类与知识关联表
+    protected $tableKnowledgeCateSubject = 'group_knowledge_category_subject_relation';
     
     /**
      * 查询帖子素材表
@@ -199,8 +205,13 @@ class Robot extends \DB_Query {
     /**
      * 查询运营帖子编辑人
      */
-    public function getEditorSubjectAdmin() {
+    public function getEditorSubjectAdmin($adminType = '') {
         $this->tableName = $this->tableEditorSubject;
+        //如果传入知识类型，则查询知识表里的发布人
+        if(!empty($adminType) && $adminType == 'knowledge'){
+            $this->tableName = $this->tableKnowledge;
+        }
+    
         $sql = "SELECT DISTINCT(`op_admin`) from {$this->tableName} WHERE op_admin IS NOT NULL and op_admin != ''";
         $data = $this->query($sql);
         if (!empty($data)) {
@@ -280,4 +291,43 @@ class Robot extends \DB_Query {
         $res = $this->delete($where);
         return $res;
     }
+    
+    /**
+     * 查询知识帖子列表
+     */
+    public function getKnowledgeSubjectData($cond, $offset = 0, $limit = 20, $orderBy = '') {
+        $this->tableName = $this->tableKnowledge;
+        $result = array('count' => 0, 'list' => array());
+        $where = array();
+        $orderBy = $this->tableName. '.id desc';
+        $field = "{$this->tableName}.*,{$this->tableKnowledgeCateSubject}.parent_cate_id,{$this->tableKnowledgeCateSubject}.category_id";
+        $join = "left join {$this->tableKnowledgeCateSubject} on {$this->tableName}.subject_id = {$this->tableKnowledgeCateSubject}.subject_id ";
+        if (!empty($cond)) {
+            //组装where条件
+            foreach ($cond as $k => $v) {
+                switch ($k) {
+                    case 'parent_cate_id':
+                    case 'category_id':
+                        $where[] = [$this->tableKnowledgeCateSubject. '.'.$k, $v];
+                        break;
+                    case 'start_time':
+                        $where[] = [':ge',$this->tableName. '.create_time', $v];
+                        break;
+                    case 'end_time':
+                        $where[] = [':le',$this->tableName. '.create_time', $v];
+                        break;
+                    default:
+                        $where[] = [$this->tableName . '.' . $k, $v];
+                }
+            }
+        }
+    
+        $result['count'] = $this->count($where, $join, 1);
+        if (intval($result['count']) <= 0) {
+            return $result;
+        }
+        $result['list'] = $this->getRows($where, $field, $limit, $offset, $orderBy, $join);
+        return $result;
+    }
+    
 }
