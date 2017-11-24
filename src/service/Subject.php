@@ -625,7 +625,7 @@ class Subject extends \mia\miagroup\Lib\Service
             $subjectRes[$subjectInfo['id']]['active_id'] = $subjectInfo['active_id'];
             if (!empty($subjectRes[$subjectInfo['id']]['video_info'])) {
                 $subjectRes[$subjectInfo['id']]['type'] = 'video';
-            } else if ($subjectInfos[$subjectId]['ext_info']['is_blog'] == 1 || $subjectInfos[$subjectId]['ext_info']['is_knowledge'] == 1) {
+            } else if ($subjectInfos[$subjectId]['ext_info']['is_blog'] == 1) {
                 $subjectRes[$subjectInfo['id']]['type'] = 'blog';
                 //5.6以下去除长文
                 if ($this->ext_params['version']) {
