@@ -2266,6 +2266,8 @@ class Subject extends \mia\miagroup\Lib\Service
             $type = $this->config['subject_collect']['material'];
         } else if($subject_type == 'knowledge') {
             $type = $this->config['subject_collect']['knowledge'];
+        } else {
+            $type = $this->config['subject_collect']['subject'];
         }
         //查询是否收藏过
         $collectInfo = array_pop($this->subjectModel->getCollectInfo($userId, $sourceId, $type));
