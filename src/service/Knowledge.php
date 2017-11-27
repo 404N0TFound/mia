@@ -219,7 +219,11 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         //标签
         $labelService = new Label();
         $subjectLabels = $labelService->getBatchSubjectLabels([$subject_id])['data'];
-        $knowledge_info["group_labels"] = array_values($subjectLabels[$subject_id]);
+        if(!empty($subjectLabels) && isset($subjectLabels[$subject_id])) {
+            $knowledge_info["group_labels"] = array_values($subjectLabels[$subject_id]);
+        } else {
+            $knowledge_info["group_labels"] = [];
+        }
         return $this->succ($knowledge_info);
     }
 
