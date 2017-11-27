@@ -216,6 +216,10 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $condition = array('subject_id' => $subject_id, 'status' => 1);
         $relation_res = $this->knowledgeModel->getKnowledgeCateSubjectRelation($condition);
         $knowledge_info["category"] = $relation_res;
+        //标签
+        $labelService = new Label();
+        $subjectLabels = $labelService->getBatchSubjectLabels([$subject_id])['data'];
+        $knowledge_info["group_labels"] = array_values($subjectLabels[$subject_id]);
         return $this->succ($knowledge_info);
     }
 
