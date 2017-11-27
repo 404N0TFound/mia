@@ -780,8 +780,11 @@ class Subject extends \mia\miagroup\Lib\Service
             }
             if (in_array('group_actives', $field)) {
                 $subjectRes[$subjectInfo['id']]['group_actives'] = is_array($subjectActives[$subjectInfo['id']]) ? $subjectActives[$subjectInfo['id']] : array();
-                $subjectRes[$subjectInfo['id']]['is_qualified'] = !empty($subjectActives[$subjectInfo['id']]['is_qualified']) ? intval($subjectActives[$subjectInfo['id']]['is_qualified']) : 0;
-
+                if(empty($subjectActives[$subjectInfo['id']])) {
+                    $subjectRes[$subjectInfo['id']]['is_qualified'] = -1;
+                }else{
+                    $subjectRes[$subjectInfo['id']]['is_qualified'] = !empty($subjectActives[$subjectInfo['id']]['is_qualified']) ? intval($subjectActives[$subjectInfo['id']]['is_qualified']) : 0;
+                }
             }
             if (in_array('count', $field)) {
                 $subjectRes[$subjectInfo['id']]['comment_count'] = intval($commentCounts[$subjectInfo['id']]);
@@ -1207,7 +1210,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (!empty($subjectSetInfo['ext_info'])) {
             $subjectSetInfo['ext_info'] = json_encode($subjectSetInfo['ext_info']);
         }
-        
+
         //只有当帖子带图的时候才能参加活动
         if(!empty($imgUrl)){
             $activeService = new ActiveService();
@@ -1228,7 +1231,7 @@ class Subject extends \mia\miagroup\Lib\Service
                     $relationSetInfo['active_id'] = $subjectInfo['active_id'];
                 }
                
-                if($subjectInfo['active_id'] == 595){
+                if(!empty($activeInfo['active_single_limit'])) {
                     $activeUserKey = sprintf(\F_Ice::$ins->workApp->config->get('busconf.rediskey.activeKey.active_subject_user.key'), $subjectInfo['active_id'],$subjectInfo['user_info']['user_id']);
                     $redis = new Redis();
                     //判断用户是否参加了活动

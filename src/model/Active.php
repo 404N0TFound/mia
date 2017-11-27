@@ -65,6 +65,10 @@ class Active {
                     if(isset($extInfo['text_lenth_limit']) && !empty($extInfo['text_lenth_limit'])){
                         $activeArr[$active['id']]['text_lenth_limit'] = $extInfo['text_lenth_limit'];
                     }
+                    // 活动单设备限制
+                    if(isset($extInfo['active_single_limit']) && !empty($extInfo['active_single_limit'])){
+                        $activeArr[$active['id']]['active_single_limit'] = $extInfo['active_single_limit'];
+                    }
                     // 消消乐标识
                     if (isset($extInfo['is_xiaoxiaole']) && $extInfo['is_xiaoxiaole'] == 1 && !empty($extInfo['xiaoxiaole_setting'])) {
                         $activeArr[$active['id']]['active_type'] = 'xiaoxiaole';
@@ -110,7 +114,9 @@ class Active {
                         }
                         // 消消乐活动展示tab
                         $activeArr[$active['id']]['active_tab'] = $tab_setting;
-                    } else {
+                    } else if ($extInfo['is_chuangguan'] == 1) {
+                        $activeArr[$active['id']]['active_type'] = 'chuangguan';
+                    }else {
                         $activeArr[$active['id']]['active_type'] = 'common';
                     }
                     // 活动奖励
