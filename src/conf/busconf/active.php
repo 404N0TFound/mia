@@ -106,4 +106,7 @@ $xiaoxiaole = array(
     'active_no_zero_desc' => '0口碑奖的%d蜜豆已经被抢走了,确认要发布吗？',
 );
 
+// 活动过滤消消乐及闯关
+$shieldActive = array('xiaoxiaole','chuangguan');
+
 

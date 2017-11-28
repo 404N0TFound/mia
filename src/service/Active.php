@@ -37,11 +37,18 @@ class Active extends \mia\miagroup\Lib\Service {
         if (empty($activeInfos)) {
             return $this->succ(array());
         }
-    
+
         $activeIds = array_keys($activeInfos);
         $activeCount = $this->activeModel->getBatchActiveSubjectCounts($activeIds);
+
+        // 屏蔽消消乐及闯关活动
+        $shieldActive = $this->getActiveConfig('shieldActive');
     
         foreach($activeInfos as $activeInfo){
+            // 列表过滤消消乐及闯关活动
+            if(!empty($activeInfo['active_type']) && in_array($activeInfo['active_type'], $shieldActive)) {
+                continue;
+            }
             $tmp = $activeInfo;
             $tmp['img_nums'] = 0;
             $tmp['user_nums'] = 0;
@@ -146,6 +153,8 @@ class Active extends \mia\miagroup\Lib\Service {
         $extInfo = array();
         if ($activeInfo['active_type'] == 'xiaoxiaole') {
             $extInfo['is_xiaoxiaole'] = 1;
+        }else if($activeInfo['active_type'] == 'chuangguan') {
+            $extInfo['is_chuangguan'] = 1;
         }
         unset($activeInfo['active_type']);
         //参加活动的标签
@@ -194,7 +203,12 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['prize_list'] = $activeInfo['prize_list'];
             unset($activeInfo['prize_list']);
         }
-        
+        // 活动单设备限制
+        if(!empty($activeInfo['active_single_limit'])) {
+            $extInfo['active_single_limit'] = $activeInfo['active_single_limit'];
+            unset($activeInfo['active_single_limit']);
+        }
+
         $activeInfo['ext_info'] = json_encode($extInfo);
         $insertActiveRes = $this->activeModel->addActive($activeInfo);
         
@@ -202,7 +216,7 @@ class Active extends \mia\miagroup\Lib\Service {
             $insertId = $insertActiveRes;
             $updata = array('asort' => $insertId);
             $this->activeModel->updateActive($updata, $insertId);
-            return $this->succ(true);
+            return $this->succ($insertActiveRes);
         }else{
             return $this->succ(false);
         }
@@ -1368,7 +1382,30 @@ class Active extends \mia\miagroup\Lib\Service {
         $this->activeModel->addActiveItem($add_data);
         return $this->succ(true);
     }
-    
+
+    /**
+     * 批量新增消消乐商品
+     * 一键复制活动标签卡商品及批量添加标签卡商品
+     */
+    public function batchAddActiveItem($active_item_info) {
+        if (empty($active_item_info)) {
+            return $this->error(500);
+        }
+        foreach($active_item_info as $tabInfo) {
+            if(empty($tabInfo['active_id']) || empty($tabInfo['tab_name']) || empty($tabInfo['item_id'])) {
+                continue;
+            }
+            $add_data = [
+                'active_id' => $tabInfo['active_id'],
+                'item_tab'  => $tabInfo['tab_name'],
+                'item_id'   => $tabInfo['item_id'],
+                'is_pre_set'=> $tabInfo['is_pre_set'],
+            ];
+            $this->activeModel->addActiveItem($add_data);
+        }
+        return $this->succ(true);
+    }
+
     /**
      * 删除消消乐商品
      */

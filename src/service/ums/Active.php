@@ -191,12 +191,12 @@ class Active extends \mia\miagroup\Lib\Service {
     /**
      * 查询消消乐所有活动商品
      */
-    public function getAllXiaoxiaoleItems($active_id) {
+    public function getAllXiaoxiaoleItems($active_id, $limit = 20) {
         $result = array();
         if (intval($active_id) <= 0) {
             return $this->succ($result);
         }
-        $item_tabs = $this->activeModel->getActiveTabItemInfos($active_id, ['status' => 1]);
+        $item_tabs = $this->activeModel->getActiveTabItemInfos($active_id, ['status' => 1], $limit);
         $item_ids = [];
         if (empty($item_tabs)) {
             return $this->succ($result);
