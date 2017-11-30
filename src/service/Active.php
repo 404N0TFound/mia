@@ -282,6 +282,11 @@ class Active extends \mia\miagroup\Lib\Service {
             $extInfo['prize_list'] = $activeInfo['prize_list'];
             unset($activeInfo['prize_list']);
         }
+        // 活动单设备限制
+        if(!empty($activeInfo['active_single_limit'])) {
+            $extInfo['active_single_limit'] = $activeInfo['active_single_limit'];
+            unset($activeInfo['active_single_limit']);
+        }
         $activeInfo['ext_info'] = $extInfo;
         $this->activeModel->updateActive($activeInfo, $activeId);
         return $this->succ(true);
