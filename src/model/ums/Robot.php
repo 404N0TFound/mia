@@ -321,7 +321,8 @@ class Robot extends \DB_Query {
                 }
             }
         }
-    
+        $where[] = [$this->tableKnowledgeCateSubject . '.status', 1];
+
         $result['count'] = $this->count($where, $join, 1);
         if (intval($result['count']) <= 0) {
             return $result;
