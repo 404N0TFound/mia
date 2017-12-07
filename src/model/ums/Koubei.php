@@ -15,6 +15,7 @@ class Koubei extends \DB_Query {
     protected $tableKoubeiSubjects = 'koubei_subjects';
     protected $tableKoubeiItem = 'group_subject_point_tags';
     protected $tableSupplierMapping = 'user_supplier_mapping';
+    protected $tableKoubeiTagsRelation = 'koubei_tags_relation';
     protected $indexKoubeiSubjects = array('subject_id', 'item_id', 'user_id', 'is_audited', 'create_time');
     //口碑申诉
     protected $tableKoubeiAppeal = 'koubei_appeal';
@@ -389,4 +390,35 @@ class Koubei extends \DB_Query {
         return $res;
     }
 
+    /*
+    * 口碑迁移更新口碑表
+    * */
+    public function updateKoubeiTransfer($updateItemData, $oriItemId, $conditions = [])
+    {
+        if(empty($updateItemData) || empty($oriItemId)) {
+            return false;
+        }
+        switch ($conditions['table']) {
+            case 'koubei':
+                $this->tableName = $this->tableKoubei;
+                break;
+            case 'relation':
+                $this->tableName = $this->tableKoubeiTagsRelation;
+                break;
+            case 'tag':
+                $this->tableName = $this->tableKoubeiItem;
+                break;
+        }
+        $where = [];
+        $where[] = ['item_id', $oriItemId];
+        if(!empty($conditions['type'])) {
+            $where[] = ['type', $conditions['type']];
+        }
+        $setData = array();
+        foreach($updateItemData as $key=>$val){
+            $setData[] = [$key, $val];
+        }
+        $res = $this->update($setData, $where);
+        return $res;
+    }
 }

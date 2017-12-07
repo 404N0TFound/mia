@@ -580,4 +580,39 @@ class Koubei extends \mia\miagroup\Lib\Service {
         $wearhouseInfo = $this->stockModel->getBatchNameBySupplyIds($supplyIds);
         return $this->succ($wearhouseInfo);
     }
+
+    /*
+     * 批量迁移口碑
+     * */
+    public function batchKoubeiTransfer($params)
+    {
+        $return = ['status' => false];
+        if (empty($params)) {
+            return $this->succ($return);
+        }
+        foreach ($params as $ori => $new) {
+            if (empty($ori) || empty($new) || !is_numeric($ori) || !is_numeric($new)) {
+                continue;
+            }
+            $conditions = [];
+            $updateItemData['item_id'] = $new;
+            $tableRelation = \F_Ice::$ins->workApp->config->get('busconf.koubei');
+            $tableParam = $tableRelation['koubei_transf_relation'];
+            foreach($tableParam as $table) {
+                $conditions['table'] = $table;
+                if($table === 'tag') {
+                    $conditions['type'] = 'sku';
+                }
+                // 更新口碑表，帖子标签关联表，口碑印象关联表
+                $res = $this->koubeiModel->updateKoubeiTransfer($updateItemData, $ori, $conditions);
+            }
+            // 更新商品好评率
+            $updateData[':literal'] = 'feedback_rate = null';
+            $res = $this->itemModel->updateItemInfoById($updateData, $ori);
+        }
+        if(!empty($res)) {
+            $return['status'] = true;
+        }
+        return $this->succ($return);
+    }
 }

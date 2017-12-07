@@ -1436,3 +1436,8 @@ $koubei_score = [0,1,2,3,4,5];
  * 口碑发布处理标签
  */
 $koubei_label_title = '开箱晒物';
+
+/*
+ * 口碑迁移表对应关系
+ */
+$koubei_transf_relation = ['koubei', 'relation', 'tag'];
