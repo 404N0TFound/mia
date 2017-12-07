@@ -487,7 +487,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             $dealLowscoreNums = $koubeiStatistics['deal_lowscore'][$supplyId] ? $koubeiStatistics['deal_lowscore'][$supplyId] : 0;
             $dealMscoreNums = $koubeiStatistics['deal_mscore'][$supplyId] ? $koubeiStatistics['deal_mscore'][$supplyId] : 0;
             $supplierKoubei['supplier_id'] = $supplyId;
-            $supplierKoubei['wearhouse_name'] = $wearhouseInfo[$supplyId]['name'];
+            $supplierKoubei['wearhouse_name'] = trim($wearhouseInfo[$supplyId]['name']);
             $supplierKoubei['koubei_nums'] = $koubeiStatistics['koubei'][$supplyId] ? $koubeiStatistics['koubei'][$supplyId] : 0;
             $supplierKoubei['lscore_nums'] = $koubeiStatistics['lowscore'][$supplyId] ? $koubeiStatistics['lowscore'][$supplyId] : 0;
             $supplierKoubei['mscore_nums'] = $koubeiStatistics['mscore'][$supplyId] ? $koubeiStatistics['mscore'][$supplyId] : 0;
