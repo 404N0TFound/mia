@@ -499,12 +499,12 @@ class Koubei extends \mia\miagroup\Lib\Service {
             if($badFeedback > 0){
                 //处理数为处理差评数/总差评数
                 $dealRate = $supplierKoubei['deal_nums'] /$badFeedback > 0  ? $supplierKoubei['deal_nums'] /$badFeedback : 0;
-                $supplierKoubei['deal_rate'] = (round($dealRate, 2) * 100)."%";
             }else{
                 //如果没有总差评数，则处理差评数默认为0
                 $dealRate = 0;
             }
             
+            $supplierKoubei['deal_rate'] = (round($dealRate, 2) * 100)."%";
             $supplierKoubei['appeal_nums'] = $koubeiStatistics['appeal'][$supplyId] ? $koubeiStatistics['appeal'][$supplyId] : 0;
             $supplierKoubei['pass_nums'] = $koubeiStatistics['pass'][$supplyId] ? $koubeiStatistics['pass'][$supplyId] : 0;
             $supplierKoubei['reject_nums'] = $koubeiStatistics['reject'][$supplyId] ? $koubeiStatistics['reject'][$supplyId] : 0;
