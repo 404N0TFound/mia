@@ -274,15 +274,16 @@ class Robot extends \mia\miagroup\Lib\Service {
          $category_labels = [];
          
          foreach($categorys as $category){
-             foreach($category as $clabels){
-                if(empty($clabels['labels'])){
-                    continue;
+              foreach($category as $clabels){
+                $labels = array();
+                $category_labels[$clabels['parent_name']][$clabels['category_id']]['id'] = $clabels['category_id'];
+                $category_labels[$clabels['parent_name']][$clabels['category_id']]['name'] = $clabels['category_name'];
+                
+                if(!empty($clabels['labels'])){
+                    $labels = array_values($clabels['labels']);
+                    $labels = array_column($clabels['labels'], 'label_name');                    
                 }
-                 $labels = array_values($clabels['labels']);
-                 $labels = array_column($clabels['labels'], 'label_name');
-                 $category_labels[$clabels['parent_name']][$clabels['category_id']]['id'] = $clabels['category_id'];
-                 $category_labels[$clabels['parent_name']][$clabels['category_id']]['name'] = $clabels['category_name'];
-                 $category_labels[$clabels['parent_name']][$clabels['category_id']]['labels'] = $labels;
+                $category_labels[$clabels['parent_name']][$clabels['category_id']]['labels'] = $labels;
              }
          }
          
