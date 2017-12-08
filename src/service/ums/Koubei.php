@@ -604,15 +604,13 @@ class Koubei extends \mia\miagroup\Lib\Service {
                     $conditions['type'] = 'sku';
                 }
                 // 更新口碑表，帖子标签关联表，口碑印象关联表
-                $res = $this->koubeiModel->updateKoubeiTransfer($updateItemData, $ori, $conditions);
+                $this->koubeiModel->updateKoubeiTransfer($updateItemData, $ori, $conditions);
             }
             // 更新商品好评率
             $updateData[':literal'] = 'feedback_rate = null';
-            $res = $this->itemModel->updateItemInfoById($updateData, $ori);
+            $this->itemModel->updateItemInfoById($updateData, $ori);
         }
-        if(!empty($res)) {
-            $return['status'] = true;
-        }
+        $return['status'] = true;
         return $this->succ($return);
     }
 }
