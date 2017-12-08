@@ -209,8 +209,13 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         $knowledge_info['text'] = $data['text'];
         $knowledge_info['blog_meta'] = $data['blog_meta'];
         $knowledge_info['create_time'] = $data['create_time'];
-        $knowledge_info['min_period'] = $data['min_period'];
-        $knowledge_info['max_period'] = $data['max_period'];
+        if ($data['user_status'] == 3) {//备孕
+            $knowledge_info['min_period'] = "-1001";
+            $knowledge_info['max_period'] = "-1000";
+        } else {
+            $knowledge_info['min_period'] = $data['min_period'];
+            $knowledge_info['max_period'] = $data['max_period'];
+        }
         $knowledge_info['accurate_period'] = $data['accurate_period'];
         //获取分类
         $condition = array('subject_id' => $subject_id, 'status' => 1);
