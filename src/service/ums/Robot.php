@@ -275,7 +275,7 @@ class Robot extends \mia\miagroup\Lib\Service {
          
          foreach($categorys as $category){
              foreach($category as $clabels){
-                if(isset($clabels['labels']) && empty($clabels['labels'])){
+                if(empty($clabels['labels'])){
                     continue;
                 }
                  $labels = array_values($clabels['labels']);
