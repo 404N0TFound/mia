@@ -390,7 +390,7 @@ class Robot extends \mia\miagroup\Lib\Service {
          }
          //获取结果集数据
          $subject_service = new \mia\miagroup\Service\Subject();
-         $subjects = $subject_service->getBatchSubjectInfos($subject_ids, 0, array('user_info', 'count','content_format', 'share_info'), array())['data'];
+         $subjects = $subject_service->getBatchSubjectInfos($subject_ids, 0, array('user_info','group_labels','count','content_format', 'share_info'), array())['data'];
          if (!empty($subject_list['list'])) {
              foreach ($subject_list['list'] as $k => $v) {
                  $subject_list['list'][$k]['subject'] = $subjects[$v['subject_id']];
