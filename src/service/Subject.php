@@ -910,7 +910,7 @@ class Subject extends \mia\miagroup\Lib\Service
                 $subjectInfo['blog_meta'] = $this->_formatBlogMeta($blog_info['blog_meta']);
             }
             //获取商品推荐
-            if (in_array('item', $field)) {
+            if (in_array('item', $field) && !in_array("without_rec", $field)) {
                 $itemRecommendService = new \mia\miagroup\Remote\RecommendItem($this->ext_params);
                 if (!empty($subjectInfo['items'])) {
                     $relateItemIds = array();
@@ -2416,7 +2416,7 @@ class Subject extends \mia\miagroup\Lib\Service
         if (empty($param['subject_id'])) {
             return $this->error(500);
         }
-        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[])['data'];
+        $subject_info = $this->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item', 'without_rec'], [], [])['data'];
         if (empty($subject_info) || $subject_info['type'] != 'blog') {
             return $this->error(1131);
         }
