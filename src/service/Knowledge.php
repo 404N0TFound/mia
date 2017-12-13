@@ -89,7 +89,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
             return $this->error(500);
         }
         $subject_service = new SubjectService();
-        $subject_info = $subject_service->getSingleSubjectById($param['subject_id'], 0, ['group_labels', 'item'],[],[])['data'];
+        $subject_info = $subject_service->getSingleSubjectById($param['subject_id'], 0, ['without_rec', 'group_labels', 'item'], [], [])['data'];
 
         if (empty($subject_info) || $subject_info['type'] != 'knowledge') {
             return $this->error(1131);
@@ -296,7 +296,7 @@ class Knowledge extends \mia\miagroup\Lib\Service {
         //检查帖子是否存在
         $subjectService = new SubjectService();
         $preNode = \DB_Query::switchCluster(\DB_Query::MASTER);//查主库
-        $subjectInfo = $subjectService->getSingleSubjectById($subject_id)['data'];
+        $subjectInfo = $subjectService->getSingleSubjectById($subject_id, 0, ['without_rec'])['data'];
         \DB_Query::switchCluster($preNode);//结束主库查询
         
         if(empty($subjectInfo)){
