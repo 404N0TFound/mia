@@ -183,4 +183,13 @@ class Item {
         return $res;
     }
 
+    /*
+     * 更新商品信息
+     * */
+    public function updateItemInfo($itemId, $itemInfo)
+    {
+        $res = $this->itemData->updateItemInfo($itemId, $itemInfo);
+        return $res;
+    }
+
 }

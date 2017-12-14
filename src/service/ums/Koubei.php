@@ -7,6 +7,7 @@ use mia\miagroup\Model\Ums\Item as ItemModel;
 use mia\miagroup\Model\Ums\StockWarehouse as StockModel;
 use mia\miagroup\Service\Subject as SubjectService;
 use mia\miagroup\Service\Koubei as KoubeiService;
+use mia\miagroup\Service\Item as ItemService;
 use mia\miagroup\Util\EmojiUtil;
 
 class Koubei extends \mia\miagroup\Lib\Service {
@@ -235,7 +236,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
         }
         //根据商家id获取仓库名
         $wearhouseInfo = $this->stockModel->getBatchNameBySupplyIds($supplierIds);
-        
+
         $koubeiService = new KoubeiService();
         $maxKoubeiCount = 20000;
         $pieceCount = 100;
@@ -590,6 +591,9 @@ class Koubei extends \mia\miagroup\Lib\Service {
         if (empty($params)) {
             return $this->succ($return);
         }
+
+        $item = new ItemService();
+
         foreach ($params as $ori => $new) {
             if (empty($ori) || empty($new) || !is_numeric($ori) || !is_numeric($new)) {
                 continue;
@@ -608,7 +612,7 @@ class Koubei extends \mia\miagroup\Lib\Service {
             }
             // 更新商品好评率
             $updateData[':literal'] = 'feedback_rate = null';
-            $this->itemModel->updateItemInfoById($updateData, $ori);
+            $item->updateItem($ori, $updateData);
         }
         $return['status'] = true;
         return $this->succ($return);

@@ -272,4 +272,20 @@ class Item extends \mia\miagroup\Lib\Service {
         $category_info = $this->itemModel->categoryInfo($category_id, $condition);
         return $this->succ($category_info);
     }
+
+    /*
+     * 更新商品信息
+     * */
+    public function updateItem($itemId, $itemInfo)
+    {
+        $return = ['status' => false];
+        if(empty($itemId) || empty($itemInfo)) {
+            return $this->succ($return);
+        }
+        $res = $this->itemModel->updateItemInfo($itemId, $itemInfo);
+        if(!empty($res)) {
+            $return['status'] = true;
+        }
+        return $this->succ($return);
+    }
 }

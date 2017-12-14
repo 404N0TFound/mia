@@ -110,22 +110,4 @@ class Item extends \DB_Query {
         }
         return $result;
     }
-
-    /*
-     * 更新商品信息
-     * */
-    public function updateItemInfoById($updateData, $itemId)
-    {
-        if (empty($updateData) || empty($itemId)) {
-            return false;
-        }
-        $this->tableName = $this->tableItem;
-        $where[] = ['id', $itemId];
-        $setData = array();
-        foreach($updateData as $key => $val){
-            $setData[] = [$key, $val];
-        }
-        $data = $this->update($setData, $where);
-        return $data;
-    }
 }
