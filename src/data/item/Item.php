@@ -132,4 +132,21 @@ class Item extends \DB_Query {
         $category_id = $data[$fields];
         return $category_id;
     }
+
+    /*
+     * 更新商品信息
+     * */
+    public function updateItemInfo($itemId, $itemInfo)
+    {
+        if(empty($itemId) || empty($itemInfo)) {
+            return false;
+        }
+        $where[] = ['id', $itemId];
+        $setData = array();
+        foreach($itemInfo as $key => $val){
+            $setData[] = [$key, $val];
+        }
+        $data = $this->update($setData, $where);
+        return $data;
+    }
 }
